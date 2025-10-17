@@ -271,13 +271,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraMover
   _target: {fileID: 1430011198}
   _distance: 5
-  _sensitivity: 1
+  _sensitivityX: 0.7
+  _sensitivityY: 0.3
   _smoothTime: 0.05
-  _minPitch: -30
+  _minPitch: -10
   _maxPitch: 70
   _rotateTarget: 1
   _rotationLerpSpeed: 20
-  _lookAction: {fileID: -207523484013753780, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,11 +598,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96096b0cfc079a344a5924d5a1f91860, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
-  _playerSpeed: 3
+  _walkSpeed: 3
+  _sprintSpeed: 6
+  _speedSmoothTime: 0.15
   _jumpHeight: 1.5
   _gravityValue: 9.81
   _verticalVelocity: 0
   _groundedTimer: 0
+  _isSprinting: 0
   _cameraTransform: {fileID: 330585546}
 --- !u!143 &1430011194
 CharacterController:
@@ -622,7 +625,7 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.32
+  m_Height: 1.1
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
@@ -695,7 +698,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0.12015003, y: 1.6029999, z: -0.024499997}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1.4246, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1792726467}

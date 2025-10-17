@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class CharacterMover : MonoBehaviour
@@ -20,42 +19,21 @@ public class CharacterMover : MonoBehaviour
     [SerializeField] private Transform _cameraTransform;
 
     private CharacterController _controller;
-    private PlayerInputActions _inputs;
-
-    private Vector2 _moveInput;
-    private bool _jumpPressed;
-    private bool _sprintPressed;
-
     private float _currentSpeed;
     private float _speedVelocity;
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
-        _inputs = new PlayerInputActions();
-
-        // Movement
-        _inputs.Player.Move.performed += ctx => _moveInput = ctx.ReadValue<Vector2>();
-        _inputs.Player.Move.canceled += _ => _moveInput = Vector2.zero;
-
-        // Jump
-        _inputs.Player.Jump.performed += _ => _jumpPressed = true;
-
-        // Sprint
-        _inputs.Player.Sprint.performed += _ => _sprintPressed = true;
-        _inputs.Player.Sprint.canceled += _ => _sprintPressed = false;
     }
 
-    private void OnEnable() => _inputs.Enable();
-    private void OnDisable() => _inputs.Disable();
-
-    public void TickMovement()
+    public void TickMovement(Vector2 moveInput, bool jumpPressed, bool sprintPressed)
     {
         HandleGrounding();
         ApplyGravity();
-        HandleJump();
+        HandleJump(jumpPressed);
 
-        Vector3 moveDirection = CalculateCameraRelativeMove();
+        Vector3 moveDirection = CalculateCameraRelativeMove(moveInput, sprintPressed);
         MoveCharacter(moveDirection);
     }
 
@@ -73,34 +51,26 @@ public class CharacterMover : MonoBehaviour
 
     private void ApplyGravity() => _verticalVelocity -= _gravityValue * Time.deltaTime;
 
-    private void HandleJump()
+    private void HandleJump(bool jumpPressed)
     {
-        if (_jumpPressed == true && _groundedTimer > 0f)
+        if (jumpPressed == true && _groundedTimer > 0f)
         {
-            _jumpPressed = false;
             _groundedTimer = 0f;
             _verticalVelocity = Mathf.Sqrt(_jumpHeight * 2f * _gravityValue);
         }
-        else
-        {
-            _jumpPressed = false;
-        }
     }
 
-    private Vector3 CalculateCameraRelativeMove()
+    private Vector3 CalculateCameraRelativeMove(Vector2 moveInput, bool sprintPressed)
     {
-        Vector3 inputDir = new Vector3(_moveInput.x, 0f, _moveInput.y);
-
+        Vector3 inputDir = new Vector3(moveInput.x, 0f, moveInput.y);
         Vector3 cameraForward = _cameraTransform.forward;
         Vector3 cameraRight = _cameraTransform.right;
         cameraForward.y = 0f;
         cameraRight.y = 0f;
 
-        // плавное изменение скорости между ходьбой и спринтом
-        float targetSpeed = _sprintPressed == true ? _sprintSpeed : _walkSpeed;
+        float targetSpeed = sprintPressed == true ? _sprintSpeed : _walkSpeed;
         _currentSpeed = Mathf.SmoothDamp(_currentSpeed, targetSpeed, ref _speedVelocity, _speedSmoothTime);
-
-        _isSprinting = _sprintPressed;
+        _isSprinting = sprintPressed;
 
         return (cameraForward.normalized * inputDir.z + cameraRight.normalized * inputDir.x) * _currentSpeed;
     }
