@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.65015, y: 0.9, z: -9.8945}
+  m_LocalPosition: {x: 0.65015, y: 4.55, z: -9.8945}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -732,8 +732,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 015bbbde71158514881ff10aa72fbec4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cursor
-  _escapeAction: {fileID: 0}
-  _clickAction: {fileID: 0}
 --- !u!4 &1738089518
 Transform:
   m_ObjectHideFlags: 0
@@ -798,7 +796,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Player
   _characterMover: {fileID: 1430011193}
   _cameraMover: {fileID: 330585548}
-  _cursorManager: {fileID: 1738089517}
+  _cursor: {fileID: 1738089517}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
