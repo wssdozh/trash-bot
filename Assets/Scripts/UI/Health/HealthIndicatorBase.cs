@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public abstract class HealthIndicatorBase : MonoBehaviour
+public abstract class HealthIndicatorBase<T> : MonoBehaviour where T : Health
 {
-    [SerializeField] protected Health Health;
+    [SerializeField] protected T Health;
 
     protected virtual void OnEnable()
     {
