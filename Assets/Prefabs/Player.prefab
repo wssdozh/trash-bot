@@ -345,6 +345,8 @@ GameObject:
   m_Component:
   - component: {fileID: 380416506841569931}
   - component: {fileID: 3267635586833716179}
+  - component: {fileID: 5488253613451184763}
+  - component: {fileID: 2505785164157988874}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -388,6 +390,42 @@ MonoBehaviour:
   _cameraMover: {fileID: 4605374547213897126}
   _cursor: {fileID: 6924456390838364872}
   _mainCamera: {fileID: 844772039282661219}
+  _health: {fileID: 5488253613451184763}
+  _stamina: {fileID: 2505785164157988874}
+  _timeBattle: 3
+--- !u!114 &5488253613451184763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4645808941435761900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  _minValue: 0
+  _maxValue: 100
+  _value: 100
+--- !u!114 &2505785164157988874
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4645808941435761900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 478d53c3ab111c148a25f384bd83ce13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Stamina
+  _minValue: 0
+  _maxValue: 100
+  _value: 100
+  _autoRegen: 1
+  _regenPerSecond: 5
+  _regenDelay: 1
 --- !u!1 &5458068999687929483
 GameObject:
   m_ObjectHideFlags: 0

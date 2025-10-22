@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class HealthSmoothSliderIndicator : StatIndicatorBase<Health>  
+public class StaminaSmoothSliderIndicator : StatIndicatorBase<Stamina>  
 {
     [SerializeField] private Slider _slider;
     [SerializeField] private float _duration = 0.5f; 
