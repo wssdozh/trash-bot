@@ -10,6 +10,10 @@ public class Player : MonoBehaviour
     [SerializeField] private CameraMover _cameraMover;
     [SerializeField] private CursorManager _cursor;
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private Health _health;
+    [SerializeField] private Stamina _stamina;
+
+    [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
 
     private PlayerInputActions _inputs;
@@ -88,7 +92,12 @@ public class Player : MonoBehaviour
 
     private void OnSprintPerformed(InputAction.CallbackContext ctx)
     {
-        _movement.OnSprint(true);
+        if (_stamina.Value > _stamina.MinValue)
+        {
+            _movement.OnSprint(true);
+            _stamina.Decrease(1);
+        }
+
     }
 
     private void OnSprintCanceled(InputAction.CallbackContext ctx)
