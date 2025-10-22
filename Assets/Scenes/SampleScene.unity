@@ -1370,7 +1370,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 572dd6acdb1b5524da0f9febdd446c18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StaminaSmoothSliderIndicator
-  Stat: {fileID: 7807329700703496822}
+  Stat: {fileID: 7807329700703496823}
   _slider: {fileID: 1667708855}
   _duration: 0.5
 --- !u!114 &1667708855
@@ -1586,7 +1586,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.35439655, g: 0.37646845, b: 0.41509432, a: 1}
+  m_Color: {r: 0.28292987, g: 0.29711416, b: 0.3207547, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1752,7 +1752,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56ea61bb21519c14090bed541e405535, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSmoothSliderIndicator
-  Stat: {fileID: 0}
+  Stat: {fileID: 7807329700703496824}
   _slider: {fileID: 1937516958}
   _duration: 0.5
 --- !u!114 &1937516958
@@ -1870,7 +1870,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.35439655, g: 0.37646845, b: 0.41509432, a: 1}
+  m_Color: {r: 0.28627452, g: 0.29803923, b: 0.32156864, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2067,39 +2067,35 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3036868117835955216, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1667708853}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4645808941435761900, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7807329700703496822}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
---- !u!1 &7807329700703496814 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4645808941435761900, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
-  m_PrefabInstance: {fileID: 7807329700703496813}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7807329700703496815 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3036868117835955216, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
   m_PrefabInstance: {fileID: 7807329700703496813}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7807329700703496822
+--- !u!114 &7807329700703496823 stripped
 MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 2505785164157988874, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
+  m_PrefabInstance: {fileID: 7807329700703496813}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7807329700703496814}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 478d53c3ab111c148a25f384bd83ce13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Stamina
-  _minValue: 0
-  _maxValue: 100
-  _value: 100
-  _autoRegen: 1
-  _regenPerSecond: 5
-  _regenDelay: 1
+--- !u!114 &7807329700703496824 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5488253613451184763, guid: 189c319456b05834da6e1da2cf1ea882, type: 3}
+  m_PrefabInstance: {fileID: 7807329700703496813}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
