@@ -26,6 +26,16 @@ public class CursorManager : MonoBehaviour
         UpdateWorldPositions();
     }
 
+    public void Enable()
+    {
+        _rectTransform.gameObject.SetActive(true);
+    }
+
+    public void Disable()
+    {
+        _rectTransform.gameObject.SetActive(false);
+    }
+
     private void UpdateWorldPositions()
     {
         if (_cam == null || _player == null)
