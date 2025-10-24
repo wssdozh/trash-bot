@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private Health _health;
     [SerializeField] private Stamina _stamina;
+    [SerializeField] private CharacterInteractor _interactor;
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
@@ -57,6 +58,11 @@ public class Player : MonoBehaviour
         _health.Ended -= Die;
     }
 
+    private void Update()
+    {
+        _interactor.TickHover();
+    }
+
     private void FixedUpdate()
     {
         if (_isBattle)
@@ -72,6 +78,8 @@ public class Player : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
     {
+        _interactor.TryInteract(gameObject);
+
         if (_waitCoroutine != null)
             StopCoroutine(_waitCoroutine);
 

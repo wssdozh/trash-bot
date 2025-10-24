@@ -136,7 +136,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1116661837622117665}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -144,11 +144,11 @@ RectTransform:
   - {fileID: 3152632210371559190}
   - {fileID: 2013678293346150228}
   - {fileID: 5331252623798287433}
-  m_Father: {fileID: 7688798937628451011}
+  m_Father: {fileID: 6658717079413270669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 120, y: -70}
+  m_AnchoredPosition: {x: -790, y: 420}
   m_SizeDelta: {x: 200, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7927087487827158654
@@ -198,7 +198,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -216,7 +216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StaminaSmoothSliderIndicator
   Stat: {fileID: 2358035234800951277}
   _slider: {fileID: 7927087487827158654}
-  _duration: 0.5
+  _duration: 1
 --- !u!1 &1557592256054423854
 GameObject:
   m_ObjectHideFlags: 0
@@ -283,9 +283,9 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
+  near clip plane: 1
+  far clip plane: 120
+  field of view: 50
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -508,7 +508,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 1, b: 0.118306875, a: 1}
+  m_Color: {r: 0, g: 0.8962264, b: 0.1054385, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -557,8 +557,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2356152564854150210}
-  - {fileID: 4502559671544536461}
-  - {fileID: 2568177677181365765}
+  - {fileID: 6658717079413270669}
   m_Father: {fileID: 8730509182636759479}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -654,7 +653,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2726638929391175015}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -662,11 +661,11 @@ RectTransform:
   - {fileID: 4268662496321594787}
   - {fileID: 3330491382430492930}
   - {fileID: 5635213903171302297}
-  m_Father: {fileID: 7688798937628451011}
+  m_Father: {fileID: 6658717079413270669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 135, y: -35}
+  m_AnchoredPosition: {x: -775, y: 455}
   m_SizeDelta: {x: 230, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8687598574624594263
@@ -716,7 +715,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 0
+  m_Value: 1
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -858,6 +857,7 @@ GameObject:
   - component: {fileID: 8718649924511446665}
   - component: {fileID: 654510142173674805}
   - component: {fileID: 2358035234800951277}
+  - component: {fileID: 2896174737576541745}
   m_Layer: 6
   m_Name: Player
   m_TagString: Untagged
@@ -904,6 +904,7 @@ MonoBehaviour:
   _mainCamera: {fileID: 4222409798147971499}
   _health: {fileID: 654510142173674805}
   _stamina: {fileID: 2358035234800951277}
+  _interactor: {fileID: 2896174737576541745}
   _timeBattle: 3
   _jumpStaminaCost: 20
   _sprintStaminaCostPerSecond: 20
@@ -940,6 +941,25 @@ MonoBehaviour:
   _autoRegen: 1
   _regenPerSecond: 15
   _regenDelay: 1
+--- !u!114 &2896174737576541745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5069573000400900183}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d43b76a27a107840b1c8832fdf61bdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterInteractor
+  _origin: {fileID: 3148043264453373703}
+  _camera: {fileID: 4222409798147971499}
+  _cursor: {fileID: 8469784820120544934}
+  _interactionSphereRadius: 4
+  _interactableMask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!1 &5645138118684852261
 GameObject:
   m_ObjectHideFlags: 0
@@ -998,7 +1018,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.9600028, b: 0, a: 1}
+  m_Color: {r: 0.9245283, g: 0.8899665, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1475,3 +1495,40 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &8855915854489772407
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6658717079413270669}
+  m_Layer: 5
+  m_Name: Stats
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6658717079413270669
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855915854489772407}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4502559671544536461}
+  - {fileID: 2568177677181365765}
+  m_Father: {fileID: 7688798937628451011}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
