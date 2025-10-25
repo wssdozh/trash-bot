@@ -53,8 +53,6 @@ public class CharacterInteractor : MonoBehaviour
     {
         if (_hovered == null)
         {
-            Debug.Log("Нет объектов поблизости");
-
             return;
         }
 

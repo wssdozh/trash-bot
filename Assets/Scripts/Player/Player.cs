@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     [Header("Зависимости")]
+    [SerializeField] private Attacker _attack;
     [SerializeField] private CharacterMover _movement;
     [SerializeField] private CharacterJump _jump;
     [SerializeField] private CharacterRotator _rotator;
@@ -20,6 +21,7 @@ public class Player : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _jumpStaminaCost = 10f;
+    [SerializeField] private float _attackStaminaCost = 5f;
     [SerializeField] private float _sprintStaminaCostPerSecond = 5f;
 
     private PlayerInputActions _inputs;
@@ -89,6 +91,11 @@ public class Player : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
     {
+        if(_stamina.Value > 0f && _attack.PerformAttack())
+        {
+            _stamina.Decrease(_attackStaminaCost);
+        }
+
         if (_waitCoroutine != null)
             StopCoroutine(_waitCoroutine);
 
@@ -97,8 +104,6 @@ public class Player : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Interact button pressed");
-
         _interactor.TryInteract(gameObject);
     }
 
