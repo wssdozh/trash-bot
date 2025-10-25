@@ -4,8 +4,7 @@ public class CharacterInteractor : MonoBehaviour
 {
     [Header("Зависимости")]
     [SerializeField] private Transform _origin;
-    [SerializeField] private Camera _camera;
-    [SerializeField] private CursorManager _cursor;
+    [SerializeField] private Texter _texter;
 
     [Header("Настройки")]
     [SerializeField] private float _interactionSphereRadius = 3f;
@@ -13,81 +12,100 @@ public class CharacterInteractor : MonoBehaviour
 
     private Interactable _hovered;
 
-    private bool TryFindInteractableOnCollider(Collider collider, out Interactable interactable)
+    private void Awake()
     {
-        if (collider.TryGetComponent<Interactable>(out interactable) == false)
-        {
-            interactable = collider.GetComponentInParent<Interactable>();
-        }
+        if (_origin == null)
+            _origin = transform;
+    }
 
+    private bool TryFindInteractable(Collider collider, out Interactable interactable)
+    {
+        if (collider.TryGetComponent(out interactable))
+            return true;
+
+        interactable = collider.GetComponentInParent<Interactable>();
         return interactable != null;
     }
 
     public void TickHover()
     {
-        Ray ray = _camera.ScreenPointToRay(_cursor.MouseScreenPos);
-        RaycastHit hitInfo;
+        Interactable closest = FindClosestInteractable();
 
-        bool hasHit = Physics.Raycast(ray, out hitInfo, 100f, _interactableMask);
-
-        if (hasHit == true)
+        if (closest == null)
         {
-            Interactable target;
+            ClearHovered();
+            return;
+        }
 
-            if (TryFindInteractableOnCollider(hitInfo.collider, out target) == true)
+        if (_hovered == closest)
+            return;
+
+        if (_hovered != null)
+            _hovered.Highlight(false);
+
+        _hovered = closest;
+        _hovered.Highlight(true);
+
+        _texter.Show(_hovered.GetPrompt());
+    }
+
+    public void TryInteract(GameObject interactorGameObject)
+    {
+        if (_hovered == null)
+        {
+            Debug.Log("Нет объектов поблизости");
+
+            return;
+        }
+
+        _hovered.Interact(interactorGameObject);
+
+        _texter.Show(_hovered.GetPrompt());
+    }
+
+    private Interactable FindClosestInteractable()
+    {
+        Collider[] colliders = Physics.OverlapSphere(_origin.position, _interactionSphereRadius, _interactableMask);
+
+        Interactable closest = null;
+        float minSqrDistance = float.MaxValue;
+
+        foreach (Collider collider in colliders)
+        {
+            if (TryFindInteractable(collider, out Interactable interactable) == false)
+                continue;
+
+            if (interactable.isActiveAndEnabled == false || interactable.gameObject.activeInHierarchy == false)
+                continue;
+
+            Vector3 nearestPoint = collider.ClosestPoint(_origin.position);
+            float sqr = (_origin.position - nearestPoint).sqrMagnitude;
+
+            if (sqr < minSqrDistance)
             {
-                if (_hovered != target)
-                {
-                    if (_hovered != null)
-                        _hovered.Highlight(false);
-
-                    _hovered = target;
-                    _hovered.Highlight(true);
-                }
-
-                return;
+                minSqrDistance = sqr;
+                closest = interactable;
             }
         }
 
+        return closest;
+    }
+
+    private void ClearHovered()
+    {
         if (_hovered != null)
         {
             _hovered.Highlight(false);
             _hovered = null;
         }
+
+        if (_texter != null)
+            _texter.Hide();
     }
 
-    public void TryInteract(GameObject interactorGameObject)
+    private void OnDisable()
     {
-        Collider[] colliders = Physics.OverlapSphere(
-            _origin.position,
-            _interactionSphereRadius,
-            _interactableMask
-        );
-
-        bool isInRange = false;
-
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            Interactable interactable;
-
-            if (TryFindInteractableOnCollider(colliders[i], out interactable) == false)
-                continue;
-
-            if (interactable == _hovered)
-            {
-                isInRange = true;
-                break;
-            }
-        }
-
-        if (isInRange == true)
-        {
-            _hovered.Interact(interactorGameObject);
-        }
-        else
-        {
-            Debug.Log("ОБЪЕКТ ДАЛЕКО");
-        }
+        ClearHovered();
     }
 
     private void OnDrawGizmosSelected()

@@ -22,6 +22,7 @@ public class DoorInteractable : Interactable
             _doorTransform = transform;
 
         _closedRotation = _doorTransform.rotation;
+        
         _openRotation = _doorTransform.rotation * Quaternion.Euler(0f, _openAngle, 0f);
     }
 

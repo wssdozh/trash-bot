@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,6 +43,9 @@ public class Player : MonoBehaviour
         _inputs.Player.Sprint.canceled += OnSprintCanceled;
 
         _inputs.Player.Attack.performed += OnAttackPerformed;
+        _inputs.Player.Interact.performed += OnInteractPerformed;
+
+        StartCoroutine(While());
     }
 
     private void OnEnable() 
@@ -58,9 +62,16 @@ public class Player : MonoBehaviour
         _health.Ended -= Die;
     }
 
-    private void Update()
+    private IEnumerator While()
     {
-        _interactor.TickHover();
+        WaitForSeconds waitForSeconds = new WaitForSeconds(0.15f);
+
+        while (enabled)
+        {
+            _interactor.TickHover();
+            
+            yield return waitForSeconds;
+        }
     }
 
     private void FixedUpdate()
@@ -78,12 +89,17 @@ public class Player : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
     {
-        _interactor.TryInteract(gameObject);
-
         if (_waitCoroutine != null)
             StopCoroutine(_waitCoroutine);
 
         _waitCoroutine = StartCoroutine(Wait());
+    }
+
+    private void OnInteractPerformed(InputAction.CallbackContext ctx)
+    {
+        Debug.Log("Interact button pressed");
+
+        _interactor.TryInteract(gameObject);
     }
 
     private IEnumerator Wait()
