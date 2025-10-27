@@ -11,10 +11,11 @@ public class Stamina : Stat
 
     private void Update()
     {
-        if (!_autoRegen || _value >= _maxValue)
+        if (_autoRegen == false || _value >= _maxValue)
             return;
 
         _sinceLastSpend += Time.unscaledDeltaTime;
+
         if (_sinceLastSpend >= _regenDelay)
         {
             Increase(_regenPerSecond * Time.unscaledDeltaTime);
