@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: f665471a9c0a6294292ff940ab8d6979, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 694d5fad65b30624fa917b1afa7840a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnimator
-  _moveSpeed: 1
+  _moveSpeed: 2
   _stopDistance: 0.3
 --- !u!54 &9023542506239070179
 Rigidbody:
