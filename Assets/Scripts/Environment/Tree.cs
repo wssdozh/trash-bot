@@ -16,7 +16,7 @@ public class Tree : DamageableObject
 
     protected override void OnDamage()
     {
-        Shake();
+        PlayShake();
     }
 
     protected override void OnDeath()

@@ -18,7 +18,22 @@ public abstract class BasePickup : MonoBehaviour
         }
     }
 
+    protected virtual void OnEnable()
+    {
+        _isPickedUp = false;
+    }
+
     protected virtual void OnTriggerEnter(Collider other)
+    {
+        TryPickup(other);
+    }
+
+    protected virtual void OnTriggerStay(Collider other)
+    {
+        TryPickup(other);
+    }
+
+    private void TryPickup(Collider other)
     {
         if (_isPickedUp == false)
         {

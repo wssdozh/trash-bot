@@ -13,12 +13,12 @@ public class PickupAnimator : MonoBehaviour
 
     public void PlayAttraction(Transform target, Action onArrived)
     {
-        if (_isAnimating == false)
-        {
-            _targetTransform = target;
-            _onArrived = onArrived;
-            StartCoroutine(AnimateMovement());
-        }
+        StopAllCoroutines();
+        _isAnimating = false;
+
+        _targetTransform = target;
+        _onArrived = onArrived;
+        StartCoroutine(AnimateMovement());
     }
 
     private IEnumerator AnimateMovement()
@@ -30,7 +30,6 @@ public class PickupAnimator : MonoBehaviour
             if (_targetTransform == null)
             {
                 _isAnimating = false;
-                
                 yield break;
             }
 

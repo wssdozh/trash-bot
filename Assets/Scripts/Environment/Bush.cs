@@ -2,41 +2,32 @@ using UnityEngine;
 
 public class Bush : DamageableObject
 {
-    [SerializeField] private int berriesCount = 3;
-    private bool canGiveBerries = true;
+    [SerializeField] private PickupSpawnerRef _berrySpawnerRef;
 
     protected override void OnDamage()
     {
-        Shake();
-        GiveBerry();
+        PlayShake();
+        SpawnBerry();
     }
-
+    
     protected override void OnDeath()
     {
-        canGiveBerries = false;
-    }
-
-    private void GiveBerry()
-    {
-        if (canGiveBerries == false)
-        {
-            return;
-        }
-
-        if (berriesCount > 0)
-        {
-            berriesCount -= 1;
-            SpawnBerry();
-        }
-
-        if (berriesCount <= 0)
-        {
-            canGiveBerries = false;
-        }
+        
     }
 
     private void SpawnBerry()
     {
-        Debug.Log("Куст отдал ягоду");
+        if (_berrySpawnerRef == null)
+        {
+            return;
+        }
+
+        if (_berrySpawnerRef.Value == null)
+        {
+            return;
+        }
+
+        Vector3 spawnPosition = transform.position + Vector3.up * 0.5f;
+        _berrySpawnerRef.Value.Spawn(spawnPosition);
     }
 }
