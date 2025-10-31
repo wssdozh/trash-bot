@@ -1,14 +1,9 @@
 using UnityEngine;
-using DG.Tweening;
 
 public abstract class DamageableObject : MonoBehaviour
 {
     [SerializeField] protected Health health;
-    [SerializeField] protected float shakeStrength = 0.3f;
-    [SerializeField] protected int shakeVibrato = 12;
-    [SerializeField] protected float shakeDuration = 0.25f;
-
-    protected Tween tween;
+    [SerializeField] private DamageShakeAnimator _shakeAnimator; 
 
     protected virtual void OnEnable()
     {
@@ -28,17 +23,12 @@ public abstract class DamageableObject : MonoBehaviour
         }
     }
 
-    protected virtual void OnDestroy()
+    protected void PlayShake()
     {
-        if (tween != null && tween.IsActive() == true)
+        if (_shakeAnimator != null)
         {
-            tween.Kill();
+            _shakeAnimator.Shake();
         }
-    }
-
-    protected void Shake()
-    {
-        tween = transform.DOShakePosition(shakeDuration, shakeStrength, shakeVibrato);
     }
 
     protected abstract void OnDamage();

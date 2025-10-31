@@ -123,6 +123,7 @@ GameObject:
   - component: {fileID: 3605545441132915051}
   - component: {fileID: 3090337769377585114}
   - component: {fileID: 759475995232553391}
+  - component: {fileID: 5814092391517552995}
   - component: {fileID: 9023542506239070179}
   m_Layer: 0
   m_Name: Berry
@@ -166,7 +167,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 1
+  m_Radius: 1.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &3090337769377585114
 MonoBehaviour:
@@ -181,8 +182,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BerryPickup
   _triggerCollider: {fileID: 3605545441132915051}
-  _healAmount: 10
   _pickupAnimator: {fileID: 759475995232553391}
+  _healAmount: 10
+  _returner: {fileID: 5814092391517552995}
 --- !u!114 &759475995232553391
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,8 +197,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 694d5fad65b30624fa917b1afa7840a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnimator
-  _moveSpeed: 2
-  _stopDistance: 0.3
+  _moveSpeed: 3
+  _stopDistance: 0.2
+--- !u!114 &5814092391517552995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7910448515763914150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b404b03dd8d845d43885421b7f9fbd8b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupReturner
+  _pickup: {fileID: 3090337769377585114}
 --- !u!54 &9023542506239070179
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -222,5 +237,5 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 112
   m_CollisionDetection: 0
