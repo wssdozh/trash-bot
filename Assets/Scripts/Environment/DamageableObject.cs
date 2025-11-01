@@ -2,24 +2,24 @@ using UnityEngine;
 
 public abstract class DamageableObject : MonoBehaviour
 {
-    [SerializeField] protected Health health;
+    [SerializeField] protected Health Health;
     [SerializeField] private DamageShakeAnimator _shakeAnimator; 
 
     protected virtual void OnEnable()
     {
-        if (health != null)
+        if (Health != null)
         {
-            health.Decreased += OnDamage;
-            health.Ended += OnDeath;
+            Health.Decreased += OnDamage;
+            Health.Ended += OnDeath;
         }
     }
 
     protected virtual void OnDisable()
     {
-        if (health != null)
+        if (Health != null)
         {
-            health.Decreased -= OnDamage;
-            health.Ended -= OnDeath;
+            Health.Decreased -= OnDamage;
+            Health.Ended -= OnDeath;
         }
     }
 

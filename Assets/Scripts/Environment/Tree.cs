@@ -1,11 +1,11 @@
-using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections;
 
 public class Tree : DamageableObject
 {
-    [SerializeField] private float _destroyDelay = 0f;
     [SerializeField] private Collider _thisCollider;
     [SerializeField] private GameObject _stumpObject;
+    [SerializeField] private GameObject _treeObject;
     [SerializeField] private Rigidbody _logPrefab;
     [SerializeField] private Transform _spawnPointLog;
 
@@ -13,6 +13,8 @@ public class Tree : DamageableObject
     [SerializeField] private float _minForce;
     [SerializeField] private float _maxForce;
 
+    [Header("Регенерация")]
+    [SerializeField] private float _regenerationDelay = 60f;
 
     protected override void OnDamage()
     {
@@ -22,12 +24,24 @@ public class Tree : DamageableObject
     protected override void OnDeath()
     {
         _stumpObject.SetActive(true);
-
+        _treeObject.SetActive(false);
         _thisCollider.enabled = false;
 
-        Rigidbody _stumpRigidBody = Instantiate(_logPrefab, _spawnPointLog.position, transform.rotation);
-        _stumpRigidBody.AddForce(new Vector3(Random.Range(_minForce, _maxForce), 0f, Random.Range(_minForce, _maxForce)), ForceMode.Impulse);
+        Rigidbody spawnedLogRigidbody = Instantiate(_logPrefab, _spawnPointLog.position, transform.rotation);
+        spawnedLogRigidbody.AddForce(new Vector3(Random.Range(_minForce, _maxForce), 0f, Random.Range(_minForce, _maxForce)), ForceMode.Impulse);
 
-        Destroy(gameObject, _destroyDelay);
+        StartCoroutine(Regenerate());
+    }
+
+    private IEnumerator Regenerate()
+    {
+        yield return new WaitForSeconds(_regenerationDelay);
+
+        _stumpObject.SetActive(false);
+        _treeObject.SetActive(true);
+
+        Health.Increase(Health.MaxValue);
+
+        _thisCollider.enabled = true;
     }
 }
