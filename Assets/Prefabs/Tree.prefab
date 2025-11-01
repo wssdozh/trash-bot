@@ -357,15 +357,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f42d578a36bed24184ffe71ff5c1a2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Tree
-  health: {fileID: 4899160072897868527}
+  Health: {fileID: 4899160072897868527}
   _shakeAnimator: {fileID: 7240150264552522009}
   _destroyDelay: 0.1
   _thisCollider: {fileID: 3146573141978010765}
   _stumpObject: {fileID: 4879697053328945768}
+  _treeObject: {fileID: 7152010231978583698}
   _logPrefab: {fileID: 5106556560045436731, guid: 417e975f27f359e4291bcbeecb62785d, type: 3}
   _spawnPointLog: {fileID: 4447785751199940425}
   _minForce: -1
   _maxForce: 1
+  _treePrefab: {fileID: 0}
+  _regenerationDelay: 10
 --- !u!114 &7240150264552522009
 MonoBehaviour:
   m_ObjectHideFlags: 0

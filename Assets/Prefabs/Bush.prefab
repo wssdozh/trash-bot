@@ -127,7 +127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce1b332037c6d1747b5fb421fac34fc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bush
-  health: {fileID: 62481080621976848}
+  Health: {fileID: 62481080621976848}
   _shakeAnimator: {fileID: 2427859737707151316}
   _berrySpawnerRef: {fileID: 11400000, guid: 501178ba4743aa643b97169f9ccea49e, type: 2}
 --- !u!114 &62481080621976848
