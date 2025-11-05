@@ -8,13 +8,11 @@ public class PickupAnimator : MonoBehaviour
     [SerializeField] private float _stopDistance = 0.3f;
 
     private Transform _targetTransform;
-    private bool _isAnimating = false;
     private Action _onArrived;
 
     public void PlayAttraction(Transform target, Action onArrived)
     {
         StopAllCoroutines();
-        _isAnimating = false;
 
         _targetTransform = target;
         _onArrived = onArrived;
@@ -23,13 +21,11 @@ public class PickupAnimator : MonoBehaviour
 
     private IEnumerator AnimateMovement()
     {
-        _isAnimating = true;
 
         while (true)
         {
             if (_targetTransform == null)
             {
-                _isAnimating = false;
                 yield break;
             }
 
@@ -45,7 +41,6 @@ public class PickupAnimator : MonoBehaviour
             yield return null;
         }
 
-        _isAnimating = false;
         _onArrived?.Invoke();
     }
 }

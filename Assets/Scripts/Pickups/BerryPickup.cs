@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class BerryPickup : BaseAnimatedPickup
 {
-    [SerializeField] private int _healAmount = 10;
     [SerializeField] private PickupReturner _returner;
 
     protected override void OnConsumed(GameObject player)

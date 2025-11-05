@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 7734709129185625589}
   - component: {fileID: 5808548610228266735}
   - component: {fileID: 5700634972692784758}
+  - component: {fileID: 1227219521577652308}
   m_Layer: 7
   m_Name: DoorBody
   m_TagString: Untagged
@@ -160,7 +161,22 @@ MonoBehaviour:
   _interactionPoint: {fileID: 8029520909724889844}
   _highlightColor: {r: 0.5602314, g: 0.7372549, b: 0.015686274, a: 1}
   _blinkTime: 0.7
+  _highlightAnimator: {fileID: 1227219521577652308}
   _doorTransform: {fileID: 4345672328793038101}
   _openAngle: 90
   _openDuration: 0.7
   _openEase: 4
+--- !u!114 &1227219521577652308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8797126490727970441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3d0e1536d47b8b4b8ebe518a5e4dc00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HighlightAnimator
+  _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _blinkTime: 0.7

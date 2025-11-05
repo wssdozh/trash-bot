@@ -586,7 +586,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -1131,6 +1131,7 @@ GameObject:
   - component: {fileID: 654510142173674805}
   - component: {fileID: 2358035234800951277}
   - component: {fileID: 2896174737576541745}
+  - component: {fileID: 5306695361958864657}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -1237,6 +1238,19 @@ MonoBehaviour:
   _interactableMask:
     serializedVersion: 2
     m_Bits: 128
+--- !u!114 &5306695361958864657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5069573000400900183}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a3cbcf2653a41348b5a45982933bd85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DragAttachment
+  _carryPoint: {fileID: 8183045323307449864}
 --- !u!1 &5645138118684852261
 GameObject:
   m_ObjectHideFlags: 0
@@ -1312,6 +1326,37 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &6164618993960641105
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8183045323307449864}
+  m_Layer: 6
+  m_Name: HoldingPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8183045323307449864
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6164618993960641105}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.55}
+  m_LocalScale: {x: 3.3333333, y: 1.6666666, z: 3.3333333}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3148043264453373703}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6471752277127776562
 GameObject:
   m_ObjectHideFlags: 0
@@ -1348,6 +1393,7 @@ Transform:
   m_LocalScale: {x: 0.3, y: 0.6, z: 0.3}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 8183045323307449864}
   - {fileID: 2432480836494503094}
   m_Father: {fileID: 8730509182636759479}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
