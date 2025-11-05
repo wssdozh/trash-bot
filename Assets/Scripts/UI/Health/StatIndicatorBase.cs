@@ -22,3 +22,4 @@ public abstract class StatIndicatorBase<T> : MonoBehaviour where T : Stat
 
     protected abstract void Display();
 }
+ 

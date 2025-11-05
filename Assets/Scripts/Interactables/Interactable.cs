@@ -7,34 +7,21 @@ public abstract class Interactable : MonoBehaviour
     [SerializeField] protected Transform _interactionPoint;
 
     [Header("Подсветка")]
-    [SerializeField] protected Color _highlightColor = Color.yellow;
-    [SerializeField] protected float _blinkTime = 0.7f;
-
-    protected Color[] _originalColors;
-    protected Renderer[] _renderers;
+    [SerializeField] protected HighlightAnimator _highlightAnimator;
 
     protected virtual void Awake()
     {
-        _renderers = GetComponentsInChildren<Renderer>(true);
-        _originalColors = new Color[_renderers.Length];
-
-        for (int i = 0; i < _renderers.Length; i++)
-        { 
-            _originalColors[i] = _renderers[i].material.color;
+        if (_highlightAnimator == null)
+        {
+            _highlightAnimator = GetComponent<HighlightAnimator>();
         }
     }
 
     public virtual void Highlight(bool state)
     {
-        if (_renderers == null)
-            return;
-
-        for (int i = 0; i < _renderers.Length; i++)
+        if (_highlightAnimator != null)
         {
-            if (state)
-                Colorer.LerpToColor(_renderers[i], _highlightColor, _blinkTime);
-            else
-                Colorer.Stop(_renderers[i], _originalColors[i], _blinkTime);
+            _highlightAnimator.Highlight(state);
         }
     }
 
