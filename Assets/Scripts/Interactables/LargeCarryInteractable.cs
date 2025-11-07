@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class LargeCarryInteractable : Interactable
@@ -20,6 +21,7 @@ public class LargeCarryInteractable : Interactable
         {
             return "Взять";
         }
+
         return "Опустить";
     }
 
@@ -72,5 +74,11 @@ public class LargeCarryInteractable : Interactable
             return;
         }
         Detach();
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(transform.position + _localPositionOffset, transform.localScale);
     }
 }
