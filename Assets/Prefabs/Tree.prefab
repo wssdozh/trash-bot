@@ -275,8 +275,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 100
-  _value: 100
+  _maxValue: 25
+  _value: 25
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
@@ -359,7 +359,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tree
   Health: {fileID: 4899160072897868527}
   _shakeAnimator: {fileID: 7240150264552522009}
-  _destroyDelay: 0.1
   _thisCollider: {fileID: 3146573141978010765}
   _stumpObject: {fileID: 4879697053328945768}
   _treeObject: {fileID: 7152010231978583698}
@@ -367,7 +366,6 @@ MonoBehaviour:
   _spawnPointLog: {fileID: 4447785751199940425}
   _minForce: -1
   _maxForce: 1
-  _treePrefab: {fileID: 0}
   _regenerationDelay: 10
 --- !u!114 &7240150264552522009
 MonoBehaviour:
