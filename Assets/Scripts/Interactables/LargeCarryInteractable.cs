@@ -1,5 +1,5 @@
-using Unity.Mathematics;
 using UnityEngine;
+
 
 public class LargeCarryInteractable : Interactable
 {
@@ -53,9 +53,10 @@ public class LargeCarryInteractable : Interactable
         transform.localPosition += _localPositionOffset;
         transform.localRotation *= Quaternion.Euler(_localEulerOffset);
 
-        _rigidbody.isKinematic = true;
         _rigidbody.linearVelocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
+        _rigidbody.isKinematic = true;
+        _rigidbody.useGravity = false;
 
         _isCarried = true;
     }
@@ -64,6 +65,7 @@ public class LargeCarryInteractable : Interactable
     {
         transform.SetParent(_originalParent, true);
         _rigidbody.isKinematic = false;
+        _rigidbody.useGravity = true;
         _isCarried = false;
     }
 
@@ -79,6 +81,9 @@ public class LargeCarryInteractable : Interactable
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCube(transform.position + _localPositionOffset, transform.localScale);
+
+        float scale = 0.3f;
+
+        Gizmos.DrawWireCube(transform.position + _localPositionOffset, new Vector3(scale, scale, scale));
     }
 }

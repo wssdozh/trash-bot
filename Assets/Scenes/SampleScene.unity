@@ -119,16 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!4 &119183172 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3148043264453373703, guid: 93349177a7272794abeecc3a55faec25, type: 3}
-  m_PrefabInstance: {fileID: 7981940027577146064}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &119183177 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 1940355486449902177, guid: 93349177a7272794abeecc3a55faec25, type: 3}
-  m_PrefabInstance: {fileID: 7981940027577146064}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &220824547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,7 +649,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3d0e1536d47b8b4b8ebe518a5e4dc00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HighlightAnimator
-  _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _highlightColor: {r: 1, g: 1, b: 1, a: 1}
   _blinkTime: 0.7
 --- !u!114 &644909950
 MonoBehaviour:
@@ -677,7 +667,7 @@ MonoBehaviour:
   _interactionPoint: {fileID: 644909955}
   _highlightAnimator: {fileID: 644909949}
   _rigidbody: {fileID: 644909951}
-  _localPositionOffset: {x: 0, y: 0, z: 0.56}
+  _localPositionOffset: {x: 0, y: 0, z: 0}
   _localEulerOffset: {x: 0, y: 0, z: 0}
 --- !u!54 &644909951
 Rigidbody:
@@ -1876,39 +1866,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30b373a7e6ac7534bab0d1e8a3e6222c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RopeAnchor
-  _rigidbody: {fileID: 119183177}
-  _anchorPoint: {fileID: 2046795752}
---- !u!1 &2046795751
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2046795752}
-  m_Layer: 6
-  m_Name: HoldingPoint (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2046795752
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2046795751}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1}
-  m_LocalScale: {x: 3.3333333, y: 1.6666666, z: 3.3333333}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 119183172}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2068307106
 GameObject:
   m_ObjectHideFlags: 0
@@ -2223,15 +2180,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 595541496786092899, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 595541496786092899, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 595541496786092899, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 863298030949118499, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_SizeDelta.x
@@ -2275,15 +2232,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2172427228324215211, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2172427228324215211, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2172427228324215211, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2410507767037626260, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_AnchorMax.y
@@ -2393,6 +2350,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6378614461455722869, guid: 93349177a7272794abeecc3a55faec25, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
     - target: {fileID: 6471752277127776562, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       propertyPath: m_TagString
       value: Player
@@ -2516,10 +2477,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8340671555350155460, guid: 93349177a7272794abeecc3a55faec25, type: 3}
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 3148043264453373703, guid: 93349177a7272794abeecc3a55faec25, type: 3}
-      insertIndex: 1
-      addedObject: {fileID: 2046795752}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5069573000400900183, guid: 93349177a7272794abeecc3a55faec25, type: 3}
       insertIndex: -1
