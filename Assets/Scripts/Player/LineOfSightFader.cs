@@ -9,6 +9,8 @@ public class LineOfSightFader : MonoBehaviour
     [SerializeField] private LayerMask _obstacleMask;
     [SerializeField] private float _sphereRadius = 0.4f;
     [SerializeField] private float _checkInterval = 0.3f;
+    [SerializeField] private float _minDistanceFromCamera = 0.15f;
+    [SerializeField] private float _minDistanceToTarget = 0.2f;
 
     private readonly List<IFadable> _current = new List<IFadable>(32);
     private readonly List<IFadable> _previous = new List<IFadable>(32);
@@ -44,13 +46,13 @@ public class LineOfSightFader : MonoBehaviour
         _current.Clear();
 
         Vector3 origin = _cameraTransform.position;
-        Vector3 direction = _target.position - origin;
-        float distance = direction.magnitude;
+        Vector3 toTarget = _target.position - origin;
+        float distance = toTarget.magnitude;
 
         RaycastHit[] hits = Physics.SphereCastAll(
             origin,
             _sphereRadius,
-            direction.normalized,
+            toTarget.normalized,
             distance,
             _obstacleMask,
             QueryTriggerInteraction.Ignore
@@ -59,6 +61,11 @@ public class LineOfSightFader : MonoBehaviour
         int count = hits.Length;
         for (int i = 0; i < count; i++)
         {
+            float hitDist = hits[i].distance;
+            if (hitDist < _minDistanceFromCamera) continue;
+            if (distance - hitDist < _minDistanceToTarget) continue;
+            if (hits[i].transform == _target || hits[i].transform.IsChildOf(_target) == true) continue;
+
             IFadable fadable;
             if (hits[i].transform.TryGetComponent<IFadable>(out fadable) == true)
             {

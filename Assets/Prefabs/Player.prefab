@@ -160,7 +160,7 @@ MonoBehaviour:
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 384
-  _sphereRadius: 0.3
+  _sphereRadius: 0.1
   _checkInterval: 0.3
 --- !u!1 &1116661837622117665
 GameObject:
@@ -834,13 +834,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12d716df7db20ff4f8b2fa863cae231c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Attacker
-  attackRange: 0.5
+  attackRange: 0.6
   minDamage: 6
   maxDamage: 10
   attackCooldown: 0.5
   hitLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 128
 --- !u!1 &2929063581134069895
 GameObject:
   m_ObjectHideFlags: 0
@@ -1597,7 +1597,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterJump
   _rigidbody: {fileID: 1940355486449902177}
-  _jumpForce: 3
+  _jumpForce: 5
   _rayLengthGround: 0.38
   _groundLayer:
     serializedVersion: 2
