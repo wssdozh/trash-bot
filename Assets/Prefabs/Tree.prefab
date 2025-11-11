@@ -160,7 +160,6 @@ GameObject:
   - component: {fileID: 5338752189341254603}
   - component: {fileID: 3146573141978010765}
   - component: {fileID: 4899160072897868527}
-  - component: {fileID: 7648059344253694307}
   m_Layer: 7
   m_Name: TreeBody
   m_TagString: Untagged
@@ -281,20 +280,6 @@ MonoBehaviour:
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
---- !u!114 &7648059344253694307
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7152010231978583698}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d28df18ab1be5044b1ac25fe340a91d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FadableObstacle
-  _renderer: {fileID: 5338752189341254603}
-  _settings: {fileID: 11400000, guid: edc4934831d03974380628f17c07ec4c, type: 2}
 --- !u!1 &7977368449055893211
 GameObject:
   m_ObjectHideFlags: 0
