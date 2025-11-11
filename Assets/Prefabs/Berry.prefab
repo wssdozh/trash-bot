@@ -181,9 +181,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5105a6a6f3b37df4582dd94fae2898f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BerryPickup
-  _triggerCollider: {fileID: 3605545441132915051}
+  TriggerCollider: {fileID: 3605545441132915051}
   _pickupAnimator: {fileID: 759475995232553391}
-  _healAmount: 10
+  _rigidbody: {fileID: 9023542506239070179}
+  _collider: {fileID: 5435031586697937510}
   _returner: {fileID: 5814092391517552995}
 --- !u!114 &759475995232553391
 MonoBehaviour:

@@ -5,7 +5,7 @@ using System.Collections;
 public class PickupAnimator : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 5f;
-    [SerializeField] private float _stopDistance = 0.3f;
+    [SerializeField] private float _stopDistance = 0.1f;
 
     private Transform _targetTransform;
     private Action _onArrived;
@@ -16,13 +16,13 @@ public class PickupAnimator : MonoBehaviour
 
         _targetTransform = target;
         _onArrived = onArrived;
+
         StartCoroutine(AnimateMovement());
     }
 
     private IEnumerator AnimateMovement()
     {
-
-        while (true)
+        while (enabled)
         {
             if (_targetTransform == null)
             {

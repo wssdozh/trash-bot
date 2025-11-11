@@ -56,7 +56,6 @@ public class LargeCarryInteractable : Interactable
         _rigidbody.linearVelocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
         _rigidbody.isKinematic = true;
-        _rigidbody.useGravity = false;
 
         _isCarried = true;
     }
@@ -65,7 +64,6 @@ public class LargeCarryInteractable : Interactable
     {
         transform.SetParent(_originalParent, true);
         _rigidbody.isKinematic = false;
-        _rigidbody.useGravity = true;
         _isCarried = false;
     }
 
