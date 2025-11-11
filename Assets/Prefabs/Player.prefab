@@ -111,6 +111,57 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &879721276596428020
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2754503960333170900}
+  - component: {fileID: 3435261201593520993}
+  m_Layer: 6
+  m_Name: LineOfSightFader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2754503960333170900
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879721276596428020}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3148043264453373703}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3435261201593520993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879721276596428020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90ac45e808fe6f8418101aa7e0c4892b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LineOfSightFader
+  _cameraTransform: {fileID: 8512417685468052583}
+  _target: {fileID: 3148043264453373703}
+  _obstacleMask:
+    serializedVersion: 2
+    m_Bits: 384
+  _sphereRadius: 0.3
+  _checkInterval: 0.3
 --- !u!1 &1116661837622117665
 GameObject:
   m_ObjectHideFlags: 0
@@ -1395,6 +1446,7 @@ Transform:
   m_Children:
   - {fileID: 8183045323307449864}
   - {fileID: 2432480836494503094}
+  - {fileID: 2754503960333170900}
   m_Father: {fileID: 8730509182636759479}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6378614461455722869
@@ -1546,7 +1598,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterJump
   _rigidbody: {fileID: 1940355486449902177}
   _jumpForce: 3
-  _rayLengthGround: 0.35
+  _rayLengthGround: 0.38
   _groundLayer:
     serializedVersion: 2
     m_Bits: 8

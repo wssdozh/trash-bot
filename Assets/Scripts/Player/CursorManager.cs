@@ -22,6 +22,7 @@ public class CursorManager : MonoBehaviour
     private void Update()
     {
         _rectTransform.position = MouseScreenPos;
+        
         UpdateWorldPositions();
     }
 
