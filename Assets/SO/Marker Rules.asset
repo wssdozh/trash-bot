@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2a690355fc89724f93e0e72a53d5bd8, type: 3}
+  m_Name: Marker Rules
+  m_EditorClassIdentifier: Assembly-CSharp::MarkerRules
+  Rules:
+  - TreePrototypePrefab: {fileID: 6363644649381114072, guid: 553dd85e7f942364bba3140f7f721b5e, type: 3}
+    SpawnPrefab: {fileID: 986409117268951451, guid: fdcbbfb6a71d7dd4e888d6b4a4d09886, type: 3}
+    ParentOverride: {fileID: 0}
+    AnchorPath: TreePivot
+    YOffset: 0
+    AlignToNormal: 0
+    RandomYaw: 0
