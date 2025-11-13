@@ -16,6 +16,13 @@ public class Tree : DamageableObject
     [Header("Регенерация")]
     [SerializeField] private float _regenerationDelay = 60f;
 
+    private Vector3 _logBaseScale;
+
+    private void Awake()
+    {
+        _logBaseScale = _logPrefab.transform.localScale;
+    }
+
     protected override void OnDamage()
     {
         PlayShake();
@@ -28,7 +35,23 @@ public class Tree : DamageableObject
         _thisCollider.enabled = false;
 
         Rigidbody spawnedLogRigidbody = Instantiate(_logPrefab, _spawnPointLog.position, transform.rotation);
-        spawnedLogRigidbody.AddForce(new Vector3(Random.Range(_minForce, _maxForce), 0f, Random.Range(_minForce, _maxForce)), ForceMode.Impulse);
+
+        Transform spawnedLogTransform = spawnedLogRigidbody.transform;
+        Vector3 treeScale = transform.lossyScale;
+        spawnedLogTransform.localScale = new Vector3(
+            _logBaseScale.x * treeScale.x,
+            _logBaseScale.y * treeScale.y,
+            _logBaseScale.z * treeScale.z
+        );
+
+        spawnedLogRigidbody.AddForce(
+            new Vector3(
+                Random.Range(_minForce, _maxForce),
+                0f,
+                Random.Range(_minForce, _maxForce)
+            ),
+            ForceMode.Impulse
+        );
 
         StartCoroutine(Regenerate());
     }
