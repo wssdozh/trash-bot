@@ -51,7 +51,9 @@ public class Player : MonoBehaviour
         _inputs.Player.Interact.performed += OnInteractPerformed;
 
         _inputs.Player.Scroll.performed += OnScrollPerformed;
+
         _inputs.Player.Drop.performed += OnDropPerformed;
+        _inputs.Player.DropAll.performed += OnDropAllPerformed;
 
         StartCoroutine(While());
     }
@@ -109,7 +111,17 @@ public class Player : MonoBehaviour
             return;
         }
 
-        _inventoryDropper.DropActiveSlot();
+        _inventoryDropper.DropOneFromActiveSlot();
+    }
+
+    private void OnDropAllPerformed(InputAction.CallbackContext context)
+    {
+        if (_inventory == null)
+        {
+            return;
+        }
+
+        _inventoryDropper.DropAllFromActiveSlot();
     }
 
     private void FixedUpdate()
