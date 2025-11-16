@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class HighlightAnimator : MonoBehaviour
+public class HighlightAnimator : HighlighterBase
 {
     [Header("Настройки подсветки")]
     [SerializeField] private Color _highlightColor = Color.yellow;
@@ -14,32 +14,34 @@ public class HighlightAnimator : MonoBehaviour
         _renderers = GetComponentsInChildren<Renderer>(true);
         _originalColors = new Color[_renderers.Length];
 
-        for (int i = 0; i < _renderers.Length; i++)
+        for (int index = 0; index < _renderers.Length; index++)
         {
-            Material material = _renderers[i].sharedMaterial;
+            Material material = _renderers[index].sharedMaterial;
+
             if (material.HasProperty("_BaseColor") == true)
             {
-                _originalColors[i] = material.GetColor("_BaseColor");
+                _originalColors[index] = material.GetColor("_BaseColor");
             }
             else
             {
-                _originalColors[i] = Color.white;
+                _originalColors[index] = Color.white;
             }
         }
     }
 
-    public virtual void Highlight(bool state)
+    protected override void EnableHighlight()
     {
-        for (int i = 0; i < _renderers.Length; i++)
+        for (int index = 0; index < _renderers.Length; index++)
         {
-            if (state == true)
-            {
-                Colorer.LerpToColor(_renderers[i], _highlightColor, _blinkTime);
-            }
-            else
-            {
-                Colorer.Stop(_renderers[i], _originalColors[i], _blinkTime);
-            }
+            Colorer.LerpToColor(_renderers[index], _highlightColor, _blinkTime);
+        }
+    }
+
+    protected override void DisableHighlight()
+    {
+        for (int index = 0; index < _renderers.Length; index++)
+        {
+            Colorer.Stop(_renderers[index], _originalColors[index], _blinkTime);
         }
     }
 }

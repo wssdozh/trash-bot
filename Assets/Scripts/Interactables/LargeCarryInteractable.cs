@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class LargeCarryInteractable : Interactable
 {
     [SerializeField] private Rigidbody _rigidbody;
@@ -32,11 +31,14 @@ public class LargeCarryInteractable : Interactable
             Attach(interactor);
             return;
         }
+
         Detach();
     }
 
     private void Attach(GameObject interactor)
     {
+        Highlight(false);
+
         CarryAttachment carryAttachment = interactor.GetComponent<CarryAttachment>();
 
         _originalParent = transform.parent;
@@ -73,6 +75,7 @@ public class LargeCarryInteractable : Interactable
         {
             return;
         }
+
         Detach();
     }
 

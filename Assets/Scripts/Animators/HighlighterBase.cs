@@ -2,5 +2,18 @@ using UnityEngine;
 
 public abstract class HighlighterBase : MonoBehaviour
 {
-    public abstract void Highlight(bool state);
+    public void Highlight(bool state)
+    {
+        if (state == true)
+        {
+            EnableHighlight();
+        }
+        else
+        {
+            DisableHighlight();
+        }
+    }
+
+    protected abstract void EnableHighlight();
+    protected abstract void DisableHighlight();
 }

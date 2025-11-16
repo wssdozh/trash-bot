@@ -2,39 +2,31 @@ using UnityEngine;
 
 public abstract class BasePickup : MonoBehaviour
 {
-    [SerializeField] protected Collider TriggerCollider;
+    [SerializeField] private Item _item;
+    [SerializeField] private int _amount;
+
     protected bool _isPickedUp = false;
 
-    protected virtual void Awake()
-    {        
-        TriggerCollider.isTrigger = true;
-    }
+    public Item Item { get { return _item; } }
+    public int Amount { get { return _amount; } }
 
     protected virtual void OnEnable()
     {
         _isPickedUp = false;
     }
 
-    protected virtual void OnTriggerEnter(Collider other)
-    {
-        TryPickup(other);
-    }
-
-    protected virtual void OnTriggerStay(Collider other)
-    {
-        TryPickup(other);
-    }
-
-    private void TryPickup(Collider other)
+    public void Pickup(GameObject player)
     {
         if (_isPickedUp == false)
         {
-            if (other.CompareTag("Player"))
-            {
-                _isPickedUp = true;
-                OnPickup(other.gameObject);
-            }
+            _isPickedUp = true;
+            OnPickup(player);
         }
+    }
+
+    public void SetAmount(int amount)
+    {
+        _amount = amount;
     }
 
     protected abstract void OnPickup(GameObject player);
