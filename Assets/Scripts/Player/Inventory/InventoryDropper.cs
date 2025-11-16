@@ -14,7 +14,32 @@ public class InventoryDropper : MonoBehaviour
         }
     }
 
-    public void DropActiveSlot()
+    public void DropOneFromActiveSlot()
+    {
+        DropFromActiveSlot(1);
+    }
+
+    public void DropAllFromActiveSlot()
+    {
+        if (_inventory == null)
+        {
+            return;
+        }
+
+        int slotIndex = _inventory.ActiveIndex;
+        InventorySlot slot = _inventory.Slots[slotIndex];
+
+        if (slot.IsEmpty() == true)
+        {
+            return;
+        }
+
+        int amount = slot.Amount;
+
+        DropFromActiveSlot(amount);
+    }
+
+    private void DropFromActiveSlot(int amount)
     {
         if (_inventory == null)
         {
@@ -48,13 +73,26 @@ public class InventoryDropper : MonoBehaviour
             return;
         }
 
-        int dropAmount = 1;
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        if (item.IsStackable == true && amount > slot.Amount)
+        {
+            amount = slot.Amount;
+        }
+
+        if (item.IsStackable == false)
+        {
+            amount = 1;
+        }
 
         Vector3 spawnPosition = _dropOrigin.position + _dropOrigin.forward * _dropDistance;
 
         BasePickup pickup = spawner.Spawn(spawnPosition);
-        pickup.SetAmount(dropAmount);
+        pickup.SetAmount(amount);
 
-        _inventory.TryRemoveFromSlot(slotIndex, dropAmount);
+        _inventory.TryRemoveFromSlot(slotIndex, amount);
     }
 }
