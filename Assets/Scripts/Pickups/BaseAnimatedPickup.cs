@@ -5,12 +5,12 @@ public abstract class BaseAnimatedPickup : BasePickup
     [SerializeField] protected PickupAnimator _pickupAnimator;
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] protected Collider _collider;
+    [SerializeField] private PickupReturner _returner;
 
-
-    protected override void Awake()
+    protected override void OnEnable()
     {
-        base.Awake();
-
+        base.OnEnable();
+        
         _collider.enabled = true;
         _rigidbody.isKinematic = false;
     }
@@ -35,5 +35,8 @@ public abstract class BaseAnimatedPickup : BasePickup
         }
     }
 
-    protected abstract void OnConsumed(GameObject player);
+    protected virtual void OnConsumed(GameObject player)
+    {
+        _returner.ReturnToPool();
+    }
 }

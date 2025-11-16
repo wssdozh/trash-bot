@@ -7,21 +7,21 @@ public abstract class Interactable : MonoBehaviour
     [SerializeField] protected Transform _interactionPoint;
 
     [Header("Подсветка")]
-    [SerializeField] protected HighlightAnimator _highlightAnimator;
+    [SerializeField] protected HighlighterBase _highlightBase;
 
     protected virtual void Awake()
     {
-        if (_highlightAnimator == null)
+        if (_highlightBase == null)
         {
-            _highlightAnimator = GetComponent<HighlightAnimator>();
+            _highlightBase = GetComponent<HighlightAnimator>();
         }
     }
 
     public virtual void Highlight(bool state)
     {
-        if (_highlightAnimator != null)
+        if (_highlightBase != null)
         {
-            _highlightAnimator.Highlight(state);
+            _highlightBase.Highlight(state);
         }
     }
 

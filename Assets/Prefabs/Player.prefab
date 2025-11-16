@@ -162,6 +162,8 @@ MonoBehaviour:
     m_Bits: 384
   _sphereRadius: 0.1
   _checkInterval: 0.3
+  _minDistanceFromCamera: 0.15
+  _minDistanceToTarget: 0.2
 --- !u!1 &1116661837622117665
 GameObject:
   m_ObjectHideFlags: 0
@@ -423,7 +425,7 @@ MonoBehaviour:
   _camera: {fileID: 4222409798147971499}
   _height: 7
   _smoothSpeed: 5
-  _mouseInfluence: 0.2
+  _mouseInfluence: 0.1
   _positionOffset: {x: 0, y: 0, z: -4}
   _tiltAngle: 60
 --- !u!1 &1573502829402661614
@@ -501,6 +503,74 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2170920153051009464
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6066355954534261699}
+  - component: {fileID: 2085158832879136925}
+  - component: {fileID: 8815724846418789048}
+  m_Layer: 6
+  m_Name: PickupTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6066355954534261699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2170920153051009464}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3148043264453373703}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &2085158832879136925
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2170920153051009464}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.7
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8815724846418789048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2170920153051009464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5e3c3d4391db54d8267f0266925bde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupTrigger
+  _triggerCollider: {fileID: 2085158832879136925}
+  _inventory: {fileID: 7198787744509260695}
 --- !u!1 &2231333578458521028
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,6 +860,53 @@ MonoBehaviour:
   Stat: {fileID: 654510142173674805}
   _slider: {fileID: 8687598574624594263}
   _duration: 0.5
+--- !u!1 &2822369851689733517
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8490775409483342463}
+  - component: {fileID: 5343440504819030904}
+  m_Layer: 6
+  m_Name: ItemDropper
+  m_TagString: Untagged
+  m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8490775409483342463
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2822369851689733517}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1.9}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3148043264453373703}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5343440504819030904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2822369851689733517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b7c2aaab03f83f4482b4f0e4d21eb64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryDropper
+  _inventory: {fileID: 7198787744509260695}
+  _dropOrigin: {fileID: 8490775409483342463}
+  _dropDistance: 0
 --- !u!1 &2913553294007931462
 GameObject:
   m_ObjectHideFlags: 0
@@ -1038,6 +1155,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5248021862730870037}
   - component: {fileID: 4133672338744966895}
+  - component: {fileID: 5105273768260781393}
+  - component: {fileID: 7198787744509260695}
   m_Layer: 5
   m_Name: Inventory
   m_TagString: Untagged
@@ -1090,10 +1209,40 @@ MonoBehaviour:
   m_ChildAlignment: 5
   m_StartCorner: 1
   m_StartAxis: 1
-  m_CellSize: {x: 70, y: 70}
+  m_CellSize: {x: 80, y: 80}
   m_Spacing: {x: 15, y: 15}
   m_Constraint: 0
   m_ConstraintCount: 2
+--- !u!114 &5105273768260781393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3528435094732172423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6dade80a3af05014aa9877b1bc53db83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryView
+  _inventory: {fileID: 7198787744509260695}
+  _slotViewPrefab: {fileID: 6355589267293183564, guid: bb54f1cc9d27e3342af499126624a3b1, type: 3}
+  _slotsParent: {fileID: 5248021862730870037}
+--- !u!114 &7198787744509260695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3528435094732172423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bec4333b1e2dfe40a3bfbfaeeac8014, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Inventory
+  _capacity: 6
+  _slots: []
+  _activeIndex: 0
 --- !u!1 &3979317226305860491
 GameObject:
   m_ObjectHideFlags: 0
@@ -1231,6 +1380,8 @@ MonoBehaviour:
   _health: {fileID: 654510142173674805}
   _stamina: {fileID: 2358035234800951277}
   _interactor: {fileID: 2896174737576541745}
+  _inventory: {fileID: 7198787744509260695}
+  _inventoryDropper: {fileID: 5343440504819030904}
   _timeBattle: 3
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
@@ -1285,7 +1436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterInteractor
   _origin: {fileID: 3148043264453373703}
   _texter: {fileID: 5882367647971336849}
-  _interactionSphereRadius: 1.7
+  _interactionSphereRadius: 1.1
   _interactableMask:
     serializedVersion: 2
     m_Bits: 128
@@ -1447,6 +1598,8 @@ Transform:
   - {fileID: 8183045323307449864}
   - {fileID: 2432480836494503094}
   - {fileID: 2754503960333170900}
+  - {fileID: 6066355954534261699}
+  - {fileID: 8490775409483342463}
   m_Father: {fileID: 8730509182636759479}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6378614461455722869

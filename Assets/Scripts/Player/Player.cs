@@ -17,6 +17,9 @@ public class Player : MonoBehaviour
     [SerializeField] private Health _health;
     [SerializeField] private Stamina _stamina;
     [SerializeField] private CharacterInteractor _interactor;
+    [SerializeField] private Inventory _inventory;
+    [SerializeField] private InventoryDropper _inventoryDropper;
+
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
@@ -47,6 +50,9 @@ public class Player : MonoBehaviour
         _inputs.Player.Attack.performed += OnAttackPerformed;
         _inputs.Player.Interact.performed += OnInteractPerformed;
 
+        _inputs.Player.Scroll.performed += OnScrollPerformed;
+        _inputs.Player.Drop.performed += OnDropPerformed;
+
         StartCoroutine(While());
     }
 
@@ -74,6 +80,36 @@ public class Player : MonoBehaviour
             
             yield return waitForSeconds;
         }
+    }
+
+    private void OnScrollPerformed(InputAction.CallbackContext context)
+    {
+        if (_inventory == null)
+        {
+            return;
+        }
+
+        Vector2 scrollValue = context.ReadValue<Vector2>();
+
+        if (scrollValue.y > 0f)
+        {
+            _inventory.PreviousActiveSlot();
+        }
+
+        if (scrollValue.y < 0f)
+        {
+            _inventory.NextActiveSlot();
+        }
+    }
+
+    private void OnDropPerformed(InputAction.CallbackContext context)
+    {
+        if (_inventory == null)
+        {
+            return;
+        }
+
+        _inventoryDropper.DropActiveSlot();
     }
 
     private void FixedUpdate()
@@ -139,7 +175,7 @@ public class Player : MonoBehaviour
 
     private void OnSprintPerformed(InputAction.CallbackContext ctx)
     {
-        if (_stamina.Value > 0f && !_isSprinting)
+        if (_stamina.Value > 0f && _isSprinting == false)
         {
             _isSprinting = true;
             _movement.OnSprint(true);
