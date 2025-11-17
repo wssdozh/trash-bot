@@ -50,7 +50,7 @@ public class TargetVision : MonoBehaviour
 
     private IEnumerator ScanLoop()
     {
-        while (true)
+        while (enabled)
         {
             Scan();
             yield return new WaitForSeconds(_scanInterval);
@@ -140,12 +140,7 @@ public class TargetVision : MonoBehaviour
         return true;
     }
 
-    private bool HasLineOfSight(
-        Vector3 originPosition,
-        Vector3 directionToTarget,
-        float distanceToCandidate,
-        Transform candidateTransform
-    )
+    private bool HasLineOfSight(Vector3 originPosition, Vector3 directionToTarget, float distanceToCandidate, Transform candidateTransform)
     {
         Ray ray = new Ray(originPosition, directionToTarget);
         RaycastHit hit;
