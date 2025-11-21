@@ -11,6 +11,8 @@ public class Player : MonoBehaviour
     [SerializeField] private CharacterMover _movement;
     [SerializeField] private CharacterJump _jump;
     [SerializeField] private CharacterRotator _rotator;
+    [SerializeField] private CharacterEffects _effects;
+    [SerializeField] private CharacterAudio _audio;
     [SerializeField] private CameraMover _cameraMover;
     [SerializeField] private CursorManager _cursor;
     [SerializeField] private Camera _mainCamera;
@@ -48,10 +50,11 @@ public class Player : MonoBehaviour
         _inputs.Player.Sprint.canceled += OnSprintCanceled;
 
         _inputs.Player.Attack.performed += OnAttackPerformed;
-        _inputs.Player.Interact.performed += OnInteractPerformed;
+        _inputs.Player.UseItem.performed += OnUseItemPerformed;
 
         _inputs.Player.Scroll.performed += OnScrollPerformed;
 
+        _inputs.Player.Interact.performed += OnInteractPerformed;
         _inputs.Player.Drop.performed += OnDropPerformed;
         _inputs.Player.DropAll.performed += OnDropAllPerformed;
 
@@ -150,6 +153,37 @@ public class Player : MonoBehaviour
         _waitCoroutine = StartCoroutine(Wait());
     }
 
+
+    private void OnUseItemPerformed(InputAction.CallbackContext ctx)
+    {
+        if (_inventory != null)
+        {
+            InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
+
+            if (activeSlot.IsEmpty() == false && activeSlot.Item.Effects.Count > 0)
+            {
+                UseActiveItem(activeSlot);
+
+                return;
+            }
+        }
+    }
+
+    private void UseActiveItem(InventorySlot slot)
+    {
+        Item item = slot.Item;
+
+        for (int i = 0; i < item.Effects.Count; i++)
+        {
+            ItemEffect effect = item.Effects[i];
+            effect.Apply(_effects);
+        } 
+
+        _inventory.TryRemoveFromSlot(_inventory.ActiveIndex, 1);
+
+        _audio.PlayItemUse(item);
+    }
+
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
         _interactor.TryInteract(gameObject);
@@ -168,12 +202,16 @@ public class Player : MonoBehaviour
     {
         _moveInput = ctx.ReadValue<Vector2>();
         _movement.OnMove(_moveInput);
+
+        _audio.PlayFootstep();
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext ctx)
     {
         _moveInput = Vector2.zero;
         _movement.OnMove(Vector2.zero);
+
+        _audio.PlayFootstep();
     }
 
     private void OnJumpPerformed(InputAction.CallbackContext ctx)
