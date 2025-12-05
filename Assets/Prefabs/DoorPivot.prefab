@@ -161,7 +161,7 @@ MonoBehaviour:
   _interactionPoint: {fileID: 8029520909724889844}
   _highlightBase: {fileID: 8778204848833632948}
   _doorTransform: {fileID: 4345672328793038101}
-  _openAngle: 90
+  _openAngle: -90
   _openDuration: 0.7
   _openEase: 4
 --- !u!114 &8778204848833632948
