@@ -2,47 +2,82 @@ using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour
 {
-    private static readonly int s_walkHash = Animator.StringToHash("Walk");
-    private static readonly int s_runHash = Animator.StringToHash("Run");
-    private static readonly int s_jumpHash = Animator.StringToHash("Jump");
-    private static readonly int s_ascendHash = Animator.StringToHash("IsAscending");
-    private static readonly int s_fallHash = Animator.StringToHash("IsFalling");
-    private static readonly int s_attackHash = Animator.StringToHash("Attack");
-    private static readonly int s_takeDamageHash = Animator.StringToHash("TakeDamage");
+    private static readonly int MoveHash = Animator.StringToHash("Move");
+    private static readonly int JumpHash = Animator.StringToHash("Jump");
+    private static readonly int AscendHash = Animator.StringToHash("IsAscending");
+    private static readonly int FallHash = Animator.StringToHash("IsFalling");
+    private static readonly int AttackHash = Animator.StringToHash("Attack");
+    private static readonly int TakeDamageHash = Animator.StringToHash("TakeDamage");
 
     [SerializeField] private Animator _animator;
-    
-    private bool _isJumping;
+    [SerializeField] private float _moveLerpSpeed = 5f;
+    [SerializeField] private float _walkMoveValue = 0.5f;
+    [SerializeField] private float _runMoveValue = 1f;
 
-    public void TriggerAttack()
+    private float _currentMove;
+    private float _targetMove;
+    private bool _isMoving;
+    private bool _isSprinting;
+
+    private void Update()
     {
-        _animator.SetTrigger(s_attackHash);
+        UpdateMove();
     }
 
-    public void TriggerTakeDamage()
+    public void SetMoveState(bool isMoving)
     {
-        _animator.SetTrigger(s_takeDamageHash);
+        _isMoving = isMoving;
     }
 
-    public void SetJump(bool isJumping)
+    public void SetSprintState(bool isSprinting)
     {
-        _isJumping = isJumping;
-        _animator.SetBool(s_jumpHash, isJumping);
+        _isSprinting = isSprinting;
     }
 
-    public void SetRun(bool isRunning)
+    public void TriggerJump()
     {
-        bool shouldRun = isRunning && _isJumping == false;
-        _animator.SetBool(s_runHash, shouldRun);
+        _animator.SetTrigger(JumpHash);
     }
 
     public void SetAscend(bool isAscending)
     {
-        _animator.SetBool(s_ascendHash, isAscending);
+        _animator.SetBool(AscendHash, isAscending);
     }
 
     public void SetFall(bool isFalling)
     {
-        _animator.SetBool(s_fallHash, isFalling);
+        _animator.SetBool(FallHash, isFalling);
+    }
+
+    public void TriggerAttack()
+    {
+        _animator.SetTrigger(AttackHash);
+    }
+
+    public void TriggerTakeDamage()
+    {
+        _animator.SetTrigger(TakeDamageHash);
+    }
+
+    private void UpdateMove()
+    {
+        if (_isMoving == false)
+        {
+            _targetMove = 0f;
+        }
+        else
+        {
+            if (_isSprinting)
+            {
+                _targetMove = _runMoveValue;
+            }
+            else
+            {
+                _targetMove = _walkMoveValue;
+            }
+        }
+
+        _currentMove = Mathf.MoveTowards(_currentMove, _targetMove, _moveLerpSpeed * Time.deltaTime);
+        _animator.SetFloat(MoveHash, _currentMove);
     }
 }

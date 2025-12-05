@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,6 +20,8 @@ public class Player : MonoBehaviour
     [SerializeField] private CharacterInteractor _interactor;
     [SerializeField] private Inventory _inventory;
     [SerializeField] private InventoryDropper _inventoryDropper;
+    [SerializeField] private PlayerAnimator _animator;
+
 
 
     [Header("Настройки")]
@@ -203,6 +204,8 @@ public class Player : MonoBehaviour
         _moveInput = ctx.ReadValue<Vector2>();
         _movement.OnMove(_moveInput);
 
+        _animator.SetMoveState(true);
+
         _audio.PlayFootstep();
     }
 
@@ -210,6 +213,8 @@ public class Player : MonoBehaviour
     {
         _moveInput = Vector2.zero;
         _movement.OnMove(Vector2.zero);
+
+        _animator.SetMoveState(false);
 
         _audio.PlayFootstep();
     }
@@ -229,6 +234,9 @@ public class Player : MonoBehaviour
         {
             _isSprinting = true;
             _movement.OnSprint(true);
+
+            _animator.SetSprintState(true);
+
             _sprintCoroutine = StartCoroutine(SprintConsume());
         }
     }
@@ -261,6 +269,7 @@ public class Player : MonoBehaviour
 
         _isSprinting = false;
         _movement.OnSprint(false);
+        _animator.SetSprintState(false);
 
         if (_sprintCoroutine != null)
             StopCoroutine(_sprintCoroutine);
