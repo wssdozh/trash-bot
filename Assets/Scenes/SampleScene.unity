@@ -255,7 +255,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 735ab2a938608ab449fda4dfc106f89c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7560,6 +7560,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 267061485}
     m_Modifications:
+    - target: {fileID: 977357872749987717, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+      propertyPath: _animator
+      value: 
+      objectReference: {fileID: 4072910535797381593}
+    - target: {fileID: 977357872749987717, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+      propertyPath: _timeBattle
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 3121506792685722856, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
       propertyPath: m_LocalPosition.x
       value: -9.1
@@ -7588,6 +7596,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6628015968857417092, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: beb01b7abffbccd49b04d6b51cac1051, type: 3}
     - target: {fileID: 7222407802121816103, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -7633,6 +7645,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+--- !u!114 &4072910535797381593 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6208927630230072032, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+  m_PrefabInstance: {fileID: 4072910535797381592}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f51608aeea44c4ebabf4411d3a8251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
 --- !u!1001 &5066461277523835317
 PrefabInstance:
   m_ObjectHideFlags: 0

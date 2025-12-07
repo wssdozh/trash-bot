@@ -28,6 +28,9 @@ public class Player : MonoBehaviour
     [SerializeField] private float _attackStaminaCost = 5f;
     [SerializeField] private float _sprintStaminaCostPerSecond = 5f;
 
+    [SerializeField] private float _battleMoveSpeedMultiplier = 0.5f;
+    [SerializeField] private float _battleRotationSpeedMultiplier = 0.3f;
+
     private PlayerInputActions _inputs;
     private bool _isBattle = false;
     private bool _isSprinting = false;
@@ -86,6 +89,19 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        if (_isBattle)
+            _rotator.Rotate();
+        else
+            _rotator.RotateTowardsMovement(_moveInput);
+    }
+
+    private void Die()
+    {
+        Died?.Invoke();
+    }
+
     private void OnScrollPerformed(InputAction.CallbackContext context)
     {
         if (_inventory == null)
@@ -126,22 +142,9 @@ public class Player : MonoBehaviour
         _inventoryDropper.DropAllFromActiveSlot();
     }
 
-    private void FixedUpdate()
-    {
-        if (_isBattle)
-            _rotator.Rotate();
-        else
-            _rotator.RotateTowardsMovement(_moveInput);
-    }
-
-    private void Die()
-    {
-        Died?.Invoke();
-    }
-
     private void OnAttackPerformed(InputAction.CallbackContext ctx)
     {
-        if(_stamina.Value > 0f && _attack.PerformAttack())
+        if (_stamina.Value > 0f && _attack.PerformAttack())
         {
             _stamina.Decrease(_attackStaminaCost);
         }
@@ -153,7 +156,6 @@ public class Player : MonoBehaviour
 
         _waitCoroutine = StartCoroutine(Wait());
     }
-
 
     private void OnUseItemPerformed(InputAction.CallbackContext ctx)
     {
@@ -187,6 +189,8 @@ public class Player : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
+        ExitBattleMode();
+
         _interactor.TryInteract(gameObject);
 
         _animator.TriggerPoint();
@@ -195,17 +199,35 @@ public class Player : MonoBehaviour
     private IEnumerator Wait()
     {
         _isBattle = true;
-        _animator.SetFight(_isBattle);
+        _animator.SetFight(true);
+
+        StopSprinting();
+
+        // _movement.SetSpeedMultiplier(_battleMoveSpeedMultiplier);
+        // _rotator.SetRotationSpeedMultiplier(_battleRotationSpeedMultiplier);
 
         yield return new WaitForSeconds(_timeBattle);
 
-        _isBattle = false;
-        _animator.SetFight(_isBattle);
+        ExitBattleMode();
+
+        _waitCoroutine = null;
     }
-    
-    private void OnMovePerformed(InputAction.CallbackContext ctx)
+
+    private void ExitBattleMode()
     {
-        _moveInput = ctx.ReadValue<Vector2>();
+        if (_isBattle == false)
+            return;
+
+        _isBattle = false;
+        _animator.SetFight(false);
+
+        // _movement.SetSpeedMultiplier(1f);
+        // _rotator.SetRotationSpeedMultiplier(1f);
+    }
+
+    private void OnMovePerformed(InputAction.CallbackContext context)
+    {
+        _moveInput = context.ReadValue<Vector2>();
         _movement.OnMove(_moveInput);
 
         _animator.SetMoveState(true);
@@ -213,7 +235,7 @@ public class Player : MonoBehaviour
         _audio.PlayFootstep();
     }
 
-    private void OnMoveCanceled(InputAction.CallbackContext ctx)
+    private void OnMoveCanceled(InputAction.CallbackContext context)
     {
         _moveInput = Vector2.zero;
         _movement.OnMove(Vector2.zero);
@@ -236,6 +258,8 @@ public class Player : MonoBehaviour
     {
         if (_stamina.Value > 0f && _isSprinting == false)
         {
+            ExitBattleMode();
+
             _isSprinting = true;
             _movement.OnSprint(true);
 

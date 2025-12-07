@@ -1034,6 +1034,7 @@ GameObject:
   - component: {fileID: 7684676357251598709}
   - component: {fileID: 8225289240440642195}
   - component: {fileID: 6235684555954501909}
+  - component: {fileID: 6208927630230072032}
   m_Layer: 6
   m_Name: Body
   m_TagString: Player
@@ -1243,6 +1244,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAudio
   _audioSource: {fileID: 5427971631719641237}
   _footstepSet: {fileID: 11400000, guid: 4c3dde82beed1344f83f6280c3d71c84, type: 2}
+--- !u!114 &6208927630230072032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3192794405207612497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38f51608aeea44c4ebabf4411d3a8251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
+  _animator: {fileID: 6628015968857417092}
+  _moveLerpSpeed: 3
+  _walkMoveValue: 0.5
+  _runMoveValue: 1
+  _turnLerpSpeed: 8
+  _moveDirectionDeadZone: 0.0001
 --- !u!1 &3467073351324503099
 GameObject:
   m_ObjectHideFlags: 0
@@ -1427,7 +1446,7 @@ MonoBehaviour:
   _interactor: {fileID: 6125431192887061765}
   _inventory: {fileID: 103484527082552904}
   _inventoryDropper: {fileID: 5505842368566700150}
-  _animator: {fileID: 7668851178389147115}
+  _animator: {fileID: 0}
   _timeBattle: 3
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
@@ -2144,7 +2163,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2352791615341782866}
   - component: {fileID: 3878057487684928858}
-  - component: {fileID: 7668851178389147115}
   - component: {fileID: 5427971631719641237}
   m_Layer: 6
   m_Name: Other
@@ -2186,22 +2204,6 @@ MonoBehaviour:
   _interactableMask:
     serializedVersion: 2
     m_Bits: 128
---- !u!114 &7668851178389147115
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7732133341587999462}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38f51608aeea44c4ebabf4411d3a8251, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
-  _animator: {fileID: 6628015968857417092}
-  _moveLerpSpeed: 3
-  _walkMoveValue: 0.5
-  _runMoveValue: 1
 --- !u!82 &5427971631719641237
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2456,7 +2458,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Office_bot
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8235837880160948600, guid: 323b66cc211df0f4694c7285289b4882, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
