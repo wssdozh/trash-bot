@@ -7566,7 +7566,7 @@ PrefabInstance:
       objectReference: {fileID: 4072910535797381593}
     - target: {fileID: 977357872749987717, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
       propertyPath: _timeBattle
-      value: 30
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 3121506792685722856, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
       propertyPath: m_LocalPosition.x
