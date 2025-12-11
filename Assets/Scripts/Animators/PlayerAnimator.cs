@@ -2,25 +2,12 @@ using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour
 {
-    private static readonly int MoveHash = Animator.StringToHash("Move");
-    private static readonly int JumpHash = Animator.StringToHash("Jump");
-    private static readonly int PointHash = Animator.StringToHash("Point");
-    private static readonly int IsFightHash = Animator.StringToHash("IsFight");
-    private static readonly int AttackHash = Animator.StringToHash("Attack");
-    private static readonly int TakeDamageHash = Animator.StringToHash("TakeDamage");
-    private static readonly int StepLeftHash = Animator.StringToHash("StepLeft");
-    private static readonly int StepRightHash = Animator.StringToHash("StepRight");
-    private static readonly int StepForwardHash = Animator.StringToHash("StepForward");
-    private static readonly int StepBackwardHash = Animator.StringToHash("StepBackward");
-
-    private enum StepDirection
-    {
-        None,
-        Left,
-        Right,
-        Forward,
-        Backward
-    }
+    private static readonly int _moveHash = Animator.StringToHash("Move");
+    private static readonly int _jumpHash = Animator.StringToHash("Jump");
+    private static readonly int _pointHash = Animator.StringToHash("Point");
+    private static readonly int _isFightHash = Animator.StringToHash("IsFight");
+    private static readonly int _attackHash = Animator.StringToHash("Attack");
+    private static readonly int _takeDamageHash = Animator.StringToHash("TakeDamage");
 
     [SerializeField] private Animator _animator;
     [SerializeField] private float _moveLerpSpeed = 5f;
@@ -34,22 +21,18 @@ public class PlayerAnimator : MonoBehaviour
     private bool _isMoving;
     private bool _isSprinting;
 
-    private bool _isStepping;
-    private StepDirection _currentStepDirection = StepDirection.None;
-
-    private Vector3 _previousPosition;
-    private bool _hasPreviousPosition;
+    private StepAnimator _stepAnimatorLogic;
 
     private void Awake()
     {
-        _previousPosition = transform.position;
-        _hasPreviousPosition = false;
+        _stepAnimatorLogic = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
     }
 
     private void Update()
     {
         UpdateMove();
-        UpdateStepFromMovement();
+
+        _stepAnimatorLogic.UpdateStepFromMovement(_isMoving);
     }
 
     public void SetMoveState(bool isMoving)
@@ -64,27 +47,27 @@ public class PlayerAnimator : MonoBehaviour
 
     public void TriggerJump()
     {
-        _animator.SetTrigger(JumpHash);
+        _animator.SetTrigger(_jumpHash);
     }
 
     public void TriggerPoint()
     {
-        _animator.SetTrigger(PointHash);
+        _animator.SetTrigger(_pointHash);
     }
 
     public void TriggerAttack()
     {
-        _animator.SetTrigger(AttackHash);
+        _animator.SetTrigger(_attackHash);
     }
 
     public void TriggerTakeDamage()
     {
-        _animator.SetTrigger(TakeDamageHash);
+        _animator.SetTrigger(_takeDamageHash);
     }
 
     public void SetFight(bool isFight)
     {
-        _animator.SetBool(IsFightHash, isFight);
+        _animator.SetBool(_isFightHash, isFight);
     }
 
     private void UpdateMove()
@@ -106,189 +89,16 @@ public class PlayerAnimator : MonoBehaviour
         }
 
         _currentMove = Mathf.MoveTowards(_currentMove, _targetMove, _moveLerpSpeed * Time.deltaTime);
-        _animator.SetFloat(MoveHash, _currentMove);
-    }
-
-    private void UpdateStepFromMovement()
-    {
-        if (_hasPreviousPosition == false)
-        {
-            _previousPosition = transform.position;
-            _hasPreviousPosition = true;
-            return;
-        }
-
-        Vector3 currentPosition = transform.position;
-        Vector3 deltaPosition = currentPosition - _previousPosition;
-        _previousPosition = currentPosition;
-
-        deltaPosition.y = 0f;
-
-        float deadZoneSqr = _moveDirectionDeadZone * _moveDirectionDeadZone;
-
-        if (_isMoving == false || deltaPosition.sqrMagnitude <= deadZoneSqr)
-        {
-            if (_isStepping == true)
-            {
-                StopStep();
-            }
-
-            return;
-        }
-
-        Vector3 moveDirection = deltaPosition.normalized;
-
-        Vector3 forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
-
-        Vector3 right = transform.right;
-        right.y = 0f;
-        right.Normalize();
-
-        float forwardAmount = Vector3.Dot(moveDirection, forward);
-        float rightAmount = Vector3.Dot(moveDirection, right);
-
-        float absForwardAmount = Mathf.Abs(forwardAmount);
-        float absRightAmount = Mathf.Abs(rightAmount);
-
-        if (absForwardAmount < 0.0001f && absRightAmount < 0.0001f)
-        {
-            if (_isStepping == true)
-            {
-                StopStep();
-            }
-
-            return;
-        }
-
-        StepDirection desiredDirection;
-
-        if (absForwardAmount >= absRightAmount)
-        {
-            if (forwardAmount > 0f)
-            {
-                desiredDirection = StepDirection.Forward;
-            }
-            else
-            {
-                desiredDirection = StepDirection.Backward;
-            }
-        }
-        else
-        {
-            if (rightAmount > 0f)
-            {
-                desiredDirection = StepDirection.Right;
-            }
-            else
-            {
-                desiredDirection = StepDirection.Left;
-            }
-        }
-
-        if (_isStepping == false)
-        {
-            TryStep(moveDirection);
-            return;
-        }
-
-        if (desiredDirection != _currentStepDirection)
-        {
-            StopStep();
-            TryStep(moveDirection);
-        }
+        _animator.SetFloat(_moveHash, _currentMove);
     }
 
     public void TryStep(Vector3 worldMoveDirection)
     {
-        if (_isStepping == true)
-        {
-            return;
-        }
-
-        worldMoveDirection.y = 0f;
-
-        float deadZoneSqr = _moveDirectionDeadZone * _moveDirectionDeadZone;
-
-        if (worldMoveDirection.sqrMagnitude <= deadZoneSqr)
-        {
-            return;
-        }
-
-        worldMoveDirection.Normalize();
-
-        Vector3 forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
-
-        Vector3 right = transform.right;
-        right.y = 0f;
-        right.Normalize();
-
-        float forwardAmount = Vector3.Dot(worldMoveDirection, forward);
-        float rightAmount = Vector3.Dot(worldMoveDirection, right);
-
-        float absForwardAmount = Mathf.Abs(forwardAmount);
-        float absRightAmount = Mathf.Abs(rightAmount);
-
-        StepDirection stepDirection = StepDirection.None;
-
-        if (absForwardAmount >= absRightAmount)
-        {
-            if (forwardAmount > 0f)
-            {
-                stepDirection = StepDirection.Forward;
-            }
-            else
-            {
-                stepDirection = StepDirection.Backward;
-            }
-        }
-        else
-        {
-            if (rightAmount > 0f)
-            {
-                stepDirection = StepDirection.Right;
-            }
-            else
-            {
-                stepDirection = StepDirection.Left;
-            }
-        }
-
-        if (stepDirection == StepDirection.None)
-        {
-            return;
-        }
-
-        SetStepAnimatorBools(stepDirection);
-
-        _isStepping = true;
-        _currentStepDirection = stepDirection;
-    }
-
-    private void SetStepAnimatorBools(StepDirection stepDirection)
-    {
-        bool isLeft = stepDirection == StepDirection.Left;
-        bool isRight = stepDirection == StepDirection.Right;
-        bool isForward = stepDirection == StepDirection.Forward;
-        bool isBackward = stepDirection == StepDirection.Backward;
-
-        _animator.SetBool(StepLeftHash, isLeft);
-        _animator.SetBool(StepRightHash, isRight);
-        _animator.SetBool(StepForwardHash, isForward);
-        _animator.SetBool(StepBackwardHash, isBackward);
+        _stepAnimatorLogic.TryStep(worldMoveDirection);
     }
 
     public void StopStep()
     {
-        _isStepping = false;
-        _currentStepDirection = StepDirection.None;
-
-        _animator.SetBool(StepLeftHash, false);
-        _animator.SetBool(StepRightHash, false);
-        _animator.SetBool(StepForwardHash, false);
-        _animator.SetBool(StepBackwardHash, false);
+        _stepAnimatorLogic.StopStep();
     }
 }
