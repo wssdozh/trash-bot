@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Gradient Pallete
+  m_Name: Gradient Flat
   m_Shader: {fileID: -6465566751694194690, guid: 1fd221b60797c8342b1f8908be8a23d2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -167,7 +167,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _HeightTransition: 0
-    - _Lightning_Cutoff: -0.41
+    - _Lightning_Cutoff: -0.4
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -181,7 +181,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 0
     - _SampleGI: 0
-    - _Shadow_Brightness: 0.669
+    - _Shadow_Brightness: 0.67
     - _Smoothnes: 0
     - _Smoothness: 0
     - _Smoothness0: 0.5
