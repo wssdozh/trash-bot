@@ -2088,11 +2088,11 @@ PrefabInstance:
     - target: {fileID: -6093592463355912122, guid: 4a51c34191652614a8f0d0298be11335, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 77adcbb556348cc498805700ef6411ea, type: 2}
+      objectReference: {fileID: 2100000, guid: 551a791950d0f6d418539ebf208e34f8, type: 2}
     - target: {fileID: -804731622281664130, guid: 4a51c34191652614a8f0d0298be11335, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 77adcbb556348cc498805700ef6411ea, type: 2}
+      objectReference: {fileID: 2100000, guid: 551a791950d0f6d418539ebf208e34f8, type: 2}
     - target: {fileID: 919132149155446097, guid: 4a51c34191652614a8f0d0298be11335, type: 3}
       propertyPath: m_Name
       value: bak

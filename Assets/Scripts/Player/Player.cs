@@ -203,9 +203,6 @@ public class Player : MonoBehaviour
 
         StopSprinting();
 
-        // _movement.SetSpeedMultiplier(_battleMoveSpeedMultiplier);
-        // _rotator.SetRotationSpeedMultiplier(_battleRotationSpeedMultiplier);
-
         yield return new WaitForSeconds(_timeBattle);
 
         ExitBattleMode();
@@ -220,9 +217,6 @@ public class Player : MonoBehaviour
 
         _isBattle = false;
         _animator.SetFight(false);
-
-        // _movement.SetSpeedMultiplier(1f);
-        // _rotator.SetRotationSpeedMultiplier(1f);
     }
 
     private void OnMovePerformed(InputAction.CallbackContext context)

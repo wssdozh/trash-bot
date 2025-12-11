@@ -13,7 +13,6 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float _moveLerpSpeed = 5f;
     [SerializeField] private float _walkMoveValue = 0.5f;
     [SerializeField] private float _runMoveValue = 1f;
-    [SerializeField] private float _turnLerpSpeed = 8f;
     [SerializeField] private float _moveDirectionDeadZone = 0.0001f;
 
     private float _currentMove;
