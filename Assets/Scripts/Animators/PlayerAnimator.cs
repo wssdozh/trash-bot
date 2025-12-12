@@ -1,8 +1,9 @@
 using UnityEngine;
 
-public class PlayerAnimator : MonoBehaviour
+public sealed class PlayerAnimator : MonoBehaviour
 {
-    private static readonly int _moveHash = Animator.StringToHash("Move");
+    private static readonly int _moveXHash = Animator.StringToHash("MoveX");
+    private static readonly int _moveYHash = Animator.StringToHash("MoveY");
     private static readonly int _jumpHash = Animator.StringToHash("Jump");
     private static readonly int _pointHash = Animator.StringToHash("Point");
     private static readonly int _isFightHash = Animator.StringToHash("IsFight");
@@ -10,13 +11,16 @@ public class PlayerAnimator : MonoBehaviour
     private static readonly int _takeDamageHash = Animator.StringToHash("TakeDamage");
 
     [SerializeField] private Animator _animator;
-    [SerializeField] private float _moveLerpSpeed = 5f;
-    [SerializeField] private float _walkMoveValue = 0.5f;
-    [SerializeField] private float _runMoveValue = 1f;
+    [SerializeField] private float _moveLerpSpeed = 8f;
     [SerializeField] private float _moveDirectionDeadZone = 0.0001f;
+    [SerializeField] private float _runForwardMoveY = 2f;
+    [SerializeField] private float _axisSwitchThreshold = 0.15f;
 
-    private float _currentMove;
-    private float _targetMove;
+    private float _currentMoveX;
+    private float _currentMoveY;
+    private float _targetMoveX;
+    private float _targetMoveY;
+
     private bool _isMoving;
     private bool _isSprinting;
 
@@ -24,14 +28,30 @@ public class PlayerAnimator : MonoBehaviour
 
     private void Awake()
     {
-        _stepAnimatorLogic = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
+        _stepAnimatorLogic = new StepAnimator(transform, _moveDirectionDeadZone, _runForwardMoveY);
     }
 
     private void Update()
     {
-        UpdateMove();
+        Vector2 targetMove = _stepAnimatorLogic.UpdateMoveFromMovement(_isMoving, _isSprinting);
+        _targetMoveX = targetMove.x;
+        _targetMoveY = targetMove.y;
 
-        _stepAnimatorLogic.UpdateStepFromMovement(_isMoving);
+        if (_targetMoveX == 0f)
+        {
+            _currentMoveX = 0f;
+        }
+
+        if (_targetMoveY == 0f)
+        {
+            _currentMoveY = 0f;
+        }
+
+        _currentMoveX = Mathf.MoveTowards(_currentMoveX, _targetMoveX, _moveLerpSpeed * Time.deltaTime);
+        _currentMoveY = Mathf.MoveTowards(_currentMoveY, _targetMoveY, _moveLerpSpeed * Time.deltaTime);
+
+        _animator.SetFloat(_moveXHash, _currentMoveX);
+        _animator.SetFloat(_moveYHash, _currentMoveY);
     }
 
     public void SetMoveState(bool isMoving)
@@ -69,35 +89,16 @@ public class PlayerAnimator : MonoBehaviour
         _animator.SetBool(_isFightHash, isFight);
     }
 
-    private void UpdateMove()
-    {
-        if (_isMoving == false)
-        {
-            _targetMove = 0f;
-        }
-        else
-        {
-            if (_isSprinting == true)
-            {
-                _targetMove = _runMoveValue;
-            }
-            else
-            {
-                _targetMove = _walkMoveValue;
-            }
-        }
-
-        _currentMove = Mathf.MoveTowards(_currentMove, _targetMove, _moveLerpSpeed * Time.deltaTime);
-        _animator.SetFloat(_moveHash, _currentMove);
-    }
-
     public void TryStep(Vector3 worldMoveDirection)
     {
-        _stepAnimatorLogic.TryStep(worldMoveDirection);
+        Vector2 targetMove = _stepAnimatorLogic.GetMoveFromWorldDirection(worldMoveDirection, _isSprinting);
+        _targetMoveX = targetMove.x;
+        _targetMoveY = targetMove.y;
     }
 
     public void StopStep()
     {
-        _stepAnimatorLogic.StopStep();
+        _targetMoveX = 0f;
+        _targetMoveY = 0f;
     }
 }

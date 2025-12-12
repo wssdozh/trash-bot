@@ -5,3 +5,4 @@ public enum WeaponType
     Pistol = 2,
     Melee = 3
 }
+

@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class Player : MonoBehaviour
+public sealed class Player : MonoBehaviour
 {
     [Header("Зависимости")]
     [SerializeField] private Attacker _attack;
@@ -21,15 +21,14 @@ public class Player : MonoBehaviour
     [SerializeField] private Inventory _inventory;
     [SerializeField] private InventoryDropper _inventoryDropper;
     [SerializeField] private PlayerAnimator _animator;
+    [SerializeField] private AnimatorSwitcher _animatorSwitcher;
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _jumpStaminaCost = 10f;
     [SerializeField] private float _attackStaminaCost = 5f;
     [SerializeField] private float _sprintStaminaCostPerSecond = 5f;
-
-    [SerializeField] private float _battleMoveSpeedMultiplier = 0.5f;
-    [SerializeField] private float _battleRotationSpeedMultiplier = 0.3f;
+    [SerializeField] private float _moveInputDeadZone = 0.0001f;
 
     private PlayerInputActions _inputs;
     private bool _isBattle = false;
@@ -60,20 +59,21 @@ public class Player : MonoBehaviour
         _inputs.Player.Drop.performed += OnDropPerformed;
         _inputs.Player.DropAll.performed += OnDropAllPerformed;
 
+        _inventory.InventoryChanged += SetCurrentAnimator;
+        _inventory.ActiveIndexChanged += (int i) => SetCurrentAnimator();
+
         StartCoroutine(While());
     }
 
-    private void OnEnable() 
+    private void OnEnable()
     {
         _inputs.Enable();
-
         _health.Ended += Die;
     }
 
     private void OnDisable()
     {
         _inputs.Disable();
-
         _health.Ended -= Die;
     }
 
@@ -84,7 +84,6 @@ public class Player : MonoBehaviour
         while (enabled)
         {
             _interactor.TickHover();
-            
             yield return waitForSeconds;
         }
     }
@@ -92,9 +91,13 @@ public class Player : MonoBehaviour
     private void FixedUpdate()
     {
         if (_isBattle)
+        {
             _rotator.Rotate();
+        }
         else
+        {
             _rotator.RotateTowardsMovement(_moveInput);
+        }
     }
 
     private void Die()
@@ -104,11 +107,6 @@ public class Player : MonoBehaviour
 
     private void OnScrollPerformed(InputAction.CallbackContext context)
     {
-        if (_inventory == null)
-        {
-            return;
-        }
-
         Vector2 scrollValue = context.ReadValue<Vector2>();
 
         if (scrollValue.y > 0f)
@@ -124,21 +122,11 @@ public class Player : MonoBehaviour
 
     private void OnDropPerformed(InputAction.CallbackContext context)
     {
-        if (_inventory == null)
-        {
-            return;
-        }
-
         _inventoryDropper.DropOneFromActiveSlot();
     }
 
     private void OnDropAllPerformed(InputAction.CallbackContext context)
     {
-        if (_inventory == null)
-        {
-            return;
-        }
-
         _inventoryDropper.DropAllFromActiveSlot();
     }
 
@@ -150,7 +138,9 @@ public class Player : MonoBehaviour
         }
 
         if (_waitCoroutine != null)
+        {
             StopCoroutine(_waitCoroutine);
+        }
 
         _animator.TriggerAttack();
 
@@ -159,16 +149,11 @@ public class Player : MonoBehaviour
 
     private void OnUseItemPerformed(InputAction.CallbackContext ctx)
     {
-        if (_inventory != null)
+        InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
+
+        if (activeSlot.IsEmpty() == false && activeSlot.Item.Effects.Count > 0)
         {
-            InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
-
-            if (activeSlot.IsEmpty() == false && activeSlot.Item.Effects.Count > 0)
-            {
-                UseActiveItem(activeSlot);
-
-                return;
-            }
+            UseActiveItem(activeSlot);
         }
     }
 
@@ -180,10 +165,9 @@ public class Player : MonoBehaviour
         {
             ItemEffect effect = item.Effects[i];
             effect.Apply(_effects);
-        } 
+        }
 
         _inventory.TryRemoveFromSlot(_inventory.ActiveIndex, 1);
-
         _audio.PlayItemUse(item);
     }
 
@@ -201,6 +185,8 @@ public class Player : MonoBehaviour
         _isBattle = true;
         _animator.SetFight(true);
 
+        SetCurrentAnimator();
+
         StopSprinting();
 
         yield return new WaitForSeconds(_timeBattle);
@@ -213,10 +199,37 @@ public class Player : MonoBehaviour
     private void ExitBattleMode()
     {
         if (_isBattle == false)
+        {
             return;
+        }
 
         _isBattle = false;
         _animator.SetFight(false);
+        SetAnimator(WeaponType.None);
+    }
+
+    private void SetAnimator(WeaponType weaponType)
+    {
+        _animatorSwitcher.SetWeaponType(weaponType);
+    }
+
+    private void SetCurrentAnimator()
+    {
+        if (_isBattle == false)
+        {
+            return;
+        }
+
+        WeaponType weaponType = WeaponType.None;
+
+        InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
+
+        if (activeSlot.IsEmpty() == false)
+        {
+            weaponType = activeSlot.Item.WeaponType;
+        }
+
+        SetAnimator(weaponType);
     }
 
     private void OnMovePerformed(InputAction.CallbackContext context)
@@ -224,7 +237,15 @@ public class Player : MonoBehaviour
         _moveInput = context.ReadValue<Vector2>();
         _movement.OnMove(_moveInput);
 
-        _animator.SetMoveState(true);
+        bool isMoving = _moveInput.sqrMagnitude > _moveInputDeadZone * _moveInputDeadZone;
+
+        _animator.SetMoveState(isMoving);
+
+        if (isMoving == true)
+        {
+            Vector3 worldMoveDirection = GetWorldMoveDirectionFromInput(_moveInput);
+            _animator.TryStep(worldMoveDirection);
+        }
 
         _audio.PlayFootstep();
     }
@@ -235,6 +256,7 @@ public class Player : MonoBehaviour
         _movement.OnMove(Vector2.zero);
 
         _animator.SetMoveState(false);
+        _animator.StopStep();
 
         _audio.PlayFootstep();
     }
@@ -258,6 +280,12 @@ public class Player : MonoBehaviour
             _movement.OnSprint(true);
 
             _animator.SetSprintState(true);
+
+            if (_moveInput.sqrMagnitude > _moveInputDeadZone * _moveInputDeadZone)
+            {
+                Vector3 worldMoveDirection = GetWorldMoveDirectionFromInput(_moveInput);
+                _animator.TryStep(worldMoveDirection);
+            }
 
             _sprintCoroutine = StartCoroutine(SprintConsume());
         }
@@ -287,13 +315,37 @@ public class Player : MonoBehaviour
     private void StopSprinting()
     {
         if (_isSprinting == false)
+        {
             return;
+        }
 
         _isSprinting = false;
         _movement.OnSprint(false);
         _animator.SetSprintState(false);
 
+        if (_moveInput.sqrMagnitude > _moveInputDeadZone * _moveInputDeadZone)
+        {
+            Vector3 worldMoveDirection = GetWorldMoveDirectionFromInput(_moveInput);
+            _animator.TryStep(worldMoveDirection);
+        }
+
         if (_sprintCoroutine != null)
+        {
             StopCoroutine(_sprintCoroutine);
+        }
+    }
+
+    private Vector3 GetWorldMoveDirectionFromInput(Vector2 moveInput)
+    {
+        Vector3 cameraForward = _mainCamera.transform.forward;
+        cameraForward.y = 0f;
+        cameraForward.Normalize();
+
+        Vector3 cameraRight = _mainCamera.transform.right;
+        cameraRight.y = 0f;
+        cameraRight.Normalize();
+
+        Vector3 worldMoveDirection = cameraRight * moveInput.x + cameraForward * moveInput.y;
+        return worldMoveDirection;
     }
 }

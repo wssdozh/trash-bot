@@ -10,5 +10,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b86ab9eece2b8b4c848686e780dd72b, type: 3}
-  m_Name: Pickup Spawner Ref
+  m_Name: Berry Pickup Spawner
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawnerRef

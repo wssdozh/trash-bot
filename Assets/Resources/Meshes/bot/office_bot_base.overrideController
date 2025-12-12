@@ -6,16 +6,18 @@ AnimatorOverrideController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: office_bot_gun
+  m_Name: office_bot_base
   m_Controller: {fileID: 9100000, guid: 143f32205a2d45d48936f042f677a39a, type: 2}
   m_Clips:
   - m_OriginalClip: {fileID: 7400000, guid: be4ddf5d90151d446860408739c9e70f, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 20629b2bed9e187419b8ef051ac7e8d7, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: be4ddf5d90151d446860408739c9e70f, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: c090d1bc568192d4a82af505033637cf, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: b7c75ded76bfd2f43adb494e30a38f9f, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c090d1bc568192d4a82af505033637cf, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: bf83b6d0de0a0a945aa0e7b70ac15667, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 45b17c31b4ae6214c89ac9c92f4870c9, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: bf83b6d0de0a0a945aa0e7b70ac15667, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 1c7eb40ead2c4614295a3e1acc25285a, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 1c5f69d487d94fd4589b939ca6f07284, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 1c7eb40ead2c4614295a3e1acc25285a, type: 2}
   - m_OriginalClip: {fileID: 7400000, guid: 07e721fdb2cd343409c792d99f41be11, type: 2}
-    m_OverrideClip: {fileID: 7400000, guid: 375fe9aade543174c81513dbf426bf4a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 07e721fdb2cd343409c792d99f41be11, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 8f4eb1acd338ffa4ca0eb7836184cf7c, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 8f4eb1acd338ffa4ca0eb7836184cf7c, type: 2}

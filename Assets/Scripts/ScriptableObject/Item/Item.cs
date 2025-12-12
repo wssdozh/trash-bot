@@ -9,6 +9,7 @@ public class Item : ScriptableObject
     [SerializeField] private Sprite _icon;
     [SerializeField] private bool _isStackable;
     [SerializeField] private int _maxStack = 1;
+    [SerializeField] private WeaponType _weaponType = WeaponType.None;
     [SerializeField] private PickupSpawnerRef _pickupSpawnerRef;
     [SerializeField] private List<ItemEffect> _effects;
     [SerializeField] private ItemAudioProfile _audioProfile;
@@ -36,6 +37,11 @@ public class Item : ScriptableObject
     public int MaxStack
     {
         get { return _maxStack; }
+    }
+
+    public WeaponType WeaponType
+    {
+        get { return _weaponType; }
     }
 
     public PickupSpawnerRef PickupSpawnerRef
