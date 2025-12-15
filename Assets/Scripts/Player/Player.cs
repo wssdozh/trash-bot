@@ -21,15 +21,13 @@ public class Player : MonoBehaviour
     [SerializeField] private Inventory _inventory;
     [SerializeField] private InventoryDropper _inventoryDropper;
     [SerializeField] private PlayerAnimator _animator;
+    [SerializeField] private AnimatorSwitcher _animatorSwitcher;
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _jumpStaminaCost = 10f;
     [SerializeField] private float _attackStaminaCost = 5f;
     [SerializeField] private float _sprintStaminaCostPerSecond = 5f;
-
-    [SerializeField] private float _battleMoveSpeedMultiplier = 0.5f;
-    [SerializeField] private float _battleRotationSpeedMultiplier = 0.3f;
 
     private PlayerInputActions _inputs;
     private bool _isBattle = false;
@@ -59,6 +57,9 @@ public class Player : MonoBehaviour
         _inputs.Player.Interact.performed += OnInteractPerformed;
         _inputs.Player.Drop.performed += OnDropPerformed;
         _inputs.Player.DropAll.performed += OnDropAllPerformed;
+
+        _inventory.InventoryChanged += SetCurrentAnimator;
+        _inventory.ActiveIndexChanged += (int i) => SetCurrentAnimator();
 
         StartCoroutine(While());
     }
@@ -201,6 +202,8 @@ public class Player : MonoBehaviour
         _isBattle = true;
         _animator.SetFight(true);
 
+        SetCurrentAnimator();
+
         StopSprinting();
 
         yield return new WaitForSeconds(_timeBattle);
@@ -213,11 +216,39 @@ public class Player : MonoBehaviour
     private void ExitBattleMode()
     {
         if (_isBattle == false)
+        {
             return;
+        }
 
         _isBattle = false;
         _animator.SetFight(false);
+        SetAnimator(WeaponType.None);
     }
+
+    private void SetAnimator(WeaponType weaponType)
+    {
+        _animatorSwitcher.SetWeaponType(weaponType);
+    }
+
+    private void SetCurrentAnimator()
+    {
+        if (_isBattle == false)
+        {
+            return;
+        }
+
+        WeaponType weaponType = WeaponType.None;
+
+        InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
+
+        if (activeSlot.IsEmpty() == false)
+        {
+            weaponType = activeSlot.Item.WeaponType;
+        }
+
+        SetAnimator(weaponType);
+    }
+
 
     private void OnMovePerformed(InputAction.CallbackContext context)
     {
