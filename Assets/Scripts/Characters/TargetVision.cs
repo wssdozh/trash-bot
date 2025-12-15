@@ -41,7 +41,7 @@ public class TargetVision : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_scanCoroutine != null)
+        if (_scanCoroutine == null == false)
         {
             StopCoroutine(_scanCoroutine);
             _scanCoroutine = null;
@@ -59,16 +59,16 @@ public class TargetVision : MonoBehaviour
 
     private void Scan()
     {
-        bool previousIsTargetVisible = _isTargetVisible;
+        bool wasTargetVisible = _isTargetVisible;
 
         EvaluateTargets();
 
-        if (previousIsTargetVisible == false && _isTargetVisible == true)
+        if (wasTargetVisible == false && _isTargetVisible == true)
         {
             TargetFound?.Invoke();
         }
 
-        if (previousIsTargetVisible == true && _isTargetVisible == false)
+        if (wasTargetVisible == true && _isTargetVisible == false)
         {
             TargetLost?.Invoke();
         }
@@ -76,24 +76,61 @@ public class TargetVision : MonoBehaviour
 
     private void EvaluateTargets()
     {
-        ResetState();
-
         Vector3 originPosition = GetOriginPosition();
 
-        Collider[] hits = Physics.OverlapSphere(originPosition, _viewDistance, _targetLayerMask);
+        Collider[] hits = Physics.OverlapSphere(
+            originPosition,
+            _viewDistance,
+            _targetLayerMask
+        );
+
         int hitsCount = hits.Length;
 
         for (int i = 0; i < hitsCount; i++)
         {
             Collider candidate = hits[i];
 
-            bool isValidTarget = IsValidTarget(candidate, originPosition);
+            bool isValid = TryValidateTarget(candidate, originPosition);
 
-            if (isValidTarget == true)
+            if (isValid == true)
             {
-                break;
+                return;
             }
         }
+
+        ResetState();
+    }
+
+    private bool TryValidateTarget(Collider candidate, Vector3 originPosition)
+    {
+        if (candidate.CompareTag(_targetTag) == false)
+        {
+            return false;
+        }
+
+        Transform candidateTransform = candidate.transform;
+        Vector3 directionToTarget = candidateTransform.position - originPosition;
+        float distance = directionToTarget.magnitude;
+
+        directionToTarget.Normalize();
+
+        bool hasObstacle = Physics.Raycast(
+            originPosition,
+            directionToTarget,
+            distance,
+            _obstacleLayerMask
+        );
+
+        if (hasObstacle == true)
+        {
+            return false;
+        }
+
+        _isTargetVisible = true;
+        _distanceToTarget = distance;
+        _currentTarget = candidateTransform;
+
+        return true;
     }
 
     private void ResetState()
@@ -105,64 +142,11 @@ public class TargetVision : MonoBehaviour
 
     private Vector3 GetOriginPosition()
     {
-        if (_origin != null)
+        if (_origin == null == false)
         {
             return _origin.position;
         }
 
         return transform.position;
-    }
-
-    private bool IsValidTarget(Collider candidate, Vector3 originPosition)
-    {
-        bool hasValidTag = candidate.CompareTag(_targetTag);
-
-        if (hasValidTag == false)
-        {
-            return false;
-        }
-
-        Transform candidateTransform = candidate.transform;
-        Vector3 directionToTarget = (candidateTransform.position - originPosition).normalized;
-        float distanceToCandidate = Vector3.Distance(originPosition, candidateTransform.position);
-
-        bool hasLineOfSight = HasLineOfSight(originPosition, directionToTarget, distanceToCandidate, candidateTransform);
-
-        if (hasLineOfSight == false)
-        {
-            return false;
-        }
-
-        _isTargetVisible = true;
-        _distanceToTarget = distanceToCandidate;
-        _currentTarget = candidateTransform;
-
-        return true;
-    }
-
-    private bool HasLineOfSight(Vector3 originPosition, Vector3 directionToTarget, float distanceToCandidate, Transform candidateTransform)
-    {
-        Ray ray = new Ray(originPosition, directionToTarget);
-        RaycastHit hit;
-        bool hasHit = Physics.Raycast(ray, out hit, distanceToCandidate, ~0);
-
-        if (hasHit == false)
-        {
-            return false;
-        }
-
-        bool isObstacle = (_obstacleLayerMask.value & (1 << hit.collider.gameObject.layer)) != 0;
-
-        if (isObstacle)
-        {
-            return false;
-        }
-
-        if (hit.transform == candidateTransform)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

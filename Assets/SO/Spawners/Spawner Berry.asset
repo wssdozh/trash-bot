@@ -9,6 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b86ab9eece2b8b4c848686e780dd72b, type: 3}
-  m_Name: Pickup Gun
+  m_Script: {fileID: 11500000, guid: 7f72c350b4774b74bbaaebec442c36a5, type: 3}
+  m_Name: Spawner Berry
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawnerRef

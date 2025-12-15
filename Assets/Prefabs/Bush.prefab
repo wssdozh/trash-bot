@@ -129,7 +129,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bush
   Health: {fileID: 62481080621976848}
   _shakeAnimator: {fileID: 2427859737707151316}
-  _berrySpawnerRef: {fileID: 11400000, guid: 501178ba4743aa643b97169f9ccea49e, type: 2}
+  _berrySpawnerRef: {fileID: 11400000, guid: 2eff1133520cc314ea38b940781fd89b, type: 2}
 --- !u!114 &62481080621976848
 MonoBehaviour:
   m_ObjectHideFlags: 0

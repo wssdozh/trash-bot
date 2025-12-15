@@ -50,7 +50,7 @@ public class Item : ScriptableObject
     }
 
     public IReadOnlyList<ItemEffect> Effects
-    {
+    { 
         get { return _effects; }
     }
 

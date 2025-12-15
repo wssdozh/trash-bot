@@ -5,6 +5,7 @@ public class Turret : MonoBehaviour
     [SerializeField] private TargetVision _targetVision;
     [SerializeField] private TargetRotator _targetRotator;
     [SerializeField] private IdleRotator _idleRotator;
+    [SerializeField] private FireExecutor _fireExecutor;
 
     private void OnEnable()
     {
@@ -37,10 +38,12 @@ public class Turret : MonoBehaviour
     {
         _idleRotator.enabled = false;
         _targetRotator.enabled = true;
+        _fireExecutor.StartFiring();
     }
 
     private void SetIdleState()
     {
+        _fireExecutor.StopFiring();
         _targetRotator.enabled = false;
         _idleRotator.ResetBaseRotation();
         _idleRotator.enabled = true;

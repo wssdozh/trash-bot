@@ -568,7 +568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56ea61bb21519c14090bed541e405535, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthSmoothSliderIndicator
-  Stat: {fileID: 3070028876034142651}
+  Stat: {fileID: 1005358252265982779}
   _slider: {fileID: 2323821423934252173}
   _duration: 0.5
 --- !u!1 &2416697856970992362
@@ -1014,7 +1014,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cfb3b5d510e0b24797e278448d0fa4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthTextIndicator
-  Stat: {fileID: 3070028876034142651}
+  Stat: {fileID: 1005358252265982779}
   _text: {fileID: 3534903667723515796}
 --- !u!1 &3192794405207612497
 GameObject:
@@ -1035,6 +1035,7 @@ GameObject:
   - component: {fileID: 8225289240440642195}
   - component: {fileID: 6235684555954501909}
   - component: {fileID: 6208927630230072032}
+  - component: {fileID: 1005358252265982779}
   m_Layer: 6
   m_Name: Body
   m_TagString: Player
@@ -1228,7 +1229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afcbb9d7d2f94b44d8a42e0e17d780fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterEffects
-  _health: {fileID: 3070028876034142651}
+  _health: {fileID: 1005358252265982779}
   _stamina: {fileID: 3532367500049189324}
 --- !u!114 &6235684555954501909
 MonoBehaviour:
@@ -1261,6 +1262,24 @@ MonoBehaviour:
   _walkMoveValue: 0.5
   _runMoveValue: 1
   _moveDirectionDeadZone: 0.0001
+--- !u!114 &1005358252265982779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3192794405207612497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  _minValue: 0
+  _maxValue: 100
+  _value: 50
+  _autoRegen: 1
+  _regenPerSecond: 2
+  _regenDelay: 3
 --- !u!1 &3467073351324503099
 GameObject:
   m_ObjectHideFlags: 0
@@ -1389,7 +1408,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7222407802121816103}
   - component: {fileID: 977357872749987717}
-  - component: {fileID: 3070028876034142651}
   - component: {fileID: 3532367500049189324}
   - component: {fileID: 6125431192887061765}
   - component: {fileID: 6220245463550749733}
@@ -1440,7 +1458,7 @@ MonoBehaviour:
   _cameraMover: {fileID: 7741357282946971170}
   _cursor: {fileID: 3878057487684928858}
   _mainCamera: {fileID: 2495233907210147591}
-  _health: {fileID: 3070028876034142651}
+  _health: {fileID: 0}
   _stamina: {fileID: 3532367500049189324}
   _interactor: {fileID: 6125431192887061765}
   _inventory: {fileID: 103484527082552904}
@@ -1451,24 +1469,6 @@ MonoBehaviour:
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
   _sprintStaminaCostPerSecond: 20
---- !u!114 &3070028876034142651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3809674235874193601}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Health
-  _minValue: 0
-  _maxValue: 100
-  _value: 50
-  _autoRegen: 1
-  _regenPerSecond: 2
-  _regenDelay: 3
 --- !u!114 &3532367500049189324
 MonoBehaviour:
   m_ObjectHideFlags: 0
