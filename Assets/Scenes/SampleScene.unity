@@ -1708,33 +1708,17 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!1 &417005964 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7732133341587999462, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
+--- !u!114 &417005968 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5374169175904853867, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
   m_PrefabInstance: {fileID: 4072910535797381592}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &417005968
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 417005964}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31f77b03fbc7a214a9e79d431b4adf49, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimatorSwitcher
-  _animator: {fileID: 613468425}
-  _baseController: {fileID: 9100000, guid: 143f32205a2d45d48936f042f677a39a, type: 2}
-  _weaponAnimators:
-  - WeaponType: 1
-    Controller: {fileID: 22100000, guid: b2d76333381faf840b2ac92091736085, type: 2}
-  - WeaponType: 0
-    Controller: {fileID: 22100000, guid: 89395df0113878e458ba99ff2732c23d, type: 2}
-  _defaultWeaponType: 0
-  _weaponLayerIndex: 1
-  _switchBlendTime: 0.2
 --- !u!1001 &461236780
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2246,6 +2230,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawner
   Prefab: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}
   PoolSize: 100
+  SceneObjects: []
   _link: {fileID: 11400000, guid: 501178ba4743aa643b97169f9ccea49e, type: 2}
 --- !u!1001 &585326781
 PrefabInstance:
@@ -2391,11 +2376,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1747013460}
   m_SourcePrefab: {fileID: 100100000, guid: fdcbbfb6a71d7dd4e888d6b4a4d09886, type: 3}
---- !u!95 &613468425 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 6628015968857417092, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
-  m_PrefabInstance: {fileID: 4072910535797381592}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &623441323 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7101854900668252255, guid: 1e1e75098c1565d40acd453751834b0d, type: 3}
@@ -6882,6 +6862,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawner
   Prefab: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
   PoolSize: 100
+  SceneObjects:
+  - {fileID: 1873528648}
   _link: {fileID: 11400000, guid: fe21edb6ccf59ff4ea27fd688817740b, type: 2}
 --- !u!1 &1845094227 stripped
 GameObject:
@@ -6933,6 +6915,17 @@ MonoBehaviour:
   BatchId: 445ee48f-f096-43b1-8bc1-3fe9ceb16cf3
   TerrainId: GlobalObjectId_V1-2-99c9720ab356a0642a771bea13969a05-1127590440-0
   Key: 0:56738:61956
+--- !u!114 &1873528648 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
+  m_PrefabInstance: {fileID: 238591237}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5105a6a6f3b37df4582dd94fae2898f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BerryPickup
 --- !u!1 &1876193764 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 986409117268951451, guid: fdcbbfb6a71d7dd4e888d6b4a4d09886, type: 3}
@@ -7897,10 +7890,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7732133341587999462, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 417005968}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 413feb236648d9b499d6a4a4f7dfc98f, type: 3}
 --- !u!114 &4072910535797381593 stripped
 MonoBehaviour:

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Item
   _id: 1
   _displayName: Gun
-  _icon: {fileID: 21300000, guid: 8998e22e65cf06049b83156882683d5f, type: 3}
+  _icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   _isStackable: 0
   _maxStack: 1
   _weaponType: 1
-  _pickupSpawnerRef: {fileID: 11400000, guid: 501178ba4743aa643b97169f9ccea49e, type: 2}
+  _pickupSpawnerRef: {fileID: 11400000, guid: fe21edb6ccf59ff4ea27fd688817740b, type: 2}
   _effects: []
   _audioProfile: {fileID: 11400000, guid: 47df3c647be82ad40acb5e6ad9ac8175, type: 2}
