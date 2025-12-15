@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
@@ -6,13 +7,37 @@ public class Bullet : MonoBehaviour
     [SerializeField] private float _lifetimeSeconds = 5f;
     [SerializeField] private string _targetTag = "Enemy";
     [SerializeField] private float _damage = 1f;
+    [SerializeField] private TrailRenderer _trailRenderer;
 
     private float _lifetimeTimer;
     private BulletSpawner _spawner;
+    private Coroutine _trailRoutine;
 
     private void OnEnable()
     {
         _lifetimeTimer = _lifetimeSeconds;
+
+        if (_trailRoutine == null == false)
+        {
+            StopCoroutine(_trailRoutine);
+            _trailRoutine = null;
+        }
+
+        if (_trailRenderer == null == false)
+        {
+            _trailRenderer.emitting = false;
+            _trailRenderer.Clear();
+            _trailRoutine = StartCoroutine(EnableTrailNextFrame());
+        }
+    }
+
+    private IEnumerator EnableTrailNextFrame()
+    {
+        yield return null;
+
+        _trailRenderer.Clear();
+        _trailRenderer.emitting = true;
+        _trailRoutine = null;
     }
 
     public void Initialize(BulletSpawner spawner, string targetTag)
@@ -52,6 +77,18 @@ public class Bullet : MonoBehaviour
 
     private void Despawn()
     {
+        if (_trailRoutine == null == false)
+        {
+            StopCoroutine(_trailRoutine);
+            _trailRoutine = null;
+        }
+
+        if (_trailRenderer == null == false)
+        {
+            _trailRenderer.emitting = false;
+            _trailRenderer.Clear();
+        }
+
         if (_spawner == null == false)
         {
             _spawner.Despawn(this);

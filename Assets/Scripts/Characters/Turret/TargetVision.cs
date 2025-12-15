@@ -13,7 +13,7 @@ public class TargetVision : MonoBehaviour
 
     private bool _isTargetVisible;
     private float _distanceToTarget;
-    private Transform _currentTarget;
+    [SerializeField] private Transform _currentTarget;
     private Coroutine _scanCoroutine;
 
     public event Action TargetFound;
