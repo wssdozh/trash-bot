@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,6 +23,9 @@ public class Player : MonoBehaviour
     [SerializeField] private InventoryDropper _inventoryDropper;
     [SerializeField] private PlayerAnimator _animator;
     [SerializeField] private AnimatorSwitcher _animatorSwitcher;
+    [SerializeField] private DamageShakeAnimator _damageShakeAnimator;
+    [SerializeField] private DamageShakeAnimator _cameraShakeAnimator;
+    [SerializeField] private Renderer _renderer;
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
@@ -35,6 +39,7 @@ public class Player : MonoBehaviour
     private Coroutine _waitCoroutine;
     private Coroutine _sprintCoroutine;
     private Vector2 _moveInput;
+    private Color _baseColor = Color.white;
 
     public event Action Died;
 
@@ -60,6 +65,8 @@ public class Player : MonoBehaviour
 
         _inventory.InventoryChanged += SetCurrentAnimator;
         _inventory.ActiveIndexChanged += (int i) => SetCurrentAnimator();
+
+        _health.Decreased += TakeDamage;
 
         StartCoroutine(While());
     }
@@ -101,6 +108,21 @@ public class Player : MonoBehaviour
     private void Die()
     {
         Died?.Invoke();
+    }
+
+    private void TakeDamage()
+    {
+        _damageShakeAnimator.Shake();
+        _cameraShakeAnimator.Shake();
+
+        Colorer.LerpToColor(_renderer, Color.red, 0.2f);
+
+        Invoke(nameof(DoColorChange), 0.2f);
+}
+
+    private void DoColorChange() 
+    {
+        Colorer.LerpToColor(_renderer, _baseColor, 0.2f);
     }
 
     private void OnScrollPerformed(InputAction.CallbackContext context)
