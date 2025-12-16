@@ -167,7 +167,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _HeightTransition: 0
-    - _Lightning_Cutoff: -0.4
+    - _Lightning_Cutoff: 0
     - _Metallic: 0
     - _Metallic0: 0
     - _Metallic1: 0
@@ -181,7 +181,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 0
     - _SampleGI: 0
-    - _Shadow_Brightness: 0.67
+    - _Shadow_Brightness: 0.3
     - _Smoothnes: 0
     - _Smoothness: 0
     - _Smoothness0: 0.5
