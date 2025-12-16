@@ -9,7 +9,7 @@ public static class Colorer
             return;
 
         Material material = renderer.material;
-        string colorProperty = material.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
+        string colorProperty = material.HasProperty("_Color") ? "_Color" : "_BaseColor";
 
         DOTween.Kill(material); 
 
@@ -24,10 +24,10 @@ public static class Colorer
             return;
 
         Material material = renderer.material;
-        string colorProperty = material.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
+        string colorProperty = material.HasProperty("_Color") ? "_Color" : "_BaseColor";
 
         DOTween.Kill(material);
-        
+
         material.DOColor(baseColor, colorProperty, duration)
             .SetEase(Ease.InOutSine)
             .SetId(material);
