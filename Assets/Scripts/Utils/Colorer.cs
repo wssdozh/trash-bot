@@ -27,6 +27,7 @@ public static class Colorer
         string colorProperty = material.HasProperty("_BaseColor") ? "_BaseColor" : "_Color";
 
         DOTween.Kill(material);
+        
         material.DOColor(baseColor, colorProperty, duration)
             .SetEase(Ease.InOutSine)
             .SetId(material);

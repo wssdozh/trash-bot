@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -10,6 +11,11 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     [Header("Настройки пула: ")]
     [SerializeField] protected int PoolSize = 5;
 
+    [Header("Статистика (runtime): ")]
+    [SerializeField, ReadOnly] private int _activeObjectsCount;
+    [SerializeField, ReadOnly] private int _inactiveObjectsCount;
+    [SerializeField, ReadOnly] private int _totalObjectsCount;
+
     protected List<T> ActiveObjects = new();
     protected ObjectPool<T> Pool;
 
@@ -20,6 +26,7 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         CountActiveObjects = 0;
 
         InitializePool();
+        UpdateStatistics();
     }
 
     private void InitializePool()
@@ -39,6 +46,10 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     {
         T instance = Instantiate(Prefab);
         instance.gameObject.SetActive(false);
+
+        _totalObjectsCount++;
+        UpdateStatistics();
+
         return instance;
     }
 
@@ -47,6 +58,7 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         CountActiveObjects++;
         ActionOnGet(prefab);
         ActiveObjects.Add(prefab);
+        UpdateStatistics();
     }
 
     private void OnRelease(T prefab)
@@ -54,10 +66,13 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         CountActiveObjects--;
         ActionOnRelease(prefab);
         ActiveObjects.Remove(prefab);
+        UpdateStatistics();
     }
 
     private void OnDestroyObject(T prefab)
     {
+        _totalObjectsCount--;
+        UpdateStatistics();
         Destroy(prefab.gameObject);
     }
 
@@ -69,5 +84,11 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     protected virtual void ActionOnRelease(T prefab)
     {
         prefab.gameObject.SetActive(false);
+    }
+
+    private void UpdateStatistics()
+    {
+        _activeObjectsCount = CountActiveObjects;
+        _inactiveObjectsCount = _totalObjectsCount - _activeObjectsCount;
     }
 }
