@@ -112,12 +112,12 @@ public class Player : MonoBehaviour
 
     private void TakeDamage()
     {
-        _damageShakeAnimator.Shake();
-        _cameraShakeAnimator.Shake();
+        // _damageShakeAnimator.Shake();
+        // _damageShakeAnimator.Shake();
 
-        Colorer.LerpToColor(_renderer, Color.red, 0.2f);
+        // Colorer.LerpToColor(_renderer, Color.red, 0.2f);
 
-        Invoke(nameof(DoColorChange), 0.2f);
+        // Invoke(nameof(DoColorChange), 0.2f);
 }
 
     private void DoColorChange() 

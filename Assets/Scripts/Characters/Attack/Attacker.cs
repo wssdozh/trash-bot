@@ -4,6 +4,8 @@ using System.Collections;
 public class Attacker : MonoBehaviour
 {
     [SerializeField] private AttackData _attackData;
+    [SerializeField] private float _hitForce = 6f;
+    [SerializeField] private ForceMode _hitForceMode = ForceMode.Impulse;
 
     private bool _isOnCooldown = false;
 
@@ -20,17 +22,22 @@ public class Attacker : MonoBehaviour
 
         for (int i = 0; i < hits.Length; i++)
         {
-            Health health = hits[i].GetComponent<Health>();
+            if (hits[i].TryGetComponent(out Rigidbody rigidbody) == true)
+            {
+                Vector3 direction = (hits[i].transform.position - transform.position).normalized;
+                rigidbody.AddForce(direction * _hitForce, _hitForceMode);
+            }
 
-            if (health != null)
+            if (hits[i].TryGetComponent(out Health health) == true)
             {
                 health.Decrease(damage);
-                break;
             }
+
+            break;
         }
 
         StartCoroutine(StartCooldown());
-        
+
         return true;
     }
 

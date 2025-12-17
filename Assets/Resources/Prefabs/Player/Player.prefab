@@ -1324,6 +1324,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Attacker
   _attackData: {fileID: 11400000, guid: fe96e0b1cedb527488b817f3e111a4cc, type: 2}
+  _hitForce: 6
+  _hitForceMode: 1
 --- !u!1 &3662093019515757342
 GameObject:
   m_ObjectHideFlags: 0
@@ -2079,7 +2081,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6530449797745977390}
-  - component: {fileID: 7040879601294157457}
   - component: {fileID: 2997632052463672765}
   m_Layer: 6
   m_Name: PickupTrigger
@@ -2103,27 +2104,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3121506792685722856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &7040879601294157457
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7609188837711551706}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.7
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2997632052463672765
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2136,7 +2116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f5e3c3d4391db54d8267f0266925bde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupTrigger
-  _triggerCollider: {fileID: 7040879601294157457}
+  _triggerCollider: {fileID: 0}
   _inventory: {fileID: 103484527082552904}
 --- !u!1 &7732133341587999462
 GameObject:

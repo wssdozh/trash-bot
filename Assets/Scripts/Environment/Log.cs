@@ -13,7 +13,6 @@ public class Log : DamageableObject
 
     protected override void OnDamage()
     {
-        PlayShake();
     }
 
     protected override void OnDeath()

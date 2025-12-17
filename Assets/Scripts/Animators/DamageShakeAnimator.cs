@@ -18,7 +18,7 @@ public class DamageShakeAnimator : MonoBehaviour
     private Tween _positionTween;
     private Tween _rotationTween;
 
-    private Vector3 _initialLocalPosition;
+    private Vector3 _initialLocalPosition; 
     private Quaternion _initialLocalRotation;
 
     private void OnEnable()

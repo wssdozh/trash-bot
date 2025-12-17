@@ -3,7 +3,6 @@ using UnityEngine;
 public abstract class DamageableObject : MonoBehaviour
 {
     [SerializeField] protected Health Health;
-    [SerializeField] private DamageShakeAnimator _shakeAnimator; 
 
     protected virtual void OnEnable()
     {
@@ -20,14 +19,6 @@ public abstract class DamageableObject : MonoBehaviour
         {
             Health.Decreased -= OnDamage;
             Health.Ended -= OnDeath;
-        }
-    }
-
-    protected void PlayShake()
-    {
-        if (_shakeAnimator != null)
-        {
-            _shakeAnimator.Shake();
         }
     }
 

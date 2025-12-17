@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: FadableSettings
   m_EditorClassIdentifier: Assembly-CSharp::FadableSettings
   FadeDuration: 0.5
-  OccludedAlpha: 0.5
+  OccludedAlpha: -0.5
