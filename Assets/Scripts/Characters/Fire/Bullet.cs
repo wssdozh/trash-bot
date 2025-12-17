@@ -40,9 +40,13 @@ public class Bullet : MonoBehaviour
         _trailRoutine = null;
     }
 
-    public void Initialize(BulletSpawner spawner, string targetTag)
+    public void Initialize(BulletSpawner spawner)
     {
         _spawner = spawner;
+    }
+
+    public void SetTag(string targetTag)
+    {
         _targetTag = targetTag;
     }
 
@@ -51,6 +55,7 @@ public class Bullet : MonoBehaviour
         transform.Translate(Vector3.forward * _speed * Time.deltaTime);
 
         _lifetimeTimer -= Time.deltaTime;
+
         if (_lifetimeTimer <= 0f)
         {
             Despawn();

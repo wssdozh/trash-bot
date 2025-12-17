@@ -3,12 +3,11 @@ using UnityEngine;
 
 public class WeaponHolder : MonoBehaviour
 {
-    [SerializeField] private Inventory _inventory;
     [SerializeField] private Transform _weaponSocket;
     [SerializeField] private string _targetTag = "Enemy";
 
     private PickupSpawner _pickupSpawner;
-    private BasePickup _currentPickup;
+    private BasePickup _pickup;
     private FireExecutor _fireExecutor;
 
     public FireExecutor FireExecutor
@@ -18,62 +17,11 @@ public class WeaponHolder : MonoBehaviour
 
     public event Action Changed;
 
-    private void OnEnable()
+    public void Equip(PickupSpawnerRef pickupSpawnerRef)
     {
-        _inventory.InventoryChanged += Refresh;
-        _inventory.ActiveIndexChanged += OnActiveIndexChanged;
-        Refresh();
-    }
+        PickupSpawner pickupSpawner = pickupSpawnerRef.Value;
 
-    private void OnDisable()
-    {
-        _inventory.InventoryChanged -= Refresh;
-        _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
-    }
-
-    private void OnActiveIndexChanged(int activeIndex)
-    {
-        Refresh();
-    }
-
-    private void Refresh()
-    {
-        InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
-
-        if (activeSlot.IsEmpty() == true)
-        {
-            Clear();
-            return;
-        }
-
-        Item item = activeSlot.Item;
-
-        if (item.WeaponType == WeaponType.None)
-        {
-            Clear();
-            return;
-        }
-
-        if (item.PickupSpawnerRef == null)
-        {
-            Clear();
-            return;
-        }
-
-        PickupSpawner pickupSpawner = item.PickupSpawnerRef.Value;
-
-        if (pickupSpawner == null)
-        {
-            Clear();
-            return;
-        }
-
-        Set(pickupSpawner);
-    }
-
-    private void Set(PickupSpawner pickupSpawner)
-    {
-        if (_pickupSpawner == pickupSpawner && _currentPickup != null)
+        if (_pickupSpawner == pickupSpawner && _pickup != null)
         {
             return;
         }
@@ -82,12 +30,36 @@ public class WeaponHolder : MonoBehaviour
 
         _pickupSpawner = pickupSpawner;
 
-        _currentPickup = _pickupSpawner.Spawn(_weaponSocket.position);
-        _currentPickup.transform.SetParent(_weaponSocket, true);
-        _currentPickup.transform.localPosition = Vector3.zero;
-        _currentPickup.transform.localRotation = Quaternion.identity;
+        _pickup = _pickupSpawner.Spawn(_weaponSocket.position);
+        _pickup.transform.SetParent(_weaponSocket, true);
 
-        _fireExecutor = _currentPickup.GetComponentInChildren<FireExecutor>();
+        WeaponGrip weaponGrip = _pickup.GetComponentInChildren<WeaponGrip>();
+
+        Vector3 localPositionOffset = Vector3.zero;
+        Vector3 localRotationOffsetEuler = Vector3.zero;
+
+        if (weaponGrip != null)
+        {
+            localPositionOffset = weaponGrip.LocalPositionOffset;
+            localRotationOffsetEuler = weaponGrip.LocalRotationOffsetEuler;
+        }
+
+        _pickup.transform.localPosition = localPositionOffset;
+        _pickup.transform.localRotation = Quaternion.Euler(localRotationOffsetEuler);
+
+        PickupReturner pickupReturner = _pickup.GetComponent<PickupReturner>();
+        if (pickupReturner != null)
+        {
+            pickupReturner.SetCanReturn(false);
+        }
+
+        HeldMode heldMode = _pickup.GetComponent<HeldMode>();
+        if (heldMode != null)
+        {
+            heldMode.SetHeld(true);
+        }
+
+        _fireExecutor = _pickup.GetComponentInChildren<FireExecutor>();
 
         if (_fireExecutor != null)
         {
@@ -97,22 +69,35 @@ public class WeaponHolder : MonoBehaviour
         Changed?.Invoke();
     }
 
-    private void Clear()
+    public void Clear()
     {
-        if (_currentPickup != null)
+        if (_fireExecutor != null)
         {
-            if (_pickupSpawner != null)
+            _fireExecutor.StopFiring();
+        }
+
+        if (_pickup != null)
+        {
+            HeldMode heldMode = _pickup.GetComponent<HeldMode>();
+            if (heldMode != null)
             {
-                _pickupSpawner.Despawn(_currentPickup);
+                heldMode.SetHeld(false);
             }
-            else
+
+            PickupReturner pickupReturner = _pickup.GetComponent<PickupReturner>();
+            if (pickupReturner != null)
             {
-                Destroy(_currentPickup.gameObject);
+                pickupReturner.SetCanReturn(true);
             }
         }
 
+        if (_pickup != null && _pickupSpawner != null)
+        {
+            _pickupSpawner.Despawn(_pickup);
+        }
+
         _pickupSpawner = null;
-        _currentPickup = null;
+        _pickup = null;
         _fireExecutor = null;
 
         Changed?.Invoke();

@@ -91,7 +91,14 @@ public class Player : MonoBehaviour
         while (enabled)
         {
             _interactor.TickHover();
-            
+
+            FireExecutor fireExecutor = _weaponHolder.FireExecutor;
+
+            if (fireExecutor != null)
+            {
+                fireExecutor.SetAimPoint(_cursor.MouseWorldPos);
+            }
+
             yield return waitForSeconds;
         }
     }
@@ -176,16 +183,29 @@ public class Player : MonoBehaviour
 
     private void OnAttackPerformed(InputAction.CallbackContext context)
     {
-        FireExecutor fireExecutor = null;
-
-        if (_weaponHolder != null)
-        {
-            fireExecutor = _weaponHolder.FireExecutor;
-        }
+        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
 
         if (fireExecutor != null)
         {
-            fireExecutor.StartFiring();
+            if (_stamina.Value <= 0f)
+            {
+                return;
+            }
+
+            bool startedFiring = fireExecutor.TryStartFiring();
+
+            if (startedFiring == true)
+            {
+                _stamina.Decrease(_attackStaminaCost);
+
+                if (_waitCoroutine != null)
+                {
+                    StopCoroutine(_waitCoroutine);
+                }
+
+                _waitCoroutine = StartCoroutine(Wait());
+            }
+
             return;
         }
 
@@ -193,6 +213,14 @@ public class Player : MonoBehaviour
         {
             _stamina.Decrease(_attackStaminaCost);
         }
+
+        if (_waitCoroutine != null)
+        {
+            StopCoroutine(_waitCoroutine);
+        }
+
+        _animator.TriggerAttack();
+        _waitCoroutine = StartCoroutine(Wait());
     }
 
     private void OnAttackCanceled(InputAction.CallbackContext context)
@@ -209,6 +237,7 @@ public class Player : MonoBehaviour
             fireExecutor.StopFiring();
         }
     }
+
 
     private void OnUseItemPerformed(InputAction.CallbackContext ctx)
     {

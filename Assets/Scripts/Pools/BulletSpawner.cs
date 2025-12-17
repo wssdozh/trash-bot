@@ -35,6 +35,7 @@ public class BulletSpawner : Spawner<Bullet>
     {
         Bullet bullet = Pool.Get();
         bullet.transform.SetPositionAndRotation(position, rotation);
+        bullet.SetTag(targetTag);
         bullet.GetComponent<BulletReturner>().Initialize(this);
         bullet.gameObject.SetActive(true);
         return bullet;
