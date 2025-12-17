@@ -11,19 +11,22 @@ public class DoorInteractable : Interactable
 
     private bool _isOpen = false;
     private Quaternion _closedRotation;
-    private Quaternion _openRotation;
+    private Quaternion _openRotationPositive;
+    private Quaternion _openRotationNegative;
     private Tween _currentTween;
 
     protected override void Awake()
     {
         base.Awake();
 
-        if (_doorTransform == null)
-            _doorTransform = transform;
+        _doorTransform = _doorTransform == null ? transform : _doorTransform;
 
         _closedRotation = _doorTransform.rotation;
-        
-        _openRotation = _doorTransform.rotation * Quaternion.Euler(0f, _openAngle, 0f);
+
+        float openAngle = Mathf.Abs(_openAngle);
+
+        _openRotationPositive = _closedRotation * Quaternion.Euler(0f, openAngle, 0f);
+        _openRotationNegative = _closedRotation * Quaternion.Euler(0f, -openAngle, 0f);
     }
 
     public override string GetPrompt()
@@ -39,9 +42,22 @@ public class DoorInteractable : Interactable
 
         _currentTween?.Kill();
 
-        Quaternion targetRotation = _isOpen ? _openRotation : _closedRotation;
+        Quaternion targetRotation = _isOpen ? GetOpenRotation(interactor) : _closedRotation;
 
         _currentTween = _doorTransform.DORotateQuaternion(targetRotation, _openDuration)
             .SetEase(_openEase);
+    }
+
+    private Quaternion GetOpenRotation(GameObject interactor)
+    {
+        Vector3 toInteractor = interactor.transform.position - _doorTransform.position;
+        toInteractor.y = 0f;
+
+        Vector3 doorForward = _closedRotation * Vector3.forward;
+        doorForward.y = 0f;
+
+        float dot = Vector3.Dot(doorForward.normalized, toInteractor.normalized);
+
+        return dot >= 0f ? _openRotationNegative : _openRotationPositive;
     }
 }

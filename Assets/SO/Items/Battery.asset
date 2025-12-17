@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 28aa66dd98b02a542b0389a922d49310, type: 3}
-  m_Name: Berry
+  m_Name: Battery
   m_EditorClassIdentifier: Assembly-CSharp::Item
   _id: 0
-  _displayName: Berry
-  _icon: {fileID: 21300000, guid: 8998e22e65cf06049b83156882683d5f, type: 3}
+  _displayName: Battery
+  _icon: {fileID: 21300000, guid: dc39c8eeb58521d429e51fcc94de953d, type: 3}
   _isStackable: 1
   _maxStack: 32
   _weaponType: 0

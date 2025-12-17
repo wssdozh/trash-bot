@@ -933,8 +933,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3ba07809029c8e7449ef45a7ccacfe4e, type: 2}
+  m_sharedMaterial: {fileID: -1142147120203264110, guid: 3ba07809029c8e7449ef45a7ccacfe4e, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1034,7 +1034,7 @@ GameObject:
   - component: {fileID: 6235684555954501909}
   - component: {fileID: 6208927630230072032}
   - component: {fileID: 1005358252265982779}
-  - component: {fileID: 2965717082654738961}
+  - component: {fileID: 8561658370585743770}
   m_Layer: 6
   m_Name: Body
   m_TagString: Player
@@ -1061,6 +1061,7 @@ Transform:
   - {fileID: 3653602677398747996}
   - {fileID: 6530449797745977390}
   - {fileID: 156375590259981000}
+  - {fileID: 7090118293370649426}
   m_Father: {fileID: 7222407802121816103}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!54 &5283493936376155014
@@ -1223,7 +1224,7 @@ MonoBehaviour:
   _autoRegen: 1
   _regenPerSecond: 2
   _regenDelay: 3
---- !u!114 &2965717082654738961
+--- !u!114 &8561658370585743770
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1232,16 +1233,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 3192794405207612497}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc3c0827d5764c34e99daaba897bf6e8, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeAnimator
-  _targetTransform: {fileID: 0}
-  _shakePositionStrength: 0.2
-  _shakePositionVibrato: 10
-  _shakePositionDuration: 0.15
-  _shakeRotationStrength: 0.2
+  m_EditorClassIdentifier: Assembly-CSharp::ShakeFeedback
+  _targetTransform: {fileID: 7218144221720296056}
+  _shakePositionStrength: 0.05
+  _shakePositionVibrato: 30
+  _shakePositionDuration: 0.25
+  _shakeRotationStrength: 1
   _shakeRotationVibrato: 10
-  _shakeRotationDuration: 0.15
+  _shakeRotationDuration: 0.25
 --- !u!1 &3467073351324503099
 GameObject:
   m_ObjectHideFlags: 0
@@ -1429,9 +1430,6 @@ MonoBehaviour:
   _inventoryDropper: {fileID: 5505842368566700150}
   _animator: {fileID: 0}
   _animatorSwitcher: {fileID: 0}
-  _damageShakeAnimator: {fileID: 0}
-  _cameraShakeAnimator: {fileID: 0}
-  _renderer: {fileID: 0}
   _timeBattle: 3
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
@@ -1816,6 +1814,53 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &6366033391703128585
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7090118293370649426}
+  - component: {fileID: 5661980330572723189}
+  m_Layer: 6
+  m_Name: DamagePopup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7090118293370649426
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6366033391703128585}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3121506792685722856}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5661980330572723189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6366033391703128585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec9e26ceb88ba894db2d5fe1761270a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamagePopupOnHealth
+  _health: {fileID: 1005358252265982779}
+  _spawnPoint: {fileID: 7090118293370649426}
+  _spawner: {fileID: 11400000, guid: 0b40bed66c56b424081d1c5389960b38, type: 2}
 --- !u!1 &6464147484178172071
 GameObject:
   m_ObjectHideFlags: 0
@@ -1829,7 +1874,7 @@ GameObject:
   - component: {fileID: 4281349593830466450}
   - component: {fileID: 527973511498215326}
   - component: {fileID: 7741357282946971170}
-  - component: {fileID: 7226473692323218199}
+  - component: {fileID: 1076722759340490037}
   m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1975,7 +2020,7 @@ MonoBehaviour:
   _mouseInfluence: 0.07
   _positionOffset: {x: 0, y: 0, z: -3}
   _tiltAngle: 60
---- !u!114 &7226473692323218199
+--- !u!114 &1076722759340490037
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1984,14 +2029,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 6464147484178172071}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc3c0827d5764c34e99daaba897bf6e8, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeAnimator
+  m_EditorClassIdentifier: Assembly-CSharp::ShakeFeedback
   _targetTransform: {fileID: 0}
   _shakePositionStrength: 0.05
-  _shakePositionVibrato: 12
+  _shakePositionVibrato: 50
   _shakePositionDuration: 0.25
-  _shakeRotationStrength: 5
+  _shakeRotationStrength: 15
   _shakeRotationVibrato: 10
   _shakeRotationDuration: 0.25
 --- !u!1 &6561358841139358698
@@ -2149,7 +2194,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 3281608938481288494}
   m_Father: {fileID: 7222407802121816103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3878057487684928858
@@ -2289,6 +2335,104 @@ MonoBehaviour:
   _defaultWeaponType: 0
   _weaponLayerIndex: 1
   _switchBlendTime: 0.2
+--- !u!1 &8281847931232103540
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3281608938481288494}
+  - component: {fileID: 6291440491050643034}
+  - component: {fileID: 8289262059774112086}
+  - component: {fileID: 6984711611595008909}
+  - component: {fileID: 8855600977827056608}
+  m_Layer: 6
+  m_Name: Feedbacks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3281608938481288494
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8281847931232103540}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2352791615341782866}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6291440491050643034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8281847931232103540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd9b653faa459ea419a1f6b07999c8f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthFeedbackTrigger
+  _health: {fileID: 1005358252265982779}
+  _feedbackGroup: {fileID: 8289262059774112086}
+--- !u!114 &8289262059774112086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8281847931232103540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d98ea429bafeed948a99f099b1b686ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FeedbackGroup
+  _feedbacks:
+  - {fileID: 8561658370585743770}
+  - {fileID: 6984711611595008909}
+  - {fileID: 8855600977827056608}
+  - {fileID: 1076722759340490037}
+--- !u!114 &6984711611595008909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8281847931232103540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef1823cc904ff6488b4f7b2fc264055, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorFlashFeedback
+  _renderer: {fileID: 1312414802374287205}
+  _flashColor: {r: 1, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+--- !u!114 &8855600977827056608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8281847931232103540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c74265057a422374a81f3c9cd84b491a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorFlashImageFeedback
+  _image: {fileID: 1867670185713980326}
+  _flashColor: {r: 1, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
 --- !u!1 &8401193008153117159
 GameObject:
   m_ObjectHideFlags: 0
@@ -2452,6 +2596,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 323b66cc211df0f4694c7285289b4882, type: 3}
+--- !u!137 &1312414802374287205 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 398443047138451347, guid: 323b66cc211df0f4694c7285289b4882, type: 3}
+  m_PrefabInstance: {fileID: 1707198064480125174}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &6628015968857417092 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5497310680577893746, guid: 323b66cc211df0f4694c7285289b4882, type: 3}

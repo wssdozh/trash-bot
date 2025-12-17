@@ -21,12 +21,18 @@ public class ShakeFeedback : Feedback
     private Transform _resolvedTargetTransform;
     private Vector3 _initialLocalPosition;
     private Quaternion _initialLocalRotation;
+    private bool _shouldRestoreTransform;
 
     private void Awake()
     {
-        _resolvedTargetTransform = _targetTransform != null ? _targetTransform : transform;
-        _initialLocalPosition = _resolvedTargetTransform.localPosition;
-        _initialLocalRotation = _resolvedTargetTransform.localRotation;
+        _shouldRestoreTransform = _targetTransform != null;
+        _resolvedTargetTransform = _shouldRestoreTransform == true ? _targetTransform : transform;
+
+        if (_shouldRestoreTransform == true)
+        {
+            _initialLocalPosition = _resolvedTargetTransform.localPosition;
+            _initialLocalRotation = _resolvedTargetTransform.localRotation;
+        }
     }
 
     private void OnDisable()
@@ -43,8 +49,23 @@ public class ShakeFeedback : Feedback
     {
         Stop();
 
-        _positionTween = _resolvedTargetTransform.DOShakePosition(_shakePositionDuration, _shakePositionStrength, _shakePositionVibrato);
-        _rotationTween = _resolvedTargetTransform.DOShakeRotation(_shakeRotationDuration, _shakeRotationStrength, _shakeRotationVibrato);
+        if (_shouldRestoreTransform == true)
+        {
+            _initialLocalPosition = _resolvedTargetTransform.localPosition;
+            _initialLocalRotation = _resolvedTargetTransform.localRotation;
+        }
+
+        _positionTween = _resolvedTargetTransform.DOShakePosition(
+            _shakePositionDuration,
+            _shakePositionStrength,
+            _shakePositionVibrato
+        );
+
+        _rotationTween = _resolvedTargetTransform.DOShakeRotation(
+            _shakeRotationDuration,
+            _shakeRotationStrength,
+            _shakeRotationVibrato
+        );
     }
 
     public override void Stop()
@@ -59,7 +80,10 @@ public class ShakeFeedback : Feedback
             _rotationTween.Kill(true);
         }
 
-        _resolvedTargetTransform.localPosition = _initialLocalPosition;
-        _resolvedTargetTransform.localRotation = _initialLocalRotation;
+        if (_shouldRestoreTransform == true)
+        {
+            _resolvedTargetTransform.localPosition = _initialLocalPosition;
+            _resolvedTargetTransform.localRotation = _initialLocalRotation;
+        }
     }
 }
