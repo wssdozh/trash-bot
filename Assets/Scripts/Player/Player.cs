@@ -23,9 +23,7 @@ public class Player : MonoBehaviour
     [SerializeField] private InventoryDropper _inventoryDropper;
     [SerializeField] private PlayerAnimator _animator;
     [SerializeField] private AnimatorSwitcher _animatorSwitcher;
-    [SerializeField] private DamageShakeAnimator _damageShakeAnimator;
-    [SerializeField] private DamageShakeAnimator _cameraShakeAnimator;
-    [SerializeField] private Renderer _renderer;
+    [SerializeField] private WeaponHolder _weaponHolder;
 
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
@@ -55,6 +53,7 @@ public class Player : MonoBehaviour
         _inputs.Player.Sprint.canceled += OnSprintCanceled;
 
         _inputs.Player.Attack.performed += OnAttackPerformed;
+        _inputs.Player.Attack.canceled += OnAttackCanceled;
         _inputs.Player.UseItem.performed += OnUseItemPerformed;
 
         _inputs.Player.Scroll.performed += OnScrollPerformed;
@@ -66,7 +65,7 @@ public class Player : MonoBehaviour
         _inventory.InventoryChanged += SetCurrentAnimator;
         _inventory.ActiveIndexChanged += (int i) => SetCurrentAnimator();
 
-        _health.Decreased += TakeDamage;
+        // _health.Decreased += TakeDamage;
 
         StartCoroutine(While());
     }
@@ -118,11 +117,6 @@ public class Player : MonoBehaviour
         // Colorer.LerpToColor(_renderer, Color.red, 0.2f);
 
         // Invoke(nameof(DoColorChange), 0.2f);
-}
-
-    private void DoColorChange() 
-    {
-        Colorer.LerpToColor(_renderer, _baseColor, 0.2f);
     }
 
     private void OnScrollPerformed(InputAction.CallbackContext context)
@@ -165,19 +159,55 @@ public class Player : MonoBehaviour
         _inventoryDropper.DropAllFromActiveSlot();
     }
 
-    private void OnAttackPerformed(InputAction.CallbackContext ctx)
+    // private void OnAttackPerformed(InputAction.CallbackContext ctx)
+    // {
+    //     if (_stamina.Value > 0f && _attack.PerformAttack())
+    //     {
+    //         _stamina.Decrease(_attackStaminaCost);
+    //     }
+
+    //     if (_waitCoroutine != null)
+    //         StopCoroutine(_waitCoroutine);
+
+    //     _animator.TriggerAttack();
+
+    //     _waitCoroutine = StartCoroutine(Wait());
+    // }
+
+    private void OnAttackPerformed(InputAction.CallbackContext context)
     {
-        if (_stamina.Value > 0f && _attack.PerformAttack())
+        FireExecutor fireExecutor = null;
+
+        if (_weaponHolder != null)
+        {
+            fireExecutor = _weaponHolder.FireExecutor;
+        }
+
+        if (fireExecutor != null)
+        {
+            fireExecutor.StartFiring();
+            return;
+        }
+
+        if (_stamina.Value > 0f && _attack.PerformAttack() == true)
         {
             _stamina.Decrease(_attackStaminaCost);
         }
+    }
 
-        if (_waitCoroutine != null)
-            StopCoroutine(_waitCoroutine);
+    private void OnAttackCanceled(InputAction.CallbackContext context)
+    {
+        FireExecutor fireExecutor = null;
 
-        _animator.TriggerAttack();
+        if (_weaponHolder != null)
+        {
+            fireExecutor = _weaponHolder.FireExecutor;
+        }
 
-        _waitCoroutine = StartCoroutine(Wait());
+        if (fireExecutor != null)
+        {
+            fireExecutor.StopFiring();
+        }
     }
 
     private void OnUseItemPerformed(InputAction.CallbackContext ctx)
@@ -214,7 +244,7 @@ public class Player : MonoBehaviour
     {
         ExitBattleMode();
 
-        _interactor.TryInteract(gameObject);
+        _interactor.TryInteract(_movement.gameObject);
 
         _animator.TriggerPoint();
     }

@@ -20,20 +20,25 @@ public class Attacker : MonoBehaviour
 
         Collider[] hits = _attackData.AttackShape.GetTargets(transform, _attackData.AttackRange, _attackData.HitLayers);
 
-        for (int i = 0; i < hits.Length; i++)
+        if (hits.Length == 0)
         {
-            if (hits[i].TryGetComponent(out Rigidbody rigidbody) == true)
-            {
-                Vector3 direction = (hits[i].transform.position - transform.position).normalized;
-                rigidbody.AddForce(direction * _hitForce, _hitForceMode);
-            }
+            StartCoroutine(StartCooldown());
+            return true;
+        }
 
-            if (hits[i].TryGetComponent(out Health health) == true)
-            {
-                health.Decrease(damage);
-            }
+        Collider hit = hits[0];
 
-            break;
+        Rigidbody rigidbody;
+        if (hit.TryGetComponent(out rigidbody) == true)
+        {
+            Vector3 direction = (hit.transform.position - transform.position).normalized;
+            rigidbody.AddForce(direction * _hitForce, _hitForceMode);
+        }
+
+        Health health;
+        if (hit.TryGetComponent(out health) == true)
+        {
+            health.Decrease(damage);
         }
 
         StartCoroutine(StartCooldown());
