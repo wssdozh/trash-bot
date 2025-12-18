@@ -11,6 +11,8 @@ public class CursorManager : MonoBehaviour
 
     public Vector3 MouseWorldPos { get; private set; }
     public Vector3 MouseGroundPos { get; private set; }
+    public Vector3 MouseHitPos { get; private set; }
+    public bool HasHit { get; private set; }
 
     public Vector2 MouseScreenPos => Mouse.current.position.ReadValue();
 
@@ -42,6 +44,24 @@ public class CursorManager : MonoBehaviour
         _rectTransform.gameObject.SetActive(false);
     }
 
+    // private void UpdateWorldPositions()
+    // {
+    //     if (_camera == null || _player == null)
+    //         return;
+
+    //     Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
+
+    //     Plane playerPlane = new Plane(Vector3.up, new Vector3(0, _player.position.y, 0));
+
+    //     if (playerPlane.Raycast(ray, out float distToPlayer))
+    //         MouseWorldPos = ray.GetPoint(distToPlayer);
+
+    //     Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+        
+    //     if (groundPlane.Raycast(ray, out float distToGround))
+    //         MouseGroundPos = ray.GetPoint(distToGround);
+    // }
+
     private void UpdateWorldPositions()
     {
         if (_camera == null || _player == null)
@@ -49,14 +69,25 @@ public class CursorManager : MonoBehaviour
 
         Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
 
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, _interactableMask))
+        {
+            MouseHitPos = hit.point;
+            HasHit = true;
+        }
+        else
+        {
+            HasHit = false;
+        }
+
         Plane playerPlane = new Plane(Vector3.up, new Vector3(0, _player.position.y, 0));
 
         if (playerPlane.Raycast(ray, out float distToPlayer))
             MouseWorldPos = ray.GetPoint(distToPlayer);
 
         Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        
+
         if (groundPlane.Raycast(ray, out float distToGround))
             MouseGroundPos = ray.GetPoint(distToGround);
     }
+
 }

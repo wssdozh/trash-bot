@@ -1430,6 +1430,7 @@ MonoBehaviour:
   _inventoryDropper: {fileID: 5505842368566700150}
   _animator: {fileID: 0}
   _animatorSwitcher: {fileID: 0}
+  _weaponHolder: {fileID: 0}
   _timeBattle: 3
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
@@ -2215,7 +2216,7 @@ MonoBehaviour:
   _rectTransform: {fileID: 6331111583671651043}
   _interactableMask:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 969
 --- !u!82 &5427971631719641237
 AudioSource:
   m_ObjectHideFlags: 0

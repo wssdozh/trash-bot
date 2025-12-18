@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour
     [SerializeField] private float _lifetimeSeconds = 5f;
     [SerializeField] private string _targetTag = "Enemy";
     [SerializeField] private float _damage = 1f;
+    [SerializeField] private float _impulseStrength = 3f;
     [SerializeField] private TrailRenderer _trailRenderer;
 
     private float _lifetimeTimer;
@@ -69,11 +70,18 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        if (other.gameObject.TryGetComponent<Health>(out Health health))
-        {
-            if (other.gameObject.CompareTag(_targetTag))
+        if (other.gameObject.CompareTag(_targetTag))
+        {   
+            if (other.gameObject.TryGetComponent<Health>(out Health health))
             {
-                health.Decrease(_damage);
+                {
+                    health.Decrease(_damage);
+                }
+            }
+        
+            if (other.gameObject.TryGetComponent<Rigidbody>(out Rigidbody rigidbody))
+            {
+                rigidbody.AddForce(transform.forward * _impulseStrength, ForceMode.Impulse);
             }
         }
 

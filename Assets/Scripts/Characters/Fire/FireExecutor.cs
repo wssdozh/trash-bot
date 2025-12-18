@@ -44,6 +44,7 @@ public abstract class FireExecutor : MonoBehaviour
 
         _isFiring = true;
         _firingCoroutine = StartCoroutine(FiringCoroutine());
+        
         return true;
     }
 

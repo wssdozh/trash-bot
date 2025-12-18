@@ -96,7 +96,7 @@ public class Player : MonoBehaviour
 
             if (fireExecutor != null)
             {
-                fireExecutor.SetAimPoint(_cursor.MouseWorldPos);
+                fireExecutor.SetAimPoint(_cursor.MouseHitPos);
             }
 
             yield return waitForSeconds;
@@ -114,16 +114,6 @@ public class Player : MonoBehaviour
     private void Die()
     {
         Died?.Invoke();
-    }
-
-    private void TakeDamage()
-    {
-        // _damageShakeAnimator.Shake();
-        // _damageShakeAnimator.Shake();
-
-        // Colorer.LerpToColor(_renderer, Color.red, 0.2f);
-
-        // Invoke(nameof(DoColorChange), 0.2f);
     }
 
     private void OnScrollPerformed(InputAction.CallbackContext context)
