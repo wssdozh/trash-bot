@@ -105,6 +105,7 @@ public class Bullet : MonoBehaviour
         if (_spawner == null == false)
         {
             _spawner.Despawn(this);
+            
             return;
         }
 

@@ -33,7 +33,7 @@ public class HighlightAnimator : HighlighterBase
     {
         for (int index = 0; index < _renderers.Length; index++)
         {
-            Colorer.LerpToColor(_renderers[index], _highlightColor, _blinkTime);
+            ColorerRenderer.LerpToColor(_renderers[index], _highlightColor, _blinkTime);
         }
     }
 
@@ -41,7 +41,7 @@ public class HighlightAnimator : HighlighterBase
     {
         for (int index = 0; index < _renderers.Length; index++)
         {
-            Colorer.Stop(_renderers[index], _originalColors[index], _blinkTime);
+            ColorerRenderer.Stop(_renderers[index], _originalColors[index], _blinkTime);
         }
     }
 }

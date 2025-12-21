@@ -25,11 +25,11 @@ public class FadableObstacle : MonoBehaviour, IFadable
 
     public void OnOccluded()
     {
-        Colorer.FadeToTransparency(_renderer, _occludedTransparencyLevel, _fadeDuration);
+        ColorerRenderer.FadeToTransparency(_renderer, _occludedTransparencyLevel, _fadeDuration);
     }
 
     public void OnVisible()
     {
-        Colorer.FadeToTransparency(_renderer, _visibleTransparencyLevel, _fadeDuration);
+        ColorerRenderer.FadeToTransparency(_renderer, _visibleTransparencyLevel, _fadeDuration);
     }
 }

@@ -12,8 +12,9 @@ public class LineSightFader : MonoBehaviour
     [SerializeField] private float _minDistanceFromCamera = 0.15f;
     [SerializeField] private float _minDistanceToTarget = 0.2f;
 
-    private readonly List<IFadable> _current = new List<IFadable>(32);
-    private readonly List<IFadable> _previous = new List<IFadable>(32);
+    private HashSet<IFadable> _current = new HashSet<IFadable>(32);
+    private HashSet<IFadable> _previous = new HashSet<IFadable>(32);
+    private RaycastHit[] _hitBuffer = new RaycastHit[64];
     private Coroutine _checkRoutine;
 
     private void OnEnable()
@@ -26,62 +27,93 @@ public class LineSightFader : MonoBehaviour
         if (_checkRoutine != null)
         {
             StopCoroutine(_checkRoutine);
+            _checkRoutine = null;
         }
     }
 
     private IEnumerator CheckRoutine()
     {
-        WaitForSeconds wait = new WaitForSeconds(_checkInterval);
+        WaitForSeconds waitForSeconds = new WaitForSeconds(_checkInterval);
+
         while (true)
         {
             UpdateVisibility();
-            yield return wait;
+            
+            yield return waitForSeconds;
         }
     }
 
     private void UpdateVisibility()
     {
-        _previous.Clear();
-        _previous.AddRange(_current);
+        SwapCollections();
         _current.Clear();
 
         Vector3 origin = _cameraTransform.position;
-        Vector3 toTarget = _target.position - origin;
-        float distance = toTarget.magnitude;
+        Vector3 vectorToTarget = _target.position - origin;
+        float distanceToTarget = vectorToTarget.magnitude;
 
-        RaycastHit[] hits = Physics.SphereCastAll(
+        int hitCount = Physics.SphereCastNonAlloc(
             origin,
             _sphereRadius,
-            toTarget.normalized,
-            distance,
+            vectorToTarget.normalized,
+            _hitBuffer,
+            distanceToTarget,
             _obstacleMask,
             QueryTriggerInteraction.Ignore
         );
 
-        int count = hits.Length;
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < hitCount; i++)
         {
-            float hitDist = hits[i].distance;
-            if (hitDist < _minDistanceFromCamera) continue;
-            if (distance - hitDist < _minDistanceToTarget) continue;
-            if (hits[i].transform == _target || hits[i].transform.IsChildOf(_target) == true) continue;
-
-            IFadable fadable;
-            if (hits[i].transform.TryGetComponent<IFadable>(out fadable) == true)
-            {
-                _current.Add(fadable);
-                fadable.OnOccluded();
-            }
+            ProcessHit(_hitBuffer[i], distanceToTarget);
         }
 
-        int prevCount = _previous.Count;
-        for (int i = 0; i < prevCount; i++)
+        RestoreVisibility();
+    }
+
+    private void ProcessHit(RaycastHit hit, float distanceToTarget)
+    {
+        float hitDistance = hit.distance;
+
+        if (hitDistance < _minDistanceFromCamera) 
+            return;
+        
+        if (distanceToTarget - hitDistance < _minDistanceToTarget) 
+            return;
+
+        Transform hitTransform = hit.transform;
+
+        if (hitTransform == _target) 
+            return;
+        
+        if (hitTransform.IsChildOf(_target) == true) 
+            return;
+
+        IFadable fadable;
+        
+        if (hitTransform.TryGetComponent<IFadable>(out fadable) == false) 
+            return;
+
+        if (_current.Add(fadable) == false)     
+            return;
+
+        fadable.OnOccluded();
+    }
+
+    private void RestoreVisibility()
+    {
+        foreach (IFadable fadable in _previous)
         {
-            IFadable fadable = _previous[i];
             if (_current.Contains(fadable) == false)
             {
                 fadable.OnVisible();
             }
         }
+    }
+
+    private void SwapCollections()
+    {
+        HashSet<IFadable> temporarySet = _previous;
+        _previous = _current;
+        _current = temporarySet;
     }
 }

@@ -20,18 +20,18 @@ public class PlayerAnimator : MonoBehaviour
     private bool _isMoving;
     private bool _isSprinting;
 
-    private StepAnimator _stepAnimatorLogic;
+    private StepAnimator _stepAnimator;
 
     private void Awake()
     {
-        _stepAnimatorLogic = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
+        _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
     }
 
     private void Update()
     {
         UpdateMove();
 
-        _stepAnimatorLogic.UpdateStepFromMovement(_isMoving);
+        _stepAnimator.UpdateStepFromMovement(_isMoving);
     }
 
     public void SetMoveState(bool isMoving)
@@ -93,11 +93,11 @@ public class PlayerAnimator : MonoBehaviour
 
     public void TryStep(Vector3 worldMoveDirection)
     {
-        _stepAnimatorLogic.TryStep(worldMoveDirection);
+        _stepAnimator.TryStep(worldMoveDirection);
     }
 
     public void StopStep()
     {
-        _stepAnimatorLogic.StopStep();
+        _stepAnimator.StopStep();
     }
 }

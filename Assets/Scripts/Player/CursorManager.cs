@@ -31,6 +31,7 @@ public class CursorManager : MonoBehaviour
     public bool TryGetHitObject(out RaycastHit hitInfo)
     {
         Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
+        
         return Physics.Raycast(ray, out hitInfo, 100f, _interactableMask);
     }
 
@@ -43,24 +44,6 @@ public class CursorManager : MonoBehaviour
     {
         _rectTransform.gameObject.SetActive(false);
     }
-
-    // private void UpdateWorldPositions()
-    // {
-    //     if (_camera == null || _player == null)
-    //         return;
-
-    //     Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
-
-    //     Plane playerPlane = new Plane(Vector3.up, new Vector3(0, _player.position.y, 0));
-
-    //     if (playerPlane.Raycast(ray, out float distToPlayer))
-    //         MouseWorldPos = ray.GetPoint(distToPlayer);
-
-    //     Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-        
-    //     if (groundPlane.Raycast(ray, out float distToGround))
-    //         MouseGroundPos = ray.GetPoint(distToGround);
-    // }
 
     private void UpdateWorldPositions()
     {
@@ -89,5 +72,4 @@ public class CursorManager : MonoBehaviour
         if (groundPlane.Raycast(ray, out float distToGround))
             MouseGroundPos = ray.GetPoint(distToGround);
     }
-
 }

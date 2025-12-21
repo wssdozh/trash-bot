@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class AnimatorSwitcher : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private Animator _animator;
     [SerializeField] private RuntimeAnimatorController _baseController;
     [SerializeField] private List<WeaponAnimatorEntry> _weaponAnimators;
@@ -11,9 +12,10 @@ public class AnimatorSwitcher : MonoBehaviour
 
     [Header("Blend")]
     [SerializeField] private int _weaponLayerIndex = 1;
-    [SerializeField] private float _switchBlendTime = 0.2f;
+    [SerializeField] private float _switchBlendTime = 0.1f;
 
     private AnimatorOverrideController _runtimeOverrideController;
+    private Dictionary<WeaponType, AnimatorOverrideController> _overridesByWeaponType;
     private WeaponType _currentWeaponType;
     private Coroutine _switchCoroutine;
 
@@ -21,6 +23,8 @@ public class AnimatorSwitcher : MonoBehaviour
     {
         _runtimeOverrideController = new AnimatorOverrideController(_baseController);
         _animator.runtimeAnimatorController = _runtimeOverrideController;
+
+        BuildOverridesDictionary();
 
         _currentWeaponType = _defaultWeaponType;
         ApplyWeaponType(_currentWeaponType);
@@ -50,6 +54,25 @@ public class AnimatorSwitcher : MonoBehaviour
         }
 
         _switchCoroutine = StartCoroutine(SwitchWeaponRoutine(_currentWeaponType));
+    }
+
+    private void BuildOverridesDictionary()
+    {
+        _overridesByWeaponType = new Dictionary<WeaponType, AnimatorOverrideController>();
+
+        int count = _weaponAnimators.Count;
+
+        for (int i = 0; i < count; i++)
+        {
+            WeaponAnimatorEntry entry = _weaponAnimators[i];
+
+            if (_overridesByWeaponType.ContainsKey(entry.WeaponType) == true)
+            {
+                continue;
+            }
+
+            _overridesByWeaponType.Add(entry.WeaponType, entry.Controller);
+        }
     }
 
     private IEnumerator SwitchWeaponRoutine(WeaponType weaponType)
@@ -95,9 +118,7 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private void ApplyWeaponType(WeaponType weaponType)
     {
-        AnimatorOverrideController sourceOverrideController = FindOverrideController(weaponType);
-
-        if (sourceOverrideController == null)
+        if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController) == false)
         {
             return;
         }
@@ -105,22 +126,5 @@ public class AnimatorSwitcher : MonoBehaviour
         List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
         sourceOverrideController.GetOverrides(overrides);
         _runtimeOverrideController.ApplyOverrides(overrides);
-    }
-
-    private AnimatorOverrideController FindOverrideController(WeaponType weaponType)
-    {
-        int count = _weaponAnimators.Count;
-
-        for (int i = 0; i < count; i++)
-        {
-            WeaponAnimatorEntry entry = _weaponAnimators[i];
-
-            if (entry.WeaponType == weaponType)
-            {
-                return entry.Controller;
-            }
-        }
-
-        return null;
     }
 }

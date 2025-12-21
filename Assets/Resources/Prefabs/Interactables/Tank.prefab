@@ -15,10 +15,6 @@ GameObject:
   - component: {fileID: 2053921566488334251}
   - component: {fileID: 7896478418570165615}
   - component: {fileID: 5273641446045500469}
-  - component: {fileID: 8910396235358487373}
-  - component: {fileID: 4122558926758472709}
-  - component: {fileID: 5814074586780274811}
-  - component: {fileID: 4736457409412917021}
   m_Layer: 7
   m_Name: Tank
   m_TagString: Enemy
@@ -41,6 +37,7 @@ Transform:
   m_Children:
   - {fileID: 1288202907810773112}
   - {fileID: 7567241794643875427}
+  - {fileID: 4020023508902825535}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!33 &8169313119531236425
@@ -186,70 +183,6 @@ MonoBehaviour:
   _autoRegen: 1
   _regenPerSecond: 2
   _regenDelay: 3
---- !u!114 &8910396235358487373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777193067897885239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d98ea429bafeed948a99f099b1b686ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FeedbackGroup
-  _feedbacks:
-  - {fileID: 4122558926758472709}
-  - {fileID: 5814074586780274811}
---- !u!114 &4122558926758472709
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777193067897885239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeFeedback
-  _targetTransform: {fileID: 0}
-  _shakePositionStrength: 0.03
-  _shakePositionVibrato: 12
-  _shakePositionDuration: 0.25
-  _shakeRotationStrength: 5
-  _shakeRotationVibrato: 10
-  _shakeRotationDuration: 0.25
---- !u!114 &5814074586780274811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777193067897885239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ef1823cc904ff6488b4f7b2fc264055, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageColorFlashFeedback
-  _renderer: {fileID: 5388695179516928238}
-  _flashColor: {r: 1, g: 0, b: 0, a: 1}
-  _flashDuration: 0.2
-  _returnDuration: 0.2
---- !u!114 &4736457409412917021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 777193067897885239}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd9b653faa459ea419a1f6b07999c8f3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HealthFeedbackTrigger
-  _health: {fileID: 5273641446045500469}
-  _feedbackGroup: {fileID: 8910396235358487373}
 --- !u!1 &1590024634349999263
 GameObject:
   m_ObjectHideFlags: 0
@@ -339,6 +272,123 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1729312559864714240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4020023508902825535}
+  - component: {fileID: 9065067755468678965}
+  - component: {fileID: 4417891353054121959}
+  - component: {fileID: 4822132311794272238}
+  - component: {fileID: 3595746740985752048}
+  - component: {fileID: 140543978656245478}
+  m_Layer: 7
+  m_Name: Feedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4020023508902825535
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 186863075737085615}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9065067755468678965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd9b653faa459ea419a1f6b07999c8f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthFeedbackTrigger
+  _health: {fileID: 5273641446045500469}
+  _feedbackGroup: {fileID: 4417891353054121959}
+--- !u!114 &4417891353054121959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d98ea429bafeed948a99f099b1b686ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FeedbackGroup
+  _feedbacks:
+  - {fileID: 4822132311794272238}
+  - {fileID: 3595746740985752048}
+  - {fileID: 140543978656245478}
+--- !u!114 &4822132311794272238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeFeedback
+  _targetTransform: {fileID: 0}
+  _shakePositionStrength: 0.03
+  _shakePositionVibrato: 12
+  _shakePositionDuration: 0.25
+  _shakeRotationStrength: 5
+  _shakeRotationVibrato: 10
+  _shakeRotationDuration: 0.25
+--- !u!114 &3595746740985752048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef1823cc904ff6488b4f7b2fc264055, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageColorFlashFeedback
+  _renderer: {fileID: 5388695179516928238}
+  _flashColor: {r: 1, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.2
+--- !u!114 &140543978656245478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729312559864714240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ef1823cc904ff6488b4f7b2fc264055, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageColorFlashFeedback
+  _renderer: {fileID: 7549308607798447303}
+  _flashColor: {r: 1, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.2
 --- !u!1 &7503083093059941094
 GameObject:
   m_ObjectHideFlags: 0

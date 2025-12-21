@@ -23,12 +23,13 @@ public class Attacker : MonoBehaviour
         if (hits.Length == 0)
         {
             StartCoroutine(StartCooldown());
+
             return true;
         }
 
         Collider hit = hits[0];
-
         Rigidbody rigidbody;
+
         if (hit.TryGetComponent(out rigidbody) == true)
         {
             Vector3 direction = (hit.transform.position - transform.position).normalized;

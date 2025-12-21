@@ -53,6 +53,7 @@ public class TargetVision : MonoBehaviour
         while (enabled)
         {
             Scan();
+            
             yield return new WaitForSeconds(_scanInterval);
         }
     }

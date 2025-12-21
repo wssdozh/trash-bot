@@ -88,6 +88,7 @@ public abstract class FireExecutor : MonoBehaviour
             TryFire();
 
             float secondsPerShot = 1f / _fireRatePerSecond;
+            
             yield return new WaitForSeconds(secondsPerShot);
         }
 

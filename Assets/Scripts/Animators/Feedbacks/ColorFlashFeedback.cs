@@ -12,22 +12,22 @@ public class ColorFlashFeedback : Feedback
     private void Awake()
     {
         _baseColor = _renderer.material.color;
-    }
+    } 
 
     public override void Play()
     {
-        Colorer.LerpToColor(_renderer, _flashColor, _flashDuration);
+        ColorerRenderer.LerpToColor(_renderer, _flashColor, _flashDuration);
         Invoke(nameof(ReturnBaseColor), _flashDuration);
     }
 
     public override void Stop()
     {
         CancelInvoke(nameof(ReturnBaseColor));
-        Colorer.LerpToColor(_renderer, _baseColor, _returnDuration);
+        ColorerRenderer.LerpToColor(_renderer, _baseColor, _returnDuration);
     }
 
     private void ReturnBaseColor()
     {
-        Colorer.LerpToColor(_renderer, _baseColor, _returnDuration);
+        ColorerRenderer.LerpToColor(_renderer, _baseColor, _returnDuration);
     }
 }
