@@ -9,6 +9,8 @@ public sealed class PauseController : MonoBehaviour
     [SerializeField] private float _resumeDurationSeconds = 0.30f;
     [SerializeField] private float _pausedTimeScale = 0.0f;
     [SerializeField] private PauseMenuNavigation _pauseMenuNavigation;
+    [SerializeField] private BlurOverlay _blurOverlay;
+
 
     [SerializeField] private float _minPhysicsTimeScale = 0.05f;
 
@@ -48,6 +50,7 @@ public sealed class PauseController : MonoBehaviour
 
         AnimateTimeScale(_pausedTimeScale, _pauseDurationSeconds, _pauseEaseCurve);
         _pauseCameraFov.EnterPause();
+        _blurOverlay.Show();
         _pauseMenuView.Show();
     }
 
@@ -73,6 +76,7 @@ public sealed class PauseController : MonoBehaviour
         _pauseMenuNavigation.CloseSettings();
         _pauseMenuView.Hide();
         _pauseCameraFov.ExitPause();
+        _blurOverlay.Hide();
         AnimateTimeScale(1.0f, _resumeDurationSeconds, _resumeEaseCurve);
     }
 
