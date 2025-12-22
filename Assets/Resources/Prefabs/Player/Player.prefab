@@ -1456,16 +1456,16 @@ MonoBehaviour:
   _cameraMover: {fileID: 7741357282946971170}
   _cursor: {fileID: 3878057487684928858}
   _mainCamera: {fileID: 2495233907210147591}
-  _health: {fileID: 0}
+  _health: {fileID: 1005358252265982779}
   _stamina: {fileID: 3532367500049189324}
   _interactor: {fileID: 6125431192887061765}
   _inventory: {fileID: 103484527082552904}
   _inventoryDropper: {fileID: 5505842368566700150}
-  _animator: {fileID: 0}
-  _animatorSwitcher: {fileID: 0}
-  _weaponHolder: {fileID: 0}
+  _animator: {fileID: 6208927630230072032}
+  _animatorSwitcher: {fileID: 5374169175904853867}
+  _weaponHolder: {fileID: 5090690129111405694}
   _pauseController: {fileID: 0}
-  _timeBattle: 3
+  _timeBattle: 60
   _jumpStaminaCost: 20
   _attackStaminaCost: 5
   _sprintStaminaCostPerSecond: 20

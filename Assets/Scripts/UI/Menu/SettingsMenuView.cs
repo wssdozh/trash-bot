@@ -1,7 +1,7 @@
 using UnityEngine;
 using DG.Tweening;
 
-public sealed class SettingsMenuView : MonoBehaviour
+public sealed class SettingsMenuView : BaseMenuView
 {
     private enum SlideDirection
     {
@@ -25,28 +25,26 @@ public sealed class SettingsMenuView : MonoBehaviour
     [SerializeField] private float _scaleShown = 1.0f;
 
     private Sequence _sequence;
-    private bool _animating;
 
     private Vector2 _shownPosition;
 
-    public bool Animating => _animating;
+    public override bool IsAnimating { get; protected set; }
+    public override bool IsOpen { get; protected set; }
 
     private void Awake()
     {
         _shownPosition = _panel.anchoredPosition;
         ApplyHidden();
+        IsOpen = false;
     }
 
-    public void Show()
+    public override void Show()
     {
-        if (_animating == true)
-        {
-            return;
-        }
+        base.Show();
 
         KillSequence();
 
-        _animating = true;
+        IsAnimating = true;
 
         _canvasGroup.blocksRaycasts = true;
         _canvasGroup.interactable = true;
@@ -62,25 +60,23 @@ public sealed class SettingsMenuView : MonoBehaviour
             .Append(_canvasGroup.DOFade(1.0f, _fadeInDuration).SetEase(Ease.OutCubic))
             .Join(_panel.DOAnchorPos(_shownPosition, _showDuration).SetEase(Ease.OutCubic))
             .Join(_panel.DOScale(_scaleShown, _showDuration).SetEase(Ease.OutQuart))
-            .OnComplete(() =>
+            .OnComplete((TweenCallback)(() =>
             {
                 _canvasGroup.alpha = 1.0f;
                 _panel.anchoredPosition = _shownPosition;
                 _panel.localScale = new Vector3(_scaleShown, _scaleShown, 1.0f);
-                _animating = false;
-            });
+
+                this.IsAnimating = false;
+            }));
     }
 
-    public void Hide()
+    public override void Hide()
     {
-        if (_animating == true)
-        {
-            return;
-        }
+        base.Hide();
 
         KillSequence();
 
-        _animating = true;
+        IsAnimating = true;
 
         _canvasGroup.blocksRaycasts = false;
         _canvasGroup.interactable = false;
@@ -92,11 +88,12 @@ public sealed class SettingsMenuView : MonoBehaviour
             .Append(_canvasGroup.DOFade(0.0f, _fadeOutDuration).SetEase(Ease.OutCubic))
             .Join(_panel.DOAnchorPos(hiddenPosition, _hideDuration).SetEase(Ease.OutCubic))
             .Join(_panel.DOScale(_scaleHidden, _hideDuration).SetEase(Ease.OutQuart))
-            .OnComplete(() =>
+            .OnComplete((TweenCallback)(() =>
             {
                 ApplyHidden();
-                _animating = false;
-            });
+
+                this.IsAnimating = false;
+            }));
     }
 
     private Vector2 GetHiddenPosition()

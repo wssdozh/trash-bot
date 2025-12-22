@@ -31,7 +31,7 @@ public class Harvestable : DamageableObject
     }
 
     private void SpawnBerry()
-    { 
+    {
         if (_pickupSpawnerRef == null)
         {
             return;
@@ -56,7 +56,9 @@ public class Harvestable : DamageableObject
         float forceY = Random.Range(_forceYMin, _forceYMax);
         float forceZ = Random.Range(_forceZMin, _forceZMax);
 
-        Vector3 impulse = new Vector3(forceX, forceY, forceZ);
-        rigidbody.AddForce(impulse, ForceMode.Impulse);
+        Vector3 localImpulse = new Vector3(forceX, forceY, forceZ);
+        Vector3 worldImpulse = transform.TransformDirection(localImpulse);
+
+        rigidbody.AddForce(worldImpulse, ForceMode.Impulse);
     }
 }

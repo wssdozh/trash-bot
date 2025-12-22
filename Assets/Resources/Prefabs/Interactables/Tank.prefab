@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2053921566488334251}
   - component: {fileID: 7896478418570165615}
   - component: {fileID: 5273641446045500469}
+  - component: {fileID: 1689462658393467906}
   m_Layer: 7
   m_Name: Tank
   m_TagString: Enemy
@@ -159,12 +160,12 @@ MonoBehaviour:
   Health: {fileID: 5273641446045500469}
   _pickupSpawnerRef: {fileID: 11400000, guid: 2eff1133520cc314ea38b940781fd89b, type: 2}
   _spawnHeightOffset: 1
-  _forceXMin: -0.5
-  _forceXMax: 0.5
+  _forceXMin: -1
+  _forceXMax: -2
   _forceYMin: 3
   _forceYMax: 5
   _forceZMin: -0.5
-  _forceZMax: -1.5
+  _forceZMax: 0.5
 --- !u!114 &5273641446045500469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,6 +184,25 @@ MonoBehaviour:
   _autoRegen: 1
   _regenPerSecond: 2
   _regenDelay: 3
+--- !u!114 &1689462658393467906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 777193067897885239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeFeedback
+  _targetTransform: {fileID: 0}
+  _shakePositionStrength: 0.03
+  _shakePositionVibrato: 12
+  _shakePositionDuration: 0.25
+  _shakeRotationStrength: 5
+  _shakeRotationVibrato: 10
+  _shakeRotationDuration: 0.25
 --- !u!1 &1590024634349999263
 GameObject:
   m_ObjectHideFlags: 0
@@ -283,7 +303,6 @@ GameObject:
   - component: {fileID: 4020023508902825535}
   - component: {fileID: 9065067755468678965}
   - component: {fileID: 4417891353054121959}
-  - component: {fileID: 4822132311794272238}
   - component: {fileID: 3595746740985752048}
   - component: {fileID: 140543978656245478}
   m_Layer: 7
@@ -335,28 +354,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FeedbackGroup
   _feedbacks:
-  - {fileID: 4822132311794272238}
+  - {fileID: 1689462658393467906}
   - {fileID: 3595746740985752048}
   - {fileID: 140543978656245478}
---- !u!114 &4822132311794272238
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1729312559864714240}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b140d61895da0c4e94c971c677ec535, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageShakeFeedback
-  _targetTransform: {fileID: 0}
-  _shakePositionStrength: 0.03
-  _shakePositionVibrato: 12
-  _shakePositionDuration: 0.25
-  _shakeRotationStrength: 5
-  _shakeRotationVibrato: 10
-  _shakeRotationDuration: 0.25
 --- !u!114 &3595746740985752048
 MonoBehaviour:
   m_ObjectHideFlags: 0

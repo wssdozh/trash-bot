@@ -1,55 +1,66 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public sealed class PauseMenuNavigation : MonoBehaviour
 {
-    [SerializeField] private SettingsMenuView _settingsView;
-    [SerializeField] private Button _settingsButton;
-
-    private bool _settingsOpen;
+    [SerializeField] private List<ButtonMenu> _buttonMenus;
 
     private void OnEnable()
     {
-        _settingsOpen = false;
-        _settingsButton.onClick.AddListener(OnSettingsClicked);
+        _buttonMenus.ForEach(buttonMenu =>
+        {
+                buttonMenu.Button.onClick.AddListener(() => ToggleMenu(buttonMenu.MenuView));
+        });
     }
 
     private void OnDisable()
     {
-        _settingsButton.onClick.RemoveListener(OnSettingsClicked);
+        _buttonMenus.ForEach(buttonMenu =>
+        {
+            buttonMenu.Button.onClick.RemoveListener(() => ToggleMenu(buttonMenu.MenuView));
+        });
     }
 
-    public void CloseSettings()
+    private void ToggleMenu(BaseMenuView menuView)
     {
-        if (_settingsOpen == false)
+        if (menuView.IsOpen == true)
         {
+            CloseMenu(menuView);
+
             return;
         }
 
-        if (_settingsView.Animating == true)
-        {
-            return;
-        }
-
-        _settingsOpen = false;
-        _settingsView.Hide();
+        OpenMenu(menuView);
     }
 
-    private void OnSettingsClicked()
+    private void OpenMenu(BaseMenuView menuView)
     {
-        if (_settingsView.Animating == true)
+        if (menuView.IsAnimating == true)
         {
             return;
         }
 
-        if (_settingsOpen == false)
+        if (menuView.IsOpen == false)
         {
-            _settingsOpen = true;
-            _settingsView.Show();
+            menuView.Show();
+
+            return;
+        }
+    }
+
+    private void CloseMenu(BaseMenuView menuView)
+    {
+        if (menuView.IsAnimating == true)
+        {
             return;
         }
 
-        _settingsOpen = false;
-        _settingsView.Hide();
+        if (menuView.IsOpen == true)
+        {
+            menuView.Hide();
+
+            return;
+        }
     }
 }
