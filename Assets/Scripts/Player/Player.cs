@@ -109,6 +109,8 @@ public class Player : MonoBehaviour
 
         _inputs.Player.Drop.performed += OnDropPerformed;
         _inputs.Player.DropAll.performed += OnDropAllPerformed;
+
+        _inputs.Player.Pause.performed += Pause;
     }
 
     private void UnsubscribeInput()
@@ -132,6 +134,8 @@ public class Player : MonoBehaviour
 
         _inputs.Player.Drop.performed -= OnDropPerformed;
         _inputs.Player.DropAll.performed -= OnDropAllPerformed;
+
+        _inputs.Player.Pause.performed -= Pause;
     }
 
     private void SubscribeInventory()
@@ -149,6 +153,17 @@ public class Player : MonoBehaviour
     private void OnActiveIndexChanged(int activeIndex)
     {
         SetCurrentAnimator();
+    }
+
+    private void Pause(InputAction.CallbackContext context)
+    {
+        if (_pauseController.IsPaused == false)
+        {
+            _pauseController.Pause();
+            return;
+        }
+
+        _pauseController.Resume();
     }
 
     private void Die()
@@ -285,14 +300,6 @@ public class Player : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
-        if (_pauseController.IsPaused == false)
-        {
-            _pauseController.Pause();
-            return;
-        }
-
-        _pauseController.Resume();
-        
         ExitBattleMode();
 
         _interactor.TryInteract(_movement.gameObject);
@@ -337,7 +344,15 @@ public class Player : MonoBehaviour
 
         _isBattle = false;
         _animator.SetFight(false);
+        
         SetAnimator(WeaponType.None);
+
+        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
+
+        if (fireExecutor != null)
+        {
+            fireExecutor.StopFiring();
+        }
     }
 
     private void SetAnimator(WeaponType weaponType)

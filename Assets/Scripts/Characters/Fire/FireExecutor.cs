@@ -4,6 +4,7 @@ using UnityEngine;
 public abstract class FireExecutor : MonoBehaviour
 {
     [SerializeField] private float _fireRatePerSecond = 5f;
+    [SerializeField] private float _delayFire = 0.12f;
     [SerializeField] private string _targetTag = "Enemy";
 
     private Coroutine _firingCoroutine;
@@ -22,7 +23,6 @@ public abstract class FireExecutor : MonoBehaviour
     {
         get { return _aimPoint; }
     }
-
 
     public void SetAimPoint(Vector3 aimPoint)
     {
@@ -83,13 +83,17 @@ public abstract class FireExecutor : MonoBehaviour
 
     private IEnumerator FiringCoroutine()
     {
+        yield return new WaitForSeconds(_delayFire);
+
+        float secondsPerShot = 1f / _fireRatePerSecond;
+
+        WaitForSeconds wait = new WaitForSeconds(secondsPerShot);
+
         while (_isFiring == true)
         {
             TryFire();
 
-            float secondsPerShot = 1f / _fireRatePerSecond;
-            
-            yield return new WaitForSeconds(secondsPerShot);
+            yield return wait;
         }
 
         _firingCoroutine = null;

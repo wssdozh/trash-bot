@@ -1,17 +1,21 @@
 using UnityEngine;
 using DG.Tweening;
+using System.Collections.Generic;
+using System.Linq;
 
 public sealed class PauseController : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private PauseMenuView _pauseMenuView;
+    [SerializeField] private List<BaseMenuView> _baseMenuViews;
+    [SerializeField] private PauseMenuNavigation _pauseMenuNavigation;
     [SerializeField] private PauseCameraFov _pauseCameraFov;
+    [SerializeField] private BlurOverlay _blurOverlay;
+
+    [Header("Параметры паузы")]
     [SerializeField] private float _pauseDurationSeconds = 0.45f;
     [SerializeField] private float _resumeDurationSeconds = 0.30f;
     [SerializeField] private float _pausedTimeScale = 0.0f;
-    [SerializeField] private PauseMenuNavigation _pauseMenuNavigation;
-    [SerializeField] private BlurOverlay _blurOverlay;
-
-
     [SerializeField] private float _minPhysicsTimeScale = 0.05f;
 
     [SerializeField] private AnimationCurve _pauseEaseCurve = AnimationCurve.EaseInOut(0.0f, 0.0f, 1.0f, 1.0f);
@@ -29,6 +33,18 @@ public sealed class PauseController : MonoBehaviour
         _baseFixedDeltaTime = Time.fixedDeltaTime;
     }
 
+    private void OnEnable()
+    {
+        _pauseMenuView.Opened += Pause;
+        _pauseMenuView.Closed += Resume;
+    }
+
+    private void OnDisable()
+    {
+        _pauseMenuView.Opened -= Pause;
+        _pauseMenuView.Closed -= Resume;
+    }
+
     public void Pause()
     {
         if (_isPaused == true)
@@ -36,7 +52,7 @@ public sealed class PauseController : MonoBehaviour
             return;
         }
 
-        if (_pauseMenuView.IsAnimating == true)
+        if (_pauseMenuView.IsAnimating == true || _baseMenuViews.Any(bmv => bmv.IsAnimating == true))
         {
             return;
         }
@@ -61,7 +77,7 @@ public sealed class PauseController : MonoBehaviour
             return;
         }
 
-        if (_pauseMenuView.IsAnimating == true)
+        if (_pauseMenuView.IsAnimating == true || _baseMenuViews.Any(bmv => bmv.IsAnimating == true))
         {
             return;
         }
@@ -73,7 +89,7 @@ public sealed class PauseController : MonoBehaviour
 
         _isPaused = false;
 
-        _pauseMenuNavigation.CloseSettings();
+        _baseMenuViews.ForEach(bmv => bmv.Hide());
         _pauseMenuView.Hide();
         _pauseCameraFov.ExitPause();
         _blurOverlay.Hide();
