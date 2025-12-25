@@ -20,7 +20,6 @@ class ExitMenuView : BaseMenuView
     [SerializeField] private float _slideOutDurationSeconds = 0.12f;
     [SerializeField] private float _hiddenScale = 0.8f;
 
-
     private Sequence _sequence;
     private Vector2 _shownAnchoredPosition;
 
@@ -33,6 +32,11 @@ class ExitMenuView : BaseMenuView
         ApplyHiddenState();
 
         IsOpen = false;
+    }
+
+    private void OnDisable()
+    {
+        KillSequence();
     }
 
     public override void Show()

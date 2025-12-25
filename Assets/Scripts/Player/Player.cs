@@ -82,6 +82,7 @@ public class Player : MonoBehaviour
         if (_isBattle == true)
         {
             _rotator.Rotate();
+            
             return;
         }
 

@@ -68,12 +68,12 @@ MonoBehaviour:
   m_Name: UniversalBlurFeature
   m_EditorClassIdentifier: Unified.Universal.Blur::Unified.UniversalBlur.Runtime.UniversalBlurFeature
   m_Active: 1
-  iterations: 6
-  downsample: 5
+  iterations: 3
+  downsample: 2
   enableMipMaps: 1
-  scale: 5
+  scale: 2
   offset: 1
-  scaleBlurWith: 0
+  scaleBlurWith: 2
   scaleReferenceSize: 1080
   blurType: 0
   injectionPoint: 600

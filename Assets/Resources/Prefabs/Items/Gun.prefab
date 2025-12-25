@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 694d5fad65b30624fa917b1afa7840a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnimator
-  _moveSpeed: 3
+  _moveSpeed: 6
   _stopDistance: 0.2
 --- !u!114 &1864531296725922894
 MonoBehaviour:
@@ -235,7 +235,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
   _fireRatePerSecond: 5
-  _targetTag: Enemy
+  _delayFire: 0.12
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 0
   _bulletSpawnerRef: {fileID: 11400000, guid: 6249755c080162d4eb6941b5ec21118e, type: 2}
   _muzzle: {fileID: 4428332200358282627}
 --- !u!114 &7664117757775277777
