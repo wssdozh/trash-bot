@@ -17,7 +17,7 @@ public class BulletFireExecutor : FireExecutor
             }
         }
 
-        _bulletSpawnerRef.Value.Spawn(_muzzle.position, _muzzle.rotation, TargetTag);
+        _bulletSpawnerRef.Value.Spawn(_muzzle.position, _muzzle.rotation, TargetLayers); 
 
         return true;
     }

@@ -179,8 +179,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 100
-  _value: 100
+  _maxValue: 50
+  _value: 50
   _autoRegen: 1
   _regenPerSecond: 2
   _regenDelay: 3

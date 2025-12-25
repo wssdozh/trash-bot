@@ -5,7 +5,7 @@ public abstract class FireExecutor : MonoBehaviour
 {
     [SerializeField] private float _fireRatePerSecond = 5f;
     [SerializeField] private float _delayFire = 0.12f;
-    [SerializeField] private string _targetTag = "Enemy";
+    [SerializeField] private LayerMask _targetLayers;
 
     private Coroutine _firingCoroutine;
     private bool _isFiring;
@@ -13,7 +13,7 @@ public abstract class FireExecutor : MonoBehaviour
     private bool _hasAimPoint;
 
     protected float FireRatePerSecond => _fireRatePerSecond;
-    protected string TargetTag => _targetTag;
+    protected LayerMask TargetLayers => _targetLayers;
     protected bool HasAimPoint
     {
         get { return _hasAimPoint; }
@@ -69,9 +69,9 @@ public abstract class FireExecutor : MonoBehaviour
         }
     }
 
-    public void SetTargetTag(string targetTag)
+    public void SetTargetLayers(LayerMask targetLayers)
     {
-        _targetTag = targetTag;
+        _targetLayers = targetLayers;
     }
 
     public bool TryFire()

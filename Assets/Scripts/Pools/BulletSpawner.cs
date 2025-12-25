@@ -31,11 +31,11 @@ public class BulletSpawner : Spawner<Bullet>
         }
     }
 
-    public Bullet Spawn(Vector3 position, Quaternion rotation, string targetTag)
+    public Bullet Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers)
     {
         Bullet bullet = Pool.Get();
         bullet.transform.SetPositionAndRotation(position, rotation);
-        bullet.SetTag(targetTag);
+        bullet.SetLayers(targetLayers);
         bullet.GetComponent<BulletReturner>().Initialize(this);
         bullet.gameObject.SetActive(true);
         return bullet;

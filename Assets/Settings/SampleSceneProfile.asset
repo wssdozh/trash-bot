@@ -608,7 +608,7 @@ MonoBehaviour:
   active: 1
   mode:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
   gaussianStart:
     m_OverrideState: 1
     m_Value: 10
@@ -764,13 +764,13 @@ MonoBehaviour:
     m_Value: 1
   quality:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.6
   clamp:
     m_OverrideState: 1
-    m_Value: 0.05
+    m_Value: 0.1
 --- !u!114 &7799234419102258132
 MonoBehaviour:
   m_ObjectHideFlags: 3

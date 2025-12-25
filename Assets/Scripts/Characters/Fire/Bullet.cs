@@ -5,8 +5,9 @@ public class Bullet : MonoBehaviour
 {
     [SerializeField] private float _speed = 10f;
     [SerializeField] private float _lifetimeSeconds = 5f;
-    [SerializeField] private string _targetTag = "Enemy";
-    [SerializeField] private float _damage = 1f;
+    [SerializeField] private LayerMask _targetLayers;
+    [SerializeField] private float _minDamage = 3f;
+    [SerializeField] private float _maxDamage = 6f;
     [SerializeField] private float _impulseStrength = 3f;
     [SerializeField] private TrailRenderer _trailRenderer;
 
@@ -46,9 +47,9 @@ public class Bullet : MonoBehaviour
         _spawner = spawner;
     }
 
-    public void SetTag(string targetTag)
+    public void SetLayers(LayerMask targetLayers)
     {
-        _targetTag = targetTag;
+        _targetLayers = targetLayers;
     }
 
     private void Update()
@@ -70,12 +71,12 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        if (other.gameObject.CompareTag(_targetTag))
+        if ((_targetLayers.value & (1 << other.gameObject.layer)) != 0)
         {   
             if (other.gameObject.TryGetComponent<Health>(out Health health))
             {
                 {
-                    health.Decrease(_damage);
+                    health.Decrease(Random.Range(_minDamage, _maxDamage));
                 }
             }
         
