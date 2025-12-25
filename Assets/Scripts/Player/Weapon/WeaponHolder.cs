@@ -4,7 +4,7 @@ using UnityEngine;
 public class WeaponHolder : MonoBehaviour
 {
     [SerializeField] private Transform _weaponSocket;
-    [SerializeField] private string _targetTag = "Enemy";
+    [SerializeField] private LayerMask _targetLayers;
 
     private PickupSpawner _pickupSpawner;
     private BasePickup _pickup;
@@ -63,7 +63,7 @@ public class WeaponHolder : MonoBehaviour
 
         if (_fireExecutor != null)
         {
-            _fireExecutor.SetTargetTag(_targetTag);
+            _fireExecutor.SetTargetLayers(_targetLayers);
         }
 
         Changed?.Invoke();

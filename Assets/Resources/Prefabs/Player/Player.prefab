@@ -1105,7 +1105,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3192794405207612497}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 3
   m_LinearDamping: 1.3
   m_AngularDamping: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -2404,7 +2404,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponHolder
   _weaponSocket: {fileID: 8796913644814967387}
-  _targetTag: Enemy
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 896
 --- !u!114 &4539506077507207028
 MonoBehaviour:
   m_ObjectHideFlags: 0
