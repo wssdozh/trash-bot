@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 694d5fad65b30624fa917b1afa7840a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnimator
-  _moveSpeed: 3
+  _moveSpeed: 6
   _stopDistance: 0.2
 --- !u!114 &1864531296725922894
 MonoBehaviour:

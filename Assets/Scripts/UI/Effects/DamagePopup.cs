@@ -32,6 +32,14 @@ public class DamagePopup : MonoBehaviour
         _text.alpha = 1f;
     }
 
+    private void OnDisable()
+    {
+        if (_sequence != null)
+        {
+            _sequence.Kill();
+        }
+    }
+
     public void Setup(float damage)
     {
         if (_sequence == null == false)

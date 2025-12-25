@@ -41,6 +41,11 @@ public sealed class PauseMenuView : BaseMenuView
         IsOpen = false;
     }
 
+    private void OnDisable()
+    {
+        KillSequence();
+    }
+
     public override void Show()
     {
         base.Show();

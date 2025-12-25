@@ -18,7 +18,7 @@ public sealed class PauseCameraFov : MonoBehaviour
     private float _currentFov;
     private bool _forceApply;
 
-    private void Awake()
+    private void Awake() 
     {
         _baseFov = _camera.fieldOfView;
         _currentFov = _baseFov;

@@ -26,4 +26,9 @@ public class Health : Stat
         base.Decrease(amount);
         _sinceLastDamage = 0f;
     }
+
+    public void SetAutoRegen(bool isRegen)
+    {
+        _autoRegen = isRegen;
+    }
 }

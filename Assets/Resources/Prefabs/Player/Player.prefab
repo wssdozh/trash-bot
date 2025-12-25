@@ -1160,8 +1160,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 5283493936376155014}
-  _speed: 2
-  _speedSprint: 5
+  _speed: 2.5
+  _speedSprint: 4.5
 --- !u!114 &2993646297799512490
 MonoBehaviour:
   m_ObjectHideFlags: 0

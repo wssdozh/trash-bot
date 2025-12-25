@@ -38,6 +38,11 @@ public sealed class SettingsMenuView : BaseMenuView
         IsOpen = false;
     }
 
+    private void OnDisable()
+    {
+        KillSequence();
+    }
+
     public override void Show()
     {
         base.Show();
