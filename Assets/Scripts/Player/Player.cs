@@ -11,7 +11,6 @@ public class Player : MonoBehaviour
     [SerializeField] private CharacterJump _jump;
     [SerializeField] private CharacterRotator _rotator;
     [SerializeField] private CharacterEffects _effects;
-    [SerializeField] private CharacterAudio _audio;
     [SerializeField] private CameraMover _cameraMover;
     [SerializeField] private CursorManager _cursor;
     [SerializeField] private Camera _mainCamera;
@@ -296,7 +295,6 @@ public class Player : MonoBehaviour
         }
 
         _inventory.TryRemoveFromSlot(_inventory.ActiveIndex, 1);
-        _audio.PlayItemUse(item);
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -385,7 +383,6 @@ public class Player : MonoBehaviour
         _movement.OnMove(_moveInput);
 
         _animator.SetMoveState(true);
-        _audio.PlayFootstep();
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext context)
@@ -394,7 +391,6 @@ public class Player : MonoBehaviour
         _movement.OnMove(Vector2.zero);
 
         _animator.SetMoveState(false);
-        _audio.PlayFootstep();
     }
 
     private void OnJumpPerformed(InputAction.CallbackContext context)

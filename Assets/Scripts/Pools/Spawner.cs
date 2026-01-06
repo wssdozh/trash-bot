@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -10,11 +11,12 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
 
     [Header("Настройки пула: ")]
     [SerializeField] protected int PoolSize = 5;
+    [SerializeField] protected int WarmingUp = 20;
 
-    [Header("Статистика (runtime): ")]
-    [SerializeField, ReadOnly] private int _activeObjectsCount;
-    [SerializeField, ReadOnly] private int _inactiveObjectsCount;
-    [SerializeField, ReadOnly] private int _totalObjectsCount;
+    [Header("Статистика: ")]
+    [SerializeField] private int _activeObjectsCount;
+    [SerializeField] private int _inactiveObjectsCount;
+    [SerializeField] private int _totalObjectsCount;
 
     protected List<T> ActiveObjects = new();
     protected ObjectPool<T> Pool;
@@ -27,6 +29,14 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
 
         InitializePool();
         UpdateStatistics();
+    }
+
+    private void Start()
+    {
+        for (int i = 0; i < WarmingUp; i++)
+        {
+            CreateInstance();
+        }
     }
 
     private void InitializePool()

@@ -79,6 +79,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: beb01b7abffbccd49b04d6b51cac1051, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5497310680577893746}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: beb01b7abffbccd49b04d6b51cac1051, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6821227190319657093}
   m_SourcePrefab: {fileID: 100100000, guid: beb01b7abffbccd49b04d6b51cac1051, type: 3}
 --- !u!1 &8705740488991301684 stripped
 GameObject:
@@ -107,3 +110,50 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6821227190319657093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8705740488991301684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc7287d568d09c344b6d6503faa95b1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterDied
+  _mainCollider: {fileID: 0}
+  _mainRigidbody: {fileID: 0}
+  _animator: {fileID: 5497310680577893746}
+  _rigidbodies:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _colliders:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

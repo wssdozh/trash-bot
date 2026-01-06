@@ -5,7 +5,7 @@ ModelImporter:
   internalIDToNameTable: []
   externalObjects: {}
   materials:
-    materialImportMode: 0
+    materialImportMode: 2
     materialName: 0
     materialSearch: 1
     materialLocation: 1
@@ -356,18 +356,18 @@ ModelImporter:
         length: 0
         modified: 0
     skeleton:
-    - name: bot@Shuffling(1)(Clone)
+    - name: bot(Clone)
       parentName: 
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: office_bot
-      parentName: bot@Shuffling(1)(Clone)
+      parentName: bot(Clone)
       position: {x: -0, y: 1.0710424, z: 0.00000014390402}
       rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
       scale: {x: 32.60074, y: 32.60074, z: 32.60074}
     - name: mixamorig:Hips
-      parentName: bot@Shuffling(1)(Clone)
+      parentName: bot(Clone)
       position: {x: 0.0026546658, y: 1.0509013, z: -0.0055032694}
       rotation: {x: 0.000000017527682, y: 1.4648397e-16, z: 0.0000000010712826, w: 1}
       scale: {x: 1, y: 1, z: 1}
@@ -583,11 +583,11 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: a4f5e5c68ea0ee7408cdf8680a92d1a7, type: 2}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1
-  avatarSetup: 1
+  avatarSetup: 2
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0

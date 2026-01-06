@@ -3,7 +3,9 @@ using DG.Tweening;
 
 public class ShakeFeedback : Feedback
 {
-    [SerializeField] private Transform _targetTransform;
+    [Header("Зависимости")]
+    [SerializeField] private Transform _rootTransform;
+    [SerializeField] private Transform _shakeTransform;
 
     [Header("Позиция")]
     [SerializeField] private float _shakePositionStrength = 0.3f;
@@ -18,21 +20,13 @@ public class ShakeFeedback : Feedback
     private Tween _positionTween;
     private Tween _rotationTween;
 
-    private Transform _resolvedTargetTransform;
     private Vector3 _initialLocalPosition;
     private Quaternion _initialLocalRotation;
-    private bool _shouldRestoreTransform;
 
     private void Awake()
     {
-        _shouldRestoreTransform = _targetTransform != null;
-        _resolvedTargetTransform = _shouldRestoreTransform == true ? _targetTransform : transform;
-
-        if (_shouldRestoreTransform == true)
-        {
-            _initialLocalPosition = _resolvedTargetTransform.localPosition;
-            _initialLocalRotation = _resolvedTargetTransform.localRotation;
-        }
+        _initialLocalPosition = _shakeTransform.localPosition;
+        _initialLocalRotation = _shakeTransform.localRotation;
     }
 
     private void OnDisable()
@@ -49,19 +43,16 @@ public class ShakeFeedback : Feedback
     {
         Stop();
 
-        if (_shouldRestoreTransform == true)
-        {
-            _initialLocalPosition = _resolvedTargetTransform.localPosition;
-            _initialLocalRotation = _resolvedTargetTransform.localRotation;
-        }
+        _initialLocalPosition = _shakeTransform.localPosition;
+        _initialLocalRotation = _shakeTransform.localRotation;
 
-        _positionTween = _resolvedTargetTransform.DOShakePosition(
+        _positionTween = _shakeTransform.DOShakePosition(
             _shakePositionDuration,
             _shakePositionStrength,
             _shakePositionVibrato
         );
 
-        _rotationTween = _resolvedTargetTransform.DOShakeRotation(
+        _rotationTween = _shakeTransform.DOShakeRotation(
             _shakeRotationDuration,
             _shakeRotationStrength,
             _shakeRotationVibrato
@@ -80,10 +71,7 @@ public class ShakeFeedback : Feedback
             _rotationTween.Kill(true);
         }
 
-        if (_shouldRestoreTransform == true)
-        {
-            _resolvedTargetTransform.localPosition = _initialLocalPosition;
-            _resolvedTargetTransform.localRotation = _initialLocalRotation;
-        }
+        _shakeTransform.localPosition = _initialLocalPosition;
+        _shakeTransform.localRotation = _initialLocalRotation;
     }
 }

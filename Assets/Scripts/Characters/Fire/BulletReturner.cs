@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 
 public class BulletReturner : MonoBehaviour
 {
     [SerializeField] private Bullet _bullet; 
     private BulletSpawner _spawner;
+
+    public event Action Return;
 
     public void Initialize(BulletSpawner spawner)
     {
@@ -17,6 +20,7 @@ public class BulletReturner : MonoBehaviour
             if (gameObject.activeSelf == false)
             {
                 _spawner.Despawn(_bullet);
+                Return?.Invoke();
             }
         }
     }
