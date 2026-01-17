@@ -2022,7 +2022,7 @@ MonoBehaviour:
   _sprintStaminaCostPerSecond: 5
   _moveStopDelaySeconds: 0.02
   _attackEnterSeconds: 0.7
-  _attackExitSeconds: 0.45
+  _attackExitSeconds: 0.7
   _attackMovementMultiplier: 0.35
 --- !u!114 &7431421974841183803
 MonoBehaviour:

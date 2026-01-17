@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
@@ -16,385 +15,131 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _attackStaminaCost = 5f;
 
-    private Coroutine _battleTimerCoroutine;
+    private PlayerCombatCore _combatCore;
+    private bool _isInitialized;
 
-    private bool _isMeleeAttackInProgress;
-    private bool _isMeleeHitPending;
-    private bool _isMeleeAttackBuffered;
-    private bool _isMeleeBufferLocked;
+    public bool IsInBattle
+    {
+        get
+        {
+            if (_isInitialized == false)
+            {
+                return false;
+            }
 
-    private bool _isRangedFiring;
+            return _combatCore.IsInBattle;
+        }
+    }
 
-    public bool IsInBattle { get; private set; }
+    private void Awake()
+    {
+        InitializeIfNeeded();
+    }
 
     private void OnEnable()
     {
-        _inventory.InventoryChanged += UpdateWeaponAnimatorIfNeeded;
+        InitializeIfNeeded();
+
+        _inventory.InventoryChanged += OnInventoryChanged;
         _inventory.ActiveIndexChanged += OnActiveIndexChanged;
 
-        _animationEvents.Attacking += OnAttackingFrame;
-        _animationEvents.AttackEnded += OnAttackEnded;
-
-        _weaponHolder.SetSwitchLocked(false);
-
-        if (IsInBattle == false)
-        {
-            _weaponHolder.SetHoldAllowed(false);
-        }
+        _combatCore.OnEnabled();
     }
 
     private void OnDisable()
     {
-        _inventory.InventoryChanged -= UpdateWeaponAnimatorIfNeeded;
+        if (_isInitialized == false)
+        {
+            return;
+        }
+
+        _inventory.InventoryChanged -= OnInventoryChanged;
         _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
 
-        _animationEvents.Attacking -= OnAttackingFrame;
-        _animationEvents.AttackEnded -= OnAttackEnded;
+        _combatCore.OnDisabled();
+    }
 
-        _movementGate.AllowMovement();
+    private void Update()
+    {
+        if (_isInitialized == false)
+        {
+            return;
+        }
 
-        _isRangedFiring = false;
-        _weaponHolder.SetSwitchLocked(false);
-        _weaponHolder.SetHoldAllowed(false);
+        _combatCore.Tick(Time.deltaTime);
     }
 
     public bool AttackStart()
     {
-        WeaponType weaponType = GetActiveWeaponType();
-
-        if (weaponType == WeaponType.Melee || weaponType == WeaponType.None)
-        {
-            return StartMeleeAttack();
-        }
-
-        return StartRangedAttack();
+        InitializeIfNeeded();
+        return _combatCore.AttackStart();
     }
 
     public void AttackCancel()
     {
-        if (_isRangedFiring == false)
-        {
-            return;
-        }
-
-        StopFiringOnly();
-        UnlockWeaponSwitchAndRefreshAnimator();
+        InitializeIfNeeded();
+        _combatCore.AttackCancel();
     }
 
     public void SetAimPoint(Vector3 aimPoint)
     {
-        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
-
-        if (fireExecutor == null)
-        {
-            return;
-        }
-
-        fireExecutor.SetAimPoint(aimPoint);
+        InitializeIfNeeded();
+        _combatCore.SetAimPoint(aimPoint);
     }
 
     public void ExitBattle()
     {
-        ResetMeleeState();
-        _isRangedFiring = false;
-
-        _movementGate.AllowMovement();
-
-        _weaponHolder.SetSwitchLocked(false);
-        _weaponHolder.SetHoldAllowed(false);
-
-        if (IsInBattle == true)
-        {
-            IsInBattle = false;
-
-            _animator.SetFight(false);
-            _animatorSwitcher.SetBattleMode(false);
-            _animatorSwitcher.SetWeaponType(WeaponType.None);
-        }
-
-        StopBattleTimer();
-        StopFiringOnly();
+        InitializeIfNeeded();
+        _combatCore.ExitBattle();
     }
 
-    private bool StartRangedAttack()
+    private void OnInventoryChanged()
     {
-        if (_isRangedFiring == true)
-        {
-            EnterBattle();
-            return true;
-        }
-
-        if (_stamina.Value <= 0f)
-        {
-            return false;
-        }
-
-        bool shouldRestoreHoldDisallowed = IsInBattle == false;
-
-        _weaponHolder.SetHoldAllowed(true);
-
-        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
-
-        if (fireExecutor == null)
-        {
-            RestoreHoldAllowedIfNeeded(shouldRestoreHoldDisallowed);
-            return false;
-        }
-
-        if (fireExecutor.TryStartFiring() == false)
-        {
-            RestoreHoldAllowedIfNeeded(shouldRestoreHoldDisallowed);
-            return false;
-        }
-
-        _stamina.Decrease(_attackStaminaCost);
-
-        EnterBattle();
-
-        _isRangedFiring = true;
-        _weaponHolder.SetSwitchLocked(true);
-
-        return true;
-    }
-
-    private void RestoreHoldAllowedIfNeeded(bool shouldRestoreHoldDisallowed)
-    {
-        if (shouldRestoreHoldDisallowed == false)
-        {
-            return;
-        }
-
-        _weaponHolder.SetHoldAllowed(false);
-    }
-
-    private bool StartMeleeAttack()
-    {
-        if (_isMeleeAttackInProgress == true)
-        {
-            return BufferMeleeAttack();
-        }
-
-        if (_stamina.Value <= 0f)
-        {
-            return false;
-        }
-
-        _isRangedFiring = false;
-        ResetMeleeState();
-
-        StartMeleeAttackCore();
-        return true;
-    }
-
-    private bool BufferMeleeAttack()
-    {
-        if (_isMeleeBufferLocked == true)
-        {
-            return false;
-        }
-
-        if (_isMeleeAttackBuffered == true)
-        {
-            return false;
-        }
-
-        _isMeleeAttackBuffered = true;
-        _isMeleeBufferLocked = true;
-
-        EnterBattle();
-        return true;
-    }
-
-    private bool TryStartChainedMeleeAttack()
-    {
-        if (_stamina.Value <= 0f)
-        {
-            return false;
-        }
-
-        StartMeleeAttackCore();
-        return true;
-    }
-
-    private void StartMeleeAttackCore()
-    {
-        _isMeleeAttackInProgress = true;
-        _isMeleeHitPending = true;
-
-        _movementGate.BlockMovement();
-
-        _animator.TriggerAttack();
-        EnterBattle();
-
-        _weaponHolder.SetSwitchLocked(true);
-    }
-
-    private void OnAttackingFrame()
-    {
-        if (_isMeleeAttackInProgress == false)
-        {
-            return;
-        }
-
-        if (_isMeleeHitPending == false)
-        {
-            return;
-        }
-
-        _isMeleeHitPending = false;
-
-        if (_stamina.Value <= 0f)
-        {
-            return;
-        }
-
-        if (_attacker.PerformAttack() == true)
-        {
-            _stamina.Decrease(_attackStaminaCost);
-        }
-    }
-
-    private void OnAttackEnded()
-    {
-        if (_isMeleeAttackInProgress == false)
-        {
-            return;
-        }
-
-        _isMeleeAttackInProgress = false;
-        _isMeleeHitPending = false;
-
-        if (_isMeleeAttackBuffered == true)
-        {
-            _isMeleeAttackBuffered = false;
-
-            if (TryStartChainedMeleeAttack() == true)
-            {
-                return;
-            }
-        }
-
-        _isMeleeBufferLocked = false;
-
-        _movementGate.AllowMovement();
-
-        UnlockWeaponSwitchAndRefreshAnimator();
-    }
-
-    private void EnterBattle()
-    {
-        if (IsInBattle == false)
-        {
-            IsInBattle = true;
-
-            _animator.SetFight(true);
-            _weaponHolder.SetHoldAllowed(true);
-
-            _animatorSwitcher.SetBattleMode(true);
-            UpdateWeaponAnimatorIfNeeded();
-        }
-
-        RestartBattleTimer();
-    }
-
-    private void RestartBattleTimer()
-    {
-        if (_battleTimerCoroutine != null)
-        {
-            StopCoroutine(_battleTimerCoroutine);
-        }
-
-        _battleTimerCoroutine = StartCoroutine(BattleTimerRoutine());
-    }
-
-    private IEnumerator BattleTimerRoutine()
-    {
-        yield return new WaitForSeconds(_timeBattle);
-
-        _battleTimerCoroutine = null;
-        ExitBattle();
-    }
-
-    private void StopBattleTimer()
-    {
-        if (_battleTimerCoroutine == null)
-        {
-            return;
-        }
-
-        StopCoroutine(_battleTimerCoroutine);
-        _battleTimerCoroutine = null;
-    }
-
-    private void StopFiringOnly()
-    {
-        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
-
-        if (fireExecutor != null)
-        {
-            fireExecutor.StopFiring();
-        }
-
-        _isRangedFiring = false;
-    }
-
-    private void UnlockWeaponSwitchAndRefreshAnimator()
-    {
-        _weaponHolder.SetSwitchLocked(false);
-        UpdateWeaponAnimatorIfNeeded();
+        _combatCore.OnInventoryChanged();
     }
 
     private void OnActiveIndexChanged(int activeIndex)
     {
-        UpdateWeaponAnimatorIfNeeded();
+        _combatCore.OnInventoryChanged();
     }
 
-    private void UpdateWeaponAnimatorIfNeeded()
+    private void InitializeIfNeeded()
     {
-        if (IsInBattle == false)
+        if (_isInitialized == true)
         {
             return;
         }
 
-        if (_weaponHolder.IsSwitchLocked == true)
-        {
-            return;
-        }
+        PlayerActiveWeaponType activeWeaponType = new PlayerActiveWeaponType(_inventory);
 
-        WeaponType weaponType = GetActiveWeaponType();
-        _animatorSwitcher.SetWeaponType(weaponType);
-    }
+        PlayerBattleState battleState = new PlayerBattleState(
+            _animator,
+            _animatorSwitcher,
+            _weaponHolder,
+            activeWeaponType,
+            _timeBattle);
 
-    private WeaponType GetActiveWeaponType()
-    {
-        int activeIndex = _inventory.ActiveIndex;
-        int slotsCount = _inventory.Slots.Count;
+        PlayerRangedFire rangedFire = new PlayerRangedFire(
+            _weaponHolder,
+            _stamina,
+            battleState,
+            _attackStaminaCost);
 
-        if (activeIndex < 0)
-        {
-            return WeaponType.None;
-        }
+        PlayerMeleeAttack meleeAttack = new PlayerMeleeAttack(
+            _attacker,
+            _stamina,
+            _animator,
+            _animationEvents,
+            _movementGate,
+            battleState,
+            _attackStaminaCost);
 
-        if (activeIndex >= slotsCount)
-        {
-            return WeaponType.None;
-        }
+        _combatCore = new PlayerCombatCore(
+            battleState,
+            activeWeaponType,
+            meleeAttack,
+            rangedFire);
 
-        InventorySlot slot = _inventory.Slots[activeIndex];
-
-        if (slot.IsEmpty() == true)
-        {
-            return WeaponType.None;
-        }
-
-        return slot.Item.WeaponType;
-    }
-
-    private void ResetMeleeState()
-    {
-        _isMeleeAttackInProgress = false;
-        _isMeleeHitPending = false;
-        _isMeleeAttackBuffered = false;
-        _isMeleeBufferLocked = false;
+        _isInitialized = true;
     }
 }
