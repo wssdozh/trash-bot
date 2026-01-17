@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class BulletReturner : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private Bullet _bullet; 
     private BulletSpawner _spawner;
-
     public event Action Return;
 
     public void Initialize(BulletSpawner spawner)

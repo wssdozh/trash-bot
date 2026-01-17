@@ -3,13 +3,16 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    [Header("Зависимости")]
+    [SerializeField] private TrailRenderer _trailRenderer;
+    
+    [Header("Настройки")]
+    [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private float _speed = 10f;
     [SerializeField] private float _lifetimeSeconds = 5f;
-    [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private float _minDamage = 3f;
     [SerializeField] private float _maxDamage = 6f;
     [SerializeField] private float _impulseStrength = 3f;
-    [SerializeField] private TrailRenderer _trailRenderer;
 
     private float _lifetimeTimer;
     private BulletSpawner _spawner;

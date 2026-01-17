@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Turret : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private TargetVision _targetVision;
     [SerializeField] private TargetRotator _targetRotator;
     [SerializeField] private IdleRotator _idleRotator;
