@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class CharacterMover : MonoBehaviour
 {
     [Header("Зависимости")]
@@ -30,11 +29,10 @@ public class CharacterMover : MonoBehaviour
 
     private void Move()
     {
-        if (_moveDirection.sqrMagnitude < 0.01f)
-            return;
-
         float speed = _isSprinting ? _speedSprint : _speed;
-        Vector3 targetVelocity = _moveDirection.normalized * speed;
+
+        Vector3 clampedMoveDirection = Vector3.ClampMagnitude(_moveDirection, 1f);
+        Vector3 targetVelocity = clampedMoveDirection * speed;
 
         _rigidbody.linearVelocity = new Vector3(targetVelocity.x, _rigidbody.linearVelocity.y, targetVelocity.z);
     }

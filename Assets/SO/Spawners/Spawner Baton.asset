@@ -10,5 +10,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7f72c350b4774b74bbaaebec442c36a5, type: 3}
-  m_Name: Spawner Buton
+  m_Name: Spawner Baton
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawnerRef

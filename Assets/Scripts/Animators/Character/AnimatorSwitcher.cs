@@ -16,27 +16,50 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private AnimatorOverrideController _runtimeOverrideController;
     private Dictionary<WeaponType, AnimatorOverrideController> _overridesByWeaponType;
+    private List<KeyValuePair<AnimationClip, AnimationClip>> _baseOverrides;
+
     private WeaponType _currentWeaponType;
-    private Coroutine _switchCoroutine;
+
+    private Coroutine _layerBlendCoroutine;
+    private Coroutine _weaponSwitchCoroutine;
+
+    public bool IsBattleMode { get; private set; }
 
     private void Awake()
     {
         _runtimeOverrideController = new AnimatorOverrideController(_baseController);
         _animator.runtimeAnimatorController = _runtimeOverrideController;
 
+        CacheBaseOverrides();
         BuildOverridesDictionary();
 
         _currentWeaponType = _defaultWeaponType;
         ApplyWeaponType(_currentWeaponType);
 
-        float startWeight = 0f;
+        _animator.SetLayerWeight(_weaponLayerIndex, 0f);
+    }
 
-        if (_currentWeaponType != WeaponType.None)
+    public void SetBattleMode(bool isBattleMode)
+    {
+        if (IsBattleMode == isBattleMode)
         {
-            startWeight = 1f;
+            return;
         }
 
-        _animator.SetLayerWeight(_weaponLayerIndex, startWeight);
+        IsBattleMode = isBattleMode;
+
+        if (_weaponSwitchCoroutine != null)
+        {
+            return;
+        }
+
+        if (_layerBlendCoroutine != null)
+        {
+            StopCoroutine(_layerBlendCoroutine);
+        }
+
+        float targetWeight = GetBattleLayerTargetWeight();
+        _layerBlendCoroutine = StartCoroutine(BlendLayerWeightRoutine(_weaponLayerIndex, targetWeight, _switchBlendTime));
     }
 
     public void SetWeaponType(WeaponType weaponType)
@@ -48,12 +71,28 @@ public class AnimatorSwitcher : MonoBehaviour
 
         _currentWeaponType = weaponType;
 
-        if (_switchCoroutine != null)
+        if (_weaponSwitchCoroutine != null)
         {
-            StopCoroutine(_switchCoroutine);
+            StopCoroutine(_weaponSwitchCoroutine);
         }
 
-        _switchCoroutine = StartCoroutine(SwitchWeaponRoutine(_currentWeaponType));
+        _weaponSwitchCoroutine = StartCoroutine(SwitchWeaponRoutine(_currentWeaponType));
+    }
+
+    private void CacheBaseOverrides()
+    {
+        List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        _runtimeOverrideController.GetOverrides(overrides);
+
+        _baseOverrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+
+        int count = overrides.Count;
+
+        for (int i = 0; i < count; i++)
+        {
+            AnimationClip originalClip = overrides[i].Key;
+            _baseOverrides.Add(new KeyValuePair<AnimationClip, AnimationClip>(originalClip, originalClip));
+        }
     }
 
     private void BuildOverridesDictionary()
@@ -77,28 +116,42 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private IEnumerator SwitchWeaponRoutine(WeaponType weaponType)
     {
-        yield return BlendLayerWeight(_weaponLayerIndex, 0f, _switchBlendTime);
-
-        if (weaponType != WeaponType.None)
+        if (_layerBlendCoroutine != null)
         {
-            ApplyWeaponType(weaponType);
+            StopCoroutine(_layerBlendCoroutine);
+            _layerBlendCoroutine = null;
         }
 
-        float targetWeight = 0f;
+        yield return BlendLayerWeightRoutine(_weaponLayerIndex, 0f, _switchBlendTime);
 
-        if (weaponType != WeaponType.None)
-        {
-            targetWeight = 1f;
-        }
+        ApplyWeaponType(weaponType);
 
-        yield return BlendLayerWeight(_weaponLayerIndex, targetWeight, _switchBlendTime);
+        float targetWeight = GetBattleLayerTargetWeight();
+        yield return BlendLayerWeightRoutine(_weaponLayerIndex, targetWeight, _switchBlendTime);
 
-        _switchCoroutine = null;
+        _weaponSwitchCoroutine = null;
     }
 
-    private IEnumerator BlendLayerWeight(int layerIndex, float targetWeight, float duration)
+    private float GetBattleLayerTargetWeight()
+    {
+        if (IsBattleMode == true)
+        {
+            return 1f;
+        }
+
+        return 0f;
+    }
+
+    private IEnumerator BlendLayerWeightRoutine(int layerIndex, float targetWeight, float duration)
     {
         float startWeight = _animator.GetLayerWeight(layerIndex);
+
+        if (duration <= 0f)
+        {
+            _animator.SetLayerWeight(layerIndex, targetWeight);
+            yield break;
+        }
+
         float time = 0f;
 
         while (time < duration)
@@ -118,13 +171,14 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private void ApplyWeaponType(WeaponType weaponType)
     {
-        if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController) == false)
+        if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController) == true)
         {
+            List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+            sourceOverrideController.GetOverrides(overrides);
+            _runtimeOverrideController.ApplyOverrides(overrides);
             return;
         }
 
-        List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
-        sourceOverrideController.GetOverrides(overrides);
-        _runtimeOverrideController.ApplyOverrides(overrides);
+        _runtimeOverrideController.ApplyOverrides(_baseOverrides);
     }
 }

@@ -16,12 +16,10 @@ public class StepAnimator
         Backward
     }
 
-    private Animator _animator;
-    private Transform _transform;
-    private float _moveDirectionDeadZoneSqr;
+    private readonly Animator _animator;
+    private readonly Transform _transform;
+    private readonly float _moveDirectionDeadZoneSqr;
 
-    private Vector3 _previousPosition;
-    private bool _hasPreviousPosition;
     private StepDirection _currentStepDirection;
 
     public StepAnimator(Animator animator, Transform transform, float moveDirectionDeadZone)
@@ -29,23 +27,11 @@ public class StepAnimator
         _animator = animator;
         _transform = transform;
         _moveDirectionDeadZoneSqr = moveDirectionDeadZone * moveDirectionDeadZone;
-        _hasPreviousPosition = false;
         _currentStepDirection = StepDirection.None;
     }
 
-    public void UpdateStepFromMovement(bool isMoving)
+    public void UpdateStepFromMoveDirection(bool isMoving, Vector3 worldMoveDirection)
     {
-        if (_hasPreviousPosition == false)
-        {
-            _previousPosition = _transform.position;
-            _hasPreviousPosition = true;
-            return;
-        }
-
-        Vector3 currentPosition = _transform.position;
-        Vector3 deltaPosition = currentPosition - _previousPosition;
-        _previousPosition = currentPosition;
-
         if (isMoving == false)
         {
             if (_currentStepDirection != StepDirection.None)
@@ -56,7 +42,7 @@ public class StepAnimator
             return;
         }
 
-        StepDirection desiredDirection = GetStepDirection(deltaPosition);
+        StepDirection desiredDirection = GetStepDirection(worldMoveDirection);
 
         if (desiredDirection == StepDirection.None)
         {
@@ -72,23 +58,6 @@ public class StepAnimator
         {
             StartStep(desiredDirection);
         }
-    }
-
-    public void TryStep(Vector3 worldMoveDirection)
-    {
-        if (_currentStepDirection != StepDirection.None)
-        {
-            return;
-        }
-
-        StepDirection stepDirection = GetStepDirection(worldMoveDirection);
-
-        if (stepDirection == StepDirection.None)
-        {
-            return;
-        }
-
-        StartStep(stepDirection);
     }
 
     public void StopStep()

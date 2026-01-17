@@ -8,16 +8,82 @@ public class WeaponHolder : MonoBehaviour
 
     private PickupSpawner _pickupSpawner;
     private BasePickup _pickup;
-    private FireExecutor _fireExecutor;
 
-    public FireExecutor FireExecutor
-    {
-        get { return _fireExecutor; }
-    }
+    private bool _hasPendingPickupSpawner;
+    private PickupSpawnerRef _pendingPickupSpawnerRef;
+
+    public FireExecutor FireExecutor { get; private set; }
+    public bool IsHoldAllowed { get; private set; }
+    public bool IsSwitchLocked { get; private set; }
 
     public event Action Changed;
 
+    public void SetHoldAllowed(bool isHoldAllowed)
+    {
+        if (IsHoldAllowed == isHoldAllowed)
+        {
+            return;
+        }
+
+        IsHoldAllowed = isHoldAllowed;
+
+        if (IsHoldAllowed == false)
+        {
+            ClearInternal(false);
+            return;
+        }
+
+        if (_hasPendingPickupSpawner == true && IsSwitchLocked == false)
+        {
+            EquipInternal(_pendingPickupSpawnerRef);
+        }
+    }
+
+    public void SetSwitchLocked(bool isSwitchLocked)
+    {
+        if (IsSwitchLocked == isSwitchLocked)
+        {
+            return;
+        }
+
+        IsSwitchLocked = isSwitchLocked;
+
+        if (IsSwitchLocked == false && IsHoldAllowed == true && _hasPendingPickupSpawner == true)
+        {
+            PickupSpawner pendingPickupSpawner = _pendingPickupSpawnerRef.Value;
+
+            if (_pickupSpawner != pendingPickupSpawner || _pickup == null)
+            {
+                EquipInternal(_pendingPickupSpawnerRef);
+            }
+        }
+    }
+
     public void Equip(PickupSpawnerRef pickupSpawnerRef)
+    {
+        _pendingPickupSpawnerRef = pickupSpawnerRef;
+        _hasPendingPickupSpawner = true;
+
+        if (IsHoldAllowed == false)
+        {
+            ClearInternal(false);
+            return;
+        }
+
+        if (IsSwitchLocked == true)
+        {
+            return;
+        }
+
+        EquipInternal(pickupSpawnerRef);
+    }
+
+    public void Clear()
+    {
+        ClearInternal(true);
+    }
+
+    private void EquipInternal(PickupSpawnerRef pickupSpawnerRef)
     {
         PickupSpawner pickupSpawner = pickupSpawnerRef.Value;
 
@@ -26,7 +92,7 @@ public class WeaponHolder : MonoBehaviour
             return;
         }
 
-        Clear();
+        ClearInternal(false);
 
         _pickupSpawner = pickupSpawner;
 
@@ -59,21 +125,21 @@ public class WeaponHolder : MonoBehaviour
             heldMode.SetHeld(true);
         }
 
-        _fireExecutor = _pickup.GetComponentInChildren<FireExecutor>();
+        FireExecutor = _pickup.GetComponentInChildren<FireExecutor>();
 
-        if (_fireExecutor != null)
+        if (FireExecutor != null)
         {
-            _fireExecutor.SetTargetLayers(_targetLayers);
+            FireExecutor.SetTargetLayers(_targetLayers);
         }
 
         Changed?.Invoke();
     }
 
-    public void Clear()
+    private void ClearInternal(bool clearPending)
     {
-        if (_fireExecutor != null)
+        if (FireExecutor != null)
         {
-            _fireExecutor.StopFiring();
+            FireExecutor.StopFiring();
         }
 
         if (_pickup != null)
@@ -98,7 +164,13 @@ public class WeaponHolder : MonoBehaviour
 
         _pickupSpawner = null;
         _pickup = null;
-        _fireExecutor = null;
+        FireExecutor = null;
+
+        if (clearPending == true)
+        {
+            _hasPendingPickupSpawner = false;
+            _pendingPickupSpawnerRef = default(PickupSpawnerRef);
+        }
 
         Changed?.Invoke();
     }
