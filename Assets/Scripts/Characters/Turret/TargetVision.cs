@@ -4,35 +4,26 @@ using UnityEngine;
 
 public class TargetVision : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private Transform _origin;
+    [SerializeField] private Transform _currentTarget;
+    [Header("Настройки")]
     [SerializeField] private float _viewDistance = 10f;
     [SerializeField] private float _scanInterval = 0.5f;
     [SerializeField] private LayerMask _targetLayerMask;
     [SerializeField] private LayerMask _obstacleLayerMask;
     [SerializeField] private string _targetTag = "Player";
 
-    private bool _isTargetVisible;
-    private float _distanceToTarget;
-    [SerializeField] private Transform _currentTarget;
     private Coroutine _scanCoroutine;
 
     public event Action TargetFound;
     public event Action TargetLost;
 
-    public bool IsTargetVisible
-    {
-        get { return _isTargetVisible; }
-    }
+    public bool IsTargetVisible { get; private set; }
 
-    public float DistanceToTarget
-    {
-        get { return _distanceToTarget; }
-    }
+    public float DistanceToTarget { get; private set; }
 
-    public Transform CurrentTarget
-    {
-        get { return _currentTarget; }
-    }
+    public Transform CurrentTarget { get { return _currentTarget; } }
 
     private void OnEnable()
     {
@@ -60,16 +51,16 @@ public class TargetVision : MonoBehaviour
 
     private void Scan()
     {
-        bool wasTargetVisible = _isTargetVisible;
+        bool wasTargetVisible = IsTargetVisible;
 
         EvaluateTargets();
 
-        if (wasTargetVisible == false && _isTargetVisible == true)
+        if (wasTargetVisible == false && IsTargetVisible == true)
         {
             TargetFound?.Invoke();
         }
 
-        if (wasTargetVisible == true && _isTargetVisible == false)
+        if (wasTargetVisible == true && IsTargetVisible == false)
         {
             TargetLost?.Invoke();
         }
@@ -127,8 +118,8 @@ public class TargetVision : MonoBehaviour
             return false;
         }
 
-        _isTargetVisible = true;
-        _distanceToTarget = distance;
+        IsTargetVisible = true;
+        DistanceToTarget = distance;
         _currentTarget = candidateTransform;
 
         return true;
@@ -136,8 +127,8 @@ public class TargetVision : MonoBehaviour
 
     private void ResetState()
     {
-        _isTargetVisible = false;
-        _distanceToTarget = 0f;
+        IsTargetVisible = false;
+        DistanceToTarget = 0f;
         _currentTarget = null;
     }
 

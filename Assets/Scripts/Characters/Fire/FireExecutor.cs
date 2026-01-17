@@ -3,36 +3,27 @@ using UnityEngine;
 
 public abstract class FireExecutor : MonoBehaviour
 {
+    [Header("Настройки")]
     [SerializeField] private float _fireRatePerSecond = 5f;
     [SerializeField] private float _delayFire = 0.12f;
     [SerializeField] private LayerMask _targetLayers;
 
     private Coroutine _firingCoroutine;
     private bool _isFiring;
-    private Vector3 _aimPoint;
-    private bool _hasAimPoint;
-
     protected float FireRatePerSecond => _fireRatePerSecond;
     protected LayerMask TargetLayers => _targetLayers;
-    protected bool HasAimPoint
-    {
-        get { return _hasAimPoint; }
-    }
 
-    protected Vector3 AimPoint
-    {
-        get { return _aimPoint; }
-    }
-
+    protected bool HasAimPoint{ get; private set; }
+    protected Vector3 AimPoint { get; private set; }
     public void SetAimPoint(Vector3 aimPoint)
     {
-        _aimPoint = aimPoint;
-        _hasAimPoint = true;
+        AimPoint = aimPoint;
+        HasAimPoint = true;
     }
 
     public void ClearAimPoint()
     {
-        _hasAimPoint = false;
+        HasAimPoint = false;
     }
 
     public bool TryStartFiring()

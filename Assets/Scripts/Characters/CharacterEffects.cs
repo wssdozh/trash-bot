@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class CharacterEffects : MonoBehaviour
 {
+    [Header("Зависимости")]
+
     [SerializeField] private Health _health;
     [SerializeField] private Stamina _stamina;
 

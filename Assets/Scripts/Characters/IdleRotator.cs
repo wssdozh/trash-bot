@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class IdleRotator : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private Transform _rotationPivot;
+    [Header("Настройки")]
     [SerializeField] private float _idleRotationSpeed = 30f;
     [SerializeField] private float _idleMinAngle = -45f;
     [SerializeField] private float _idleMaxAngle = 45f;

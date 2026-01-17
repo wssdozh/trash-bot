@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class BulletFireExecutor : FireExecutor
 {
+    [Header("Зависимости")]
     [SerializeField] private BulletSpawnerRef _bulletSpawnerRef;
     [SerializeField] private Transform _muzzle;
 

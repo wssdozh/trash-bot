@@ -2,6 +2,7 @@ using UnityEngine;
 
 class BulletEffect : MonoBehaviour
 {
+    [Header("Зависимости")]
     [SerializeField] private BulletReturner _bulletReturner;
     [SerializeField] private SpawnerRef<ParticleEffectSpawner> _spawnerRef;
 
