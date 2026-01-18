@@ -1466,6 +1466,7 @@ MonoBehaviour:
   _walkMoveValue: 0.5
   _runMoveValue: 1
   _moveDirectionDeadZone: 0.001
+  _attackVariantsCount: 3
 --- !u!114 &4803709847974141177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2022,8 +2023,8 @@ MonoBehaviour:
   _sprintStaminaCostPerSecond: 5
   _moveStopDelaySeconds: 0.025
   _attackEnterSeconds: 0.2
-  _attackExitSeconds: 0.2
-  _attackMovementMultiplier: 0.25
+  _attackExitSeconds: 0.77
+  _attackMovementMultiplier: 0.17
 --- !u!114 &7431421974841183803
 MonoBehaviour:
   m_ObjectHideFlags: 0

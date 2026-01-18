@@ -7,6 +7,7 @@ public class PlayerAnimator : MonoBehaviour
     private static readonly int _pointHash = Animator.StringToHash("Point");
     private static readonly int _isFightHash = Animator.StringToHash("IsFight");
     private static readonly int _attackHash = Animator.StringToHash("Attack");
+    private static readonly int _attackIndexHash = Animator.StringToHash("AttackIndex");
     private static readonly int _takeDamageHash = Animator.StringToHash("TakeDamage");
 
     [SerializeField] private Animator _animator;
@@ -14,6 +15,8 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float _walkMoveValue = 0.5f;
     [SerializeField] private float _runMoveValue = 1f;
     [SerializeField] private float _moveDirectionDeadZone = 0.1f;
+
+    [SerializeField] private int _attackVariantsCount = 3;
 
     private float _currentMove;
     private float _targetMove;
@@ -24,10 +27,13 @@ public class PlayerAnimator : MonoBehaviour
 
     private StepAnimator _stepAnimator;
 
+    private int _nextAttackIndex;
+
     private void Awake()
     {
         _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
         _worldMoveDirection = Vector3.zero;
+        _nextAttackIndex = 0;
     }
 
     private void Update()
@@ -68,6 +74,8 @@ public class PlayerAnimator : MonoBehaviour
 
     public void TriggerAttack()
     {
+        int attackIndex = GetNextAttackIndex();
+        _animator.SetInteger(_attackIndexHash, attackIndex);
         _animator.SetTrigger(_attackHash);
     }
 
@@ -79,6 +87,30 @@ public class PlayerAnimator : MonoBehaviour
     public void SetFight(bool isFight)
     {
         _animator.SetBool(_isFightHash, isFight);
+    }
+
+    public void ResetAttackOrder()
+    {
+        _nextAttackIndex = 0;
+    }
+
+    private int GetNextAttackIndex()
+    {
+        if (_attackVariantsCount <= 1)
+        {
+            _nextAttackIndex = 0;
+            return 0;
+        }
+
+        int selectedAttackIndex = _nextAttackIndex;
+
+        _nextAttackIndex += 1;
+        if (_nextAttackIndex >= _attackVariantsCount)
+        {
+            _nextAttackIndex = 0;
+        }
+
+        return selectedAttackIndex;
     }
 
     private void UpdateMove()
