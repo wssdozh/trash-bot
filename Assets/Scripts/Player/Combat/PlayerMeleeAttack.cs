@@ -11,7 +11,6 @@ public sealed class PlayerMeleeAttack
     private bool _isAttackInProgress;
     private bool _isHitPending;
     private bool _isAttackBuffered;
-    private bool _isFollowUpAttackStarted;
 
     public PlayerMeleeAttack(
         Attacker attacker,
@@ -35,11 +34,6 @@ public sealed class PlayerMeleeAttack
     {
         if (_isAttackInProgress == true)
         {
-            if (_isFollowUpAttackStarted == true)
-            {
-                return false;
-            }
-
             if (_isAttackBuffered == true)
             {
                 return false;
@@ -75,7 +69,6 @@ public sealed class PlayerMeleeAttack
         _isAttackInProgress = true;
         _isHitPending = true;
         _isAttackBuffered = false;
-        _isFollowUpAttackStarted = false;
 
         _movementGate.BlockMovement();
 
@@ -122,21 +115,16 @@ public sealed class PlayerMeleeAttack
 
         if (_isAttackBuffered == true)
         {
-            if (_isFollowUpAttackStarted == false)
+            _isAttackBuffered = false;
+
+            if (_stamina.Value > 0f)
             {
-                _isAttackBuffered = false;
-                _isFollowUpAttackStarted = true;
+                _isHitPending = true;
 
-                if (_stamina.Value > 0f)
-                {
-                    _isAttackInProgress = true;
-                    _isHitPending = true;
+                _animator.TriggerAttack();
+                _battleState.Touch();
 
-                    _animator.TriggerAttack();
-                    _battleState.Touch();
-
-                    return;
-                }
+                return;
             }
         }
 
@@ -161,6 +149,5 @@ public sealed class PlayerMeleeAttack
         _isAttackInProgress = false;
         _isHitPending = false;
         _isAttackBuffered = false;
-        _isFollowUpAttackStarted = false;
     }
 }
