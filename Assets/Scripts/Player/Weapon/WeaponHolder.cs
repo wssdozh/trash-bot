@@ -155,6 +155,8 @@ public class WeaponHolder : MonoBehaviour
             {
                 pickupReturner.SetCanReturn(true);
             }
+
+            _pickup.transform.SetParent(null, true);
         }
 
         if (_pickup != null && _pickupSpawner != null)

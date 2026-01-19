@@ -239,15 +239,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopup
   _text: {fileID: 6531119287486992653}
-  _duration: 1.3
-  _fadeDuration: 0.5
   _moveYDistance: 1.5
   _moveXDistance: 0.1
+  _duration: 1.3
   _scaleUpValue: 1.3
+  _fadeDuration: 0.5
   _randomOffsetX: 0.2
   _randomOffsetY: 0.1
-  _digitsShakeStrength: 0.05
-  _digitsShakeVibrato: 30
 --- !u!1183024399 &3591563939056723537
 LookAtConstraint:
   m_ObjectHideFlags: 0
@@ -316,6 +314,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopupSpawner
   Prefab: {fileID: 1923045293442783298}
   PoolSize: 20
+  WarmingUp: 0
   _activeObjectsCount: 0
   _inactiveObjectsCount: 0
   _totalObjectsCount: 0

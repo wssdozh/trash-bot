@@ -21,11 +21,6 @@ public class InventoryDropper : MonoBehaviour
 
     public void DropAllFromActiveSlot()
     {
-        if (_inventory == null)
-        {
-            return;
-        }
-
         int slotIndex = _inventory.ActiveIndex;
         InventorySlot slot = _inventory.Slots[slotIndex];
 
@@ -34,18 +29,11 @@ public class InventoryDropper : MonoBehaviour
             return;
         }
 
-        int amount = slot.Amount;
-
-        DropFromActiveSlot(amount);
+        DropFromActiveSlot(slot.Amount);
     }
 
     private void DropFromActiveSlot(int amount)
     {
-        if (_inventory == null)
-        {
-            return;
-        }
-
         int slotIndex = _inventory.ActiveIndex;
         InventorySlot slot = _inventory.Slots[slotIndex];
 
@@ -66,9 +54,9 @@ public class InventoryDropper : MonoBehaviour
             return;
         }
 
-        PickupSpawner spawner = item.PickupSpawnerRef.Value;
+        PickupSpawner pickupSpawner = item.PickupSpawnerRef.Value;
 
-        if (spawner == null)
+        if (pickupSpawner == null)
         {
             return;
         }
@@ -90,9 +78,27 @@ public class InventoryDropper : MonoBehaviour
 
         Vector3 spawnPosition = _dropOrigin.position + _dropOrigin.forward * _dropDistance;
 
-        BasePickup pickup = spawner.Spawn(spawnPosition);
+        bool removed = _inventory.TryRemoveFromSlot(slotIndex, amount);
+
+        if (removed == false)
+        {
+            return;
+        }
+
+        BasePickup pickup = pickupSpawner.Spawn(spawnPosition);
+        pickup.transform.SetParent(null, true);
         pickup.SetAmount(amount);
 
-        _inventory.TryRemoveFromSlot(slotIndex, amount);
+        HeldMode heldMode = pickup.GetComponent<HeldMode>();
+        if (heldMode != null)
+        {
+            heldMode.SetHeld(false);
+        }
+
+        PickupReturner pickupReturner = pickup.GetComponent<PickupReturner>();
+        if (pickupReturner != null)
+        {
+            pickupReturner.SetCanReturn(true);
+        }
     }
 }
