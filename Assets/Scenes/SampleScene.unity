@@ -2431,7 +2431,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ParticleEffectSpawner
   Prefab: {fileID: 8899160383858487772, guid: f0c85e1ad39fa734ea6a02d539d013e6, type: 3}
   PoolSize: 500
-  WarmingUp: 20
+  WarmingUp: 0
   _activeObjectsCount: 0
   _inactiveObjectsCount: 0
   _totalObjectsCount: 0
