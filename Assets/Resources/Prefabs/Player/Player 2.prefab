@@ -1384,8 +1384,8 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.3
-  m_Height: 1.5
+  m_Radius: 0.2
+  m_Height: 1.42
   m_Direction: 1
   m_Center: {x: -0, y: 0, z: -0}
 --- !u!114 &2902837690505717258
@@ -1401,8 +1401,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6655802807853044318}
-  _speed: 2.2
-  _speedSprint: 4.7
+  _speed: 1.7
+  _speedSprint: 3.7
 --- !u!114 &331562004979835452
 MonoBehaviour:
   m_ObjectHideFlags: 0
