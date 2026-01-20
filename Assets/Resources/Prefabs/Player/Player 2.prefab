@@ -1403,6 +1403,7 @@ MonoBehaviour:
   _rigidbody: {fileID: 6655802807853044318}
   _speed: 1.7
   _speedSprint: 3.7
+  _wallNormalMaxY: 0.2
 --- !u!114 &331562004979835452
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1930,7 +1931,7 @@ MonoBehaviour:
   _baseController: {fileID: 22100000, guid: 88d613addd198cf4396f7800cc5a2344, type: 2}
   _weaponAnimators:
   - WeaponType: 0
-    Controller: {fileID: 22100000, guid: 88d613addd198cf4396f7800cc5a2344, type: 2}
+    Controller: {fileID: 22100000, guid: 573abf707039860498b8c9807cef311f, type: 2}
   - WeaponType: 3
     Controller: {fileID: 22100000, guid: e5afbc114886b934281046e42b5f7e20, type: 2}
   - WeaponType: 1
