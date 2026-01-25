@@ -10,52 +10,17 @@ public class Item : ScriptableObject
     [SerializeField] private bool _isStackable;
     [SerializeField] private int _maxStack = 1;
     [SerializeField] private WeaponType _weaponType = WeaponType.None;
-    [SerializeField] private PickupSpawnerRef _pickupSpawnerRef;
     [SerializeField] private List<ItemEffect> _effects;
     [SerializeField] private ItemAudioProfile _audioProfile;
+    [SerializeField] private BasePickup _prefab;
 
-    public string Id
-    {
-        get { return _id; }
-    }
-
-    public string DisplayName
-    {
-        get { return _displayName; }
-    }
-
-    public Sprite Icon
-    {
-        get { return _icon; }
-    }
-
-    public bool IsStackable
-    {
-        get { return _isStackable; }
-    }
-
-    public int MaxStack
-    {
-        get { return _maxStack; }
-    }
-
-    public WeaponType WeaponType
-    {
-        get { return _weaponType; }
-    }
-
-    public PickupSpawnerRef PickupSpawnerRef
-    {
-        get { return _pickupSpawnerRef; }
-    }
-
-    public IReadOnlyList<ItemEffect> Effects
-    { 
-        get { return _effects; }
-    }
-
-    public ItemAudioProfile AudioProfile
-    {
-        get { return _audioProfile; }
-    }
+    public string Id => _id;
+    public string DisplayName => _displayName;
+    public Sprite Icon => _icon;
+    public bool IsStackable => _isStackable;
+    public int MaxStack => _maxStack;
+    public WeaponType WeaponType => _weaponType;
+    public IReadOnlyList<ItemEffect> Effects => _effects;
+    public ItemAudioProfile AudioProfile => _audioProfile;
+    public BasePickup Prefab => _prefab;
 }

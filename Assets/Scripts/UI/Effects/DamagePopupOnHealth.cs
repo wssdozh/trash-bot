@@ -4,17 +4,20 @@ public class DamagePopupOnHealth : MonoBehaviour
 {
     [SerializeField] private Health _health;
     [SerializeField] private Transform _spawnPoint;
-    [SerializeField] private DamagePopupSpawnerRef _spawner;
+    [SerializeField] private GameObject _prefab;
 
+    private DamagePopupSpawner _spawner;
     private float _previousValue;
 
-    private void Awake()
+    private void Start()
     {
         if (_health == null == false)
         {
             _previousValue = _health.Value;
             _health.Changed += OnHealthChanged;
         }
+
+        _spawner = SpawnerServiceLocator.Get<DamagePopup>(_prefab.name) as DamagePopupSpawner;
     }
 
     private void OnDestroy()
@@ -33,13 +36,7 @@ public class DamagePopupOnHealth : MonoBehaviour
 
         if (damageDelta > 0f)
         {
-            if (_spawner == null == false)
-            {
-                if (_spawner.Value == null == false)
-                {
-                    _spawner.Value.Show(damageDelta, _spawnPoint.position);
-                }
-            }
+            _spawner.Show(damageDelta, _spawnPoint.position);
         }
     }
 }

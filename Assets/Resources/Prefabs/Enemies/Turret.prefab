@@ -129,6 +129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TargetVision
   _origin: {fileID: 170424309483600535}
+  _currentTarget: {fileID: 0}
   _viewDistance: 7
   _scanInterval: 0.5
   _targetLayerMask:
@@ -138,7 +139,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 385
   _targetTag: Player
-  _currentTarget: {fileID: 0}
 --- !u!114 &6103377313372541687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313,8 +313,8 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 448
-  _bulletSpawnerRef: {fileID: 11400000, guid: 6249755c080162d4eb6941b5ec21118e, type: 2}
   _muzzle: {fileID: 170424309483600535}
+  _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,7 +394,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopupOnHealth
   _health: {fileID: 6483522750506240681}
   _spawnPoint: {fileID: 5119380590683838456}
-  _spawner: {fileID: 11400000, guid: 0b40bed66c56b424081d1c5389960b38, type: 2}
+  _prefab: {fileID: 5595567820870251461, guid: 3ecd13fc324bc0643951f494b641385c, type: 3}
 --- !u!1001 &8801550264854642523
 PrefabInstance:
   m_ObjectHideFlags: 0

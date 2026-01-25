@@ -158,8 +158,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bush
   Health: {fileID: 5273641446045500469}
-  _pickupSpawnerRef: {fileID: 11400000, guid: 2eff1133520cc314ea38b940781fd89b, type: 2}
   _spawnHeightOffset: 1
+  _pickupPrefab: {fileID: 0}
   _forceXMin: -1
   _forceXMax: -2
   _forceYMin: 3
@@ -416,7 +416,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopupOnHealth
   _health: {fileID: 5273641446045500469}
   _spawnPoint: {fileID: 7567241794643875427}
-  _spawner: {fileID: 11400000, guid: 0b40bed66c56b424081d1c5389960b38, type: 2}
+  _prefab: {fileID: 5595567820870251461, guid: 3ecd13fc324bc0643951f494b641385c, type: 3}
 --- !u!1001 &6276750177339973804
 PrefabInstance:
   m_ObjectHideFlags: 0

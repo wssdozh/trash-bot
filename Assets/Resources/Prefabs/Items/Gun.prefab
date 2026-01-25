@@ -239,8 +239,8 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0
-  _bulletSpawnerRef: {fileID: 11400000, guid: 6249755c080162d4eb6941b5ec21118e, type: 2}
   _muzzle: {fileID: 4428332200358282627}
+  _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
 --- !u!114 &7664117757775277777
 MonoBehaviour:
   m_ObjectHideFlags: 0

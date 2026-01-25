@@ -4,19 +4,15 @@ using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
+public abstract class Spawner : MonoBehaviour {}
+
+public abstract class Spawner<T> : Spawner where T : MonoBehaviour
 {
     [Header("Необходимые компоненты: ")]
     [SerializeField] protected T Prefab;
 
     [Header("Настройки пула: ")]
     [SerializeField] protected int PoolSize = 5;
-    [SerializeField] protected int WarmingUp = 20;
-
-    [Header("Статистика: ")]
-    [SerializeField] private int _activeObjectsCount;
-    [SerializeField] private int _inactiveObjectsCount;
-    [SerializeField] private int _totalObjectsCount;
 
     protected List<T> ActiveObjects = new();
     protected ObjectPool<T> Pool;
@@ -25,19 +21,21 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
 
     protected virtual void Awake()
     {
+        Debug.Log("зареган: " + Prefab.name);
+
+        SpawnerServiceLocator.Register(Prefab.name, this);
+
         CountActiveObjects = 0;
-
         InitializePool();
-        UpdateStatistics();
     }
 
-    private void Start()
+    private void OnDestroy()
     {
-        for (int i = 0; i < WarmingUp; i++)
-        {
-            CreateInstance();
-        }
+        SpawnerServiceLocator.Unregister<T>(Prefab.name);
     }
+
+    public abstract T Spawn(Vector3 position);
+    public abstract void Despawn(T instance);
 
     private void InitializePool()
     {
@@ -57,9 +55,6 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         T instance = Instantiate(Prefab);
         instance.gameObject.SetActive(false);
 
-        _totalObjectsCount++;
-        UpdateStatistics();
-
         return instance;
     }
 
@@ -68,7 +63,6 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         CountActiveObjects++;
         ActionOnGet(prefab);
         ActiveObjects.Add(prefab);
-        UpdateStatistics();
     }
 
     private void OnRelease(T prefab)
@@ -76,13 +70,10 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
         CountActiveObjects--;
         ActionOnRelease(prefab);
         ActiveObjects.Remove(prefab);
-        UpdateStatistics();
     }
 
     private void OnDestroyObject(T prefab)
     {
-        _totalObjectsCount--;
-        UpdateStatistics();
         Destroy(prefab.gameObject);
     }
 
@@ -94,11 +85,5 @@ public abstract class Spawner<T> : MonoBehaviour where T : MonoBehaviour
     protected virtual void ActionOnRelease(T prefab)
     {
         prefab.gameObject.SetActive(false);
-    }
-
-    private void UpdateStatistics()
-    {
-        _activeObjectsCount = CountActiveObjects;
-        _inactiveObjectsCount = _totalObjectsCount - _activeObjectsCount;
     }
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PickupReturner : MonoBehaviour
+public class PickupReturner : MonoBehaviour, SpawnerRef
 {
     [SerializeField] private BasePickup _pickup;
     private PickupSpawner _spawner;
@@ -14,9 +14,9 @@ public class PickupReturner : MonoBehaviour
         }
     }
 
-    public void Initialize(PickupSpawner spawner)
+    public void SetSpawner(Spawner spawner)
     {
-        _spawner = spawner;
+        _spawner = (PickupSpawner)spawner;
         _canReturn = true;
     }
 
@@ -35,6 +35,10 @@ public class PickupReturner : MonoBehaviour
         if (_spawner == null == false)
         {
             _spawner.Despawn(_pickup);
+        }
+        else
+        {
+            Destroy(this);
         }
     }
 }

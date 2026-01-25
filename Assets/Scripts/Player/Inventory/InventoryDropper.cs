@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class InventoryDropper : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class InventoryDropper : MonoBehaviour
     public void DropAllFromActiveSlot()
     {
         int slotIndex = _inventory.ActiveIndex;
+
         InventorySlot slot = _inventory.Slots[slotIndex];
 
         if (slot.IsEmpty() == true)
@@ -35,6 +37,7 @@ public class InventoryDropper : MonoBehaviour
     private void DropFromActiveSlot(int amount)
     {
         int slotIndex = _inventory.ActiveIndex;
+
         InventorySlot slot = _inventory.Slots[slotIndex];
 
         if (slot.IsEmpty() == true)
@@ -46,24 +49,24 @@ public class InventoryDropper : MonoBehaviour
 
         if (item == null)
         {
-            return;
+            throw new InvalidOperationException(nameof(item));
         }
 
-        if (item.PickupSpawnerRef == null)
+        if (item.Prefab == null)
         {
-            return;
+            throw new InvalidOperationException(nameof(item.Prefab));
         }
 
-        PickupSpawner pickupSpawner = item.PickupSpawnerRef.Value;
+        Spawner<BasePickup> pickupSpawner = SpawnerServiceLocator.Get<BasePickup>(item.Prefab.name);
 
         if (pickupSpawner == null)
         {
-            return;
+            throw new InvalidOperationException(nameof(pickupSpawner));
         }
 
         if (amount <= 0)
         {
-            return;
+            throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
         if (item.IsStackable == true && amount > slot.Amount)
@@ -78,24 +81,26 @@ public class InventoryDropper : MonoBehaviour
 
         Vector3 spawnPosition = _dropOrigin.position + _dropOrigin.forward * _dropDistance;
 
-        bool removed = _inventory.TryRemoveFromSlot(slotIndex, amount);
-
-        if (removed == false)
+        if (_inventory.TryRemoveFromSlot(slotIndex, amount) == false)
         {
-            return;
+            throw new InvalidOperationException(nameof(_inventory));
         }
 
         BasePickup pickup = pickupSpawner.Spawn(spawnPosition);
+
         pickup.transform.SetParent(null, true);
+
         pickup.SetAmount(amount);
 
         HeldMode heldMode = pickup.GetComponent<HeldMode>();
+
         if (heldMode != null)
         {
             heldMode.SetHeld(false);
         }
 
         PickupReturner pickupReturner = pickup.GetComponent<PickupReturner>();
+
         if (pickupReturner != null)
         {
             pickupReturner.SetCanReturn(true);

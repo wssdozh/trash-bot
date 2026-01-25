@@ -37,6 +37,7 @@ public class Attacker : MonoBehaviour
         }
 
         Health health;
+        
         if (hit.TryGetComponent(out health) == true)
         {
             health.Decrease(damage);

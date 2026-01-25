@@ -115,8 +115,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bush
   Health: {fileID: 9018567847222104301}
-  _pickupSpawnerRef: {fileID: 11400000, guid: 2eff1133520cc314ea38b940781fd89b, type: 2}
   _spawnHeightOffset: 1
+  _pickupPrefab: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}
   _forceXMin: -1
   _forceXMax: -2
   _forceYMin: 3
@@ -257,6 +257,7 @@ PrefabInstance:
     - {fileID: 4872982271621699847, guid: fc64412f09d26514f9f84225c240ce39, type: 3}
     - {fileID: 2053921566488334251, guid: fc64412f09d26514f9f84225c240ce39, type: 3}
     - {fileID: 5273641446045500469, guid: fc64412f09d26514f9f84225c240ce39, type: 3}
+    - {fileID: 7896478418570165615, guid: fc64412f09d26514f9f84225c240ce39, type: 3}
     m_RemovedGameObjects:
     - {fileID: 1729312559864714240, guid: fc64412f09d26514f9f84225c240ce39, type: 3}
     m_AddedGameObjects: []

@@ -9,13 +9,10 @@ public class PlayerAnimationEvents : MonoBehaviour
     public void InvokeAttackingEvent()
     {
         Attacking?.Invoke();
-        Debug.Log("атака");
     }
 
     public void InvokeAttackEndedEvent()
     {
         AttackEnded?.Invoke();
-
-        Debug.Log("конец");
     }
 }

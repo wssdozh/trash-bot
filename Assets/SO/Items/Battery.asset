@@ -18,7 +18,7 @@ MonoBehaviour:
   _isStackable: 1
   _maxStack: 32
   _weaponType: 0
-  _pickupSpawnerRef: {fileID: 11400000, guid: 2eff1133520cc314ea38b940781fd89b, type: 2}
   _effects:
   - {fileID: 11400000, guid: 0ccd56662738d71469ff7b01e362ad7f, type: 2}
   _audioProfile: {fileID: 11400000, guid: 47df3c647be82ad40acb5e6ad9ac8175, type: 2}
+  _prefab: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}

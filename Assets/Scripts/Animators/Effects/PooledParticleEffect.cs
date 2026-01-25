@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class PooledParticleEffect : MonoBehaviour
+public sealed class ParticleEffect : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _particleSystem;
 
@@ -9,6 +9,7 @@ public sealed class PooledParticleEffect : MonoBehaviour
     private void Awake()
     {
         ParticleSystem.MainModule mainModule = _particleSystem.main;
+        
         mainModule.stopAction = ParticleSystemStopAction.Callback;
     }
 

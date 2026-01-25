@@ -306,15 +306,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51677769fc5e41e44892ee612b0fbcea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
-  _speed: 15
-  _lifetimeSeconds: 5
+  _trailRenderer: {fileID: 8254358169590808527}
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0
+  _speed: 15
+  _lifetimeSeconds: 5
   _minDamage: 3
   _maxDamage: 6
   _impulseStrength: 3
-  _trailRenderer: {fileID: 8254358169590808527}
 --- !u!114 &8630705724268217545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -341,4 +341,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletEffect
   _bulletReturner: {fileID: 8630705724268217545}
-  _spawnerRef: {fileID: 11400000, guid: 72cfa671588df134bb3126f974726b3c, type: 2}
+  _particlePrefab: {fileID: 8899160383858487772, guid: f0c85e1ad39fa734ea6a02d539d013e6, type: 3}

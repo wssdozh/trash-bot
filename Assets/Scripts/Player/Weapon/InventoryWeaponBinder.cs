@@ -27,32 +27,22 @@ public class InventoryWeaponBinder : MonoBehaviour
     {
         InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
 
-        if (activeSlot.IsEmpty() == true)
+        if (activeSlot.IsEmpty())
         {
             _weaponHolder.Clear();
+            
             return;
         }
 
         Item item = activeSlot.Item;
 
-        if (item.WeaponType == WeaponType.None)
+        if (item.WeaponType == WeaponType.None || item.Prefab == null)
         {
             _weaponHolder.Clear();
+
             return;
         }
 
-        if (item.PickupSpawnerRef == null)
-        {
-            _weaponHolder.Clear();
-            return;
-        }
-
-        if (item.PickupSpawnerRef.Value == null)
-        {
-            _weaponHolder.Clear();
-            return;
-        }
-
-        _weaponHolder.Equip(item.PickupSpawnerRef);
+        _weaponHolder.Equip(item.Prefab);
     }
-}
+}      

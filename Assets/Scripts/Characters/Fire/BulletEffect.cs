@@ -2,9 +2,15 @@ using UnityEngine;
 
 class BulletEffect : MonoBehaviour
 {
-    [Header("Зависимости")]
     [SerializeField] private BulletReturner _bulletReturner;
-    [SerializeField] private SpawnerRef<ParticleEffectSpawner> _spawnerRef;
+    [SerializeField] private ParticleEffect _particlePrefab;
+
+    private Spawner<ParticleEffect> _particleEffectSpawner;
+
+    private void Start()
+    {
+        _particleEffectSpawner = SpawnerServiceLocator.Get<ParticleEffect>(_particlePrefab.name);
+    }
 
     private void OnEnable()
     {
@@ -18,6 +24,7 @@ class BulletEffect : MonoBehaviour
 
     private void Play()
     {
-        _spawnerRef.Value.Spawn(transform.position, transform.rotation);
+        if (_particleEffectSpawner != null)
+            _particleEffectSpawner.Spawn(transform.position);
     }
 }

@@ -1295,7 +1295,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopupOnHealth
   _health: {fileID: 4803709847974141177}
   _spawnPoint: {fileID: 6756850063766222004}
-  _spawner: {fileID: 11400000, guid: 0b40bed66c56b424081d1c5389960b38, type: 2}
+  _prefab: {fileID: 5595567820870251461, guid: 3ecd13fc324bc0643951f494b641385c, type: 3}
 --- !u!1 &2856562444219867965
 GameObject:
   m_ObjectHideFlags: 0
@@ -1401,7 +1401,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6655802807853044318}
-  _speed: 1.7
+  _speed: 1.9
   _speedSprint: 3.7
   _wallNormalMaxY: 0.2
 --- !u!114 &331562004979835452
@@ -1416,7 +1416,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07cb795940fc2204d9aa83cbfc4b6737, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterRotator
-  _rotationSpeed: 4.5
+  _rotationSpeed: 3.3
   _cursorManager: {fileID: 8146462238665572604}
 --- !u!114 &7523890664260699267
 MonoBehaviour:
@@ -1463,7 +1463,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   _animator: {fileID: 1916046231893731386}
-  _moveLerpSpeed: 3
+  _moveLerpSpeed: 2
   _walkMoveValue: 0.5
   _runMoveValue: 1
   _moveDirectionDeadZone: 0.001
