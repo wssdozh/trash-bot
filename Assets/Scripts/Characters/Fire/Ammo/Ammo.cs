@@ -11,6 +11,8 @@ public abstract class Ammo : MonoBehaviour
     private float _lifetimeTimer;
     private bool _isLifeEnded;
 
+    public LayerMask TargetLayers => _targetLayers;
+
     public event Action LifeEnded;
 
     protected virtual void OnEnable()

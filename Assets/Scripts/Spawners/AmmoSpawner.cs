@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class BulletSpawner : Spawner<Bullet>
+public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
 {
     protected override void Awake()
     {
@@ -8,14 +8,14 @@ public class BulletSpawner : Spawner<Bullet>
 
         for (int i = 0; i < PoolSize; i++)
         {
-            Bullet bullet = Pool.Get();
+            Ammo bullet = Pool.Get();
             Pool.Release(bullet);
         }
     }
 
-    public Bullet Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers)
+    public Ammo Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers)
     {
-        Bullet bullet = Pool.Get();
+        Ammo bullet = Pool.Get();
         bullet.transform.SetPositionAndRotation(position, rotation);
         bullet.SetLayers(targetLayers);
         bullet.GetComponent<AmmoReturner>().Initialize(this);
@@ -23,17 +23,17 @@ public class BulletSpawner : Spawner<Bullet>
         return bullet;
     }
 
-    public override Bullet Spawn(Vector3 position)
+    public override Ammo Spawn(Vector3 position)
     {
         return Spawn(position, Quaternion.identity, default);
     }
 
-    public override void Despawn(Bullet bullet)
+    public override void Despawn(Ammo bullet)
     {
         Pool.Release(bullet);
     }
 
-    protected override void ActionOnRelease(Bullet bullet)
+    protected override void ActionOnRelease(Ammo bullet)
     {
         bullet.gameObject.SetActive(false);
     }

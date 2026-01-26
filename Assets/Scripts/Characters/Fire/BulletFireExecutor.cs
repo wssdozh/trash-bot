@@ -3,13 +3,13 @@ using UnityEngine;
 public class BulletFireExecutor : FireExecutor
 {
     [SerializeField] private Transform _muzzle;
-    [SerializeField] private Bullet _bulletPrefab;
+    [SerializeField] private Ammo _bulletPrefab;
 
-    private BulletSpawner _bulletSpawner;
+    private AmmoSpawner _bulletSpawner;
 
     private void Start()
     {
-        _bulletSpawner = SpawnerServiceLocator.Get<Bullet>(_bulletPrefab.name) as BulletSpawner;
+        _bulletSpawner = SpawnerServiceLocator.Get<Ammo>(_bulletPrefab.name) as AmmoSpawner;
     }
 
     protected override bool TryFireInternal()

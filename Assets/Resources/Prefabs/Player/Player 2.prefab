@@ -1954,7 +1954,7 @@ MonoBehaviour:
   _weaponSocket: {fileID: 5929007080431888995}
   _targetLayers:
     serializedVersion: 2
-    m_Bits: 4992
+    m_Bits: 4993
 --- !u!114 &2659902928091808610
 MonoBehaviour:
   m_ObjectHideFlags: 0

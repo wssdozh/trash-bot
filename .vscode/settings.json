@@ -66,5 +66,5 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "oreshke_big_bobr.sln"
+    "dotnet.defaultSolution": "oreshkes.sln"
 }

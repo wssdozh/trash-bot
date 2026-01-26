@@ -29,15 +29,15 @@ public class AmmoReturner : MonoBehaviour
     {
         if (_spawner == null == false)
         {
-            _spawner.Despawn(_ammo);
-
             Return?.Invoke();
+
+            _spawner.Despawn(_ammo);
 
             return;
         }
 
-        _ammo.gameObject.SetActive(false);
-
         Return?.Invoke();
+
+        _ammo.gameObject.SetActive(false);
     }
 }

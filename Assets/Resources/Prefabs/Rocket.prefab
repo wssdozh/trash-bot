@@ -164,11 +164,11 @@ GameObject:
   - component: {fileID: 364756981260096295}
   - component: {fileID: 5611463029158143350}
   - component: {fileID: 152883573251891985}
-  - component: {fileID: 4344111331149057464}
+  - component: {fileID: 8755970277695282883}
   - component: {fileID: 8630705724268217545}
   - component: {fileID: 7805236088490247026}
   m_Layer: 10
-  m_Name: Bullet
+  m_Name: Rocket
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -184,7 +184,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -7.755, y: 8.007, z: -2.13067}
-  m_LocalScale: {x: 0.07, y: 0.07, z: 0.07}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6396602056669014114}
@@ -223,7 +223,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 750f0c73664507c488346786c349f5aa, type: 2}
+  - {fileID: 2100000, guid: 3581bdc04ca594f469f9d45dde5a54f3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -294,7 +294,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.8
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4344111331149057464
+--- !u!114 &8755970277695282883
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -303,18 +303,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 8640443465732932720}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51677769fc5e41e44892ee612b0fbcea, type: 3}
+  m_Script: {fileID: 11500000, guid: c3e7da7eff58b7f4c8c318773d14aa54, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  m_EditorClassIdentifier: Assembly-CSharp::Rocket
   _targetLayers:
     serializedVersion: 2
-    m_Bits: 961
-  _speed: 15
+    m_Bits: 0
+  _speed: 3
   _lifetimeSeconds: 5
   _trailRenderer: {fileID: 8254358169590808527}
-  _minDamage: 3
-  _maxDamage: 6
-  _impulseStrength: 3
+  _minDamage: 10
+  _maxDamage: 20
+  _impulseStrength: 7
+  _radiusImpulse: 2.5
+  _upwardsModifier: 1
 --- !u!114 &8630705724268217545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -327,7 +329,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec28faddbb0a4264181fe1484e86991d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletReturner
-  _ammo: {fileID: 4344111331149057464}
+  _ammo: {fileID: 8755970277695282883}
 --- !u!114 &7805236088490247026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -341,4 +343,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletEffect
   _bulletReturner: {fileID: 8630705724268217545}
-  _particlePrefab: {fileID: 8899160383858487772, guid: f0c85e1ad39fa734ea6a02d539d013e6, type: 3}
+  _particlePrefab: {fileID: -8624533459990245174, guid: a2ddbd7a826943842a7d547df0c372bc, type: 3}

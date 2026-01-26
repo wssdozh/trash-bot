@@ -51,7 +51,7 @@ GameObject:
   - component: {fileID: 7664117757775277777}
   - component: {fileID: 6937582226131624528}
   m_Layer: 12
-  m_Name: Gun
+  m_Name: RocketLauncher
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -203,7 +203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5105a6a6f3b37df4582dd94fae2898f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BerryPickup
-  _item: {fileID: 11400000, guid: 2593aefb1052f504e8fd325cd1914f8f, type: 2}
+  _item: {fileID: 11400000, guid: 253f48dd7269198409282386027af661, type: 2}
   _amount: 1
   _pickupAnimator: {fileID: 2958621487436852649}
   _rigidbody: {fileID: -7321777512984846279}
@@ -240,7 +240,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 961
   _muzzle: {fileID: 4428332200358282627}
-  _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
+  _bulletPrefab: {fileID: 8755970277695282883, guid: 851fd8a41c4dc544ab4beda61ce8157e, type: 3}
 --- !u!114 &7664117757775277777
 MonoBehaviour:
   m_ObjectHideFlags: 0
