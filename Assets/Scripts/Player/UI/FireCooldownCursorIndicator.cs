@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class WeaponHolderCursorFireCooldownBinder : MonoBehaviour
+public sealed class FireCooldownCursorIndicator : MonoBehaviour
 {
     [SerializeField] private WeaponHolder _weaponHolder;
     [SerializeField] private CursorRadialIndicator _cooldownView;
