@@ -1,34 +1,41 @@
+using System;
 using UnityEngine;
 using DG.Tweening;
 
 public static class ToonRendererEmissiveColorer
 {
-    private static readonly string ToonEmissiveColorProperty = "_Emissive_Color";
-    private static readonly string ToonEmissiveTexProperty = "_Emissive_Tex";
-
-    private static readonly string ToonEmissiveKeywordSimple = "_EMISSIVE_SIMPLE";
-    private static readonly string ToonEmissiveKeywordAnimation = "_EMISSIVE_ANIMATION";
+    private static readonly string EmissionColorProperty = "_EmissionColor";
+    private static readonly string EmissionIntensityProperty = "_EmissionIntensity";
 
     public static void LerpToEmission(Renderer renderer, Color targetColor, float duration, float intensity = 1.0f, bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
-            return;
+            throw new InvalidOperationException(nameof(renderer));
         }
 
         Material material = renderer.material;
 
-        if (material.HasProperty(ToonEmissiveColorProperty) == false)
+        if (material.HasProperty(EmissionColorProperty) == false)
         {
-            return;
+            throw new InvalidOperationException(nameof(EmissionColorProperty));
         }
 
-        EnableToonEmission(material);
+        if (material.HasProperty(EmissionIntensityProperty) == false)
+        {
+            throw new InvalidOperationException(nameof(EmissionIntensityProperty));
+        }
 
         DOTween.Kill(material);
 
         material
-            .DOColor(targetColor * intensity, ToonEmissiveColorProperty, duration)
+            .DOColor(targetColor, EmissionColorProperty, duration)
+            .SetEase(Ease.InOutSine)
+            .SetUpdate(useUnscaledTime)
+            .SetId(material);
+
+        material
+            .DOFloat(intensity, EmissionIntensityProperty, duration)
             .SetEase(Ease.InOutSine)
             .SetUpdate(useUnscaledTime)
             .SetId(material);
@@ -38,43 +45,45 @@ public static class ToonRendererEmissiveColorer
     {
         if (renderer == null)
         {
-            return Color.black;
+            throw new InvalidOperationException(nameof(renderer));
         }
 
         Material material = renderer.material;
 
-        if (material.HasProperty(ToonEmissiveColorProperty) == false)
+        if (material.HasProperty(EmissionColorProperty) == false)
         {
-            return Color.black;
+            throw new InvalidOperationException(nameof(EmissionColorProperty));
         }
 
-        return material.GetColor(ToonEmissiveColorProperty);
+        return material.GetColor(EmissionColorProperty);
+    }
+
+    public static float ReadBaseEmissionIntensity(Renderer renderer)
+    {
+        if (renderer == null)
+        {
+            throw new InvalidOperationException(nameof(renderer));
+        }
+
+        Material material = renderer.material;
+
+        if (material.HasProperty(EmissionIntensityProperty) == false)
+        {
+            throw new InvalidOperationException(nameof(EmissionIntensityProperty));
+        }
+
+        return material.GetFloat(EmissionIntensityProperty);
     }
 
     public static void Stop(Renderer renderer)
     {
         if (renderer == null)
         {
-            return;
+            throw new InvalidOperationException(nameof(renderer));
         }
 
         Material material = renderer.material;
+
         DOTween.Kill(material);
-    }
-
-    private static void EnableToonEmission(Material material)
-    {
-        material.DisableKeyword(ToonEmissiveKeywordAnimation);
-        material.EnableKeyword(ToonEmissiveKeywordSimple);
-
-        if (material.HasProperty(ToonEmissiveTexProperty) == true)
-        {
-            Texture emissiveTexture = material.GetTexture(ToonEmissiveTexProperty);
-
-            if (emissiveTexture == null)
-            {
-                material.SetTexture(ToonEmissiveTexProperty, Texture2D.whiteTexture);
-            }
-        }
     }
 }

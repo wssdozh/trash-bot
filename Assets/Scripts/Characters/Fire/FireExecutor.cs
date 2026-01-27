@@ -9,11 +9,14 @@ public abstract class FireExecutor : MonoBehaviour
 
     private Coroutine _firingCoroutine;
     private bool _isFiring;
+    private float _nextShotTime;
+
     protected float FireRatePerSecond => _fireRatePerSecond;
     protected LayerMask TargetLayers => _targetLayers;
 
-    protected bool HasAimPoint{ get; private set; }
+    protected bool HasAimPoint { get; private set; }
     protected Vector3 AimPoint { get; private set; }
+
     public void SetAimPoint(Vector3 aimPoint)
     {
         AimPoint = aimPoint;
@@ -34,7 +37,7 @@ public abstract class FireExecutor : MonoBehaviour
 
         _isFiring = true;
         _firingCoroutine = StartCoroutine(FiringCoroutine());
-        
+
         return true;
     }
 
@@ -66,6 +69,14 @@ public abstract class FireExecutor : MonoBehaviour
 
     public bool TryFire()
     {
+        if (Time.time < _nextShotTime)
+        {
+            return false;
+        }
+
+        float secondsPerShot = 1f / _fireRatePerSecond;
+        _nextShotTime = Time.time + secondsPerShot;
+
         return TryFireInternal();
     }
 
@@ -74,7 +85,6 @@ public abstract class FireExecutor : MonoBehaviour
     private IEnumerator FiringCoroutine()
     {
         float secondsPerShot = 1f / _fireRatePerSecond;
-
         WaitForSeconds wait = new WaitForSeconds(secondsPerShot);
 
         while (_isFiring == true)

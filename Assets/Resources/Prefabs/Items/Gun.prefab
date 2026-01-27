@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 5529637552284254937}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.676}
+  m_LocalPosition: {x: 0, y: 0, z: 0.283}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -235,7 +235,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
   _fireRatePerSecond: 5
-  _delayFire: 0.12
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961
@@ -271,5 +270,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 543016c6decb352418a18737865cad50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponGrip
-  _localPositionOffset: {x: 0, y: 0.25, z: 0}
+  _localPositionOffset: {x: -0.1, y: 0.25, z: 0.05}
   _localRotationOffsetEuler: {x: -90, y: 0, z: 0}

@@ -155,6 +155,7 @@ MonoBehaviour:
   _targetRotator: {fileID: 3084461313394651049}
   _idleRotator: {fileID: 7344053562206653070}
   _fireExecutor: {fileID: 3601055731436968810}
+  _fireDelaySeconds: 0.3
 --- !u!114 &6483522750506240681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -309,12 +310,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
   _fireRatePerSecond: 5
-  _delayFire: 0.12
   _targetLayers:
     serializedVersion: 2
     m_Bits: 448
   _muzzle: {fileID: 170424309483600535}
-  _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
+  _bulletPrefab: {fileID: 8755970277695282883, guid: 851fd8a41c4dc544ab4beda61ce8157e, type: 3}
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0

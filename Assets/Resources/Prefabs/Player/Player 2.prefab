@@ -1402,7 +1402,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6655802807853044318}
   _speed: 1.9
-  _speedSprint: 3.7
+  _speedSprint: 4.2
   _wallNormalMaxY: 0.2
 --- !u!114 &331562004979835452
 MonoBehaviour:
@@ -1938,7 +1938,7 @@ MonoBehaviour:
     Controller: {fileID: 22100000, guid: 22f0999258184534d957c4e84d458298, type: 2}
   _defaultWeaponType: 0
   _weaponLayerIndex: 1
-  _switchBlendTime: 0.23
+  _switchBlendTime: 0.17
 --- !u!114 &100807586414554310
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2783,6 +2783,8 @@ MonoBehaviour:
   _movementGate: {fileID: 7431421974841183803}
   _timeBattle: 15
   _attackStaminaCost: 5
+  _attackStartDelaySeconds: 0.3
+  _meleeAttackStartDelaySeconds: 0.17
 --- !u!1 &8697980938348035409
 GameObject:
   m_ObjectHideFlags: 0

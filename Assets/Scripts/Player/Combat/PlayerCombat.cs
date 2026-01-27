@@ -14,9 +14,14 @@ public class PlayerCombat : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _attackStaminaCost = 5f;
+
+    [Header("Задержка первой атаки")]
     [SerializeField] private float _attackStartDelaySeconds = 0.25f;
+    [SerializeField] private float _meleeAttackStartDelaySeconds = 0.15f;
 
     private PlayerCombatCore _combatCore;
+    private PlayerBattleState _battleState;
+    private PlayerActiveWeaponType _activeWeaponType;
     private bool _isInitialized;
 
     private bool _isAttackStartPending;
@@ -86,18 +91,27 @@ public class PlayerCombat : MonoBehaviour
     {
         InitializeIfNeeded();
 
-        if (_attackStartDelaySeconds <= 0f || IsInBattle)
+        if (IsInBattle == true)
         {
             return _combatCore.AttackStart();
         }
 
         if (_isAttackStartPending == true)
         {
-            return false;
+            return true;
+        }
+
+        float attackStartDelaySeconds = GetFirstAttackStartDelaySeconds();
+
+        _battleState.Touch();
+
+        if (attackStartDelaySeconds <= 0f)
+        {
+            return _combatCore.AttackStart();
         }
 
         _isAttackStartPending = true;
-        _attackStartDelayTimerSeconds = _attackStartDelaySeconds;
+        _attackStartDelayTimerSeconds = attackStartDelaySeconds;
 
         return true;
     }
@@ -163,6 +177,18 @@ public class PlayerCombat : MonoBehaviour
         _attackStartDelayTimerSeconds = 0f;
     }
 
+    private float GetFirstAttackStartDelaySeconds()
+    {
+        WeaponType weaponType = _activeWeaponType.Value;
+
+        if (weaponType == WeaponType.Melee || weaponType == WeaponType.None)
+        {
+            return _meleeAttackStartDelaySeconds;
+        }
+
+        return _attackStartDelaySeconds;
+    }
+
     private void InitializeIfNeeded()
     {
         if (_isInitialized == true)
@@ -171,6 +197,7 @@ public class PlayerCombat : MonoBehaviour
         }
 
         PlayerActiveWeaponType activeWeaponType = new PlayerActiveWeaponType(_inventory);
+        _activeWeaponType = activeWeaponType;
 
         PlayerBattleState battleState = new PlayerBattleState(
             _animator,
@@ -178,6 +205,8 @@ public class PlayerCombat : MonoBehaviour
             _weaponHolder,
             activeWeaponType,
             _timeBattle);
+
+        _battleState = battleState;
 
         PlayerRangedFire rangedFire = new PlayerRangedFire(
             _weaponHolder,
