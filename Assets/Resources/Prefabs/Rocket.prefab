@@ -169,6 +169,7 @@ GameObject:
   - component: {fileID: 7805236088490247026}
   - component: {fileID: -7173687149763491664}
   - component: {fileID: 4103623771943381378}
+  - component: {fileID: 4756364572207795737}
   m_Layer: 10
   m_Name: Rocket
   m_TagString: Untagged
@@ -314,10 +315,10 @@ MonoBehaviour:
     m_Bits: 0
   _speed: 7
   _lifetimeSeconds: 1.3
-  _minDamage: 10
+  _minDamage: 20
   _maxDamage: 30
   _impulseStrength: 7
-  _radiusImpulse: 2
+  _radiusImpulse: 2.3
   _upwardsModifier: 0.2
 --- !u!114 &8630705724268217545
 MonoBehaviour:
@@ -375,6 +376,20 @@ MonoBehaviour:
   _ammo: {fileID: 8755970277695282883}
   _renderers:
   - {fileID: 364756981260096295}
+--- !u!114 &4756364572207795737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8640443465732932720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97be216729ce0aa45b3b995f4b8a4037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmmoLifePath
+  _ammo: {fileID: 8755970277695282883}
+  _ammoReturner: {fileID: 8630705724268217545}
 --- !u!1001 &2950222387753768728
 PrefabInstance:
   m_ObjectHideFlags: 0

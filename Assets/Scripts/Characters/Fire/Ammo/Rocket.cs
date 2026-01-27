@@ -11,28 +11,65 @@ public class Rocket : Ammo
 
     protected override void OnHitTarget(Collider other)
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, _radiusImpulse, TargetLayers);
+        Vector3 explosionPosition = transform.position;
+
+        Collider[] colliders = GetAffectedColliders(explosionPosition);
 
         foreach (Collider collider in colliders)
         {
-            if (collider.gameObject.TryGetComponent<Health>(out Health health))
-            {
-                health.Decrease(Random.Range(_minDamage, _maxDamage));
-            }
+            float damageMultiplier = GetDamageMultiplier(explosionPosition, collider);
 
-            Rigidbody rigidbody = collider.attachedRigidbody;
+            TryDealDamage(collider, damageMultiplier);
 
-            if (rigidbody == null)
-            {
-                continue;
-            }
-
-            rigidbody.AddExplosionForce(
-                _impulseStrength,
-                transform.position,
-                _radiusImpulse,
-                _upwardsModifier,
-                ForceMode.Impulse);
+            TryApplyExplosionForce(collider, explosionPosition);
         }
+    }
+
+    private Collider[] GetAffectedColliders(Vector3 explosionPosition)
+    {
+        return Physics.OverlapSphere(explosionPosition, _radiusImpulse, TargetLayers);
+    }
+
+    private float GetDamageMultiplier(Vector3 explosionPosition, Collider collider)
+    {
+        float distance = Vector3.Distance(explosionPosition, collider.transform.position);
+        float normalizedDistance = Mathf.Clamp01(distance / _radiusImpulse);
+
+        return 1f - normalizedDistance;
+    }
+
+    private void TryDealDamage(Collider collider, float damageMultiplier)
+    {
+        if (collider.gameObject.TryGetComponent<Health>(out Health health) == false)
+        {
+            return;
+        }
+
+        float baseDamage = Random.Range(_minDamage, _maxDamage);
+        float finalDamage = baseDamage * damageMultiplier;
+
+        if (finalDamage <= 0f)
+        {
+            return;
+        }
+
+        health.Decrease(finalDamage);
+    }
+
+    private void TryApplyExplosionForce(Collider collider, Vector3 explosionPosition)
+    {
+        Rigidbody rigidbody = collider.attachedRigidbody;
+
+        if (rigidbody == null)
+        {
+            return;
+        }
+
+        rigidbody.AddExplosionForce(
+            _impulseStrength,
+            explosionPosition,
+            _radiusImpulse,
+            _upwardsModifier,
+            ForceMode.Impulse);
     }
 }
