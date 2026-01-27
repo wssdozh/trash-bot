@@ -14,9 +14,13 @@ public class PlayerCombat : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private float _timeBattle = 3f;
     [SerializeField] private float _attackStaminaCost = 5f;
+    [SerializeField] private float _attackStartDelaySeconds = 0.25f;
 
     private PlayerCombatCore _combatCore;
     private bool _isInitialized;
+
+    private bool _isAttackStartPending;
+    private float _attackStartDelayTimerSeconds;
 
     public bool IsInBattle
     {
@@ -43,6 +47,9 @@ public class PlayerCombat : MonoBehaviour
         _inventory.InventoryChanged += OnInventoryChanged;
         _inventory.ActiveIndexChanged += OnActiveIndexChanged;
 
+        _isAttackStartPending = false;
+        _attackStartDelayTimerSeconds = 0f;
+
         _combatCore.OnEnabled();
     }
 
@@ -56,6 +63,8 @@ public class PlayerCombat : MonoBehaviour
         _inventory.InventoryChanged -= OnInventoryChanged;
         _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
 
+        CancelAttackStartDelay();
+
         _combatCore.OnDisabled();
     }
 
@@ -66,30 +75,55 @@ public class PlayerCombat : MonoBehaviour
             return;
         }
 
-        _combatCore.Tick(Time.deltaTime);
+        float deltaTime = Time.deltaTime;
+
+        TickAttackStartDelay(deltaTime);
+
+        _combatCore.Tick(deltaTime);
     }
 
     public bool AttackStart()
     {
         InitializeIfNeeded();
-        return _combatCore.AttackStart();
+
+        if (_attackStartDelaySeconds <= 0f || IsInBattle)
+        {
+            return _combatCore.AttackStart();
+        }
+
+        if (_isAttackStartPending == true)
+        {
+            return false;
+        }
+
+        _isAttackStartPending = true;
+        _attackStartDelayTimerSeconds = _attackStartDelaySeconds;
+
+        return true;
     }
 
     public void AttackCancel()
     {
         InitializeIfNeeded();
+
+        CancelAttackStartDelay();
+
         _combatCore.AttackCancel();
     }
 
     public void SetAimPoint(Vector3 aimPoint)
     {
         InitializeIfNeeded();
+
         _combatCore.SetAimPoint(aimPoint);
     }
 
     public void ExitBattle()
     {
         InitializeIfNeeded();
+
+        CancelAttackStartDelay();
+
         _combatCore.ExitBattle();
     }
 
@@ -101,6 +135,32 @@ public class PlayerCombat : MonoBehaviour
     private void OnActiveIndexChanged(int activeIndex)
     {
         _combatCore.OnInventoryChanged();
+    }
+
+    private void TickAttackStartDelay(float deltaTime)
+    {
+        if (_isAttackStartPending == false)
+        {
+            return;
+        }
+
+        _attackStartDelayTimerSeconds -= deltaTime;
+
+        if (_attackStartDelayTimerSeconds > 0f)
+        {
+            return;
+        }
+
+        _isAttackStartPending = false;
+        _attackStartDelayTimerSeconds = 0f;
+
+        _combatCore.AttackStart();
+    }
+
+    private void CancelAttackStartDelay()
+    {
+        _isAttackStartPending = false;
+        _attackStartDelayTimerSeconds = 0f;
     }
 
     private void InitializeIfNeeded()

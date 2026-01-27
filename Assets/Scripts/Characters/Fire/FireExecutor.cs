@@ -5,7 +5,6 @@ public abstract class FireExecutor : MonoBehaviour
 {
     [Header("Настройки")]
     [SerializeField] private float _fireRatePerSecond = 5f;
-    [SerializeField] private float _delayFire = 0.12f;
     [SerializeField] private LayerMask _targetLayers;
 
     private Coroutine _firingCoroutine;
@@ -74,8 +73,6 @@ public abstract class FireExecutor : MonoBehaviour
 
     private IEnumerator FiringCoroutine()
     {
-        yield return new WaitForSeconds(_delayFire);
-
         float secondsPerShot = 1f / _fireRatePerSecond;
 
         WaitForSeconds wait = new WaitForSeconds(secondsPerShot);

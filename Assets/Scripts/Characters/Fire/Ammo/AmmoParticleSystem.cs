@@ -8,8 +8,20 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
     [SerializeField] private ParticleSystem _particleSystem;
 
     private Coroutine _playRoutine;
+    private bool _isLifeEndStarted;
 
-    public bool IsAlive => _particleSystem.IsAlive(true);
+    public override bool IsLifeEndComplete
+    {
+        get
+        {
+            if (_isLifeEndStarted == false)
+            {
+                return true;
+            }
+
+            return _particleSystem.IsAlive(true) == false;
+        }
+    }
 
     protected override void Awake()
     {
@@ -24,6 +36,8 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
     protected override void OnAmmoEnabled()
     {
         StopPlayRoutineIfRunning();
+
+        _isLifeEndStarted = false;
 
         _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
@@ -42,6 +56,8 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
     {
         StopPlayRoutineIfRunning();
 
+        _isLifeEndStarted = true;
+
         _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
@@ -50,6 +66,8 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
         base.OnDisable();
 
         StopPlayRoutineIfRunning();
+
+        _isLifeEndStarted = false;
 
         _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }

@@ -7,6 +7,8 @@ public abstract class AmmoLifeListener : MonoBehaviour
 
     protected Ammo Ammo => _ammo;
 
+    public virtual bool IsLifeEndComplete => true;
+
     protected virtual void Awake()
     {
         if (_ammo == null)
@@ -17,6 +19,7 @@ public abstract class AmmoLifeListener : MonoBehaviour
 
     protected virtual void OnEnable()
     {
+        _ammo.Impacted += HandleAmmoImpacted;
         _ammo.LifeEnded += HandleAmmoLifeEnded;
 
         OnAmmoEnabled();
@@ -24,7 +27,13 @@ public abstract class AmmoLifeListener : MonoBehaviour
 
     protected virtual void OnDisable()
     {
+        _ammo.Impacted -= HandleAmmoImpacted;
         _ammo.LifeEnded -= HandleAmmoLifeEnded;
+    }
+
+    private void HandleAmmoImpacted()
+    {
+        OnAmmoImpacted();
     }
 
     private void HandleAmmoLifeEnded()
@@ -33,6 +42,10 @@ public abstract class AmmoLifeListener : MonoBehaviour
     }
 
     protected virtual void OnAmmoEnabled()
+    {
+    }
+
+    protected virtual void OnAmmoImpacted()
     {
     }
 

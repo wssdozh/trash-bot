@@ -8,8 +8,26 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
     [SerializeField] private TrailRenderer _trailRenderer;
 
     private Coroutine _trailRoutine;
+    private bool _isLifeEndStarted;
+    private float _lifeEndFinishTime;
 
-    public float TrailTimeSeconds => _trailRenderer.time;
+    public override bool IsLifeEndComplete
+    {
+        get
+        {
+            if (_isLifeEndStarted == false)
+            {
+                return true;
+            }
+
+            if (Time.time >= _lifeEndFinishTime)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
 
     protected override void Awake()
     {
@@ -25,6 +43,9 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
     {
         StopTrailRoutineIfRunning();
 
+        _isLifeEndStarted = false;
+        _lifeEndFinishTime = 0f;
+
         _trailRenderer.emitting = false;
         _trailRenderer.Clear();
 
@@ -36,6 +57,9 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
         StopTrailRoutineIfRunning();
 
         _trailRenderer.emitting = false;
+
+        _isLifeEndStarted = true;
+        _lifeEndFinishTime = Time.time + _trailRenderer.time;
     }
 
     protected override void OnDisable()
@@ -43,6 +67,9 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
         base.OnDisable();
 
         StopTrailRoutineIfRunning();
+
+        _isLifeEndStarted = false;
+        _lifeEndFinishTime = 0f;
 
         _trailRenderer.emitting = false;
         _trailRenderer.Clear();

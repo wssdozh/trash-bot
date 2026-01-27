@@ -55,10 +55,12 @@ public sealed class PlayerCombatCore
         if (weaponType == WeaponType.Melee || weaponType == WeaponType.None)
         {
             _rangedFire.StopFiringOnly();
+            
             return _meleeAttack.StartAttack();
         }
 
         _meleeAttack.CancelOnly();
+
         return _rangedFire.StartFiring();
     }
 
