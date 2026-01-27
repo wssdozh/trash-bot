@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using DG.Tweening;
 
@@ -7,35 +6,46 @@ public static class ToonRendererEmissiveColorer
     private static readonly string EmissionColorProperty = "_EmissionColor";
     private static readonly string EmissionIntensityProperty = "_EmissionIntensity";
 
-    public static void LerpToEmission(Renderer renderer, Color targetColor, float duration, float intensity = 1.0f, bool useUnscaledTime = true)
+    public static void LerpToEmission(
+        Renderer renderer,
+        Color targetColor,
+        float duration,
+        float intensity = 1.0f,
+        bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
-            throw new InvalidOperationException(nameof(renderer));
+            return;
         }
 
         Material material = renderer.material;
 
         if (material.HasProperty(EmissionColorProperty) == false)
         {
-            throw new InvalidOperationException(nameof(EmissionColorProperty));
-        }
-
-        if (material.HasProperty(EmissionIntensityProperty) == false)
-        {
-            throw new InvalidOperationException(nameof(EmissionIntensityProperty));
+            return;
         }
 
         DOTween.Kill(material);
 
-        material
-            .DOColor(targetColor, EmissionColorProperty, duration)
-            .SetEase(Ease.InOutSine)
-            .SetUpdate(useUnscaledTime)
-            .SetId(material);
+        if (material.HasProperty(EmissionIntensityProperty) == true)
+        {
+            material
+                .DOColor(targetColor, EmissionColorProperty, duration)
+                .SetEase(Ease.InOutSine)
+                .SetUpdate(useUnscaledTime)
+                .SetId(material);
+
+            material
+                .DOFloat(intensity, EmissionIntensityProperty, duration)
+                .SetEase(Ease.InOutSine)
+                .SetUpdate(useUnscaledTime)
+                .SetId(material);
+
+            return;
+        }
 
         material
-            .DOFloat(intensity, EmissionIntensityProperty, duration)
+            .DOColor(targetColor * intensity, EmissionColorProperty, duration)
             .SetEase(Ease.InOutSine)
             .SetUpdate(useUnscaledTime)
             .SetId(material);
@@ -45,41 +55,33 @@ public static class ToonRendererEmissiveColorer
     {
         if (renderer == null)
         {
-            throw new InvalidOperationException(nameof(renderer));
+            return Color.black;
         }
 
         Material material = renderer.material;
 
         if (material.HasProperty(EmissionColorProperty) == false)
         {
-            throw new InvalidOperationException(nameof(EmissionColorProperty));
+            return Color.black;
         }
 
-        return material.GetColor(EmissionColorProperty);
-    }
-
-    public static float ReadBaseEmissionIntensity(Renderer renderer)
-    {
-        if (renderer == null)
-        {
-            throw new InvalidOperationException(nameof(renderer));
-        }
-
-        Material material = renderer.material;
+        Color emissionColor = material.GetColor(EmissionColorProperty);
 
         if (material.HasProperty(EmissionIntensityProperty) == false)
         {
-            throw new InvalidOperationException(nameof(EmissionIntensityProperty));
+            return emissionColor;
         }
 
-        return material.GetFloat(EmissionIntensityProperty);
+        float emissionIntensity = material.GetFloat(EmissionIntensityProperty);
+
+        return emissionColor * emissionIntensity;
     }
 
     public static void Stop(Renderer renderer)
     {
         if (renderer == null)
         {
-            throw new InvalidOperationException(nameof(renderer));
+            return;
         }
 
         Material material = renderer.material;
