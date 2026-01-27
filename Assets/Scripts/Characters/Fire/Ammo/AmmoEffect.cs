@@ -1,11 +1,25 @@
+using System;
 using UnityEngine;
 
-class AmmoEffect : MonoBehaviour
+public sealed class AmmoEffect : MonoBehaviour
 {
     [SerializeField] private AmmoReturner _bulletReturner;
     [SerializeField] private ParticleEffect _particlePrefab;
 
     private Spawner<ParticleEffect> _particleEffectSpawner;
+
+    private void Awake()
+    {
+        if (_bulletReturner == null)
+        {
+            throw new InvalidOperationException(nameof(_bulletReturner));
+        }
+
+        if (_particlePrefab == null)
+        {
+            throw new InvalidOperationException(nameof(_particlePrefab));
+        }
+    }
 
     private void Start()
     {
@@ -14,21 +28,21 @@ class AmmoEffect : MonoBehaviour
 
     private void OnEnable()
     {
-        _bulletReturner.Return += Play;
+        _bulletReturner.Ammo.Impacted += Play;
     }
 
     private void OnDisable()
     {
-        _bulletReturner.Return -= Play;
+        _bulletReturner.Ammo.Impacted -= Play;
     }
 
     private void Play()
     {
-        Debug.Log("опоп");
-
-        if (_particleEffectSpawner != null)
+        if (_particleEffectSpawner == null)
         {
-            _particleEffectSpawner.Spawn(transform.position);
+            return;
         }
+
+        _particleEffectSpawner.Spawn(transform.position);
     }
 }

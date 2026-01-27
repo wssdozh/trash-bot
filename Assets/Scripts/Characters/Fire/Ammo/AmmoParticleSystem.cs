@@ -9,6 +9,8 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
 
     private Coroutine _playRoutine;
 
+    public bool IsAlive => _particleSystem.IsAlive(true);
+
     protected override void Awake()
     {
         base.Awake();
@@ -40,7 +42,7 @@ public sealed class AmmoParticleSystem : AmmoLifeListener
     {
         StopPlayRoutineIfRunning();
 
-        _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmitting);
     }
 
     protected override void OnDisable()

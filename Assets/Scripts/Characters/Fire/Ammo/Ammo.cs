@@ -13,6 +13,7 @@ public abstract class Ammo : MonoBehaviour
 
     public LayerMask TargetLayers => _targetLayers;
 
+    public event Action Impacted;
     public event Action LifeEnded;
 
     protected virtual void OnEnable()
@@ -25,6 +26,11 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (_isLifeEnded == true)
+        {
+            return;
+        }
+
         MoveForward();
 
         _lifetimeTimer -= Time.deltaTime;
@@ -42,6 +48,11 @@ public abstract class Ammo : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (_isLifeEnded == true)
+        {
+            return;
+        }
+
         if (other.isTrigger == true)
         {
             return;
@@ -50,6 +61,13 @@ public abstract class Ammo : MonoBehaviour
         if (IsInTargetLayers(other.gameObject.layer))
         {
             OnHitTarget(other);
+        }
+
+        Action impacted = Impacted;
+
+        if (impacted == null == false)
+        {
+            impacted.Invoke();
         }
 
         EndLife();
@@ -87,8 +105,6 @@ public abstract class Ammo : MonoBehaviour
         {
             lifeEnded.Invoke();
         }
-
-        gameObject.SetActive(false);
     }
 
     private bool IsInTargetLayers(int layer)
