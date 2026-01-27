@@ -230,7 +230,7 @@ MonoBehaviour:
   _minPelletsPerShot: 8
   _maxPelletsPerShot: 12
   _spreadAngleDegrees: 9
-  _pelletIntervalSeconds: 0.005
+  _pelletIntervalSeconds: 0.003
 --- !u!114 &8202842289096882182
 MonoBehaviour:
   m_ObjectHideFlags: 0
