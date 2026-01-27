@@ -168,6 +168,7 @@ GameObject:
   - component: {fileID: 8630705724268217545}
   - component: {fileID: 7805236088490247026}
   - component: {fileID: -7173687149763491664}
+  - component: {fileID: 4103623771943381378}
   m_Layer: 10
   m_Name: Rocket
   m_TagString: Untagged
@@ -359,6 +360,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmmoParticleSystem
   _ammo: {fileID: 8755970277695282883}
   _particleSystem: {fileID: 6022843703894956005}
+--- !u!114 &4103623771943381378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8640443465732932720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44f6e4993d9395b47b4d290f5a5bf948, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmmoRenderersDisabler
+  _ammo: {fileID: 8755970277695282883}
+  _renderers:
+  - {fileID: 364756981260096295}
 --- !u!1001 &2950222387753768728
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -9,6 +9,8 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
 
     private Coroutine _trailRoutine;
 
+    public float TrailTimeSeconds => _trailRenderer.time;
+
     protected override void Awake()
     {
         base.Awake();
@@ -34,7 +36,6 @@ public sealed class AmmoTrailRenderer : AmmoLifeListener
         StopTrailRoutineIfRunning();
 
         _trailRenderer.emitting = false;
-        _trailRenderer.Clear();
     }
 
     protected override void OnDisable()
