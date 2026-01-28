@@ -5,9 +5,11 @@ public abstract class Ammo : MonoBehaviour
 {
     [Header("Настройки")]
     [SerializeField] private LayerMask _targetLayers;
-    [SerializeField] private float _speed = 10f;
+    [SerializeField] private float _minSpeed = 8f;
+    [SerializeField] private float _maxSpeed = 12f;
     [SerializeField] private float _lifetimeSeconds = 5f;
 
+    private float _speed;
     private float _lifetimeTimer;
     private bool _isLifeEnded;
 
@@ -20,6 +22,8 @@ public abstract class Ammo : MonoBehaviour
     {
         _lifetimeTimer = _lifetimeSeconds;
         _isLifeEnded = false;
+
+        _speed = UnityEngine.Random.Range(_minSpeed, _maxSpeed);
 
         OnAmmoEnabled();
     }

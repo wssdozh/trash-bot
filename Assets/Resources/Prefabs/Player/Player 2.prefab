@@ -3177,7 +3177,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ShakeFeedback
   _rootTransform: {fileID: 5703213909492956247}
   _shakeTransform: {fileID: 3077046766542779946}
-  _shakePositionStrength: 0.05
+  _shakePositionStrength: 0.1
   _shakePositionVibrato: 10
   _shakePositionDuration: 0.25
   _shakeRotationStrength: 0.1

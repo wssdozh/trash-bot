@@ -313,7 +313,8 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0
-  _speed: 7
+  _minSpeed: 5
+  _maxSpeed: 8
   _lifetimeSeconds: 1.3
   _minDamage: 20
   _maxDamage: 30

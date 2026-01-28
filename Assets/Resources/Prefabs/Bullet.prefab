@@ -187,7 +187,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -7.755, y: 8.007, z: -2.13067}
-  m_LocalScale: {x: 0.07, y: 0.07, z: 0.07}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6396602056669014114}
@@ -312,7 +312,8 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961
-  _speed: 15
+  _minSpeed: 12
+  _maxSpeed: 17
   _lifetimeSeconds: 5
   _minDamage: 3
   _maxDamage: 6
