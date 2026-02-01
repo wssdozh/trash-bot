@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5994525060108470030}
   - component: {fileID: 1232069811244846738}
+  - component: {fileID: 5724745417869831249}
   m_Layer: 0
   m_Name: Visible
   m_TagString: Untagged
@@ -47,8 +48,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupIdle
   _idleBehaviours:
-  - {fileID: 2085325085380792766}
+  - {fileID: 5724745417869831249}
   - {fileID: 2128165013039373439}
+--- !u!114 &5724745417869831249
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994742599067875714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80f4ffd65ed6a834a9617de91df87081, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupIdleMotion
+  _moveAmplitude: 0.15
+  _moveDurationSeconds: 1.2
+  _rotationDegrees: {x: 0, y: 45, z: 0}
+  _rotationDurationSeconds: 1.6
+  _randomStartDelaySeconds: 0.25
+  _baseHeightOffset: 1
+  _baseOffsetTransitionSeconds: 0.5
 --- !u!1 &2902802056548227931
 GameObject:
   m_ObjectHideFlags: 0
@@ -60,7 +80,6 @@ GameObject:
   - component: {fileID: 295078281846789373}
   - component: {fileID: 1835841380096877377}
   - component: {fileID: 1603587205924931784}
-  - component: {fileID: 2085325085380792766}
   - component: {fileID: 2128165013039373439}
   m_Layer: 0
   m_Name: Root
@@ -117,7 +136,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 551a791950d0f6d418539ebf208e34f8, type: 2}
+  - {fileID: 2100000, guid: 4f32be2e093888d4d8bd92e7ff184ec7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -140,23 +159,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &2085325085380792766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2902802056548227931}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 80f4ffd65ed6a834a9617de91df87081, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PickupIdleMotion
-  _moveAmplitude: 0.15
-  _moveDurationSeconds: 1.2
-  _rotationDegrees: {x: 0, y: 35, z: 0}
-  _rotationDurationSeconds: 1.6
-  _randomStartDelaySeconds: 0.25
 --- !u!114 &2128165013039373439
 MonoBehaviour:
   m_ObjectHideFlags: 0

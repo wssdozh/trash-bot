@@ -12,12 +12,19 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
 
     [SerializeField] private float _randomStartDelaySeconds = 0.25f;
 
+    [Header("Высота")]
+    [SerializeField] private float _baseHeightOffset = 0.35f;
+    [SerializeField] private float _baseOffsetTransitionSeconds = 0.2f;
+
     private Tween _startDelayTween;
+    private Tween _baseOffsetTween;
     private Tween _moveTween;
     private Tween _rotationTween;
 
     private Vector3 _startLocalPosition;
     private Vector3 _startLocalRotation;
+
+    private Vector3 _baseLocalPosition;
 
     private bool _hasCapturedStartState;
 
@@ -34,6 +41,18 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
     private void StartMotion()
     {
         StopMotion();
+
+        _startLocalPosition = transform.localPosition;
+        _startLocalRotation = transform.localEulerAngles;
+
+        _baseLocalPosition = _startLocalPosition;
+
+        if (_baseHeightOffset != 0f)
+
+            _baseLocalPosition = new Vector3(_baseLocalPosition.x, _baseLocalPosition.y + _baseHeightOffset, _baseLocalPosition.z);
+
+
+        _hasCapturedStartState = true;
 
         float startDelaySeconds = 0f;
 
@@ -52,6 +71,7 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
         DOTween.Kill(this);
 
         _startDelayTween = null;
+        _baseOffsetTween = null;
         _moveTween = null;
         _rotationTween = null;
 
@@ -67,12 +87,28 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
 
     private void StartLoopTweens()
     {
-        _startLocalPosition = transform.localPosition;
-        _startLocalRotation = transform.localEulerAngles;
+        transform.localPosition = _startLocalPosition;
 
-        _hasCapturedStartState = true;
+        if (_baseOffsetTransitionSeconds > 0f)
+        {
+            _baseOffsetTween = transform.DOLocalMove(_baseLocalPosition, _baseOffsetTransitionSeconds);
+            _baseOffsetTween.SetEase(Ease.OutSine);
+            _baseOffsetTween.SetId(this);
+            _baseOffsetTween.SetLink(gameObject, LinkBehaviour.KillOnDestroy);
+            _baseOffsetTween.OnComplete(StartLoopTweensAfterBaseReached);
 
-        Vector3 targetLocalPosition = _startLocalPosition + new Vector3(0f, _moveAmplitude, 0f);
+            return;
+        }
+
+
+        transform.localPosition = _baseLocalPosition;
+
+        StartLoopTweensAfterBaseReached();
+    }
+
+    private void StartLoopTweensAfterBaseReached()
+    {
+        Vector3 targetLocalPosition = _baseLocalPosition + Vector3.up * _moveAmplitude;
         Vector3 targetLocalRotation = _startLocalRotation + _rotationDegrees;
 
         if (_moveAmplitude != 0f)
