@@ -21,12 +21,16 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
     private Tween _moveTween;
     private Tween _rotationTween;
 
-    private Vector3 _startLocalPosition;
-    private Vector3 _startLocalRotation;
+    private Vector3 _defaultLocalPosition;
+    private Vector3 _defaultLocalRotation;
 
     private Vector3 _baseLocalPosition;
 
-    private bool _hasCapturedStartState;
+    private void Awake()
+    {
+        _defaultLocalPosition = transform.localPosition;
+        _defaultLocalRotation = transform.localEulerAngles;
+    }
 
     protected override void OnIdleActivated()
     {
@@ -42,17 +46,12 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
     {
         StopMotion();
 
-        _startLocalPosition = transform.localPosition;
-        _startLocalRotation = transform.localEulerAngles;
-
-        _baseLocalPosition = _startLocalPosition;
+        _baseLocalPosition = _defaultLocalPosition;
 
         if (_baseHeightOffset != 0f)
 
             _baseLocalPosition = new Vector3(_baseLocalPosition.x, _baseLocalPosition.y + _baseHeightOffset, _baseLocalPosition.z);
 
-
-        _hasCapturedStartState = true;
 
         float startDelaySeconds = 0f;
 
@@ -76,18 +75,14 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
         _rotationTween = null;
 
 
-        if (_hasCapturedStartState == true)
-        {
-            transform.localPosition = _startLocalPosition;
-            transform.localEulerAngles = _startLocalRotation;
-        }
-
-        _hasCapturedStartState = false;
+        transform.localPosition = _defaultLocalPosition;
+        transform.localEulerAngles = _defaultLocalRotation;
     }
 
     private void StartLoopTweens()
     {
-        transform.localPosition = _startLocalPosition;
+        transform.localPosition = _defaultLocalPosition;
+        transform.localEulerAngles = _defaultLocalRotation;
 
         if (_baseOffsetTransitionSeconds > 0f)
         {
@@ -109,7 +104,7 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
     private void StartLoopTweensAfterBaseReached()
     {
         Vector3 targetLocalPosition = _baseLocalPosition + Vector3.up * _moveAmplitude;
-        Vector3 targetLocalRotation = _startLocalRotation + _rotationDegrees;
+        Vector3 targetLocalRotation = _defaultLocalRotation + _rotationDegrees;
 
         if (_moveAmplitude != 0f)
         {

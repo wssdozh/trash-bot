@@ -185,6 +185,8 @@ MonoBehaviour:
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 4428332200358282627}
   _bulletPrefab: {fileID: 8755970277695282883, guid: 851fd8a41c4dc544ab4beda61ce8157e, type: 3}
+  _minDamage: 15
+  _maxDamage: 30
 --- !u!114 &7664117757775277777
 MonoBehaviour:
   m_ObjectHideFlags: 0

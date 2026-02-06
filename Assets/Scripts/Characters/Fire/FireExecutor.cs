@@ -14,6 +14,10 @@ public abstract class FireExecutor : MonoBehaviour
     private float _nextShotTime;
     private float _lastShotSecondsPerShot;
 
+    private float _fireRateMultiplier = 1f;
+    private float _damageMultiplier = 1f;
+
+    protected float DamageMultiplier => _damageMultiplier;
     protected float FireRatePerSecond => _fireRatePerSecond;
     protected LayerMask TargetLayers => _targetLayers;
 
@@ -37,6 +41,9 @@ public abstract class FireExecutor : MonoBehaviour
     {
         _nextShotTime = 0f;
         _lastShotSecondsPerShot = 0f;
+
+        _fireRateMultiplier = 1f;
+        _damageMultiplier = 1f;
     }
 
     public float GetFireCooldown01()
@@ -44,6 +51,11 @@ public abstract class FireExecutor : MonoBehaviour
         if (Time.time >= _nextShotTime)
         {
             return 1f;
+        }
+
+        if (_lastShotSecondsPerShot <= 0f)
+        {
+            return 0f;
         }
 
         float remainingSeconds = _nextShotTime - Time.time;
@@ -109,15 +121,54 @@ public abstract class FireExecutor : MonoBehaviour
             return false;
         }
 
-        float secondsPerShot = 1f / _fireRatePerSecond;
+        float effectiveFireRatePerSecond = GetEffectiveFireRatePerSecond();
+
+        float secondsPerShot = 1f / effectiveFireRatePerSecond;
+
+        bool hasFired = TryFireInternal();
+
+        if (hasFired == false)
+        {
+            return false;
+        }
 
         _lastShotSecondsPerShot = secondsPerShot;
         _nextShotTime = Time.time + secondsPerShot;
 
-        return TryFireInternal();
+        return true;
     }
 
     protected abstract bool TryFireInternal();
+
+    protected float GetEffectiveFireRatePerSecond()
+    {
+        float effectiveFireRatePerSecond = _fireRatePerSecond * _fireRateMultiplier;
+
+        if (effectiveFireRatePerSecond <= 0f)
+        {
+            throw new InvalidOperationException(nameof(effectiveFireRatePerSecond));
+        }
+
+        return effectiveFireRatePerSecond;
+    }
+
+    protected float CalculateScaledDamage(float minDamage, float maxDamage)
+    {
+        if (minDamage <= 0f)
+        {
+            throw new InvalidOperationException(nameof(minDamage));
+        }
+
+        if (maxDamage < minDamage)
+        {
+            throw new InvalidOperationException(nameof(maxDamage));
+        }
+
+        float baseDamage = UnityEngine.Random.Range(minDamage, maxDamage);
+        float scaledDamage = baseDamage * _damageMultiplier;
+
+        return scaledDamage;
+    }
 
     protected void RotateMuzzleToAimPoint(Transform muzzle)
     {
@@ -157,16 +208,35 @@ public abstract class FireExecutor : MonoBehaviour
 
     private IEnumerator FiringCoroutine()
     {
-        float secondsPerShot = 1f / _fireRatePerSecond;
-        WaitForSeconds wait = new WaitForSeconds(secondsPerShot);
-
         while (_isFiring == true)
         {
+
             TryFire();
 
-            yield return wait;
+            yield return null;
+
         }
 
         _firingCoroutine = null;
+    }
+
+    public void SetFireRateMultiplier(float fireRateMultiplier)
+    {
+        if (fireRateMultiplier <= 0f)
+        {
+            throw new InvalidOperationException(nameof(fireRateMultiplier));
+        }
+
+        _fireRateMultiplier = fireRateMultiplier;
+    }
+
+    public void SetDamageMultiplier(float damageMultiplier)
+    {
+        if (damageMultiplier <= 0f)
+        {
+            throw new InvalidOperationException(nameof(damageMultiplier));
+        }
+
+        _damageMultiplier = damageMultiplier;
     }
 }

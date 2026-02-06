@@ -13,6 +13,7 @@ public class AnimatorSwitcher : MonoBehaviour
     [Header("Blend")]
     [SerializeField] private int _weaponLayerIndex = 1;
     [SerializeField] private float _switchBlendTime = 0.1f;
+    [SerializeField] private float _battleLayerWeight = 1f;
 
     private AnimatorOverrideController _runtimeOverrideController;
     private Dictionary<WeaponType, AnimatorOverrideController> _overridesByWeaponType;
@@ -41,6 +42,7 @@ public class AnimatorSwitcher : MonoBehaviour
 
     public void SetBattleMode(bool isBattleMode)
     {
+
         if (IsBattleMode == isBattleMode)
         {
             return;
@@ -48,10 +50,12 @@ public class AnimatorSwitcher : MonoBehaviour
 
         IsBattleMode = isBattleMode;
 
+
         if (_weaponSwitchCoroutine != null)
         {
             return;
         }
+
 
         if (_layerBlendCoroutine != null)
         {
@@ -64,12 +68,14 @@ public class AnimatorSwitcher : MonoBehaviour
 
     public void SetWeaponType(WeaponType weaponType)
     {
+
         if (_currentWeaponType == weaponType)
         {
             return;
         }
 
         _currentWeaponType = weaponType;
+
 
         if (_weaponSwitchCoroutine != null)
         {
@@ -105,6 +111,7 @@ public class AnimatorSwitcher : MonoBehaviour
         {
             WeaponAnimatorEntry entry = _weaponAnimators[i];
 
+
             if (_overridesByWeaponType.ContainsKey(entry.WeaponType) == true)
             {
                 continue;
@@ -116,6 +123,7 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private IEnumerator SwitchWeaponRoutine(WeaponType weaponType)
     {
+
         if (_layerBlendCoroutine != null)
         {
             StopCoroutine(_layerBlendCoroutine);
@@ -127,6 +135,7 @@ public class AnimatorSwitcher : MonoBehaviour
         ApplyWeaponType(weaponType);
 
         float targetWeight = GetBattleLayerTargetWeight();
+
         yield return BlendLayerWeightRoutine(_weaponLayerIndex, targetWeight, _switchBlendTime);
 
         _weaponSwitchCoroutine = null;
@@ -134,9 +143,10 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private float GetBattleLayerTargetWeight()
     {
+
         if (IsBattleMode == true)
         {
-            return 1f;
+            return Mathf.Clamp01(_battleLayerWeight);
         }
 
         return 0f;
@@ -146,9 +156,11 @@ public class AnimatorSwitcher : MonoBehaviour
     {
         float startWeight = _animator.GetLayerWeight(layerIndex);
 
+
         if (duration <= 0f)
         {
             _animator.SetLayerWeight(layerIndex, targetWeight);
+            
             yield break;
         }
 
@@ -171,11 +183,13 @@ public class AnimatorSwitcher : MonoBehaviour
 
     private void ApplyWeaponType(WeaponType weaponType)
     {
+
         if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController) == true)
         {
             List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
             sourceOverrideController.GetOverrides(overrides);
             _runtimeOverrideController.ApplyOverrides(overrides);
+
             return;
         }
 
