@@ -5,15 +5,17 @@ public abstract class Ammo : MonoBehaviour
 {
     [Header("Настройки")]
     [SerializeField] private LayerMask _targetLayers;
-    [SerializeField] private float _minSpeed = 8f;
-    [SerializeField] private float _maxSpeed = 12f;
+    [SerializeField] private float _speed = 10f;
     [SerializeField] private float _lifetimeSeconds = 5f;
 
-    private float _speed;
     private float _lifetimeTimer;
     private bool _isLifeEnded;
 
+    private float _damage;
+
     public LayerMask TargetLayers => _targetLayers;
+
+    protected float Damage => _damage;
 
     public event Action Impacted;
     public event Action LifeEnded;
@@ -23,9 +25,19 @@ public abstract class Ammo : MonoBehaviour
         _lifetimeTimer = _lifetimeSeconds;
         _isLifeEnded = false;
 
-        _speed = UnityEngine.Random.Range(_minSpeed, _maxSpeed);
+        _damage = 0f;
 
         OnAmmoEnabled();
+    }
+
+    public void SetDamage(float damage)
+    {
+        if (damage <= 0f)
+        {
+            throw new InvalidOperationException(nameof(damage));
+        }
+
+        _damage = damage;
     }
 
     protected virtual void Update()
@@ -62,7 +74,7 @@ public abstract class Ammo : MonoBehaviour
             return;
         }
 
-        if (IsInTargetLayers(other.gameObject.layer))
+        if (IsInTargetLayers(other.gameObject.layer) == true)
         {
             OnHitTarget(other);
         }
@@ -88,10 +100,6 @@ public abstract class Ammo : MonoBehaviour
 
     protected abstract void OnHitTarget(Collider other);
 
-    protected virtual void OnLifeEnding()
-    {
-    }
-
     protected void EndLife()
     {
         if (_isLifeEnded == true)
@@ -100,8 +108,6 @@ public abstract class Ammo : MonoBehaviour
         }
 
         _isLifeEnded = true;
-
-        OnLifeEnding();
 
         Action lifeEnded = LifeEnded;
 

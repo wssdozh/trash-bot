@@ -432,11 +432,11 @@ MonoBehaviour:
   _player: {fileID: 3480807702779279668}
   _cursorManager: {fileID: 8146462238665572604}
   _camera: {fileID: 5883766244847082059}
-  _height: 6
+  _height: 7
   _smoothSpeed: 5
   _mouseInfluence: 0.07
-  _positionOffset: {x: 0, y: 0, z: -3.5}
-  _tiltAngle: 60
+  _positionOffset: {x: 0, y: 0, z: -2.7}
+  _tiltAngle: 67
 --- !u!1 &1512025030539424559
 GameObject:
   m_ObjectHideFlags: 0
@@ -1791,8 +1791,6 @@ GameObject:
   - component: {fileID: 9024860387188444703}
   - component: {fileID: 2848662487796397544}
   - component: {fileID: 1707185457463400390}
-  - component: {fileID: 100807586414554310}
-  - component: {fileID: 2659902928091808610}
   m_Layer: 6
   m_Name: Other
   m_TagString: Untagged
@@ -1816,6 +1814,7 @@ Transform:
   - {fileID: 387073920570267669}
   - {fileID: 7162611095259558109}
   - {fileID: 4656941285843128089}
+  - {fileID: 5267309175060624527}
   m_Father: {fileID: 3774197070077102453}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &2848662487796397544
@@ -1938,37 +1937,8 @@ MonoBehaviour:
     Controller: {fileID: 22100000, guid: 22f0999258184534d957c4e84d458298, type: 2}
   _defaultWeaponType: 0
   _weaponLayerIndex: 1
-  _switchBlendTime: 0.17
---- !u!114 &100807586414554310
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3565844046570329843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9212c3d1e4f147c47b02b45cb7cbc965, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponHolder
-  _weaponSocket: {fileID: 5929007080431888995}
-  _targetLayers:
-    serializedVersion: 2
-    m_Bits: 4993
---- !u!114 &2659902928091808610
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3565844046570329843}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5cc28e6e740690d42ac074bcea207187, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InventoryWeaponBinder
-  _inventory: {fileID: 591744987671708976}
-  _weaponHolder: {fileID: 100807586414554310}
+  _switchBlendTime: 0.2
+  _battleLayerWeight: 1
 --- !u!1 &3666961234558313183
 GameObject:
   m_ObjectHideFlags: 0
@@ -2025,7 +1995,7 @@ MonoBehaviour:
   _moveStopDelaySeconds: 0.025
   _attackEnterSeconds: 0.2
   _attackExitSeconds: 0.57
-  _attackMovementMultiplier: 0.17
+  _attackMovementMultiplier: 0
 --- !u!114 &7431421974841183803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2101,7 +2071,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad5aa2f874fdd14438a72b644599f8dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponHolderCursorFireCooldownBinder
-  _weaponHolder: {fileID: 100807586414554310}
+  _weaponHolder: {fileID: 0}
   _cooldownView: {fileID: 0}
 --- !u!1 &4230022852352884978
 GameObject:
@@ -2233,6 +2203,100 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FramesPerSecondDisplay
   textElement: {fileID: 468252218624957750}
   refreshIntervalSeconds: 0.5
+--- !u!1 &4491552608728837220
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5267309175060624527}
+  - component: {fileID: 1908533539380365251}
+  - component: {fileID: 7554797627388369266}
+  - component: {fileID: 542880292028219957}
+  - component: {fileID: 4305016012731544682}
+  m_Layer: 6
+  m_Name: Weapon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5267309175060624527
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4491552608728837220}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 9024860387188444703}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1908533539380365251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4491552608728837220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9212c3d1e4f147c47b02b45cb7cbc965, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponHolder
+  _weaponSocket: {fileID: 5929007080431888995}
+  _targetLayers:
+    serializedVersion: 2
+    m_Bits: 4993
+--- !u!114 &7554797627388369266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4491552608728837220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cc28e6e740690d42ac074bcea207187, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryWeaponBinder
+  _inventory: {fileID: 591744987671708976}
+  _weaponHolder: {fileID: 1908533539380365251}
+--- !u!114 &542880292028219957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4491552608728837220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ca0e95dd70741e489c0f88674f06c44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierApplier
+  _weaponHolder: {fileID: 1908533539380365251}
+  _weaponModifierStack: {fileID: 4305016012731544682}
+  _inventory: {fileID: 591744987671708976}
+--- !u!114 &4305016012731544682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4491552608728837220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5aefeead8b3209949974ee598da78c08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierStack
+  _modifiers:
+  - {fileID: 11400000, guid: cbc3df470c9e13e4f8305fabae94ea8e, type: 2}
 --- !u!1 &4676800105757201118
 GameObject:
   m_ObjectHideFlags: 0
@@ -2790,7 +2854,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
   _attacker: {fileID: 5079344321574236948}
   _stamina: {fileID: 2302136596952475683}
-  _weaponHolder: {fileID: 100807586414554310}
+  _weaponHolder: {fileID: 1908533539380365251}
   _animator: {fileID: 7390188348284092011}
   _animatorSwitcher: {fileID: 1707185457463400390}
   _inventory: {fileID: 591744987671708976}

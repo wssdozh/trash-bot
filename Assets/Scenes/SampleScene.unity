@@ -2661,6 +2661,8 @@ MonoBehaviour:
   _maxPelletsPerShot: 10
   _spreadAngleDegrees: 8
   _pelletIntervalSeconds: 0.003
+  _minPelletDamage: 1
+  _maxPelletDamage: 2
 --- !u!1 &637350305
 GameObject:
   m_ObjectHideFlags: 0
@@ -4549,6 +4551,14 @@ PrefabInstance:
       propertyPath: _cooldownView
       value: 
       objectReference: {fileID: 804685606}
+    - target: {fileID: 1134560538916607583, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: _weaponHolder
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2659902928091808610, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: _weaponHolder
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 3089360528040035491, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_DirtyAABB
       value: 0
@@ -4629,10 +4639,30 @@ PrefabInstance:
       propertyPath: m_CellSize.y
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: _modifiers.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: '_modifiers.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
     - target: {fileID: 4547585065114705616, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _pauseController
       value: 
       objectReference: {fileID: 891213997}
+    - target: {fileID: 5123351560016726717, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123351560016726717, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5123351560016726717, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5703213909492956247, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.66
@@ -4664,6 +4694,18 @@ PrefabInstance:
     - target: {fileID: 7617102633980533311, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.171
+      objectReference: {fileID: 0}
+    - target: {fileID: 7881582115723807247, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7881582115723807247, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7881582115723807247, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8146462238665572604, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _rectTransform

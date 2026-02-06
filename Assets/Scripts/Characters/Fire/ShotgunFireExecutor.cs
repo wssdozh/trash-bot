@@ -2,17 +2,21 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class ShotgunFireExecutor : FireExecutor
+public sealed class ShotgunFireExecutor : FireExecutor
 {
     [Header("Зависимости")]
     [SerializeField] private Transform _muzzle;
     [SerializeField] private Ammo _pelletPrefab;
 
-    [Header("Настройки")]
+    [Header("Пеллеты")]
     [SerializeField] private int _minPelletsPerShot = 6;
     [SerializeField] private int _maxPelletsPerShot = 10;
     [SerializeField] private float _spreadAngleDegrees = 6f;
     [SerializeField] private float _pelletIntervalSeconds = 0.01f;
+
+    [Header("Урон")]
+    [SerializeField] private float _minPelletDamage = 1f;
+    [SerializeField] private float _maxPelletDamage = 2f;
 
     private AmmoSpawner _pelletSpawner;
     private Coroutine _burstCoroutine;
@@ -27,59 +31,49 @@ public class ShotgunFireExecutor : FireExecutor
         }
     }
 
-    private void OnDisable()
-    {
-        if (_burstCoroutine != null)
-        {
-            StopCoroutine(_burstCoroutine);
-            _burstCoroutine = null;
-        }
-    }
-
     protected override bool TryFireInternal()
     {
-        RotateMuzzleToAimPoint(_muzzle);
+        if (HasAimPoint == false)
+        {
+            return false;
+        }
 
-        int pelletsPerShot = UnityEngine.Random.Range(_minPelletsPerShot, _maxPelletsPerShot + 1);
+        if (_pelletSpawner == null)
+        {
+            throw new InvalidOperationException(nameof(_pelletSpawner));
+        }
 
         if (_burstCoroutine != null)
         {
-            StopCoroutine(_burstCoroutine);
-            _burstCoroutine = null;
+            return false;
         }
 
-        _burstCoroutine = StartCoroutine(BurstCoroutine(pelletsPerShot));
+        RotateMuzzleToAimPoint(_muzzle);
+
+        _burstCoroutine = StartCoroutine(BurstCoroutine());
 
         return true;
     }
 
-    private IEnumerator BurstCoroutine(int pelletsPerShot)
+    private IEnumerator BurstCoroutine()
     {
-        int pelletIndex = 0;
+        int pelletsPerShot = UnityEngine.Random.Range(_minPelletsPerShot, _maxPelletsPerShot + 1);
 
-        while (pelletIndex < pelletsPerShot)
+        WaitForSeconds wait = new WaitForSeconds(_pelletIntervalSeconds);
+
+        for (int i = 0; i < pelletsPerShot; i++)
         {
-            Vector3 muzzlePosition = _muzzle.position;
-            Quaternion muzzleRotation = _muzzle.rotation;
-            Quaternion pelletRotation = GetPelletRotation(muzzleRotation);
 
-            _pelletSpawner.Spawn(muzzlePosition, pelletRotation, TargetLayers);
+            Quaternion pelletRotation = GetPelletRotation(_muzzle.rotation);
 
-            pelletIndex++;
+            Ammo pellet = _pelletSpawner.Spawn(_muzzle.position, pelletRotation, TargetLayers);
 
-            if (pelletIndex >= pelletsPerShot)
-            {
-                break;
-            }
+            float damage = CalculateScaledDamage(_minPelletDamage, _maxPelletDamage);
 
-            if (_pelletIntervalSeconds > 0f)
-            {
-                yield return new WaitForSeconds(_pelletIntervalSeconds);
+            pellet.SetDamage(damage);
 
-                continue;
-            }
+            yield return wait;
 
-            yield return null;
         }
 
         _burstCoroutine = null;
