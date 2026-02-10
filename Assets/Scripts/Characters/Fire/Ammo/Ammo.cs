@@ -5,13 +5,16 @@ public abstract class Ammo : MonoBehaviour
 {
     [Header("Настройки")]
     [SerializeField] private LayerMask _targetLayers;
-    [SerializeField] private float _speed = 10f;
+    [SerializeField] private float _minSpeed = 8f;
+    [SerializeField] private float _maxSpeed = 12f;
     [SerializeField] private float _lifetimeSeconds = 5f;
 
+    private float _speed;
     private float _lifetimeTimer;
     private bool _isLifeEnded;
 
     private float _damage;
+    private float _speedMultiplier = 1f;
 
     public LayerMask TargetLayers => _targetLayers;
 
@@ -25,19 +28,12 @@ public abstract class Ammo : MonoBehaviour
         _lifetimeTimer = _lifetimeSeconds;
         _isLifeEnded = false;
 
+        _speed = UnityEngine.Random.Range(_minSpeed, _maxSpeed);
+
         _damage = 0f;
+        _speedMultiplier = 1f;
 
         OnAmmoEnabled();
-    }
-
-    public void SetDamage(float damage)
-    {
-        if (damage <= 0f)
-        {
-            throw new InvalidOperationException(nameof(damage));
-        }
-
-        _damage = damage;
     }
 
     protected virtual void Update()
@@ -62,6 +58,26 @@ public abstract class Ammo : MonoBehaviour
         _targetLayers = targetLayers;
     }
 
+    public void SetDamage(float damage)
+    {
+        if (damage <= 0f)
+        {
+            throw new InvalidOperationException(nameof(damage));
+        }
+
+        _damage = damage;
+    }
+
+    public void SetSpeedMultiplier(float speedMultiplier)
+    {
+        if (speedMultiplier <= 0f)
+        {
+            throw new InvalidOperationException(nameof(speedMultiplier));
+        }
+
+        _speedMultiplier = speedMultiplier;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (_isLifeEnded == true)
@@ -76,7 +92,14 @@ public abstract class Ammo : MonoBehaviour
 
         if (IsInTargetLayers(other.gameObject.layer) == true)
         {
+
+            if (_damage <= 0f)
+            {
+                throw new InvalidOperationException(nameof(_damage));
+            }
+
             OnHitTarget(other);
+
         }
 
         Action impacted = Impacted;
@@ -95,10 +118,14 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void MoveForward()
     {
-        transform.Translate(Vector3.forward * _speed * Time.deltaTime);
+        transform.Translate(Vector3.forward * _speed * _speedMultiplier * Time.deltaTime);
     }
 
     protected abstract void OnHitTarget(Collider other);
+
+    protected virtual void OnLifeEnding()
+    {
+    }
 
     protected void EndLife()
     {
@@ -108,6 +135,8 @@ public abstract class Ammo : MonoBehaviour
         }
 
         _isLifeEnded = true;
+
+        OnLifeEnding();
 
         Action lifeEnded = LifeEnded;
 

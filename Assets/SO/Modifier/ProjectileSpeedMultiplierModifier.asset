@@ -9,7 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7eeaaf073fa521e4494abde655b42249, type: 3}
-  m_Name: FireRateWeaponModifier
-  m_EditorClassIdentifier: Assembly-CSharp::FireRateWeaponModifier
-  _multiplier: 20
+  m_Script: {fileID: 11500000, guid: f69825aa17303ca408c220f0643070f1, type: 3}
+  m_Name: ProjectileSpeedMultiplierModifier
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpeedMultiplierModifier
+  _allowedWeaponTypes: 01000000
+  _multiplier: 1.3

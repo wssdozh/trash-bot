@@ -178,13 +178,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 5
+  _fireRatePerSecond: 20
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 4428332200358282627}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
+  _minDamage: 3
+  _maxDamage: 6
 --- !u!114 &7664117757775277777
 MonoBehaviour:
   m_ObjectHideFlags: 0

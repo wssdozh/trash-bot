@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff8628d5c3359f14b8cd8a8f29f6d715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShotgunFireExecutor
-  _fireRatePerSecond: 1
+  _fireRatePerSecond: 7
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -176,6 +176,8 @@ MonoBehaviour:
   _maxPelletsPerShot: 12
   _spreadAngleDegrees: 9
   _pelletIntervalSeconds: 0.003
+  _minPelletDamage: 1
+  _maxPelletDamage: 2
 --- !u!114 &8202842289096882182
 MonoBehaviour:
   m_ObjectHideFlags: 0

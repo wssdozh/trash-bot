@@ -1,13 +1,29 @@
+using System;
 using UnityEngine;
 
-public class Rocket : Ammo
+public sealed class Rocket : Ammo
 {
     [Header("Настройки")]
-    [SerializeField] private float _minDamage = 3f;
-    [SerializeField] private float _maxDamage = 6f;
     [SerializeField] private float _impulseStrength = 3f;
     [SerializeField] private float _radiusImpulse = 3f;
     [SerializeField] private float _upwardsModifier = 0.5f;
+
+    private float _radiusMultiplier = 1f;
+
+    protected override void OnAmmoEnabled()
+    {
+        _radiusMultiplier = 1f;
+    }
+
+    public void SetExplosionRadiusMultiplier(float radiusMultiplier)
+    {
+        if (radiusMultiplier <= 0f)
+        {
+            throw new InvalidOperationException(nameof(radiusMultiplier));
+        }
+
+        _radiusMultiplier = radiusMultiplier;
+    }
 
     protected override void OnHitTarget(Collider other)
     {
@@ -15,25 +31,33 @@ public class Rocket : Ammo
 
         Collider[] colliders = GetAffectedColliders(explosionPosition);
 
-        foreach (Collider collider in colliders)
+        for (int i = 0; i < colliders.Length; i++)
         {
+
+            Collider collider = colliders[i];
+
             float damageMultiplier = GetDamageMultiplier(explosionPosition, collider);
 
             TryDealDamage(collider, damageMultiplier);
 
             TryApplyExplosionForce(collider, explosionPosition);
+
         }
     }
 
     private Collider[] GetAffectedColliders(Vector3 explosionPosition)
     {
-        return Physics.OverlapSphere(explosionPosition, _radiusImpulse, TargetLayers);
+        float radius = _radiusImpulse * _radiusMultiplier;
+
+        return Physics.OverlapSphere(explosionPosition, radius, TargetLayers);
     }
 
     private float GetDamageMultiplier(Vector3 explosionPosition, Collider collider)
     {
+        float radius = _radiusImpulse * _radiusMultiplier;
+
         float distance = Vector3.Distance(explosionPosition, collider.transform.position);
-        float normalizedDistance = Mathf.Clamp01(distance / _radiusImpulse);
+        float normalizedDistance = Mathf.Clamp01(distance / radius);
 
         return 1f - normalizedDistance;
     }
@@ -45,8 +69,7 @@ public class Rocket : Ammo
             return;
         }
 
-        float baseDamage = Random.Range(_minDamage, _maxDamage);
-        float finalDamage = baseDamage * damageMultiplier;
+        float finalDamage = Damage * damageMultiplier;
 
         if (finalDamage <= 0f)
         {
@@ -65,10 +88,12 @@ public class Rocket : Ammo
             return;
         }
 
+        float radius = _radiusImpulse * _radiusMultiplier;
+
         rigidbody.AddExplosionForce(
             _impulseStrength,
             explosionPosition,
-            _radiusImpulse,
+            radius,
             _upwardsModifier,
             ForceMode.Impulse);
     }

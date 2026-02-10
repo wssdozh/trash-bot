@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using UnityEngine;
 
 public sealed class ShotgunFireExecutor : FireExecutor
@@ -8,7 +7,7 @@ public sealed class ShotgunFireExecutor : FireExecutor
     [SerializeField] private Transform _muzzle;
     [SerializeField] private Ammo _pelletPrefab;
 
-    [Header("Пеллеты")]
+    [Header("Настройки")]
     [SerializeField] private int _minPelletsPerShot = 6;
     [SerializeField] private int _maxPelletsPerShot = 10;
     [SerializeField] private float _spreadAngleDegrees = 6f;
@@ -18,74 +17,29 @@ public sealed class ShotgunFireExecutor : FireExecutor
     [SerializeField] private float _minPelletDamage = 1f;
     [SerializeField] private float _maxPelletDamage = 2f;
 
-    private AmmoSpawner _pelletSpawner;
-    private Coroutine _burstCoroutine;
+    private AmmoSpawner _ammoSpawner;
 
-    private void Start()
+    protected override Transform Muzzle => _muzzle;
+
+    protected override IShotStrategy CreateShotStrategy(FireModifierState modifierState)
     {
-        _pelletSpawner = SpawnerServiceLocator.Get<Ammo>(_pelletPrefab.name) as AmmoSpawner;
 
-        if (_pelletSpawner == null)
-        {
-            throw new InvalidOperationException(nameof(_pelletSpawner));
-        }
-    }
+        _ammoSpawner = SpawnerServiceLocator.Get<Ammo>(_pelletPrefab.name) as AmmoSpawner;
 
-    protected override bool TryFireInternal()
-    {
-        if (HasAimPoint == false)
+        if (_ammoSpawner == null)
         {
-            return false;
+            throw new InvalidOperationException(nameof(_ammoSpawner));
         }
 
-        if (_pelletSpawner == null)
-        {
-            throw new InvalidOperationException(nameof(_pelletSpawner));
-        }
+        return new ShotgunBurstShotStrategy(
+            _ammoSpawner,
+            modifierState,
+            _minPelletsPerShot,
+            _maxPelletsPerShot,
+            _spreadAngleDegrees,
+            _pelletIntervalSeconds,
+            _minPelletDamage,
+            _maxPelletDamage);
 
-        if (_burstCoroutine != null)
-        {
-            return false;
-        }
-
-        RotateMuzzleToAimPoint(_muzzle);
-
-        _burstCoroutine = StartCoroutine(BurstCoroutine());
-
-        return true;
-    }
-
-    private IEnumerator BurstCoroutine()
-    {
-        int pelletsPerShot = UnityEngine.Random.Range(_minPelletsPerShot, _maxPelletsPerShot + 1);
-
-        WaitForSeconds wait = new WaitForSeconds(_pelletIntervalSeconds);
-
-        for (int i = 0; i < pelletsPerShot; i++)
-        {
-
-            Quaternion pelletRotation = GetPelletRotation(_muzzle.rotation);
-
-            Ammo pellet = _pelletSpawner.Spawn(_muzzle.position, pelletRotation, TargetLayers);
-
-            float damage = CalculateScaledDamage(_minPelletDamage, _maxPelletDamage);
-
-            pellet.SetDamage(damage);
-
-            yield return wait;
-
-        }
-
-        _burstCoroutine = null;
-    }
-
-    private Quaternion GetPelletRotation(Quaternion muzzleRotation)
-    {
-        float yawDegrees = UnityEngine.Random.Range(-_spreadAngleDegrees, _spreadAngleDegrees);
-        float pitchDegrees = UnityEngine.Random.Range(-_spreadAngleDegrees, _spreadAngleDegrees);
-
-        Quaternion spreadRotation = Quaternion.Euler(pitchDegrees, yawDegrees, 0f);
-
-        return muzzleRotation * spreadRotation;
     }
 }

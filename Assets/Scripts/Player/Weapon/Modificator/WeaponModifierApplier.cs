@@ -38,6 +38,7 @@ public sealed class WeaponModifierApplier : MonoBehaviour
 
         for (int i = 0; i < modifiers.Count; i++)
         {
+
             WeaponModifier modifier = modifiers[i];
 
             if (modifier == null)
@@ -46,17 +47,25 @@ public sealed class WeaponModifierApplier : MonoBehaviour
             }
 
             modifier.Apply(ref context);
+
         }
 
-        fireExecutor.SetFireRateMultiplier(context.FireRateMultiplier);
-        fireExecutor.SetDamageMultiplier(context.DamageMultiplier);
+        fireExecutor.ApplyModifierContext(context);
     }
 
     private WeaponType GetCurrentWeaponType()
     {
-        InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
+        IReadOnlyList<InventorySlot> slots = _inventory.Slots;
+        int activeIndex = _inventory.ActiveIndex;
 
-        if (activeSlot.IsEmpty())
+        if (activeIndex < 0 || activeIndex >= slots.Count)
+        {
+            return WeaponType.None;
+        }
+
+        InventorySlot activeSlot = slots[activeIndex];
+
+        if (activeSlot.IsEmpty() == true)
         {
             return WeaponType.None;
         }

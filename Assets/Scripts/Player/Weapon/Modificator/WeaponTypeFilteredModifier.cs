@@ -26,10 +26,12 @@ public abstract class WeaponTypeFilteredModifier : WeaponModifier
 
         for (int i = 0; i < _allowedWeaponTypes.Count; i++)
         {
+
             if (_allowedWeaponTypes[i] == weaponType)
             {
                 return true;
             }
+
         }
 
         return false;

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: FireRateWeaponFilteredModifier
   m_EditorClassIdentifier: Assembly-CSharp::FireRateWeaponFilteredModifier
   _allowedWeaponTypes: 01000000
-  _addToMultiplier: 0.1
+  _addToMultiplier: 200

@@ -4554,7 +4554,7 @@ PrefabInstance:
     - target: {fileID: 1134560538916607583, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _weaponHolder
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2012020753}
     - target: {fileID: 2659902928091808610, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _weaponHolder
       value: 
@@ -4641,10 +4641,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _modifiers.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: '_modifiers.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
+    - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: '_modifiers.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: df27ea492a6959143b13344d5c56e1dd, type: 2}
+    - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: '_modifiers.Array.data[3]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
+    - target: {fileID: 4305016012731544682, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: '_modifiers.Array.data[4]'
       value: 
       objectReference: {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
     - target: {fileID: 4547585065114705616, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
@@ -7629,6 +7641,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2012020753 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1908533539380365251, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+  m_PrefabInstance: {fileID: 1217812355}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9212c3d1e4f147c47b02b45cb7cbc965, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponHolder
 --- !u!1001 &2015515987
 PrefabInstance:
   m_ObjectHideFlags: 0
