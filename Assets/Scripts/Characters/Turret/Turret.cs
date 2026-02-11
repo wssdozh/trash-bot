@@ -33,6 +33,36 @@ public class Turret : MonoBehaviour
         SetIdleState();
     }
 
+    private void Update()
+    {
+
+        if (_targetRotator.enabled == false)
+        {
+            _fireExecutor.ClearAimPoint();
+
+            return;
+        }
+
+        if (_targetVision.IsTargetVisible == false)
+        {
+            _fireExecutor.ClearAimPoint();
+
+            return;
+        }
+
+        Transform currentTarget = _targetVision.CurrentTarget;
+
+        if (currentTarget == null)
+        {
+            _fireExecutor.ClearAimPoint();
+
+            return;
+        }
+
+        _fireExecutor.SetAimPoint(currentTarget.position);
+
+    }
+
     private void OnTargetFound()
     {
         SetTrackingState();
@@ -60,6 +90,8 @@ public class Turret : MonoBehaviour
         StopFireDelay();
 
         _fireExecutor.StopFiring();
+        _fireExecutor.ClearAimPoint();
+
         _targetRotator.enabled = false;
         _idleRotator.ResetBaseRotation();
         _idleRotator.enabled = true;

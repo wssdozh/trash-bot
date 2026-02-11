@@ -16,6 +16,14 @@ public abstract class FireExecutor : MonoBehaviour
     private IDamageCalculator _damageCalculator;
     private IShotStrategy _shotStrategy;
 
+    private bool _hasStarted;
+
+    private bool _shouldEnablePresenterWhenReady;
+    private bool _shouldStartFiringWhenReady;
+
+    private bool _hasBufferedAimPoint;
+    private Vector3 _bufferedAimPoint;
+
     protected abstract Transform Muzzle { get; }
 
     protected abstract IShotStrategy CreateShotStrategy(FireModifierState modifierState);
@@ -39,44 +47,54 @@ public abstract class FireExecutor : MonoBehaviour
         _fireRateProvider = new FireRateProvider(_fireRatePerSecond, _modifierState);
         _damageCalculator = new FireDamageCalculator(_modifierState);
 
-        _shotStrategy = CreateShotStrategy(_modifierState);
+    }
 
-        if (_shotStrategy == null)
+    private void Start()
+    {
+        _hasStarted = true;
+
+        EnsurePresenterCreated();
+
+        if (_shouldEnablePresenterWhenReady == true)
         {
-            throw new InvalidOperationException(nameof(_shotStrategy));
+            _shouldEnablePresenterWhenReady = false;
+
+            EnablePresenterIfNeeded();
         }
 
-        _presenter = new FireExecutorPresenter(
-            transform,
-            Muzzle,
-            _shotStrategy,
-            _fireRateProvider,
-            _damageCalculator,
-            _targetLayers,
-            _maxAimAngleDegrees);
+        if (_hasBufferedAimPoint == true)
+        {
+            _presenter.SetAimPoint(_bufferedAimPoint);
+        }
+
+        if (_shouldStartFiringWhenReady == true)
+        {
+            _shouldStartFiringWhenReady = false;
+
+            _presenter.StartFiring();
+        }
 
     }
 
     private void OnEnable()
     {
 
-        if (_presenter == null)
-        {
-            throw new InvalidOperationException(nameof(_presenter));
-        }
+        _shouldEnablePresenterWhenReady = true;
 
-        if (_isPresenterEnabled == true)
+        if (_presenter == null)
         {
             return;
         }
 
-        _presenter.OnEnable();
-        _isPresenterEnabled = true;
+        EnablePresenterIfNeeded();
 
     }
 
     private void OnDisable()
     {
+
+        _shouldEnablePresenterWhenReady = false;
+        _shouldStartFiringWhenReady = false;
 
         if (_presenter == null)
         {
@@ -113,12 +131,107 @@ public abstract class FireExecutor : MonoBehaviour
     public void ApplyModifierContext(WeaponModifierContext context)
     {
 
-        if (_modifierState == null)
+        _modifierState.SetContext(context);
+
+    }
+
+    public void SetAimPoint(Vector3 aimPoint)
+    {
+
+        _hasBufferedAimPoint = true;
+        _bufferedAimPoint = aimPoint;
+
+        if (_presenter == null)
         {
-            throw new InvalidOperationException(nameof(_modifierState));
+            return;
         }
 
-        _modifierState.SetContext(context);
+        _presenter.SetAimPoint(aimPoint);
+
+    }
+
+    public void ClearAimPoint()
+    {
+
+        _hasBufferedAimPoint = false;
+
+        if (_presenter == null)
+        {
+            return;
+        }
+
+        _presenter.ClearAimPoint();
+
+    }
+
+    public void StartFiring()
+    {
+
+        _shouldStartFiringWhenReady = true;
+        _shouldEnablePresenterWhenReady = true;
+
+        if (_presenter == null)
+        {
+            return;
+        }
+
+        if (isActiveAndEnabled == false)
+        {
+            return;
+        }
+
+        _presenter.StartFiring();
+
+    }
+
+    public void StopFiring()
+    {
+
+        _shouldStartFiringWhenReady = false;
+
+        if (_presenter == null)
+        {
+            return;
+        }
+
+        _presenter.StopFiring();
+
+    }
+
+    public bool TryStartFiring()
+    {
+        _shouldStartFiringWhenReady = true;
+        _shouldEnablePresenterWhenReady = true;
+
+        EnsurePresenterCreated();
+
+        if (_presenter == null)
+        {
+            return true;
+        }
+
+        if (isActiveAndEnabled == false)
+        {
+            return true;
+        }
+
+        return _presenter.TryStartFiring();
+    }
+
+    public bool TryFire()
+    {
+
+        if (_presenter == null)
+        {
+            return false;
+        }
+
+        if (isActiveAndEnabled == false)
+        {
+            return false;
+        }
+
+        return _presenter.TryFireOnce(Time.time);
 
     }
 
@@ -134,78 +247,6 @@ public abstract class FireExecutor : MonoBehaviour
 
     }
 
-    public void SetAimPoint(Vector3 aimPoint)
-    {
-
-        if (_presenter == null)
-        {
-            throw new InvalidOperationException(nameof(_presenter));
-        }
-
-        _presenter.SetAimPoint(aimPoint);
-
-    }
-
-    public void ClearAimPoint()
-    {
-
-        if (_presenter == null)
-        {
-            return;
-        }
-
-        _presenter.ClearAimPoint();
-
-    }
-
-    public bool TryStartFiring()
-    {
-
-        if (_presenter == null)
-        {
-            throw new InvalidOperationException(nameof(_presenter));
-        }
-
-        return _presenter.TryStartFiring();
-
-    }
-
-    public void StartFiring()
-    {
-
-        if (_presenter == null)
-        {
-            throw new InvalidOperationException(nameof(_presenter));
-        }
-
-        _presenter.StartFiring();
-
-    }
-
-    public void StopFiring()
-    {
-
-        if (_presenter == null)
-        {
-            return;
-        }
-
-        _presenter.StopFiring();
-
-    }
-
-    public bool TryFire()
-    {
-
-        if (_presenter == null)
-        {
-            throw new InvalidOperationException(nameof(_presenter));
-        }
-
-        return _presenter.TryFireOnce(Time.time);
-
-    }
-
     public void SetTargetLayers(LayerMask targetLayers)
     {
 
@@ -217,6 +258,55 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetTargetLayers(targetLayers);
+
+    }
+
+    private void EnsurePresenterCreated()
+    {
+
+        if (_presenter == null == false)
+        {
+            return;
+        }
+
+        if (_hasStarted == false)
+        {
+            return;
+        }
+
+        _shotStrategy = CreateShotStrategy(_modifierState);
+
+        if (_shotStrategy == null)
+        {
+            throw new InvalidOperationException(nameof(_shotStrategy));
+        }
+
+        _presenter = new FireExecutorPresenter(
+            transform,
+            Muzzle,
+            _shotStrategy,
+            _fireRateProvider,
+            _damageCalculator,
+            _targetLayers,
+            _maxAimAngleDegrees);
+
+    }
+
+    private void EnablePresenterIfNeeded()
+    {
+
+        if (_presenter == null)
+        {
+            return;
+        }
+
+        if (_isPresenterEnabled == true)
+        {
+            return;
+        }
+
+        _presenter.OnEnable();
+        _isPresenterEnabled = true;
 
     }
 }

@@ -2215,7 +2215,6 @@ GameObject:
   - component: {fileID: 1908533539380365251}
   - component: {fileID: 7554797627388369266}
   - component: {fileID: 542880292028219957}
-  - component: {fileID: 4305016012731544682}
   m_Layer: 6
   m_Name: Weapon
   m_TagString: Untagged
@@ -2281,22 +2280,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierApplier
   _weaponHolder: {fileID: 1908533539380365251}
-  _weaponModifierStack: {fileID: 4305016012731544682}
+  _weaponModifierStack: {fileID: 30512881858575402}
   _inventory: {fileID: 591744987671708976}
---- !u!114 &4305016012731544682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4491552608728837220}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5aefeead8b3209949974ee598da78c08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierStack
-  _modifiers:
-  - {fileID: 11400000, guid: cbc3df470c9e13e4f8305fabae94ea8e, type: 2}
 --- !u!1 &4676800105757201118
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,6 +2498,7 @@ GameObject:
   - component: {fileID: 9204828660216024488}
   - component: {fileID: 2302136596952475683}
   - component: {fileID: 1983186870403417296}
+  - component: {fileID: 30512881858575402}
   m_Layer: 6
   m_Name: Player 2
   m_TagString: Player
@@ -2589,6 +2575,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DragAttachment
   _carryPoint: {fileID: 0}
+--- !u!114 &30512881858575402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7602520182483155227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5aefeead8b3209949974ee598da78c08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierStack
+  _modifiers:
+  - {fileID: 11400000, guid: c73201d12e671a74ab2ec240601f6aa7, type: 2}
+  - {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
+  - {fileID: 11400000, guid: bfb0c93b6f3f4c64d83a099662711061, type: 2}
+  - {fileID: 11400000, guid: cbc3df470c9e13e4f8305fabae94ea8e, type: 2}
+  - {fileID: 11400000, guid: df27ea492a6959143b13344d5c56e1dd, type: 2}
+  - {fileID: 11400000, guid: 240c4ca3b6d1e4841b22b2464585a8fd, type: 2}
+  - {fileID: 11400000, guid: 50c004b5a4be4194c8139c9f3ea6ce15, type: 2}
 --- !u!1 &7854238819709204048
 GameObject:
   m_ObjectHideFlags: 0

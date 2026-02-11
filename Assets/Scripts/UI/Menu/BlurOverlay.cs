@@ -11,13 +11,21 @@ public sealed class BlurOverlay : MonoBehaviour
 
     private Tween _tween;
 
-    public void Start()
+    private void Awake()
     {
-        Hide();
+        SetState(0.0f);
     }
 
     public void Show()
     {
+        if (gameObject.activeSelf == false)
+        {
+            gameObject.SetActive(true);
+        }
+
+        _canvasGroup.blocksRaycasts = true;
+        _canvasGroup.interactable = true;
+
         Animate(1.0f, _showDurationSeconds, _showEaseCurve);
     }
 
@@ -37,6 +45,30 @@ public sealed class BlurOverlay : MonoBehaviour
             .To(() => _canvasGroup.alpha, value => _canvasGroup.alpha = value, targetAlpha, durationSeconds)
             .SetEase(easeCurve)
             .SetUpdate(true)
-            .OnComplete(() => _canvasGroup.alpha = targetAlpha);
+            .OnComplete(() =>
+            {
+                SetState(targetAlpha);
+
+                if (targetAlpha <= 0.0f)
+                {
+                    gameObject.SetActive(false);
+                }
+            });
+    }
+
+    private void SetState(float alpha)
+    {
+        _canvasGroup.alpha = alpha;
+
+        if (alpha <= 0.0f)
+        {
+            _canvasGroup.blocksRaycasts = false;
+            _canvasGroup.interactable = false;
+
+            return;
+        }
+
+        _canvasGroup.blocksRaycasts = true;
+        _canvasGroup.interactable = true;
     }
 }

@@ -165,7 +165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff8628d5c3359f14b8cd8a8f29f6d715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShotgunFireExecutor
-  _fireRatePerSecond: 7
+  _fireRatePerSecond: 1
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0

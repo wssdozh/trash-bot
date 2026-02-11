@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b36deeb92d47314b912e5fa5be954c4, type: 3}
-  m_Name: SpreadMultiplierModifier
-  m_EditorClassIdentifier: Assembly-CSharp::SpreadMultiplierModifier
-  _allowedWeaponTypes: 01000000
-  _multiplier: 5
+  m_Script: {fileID: 11500000, guid: 41379ff1f1608f84692091fa654190a5, type: 3}
+  m_Name: ExplosionRadiusMultiplierModifier
+  m_EditorClassIdentifier: Assembly-CSharp::ExplosionRadiusMultiplierModifier
+  _allowedWeaponTypes: 
+  _multiplier: 100

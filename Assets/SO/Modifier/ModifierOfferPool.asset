@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 262f73e4803cca14281d01131db1ba3f, type: 3}
+  m_Name: ModifierOfferPool
+  m_EditorClassIdentifier: Assembly-CSharp::ModifierOfferPool
+  _offers:
+  - {fileID: 11400000, guid: f3c7e2eaf130e3e459dff876a6a0ab20, type: 2}
+  - {fileID: 11400000, guid: 0a0b00bb13455d24fb93ca3bcddec427, type: 2}
+  - {fileID: 11400000, guid: 9f68b42dff70e3c459810b4ca90600b1, type: 2}
+  - {fileID: 11400000, guid: 5d8624af09bd5e54b9adf201fde6f211, type: 2}
+  - {fileID: 11400000, guid: e6425eafd4733c149905a6a05b344c7f, type: 2}
+  - {fileID: 11400000, guid: 49cd9c256a9d3764f85f4765b1bb38ca, type: 2}
+  - {fileID: 11400000, guid: 574a5c69d89279c418f5b0999ac66eb9, type: 2}
