@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 95abd98ceb47b0548af8ab54147837da
+guid: e3261216ce2020c4ca3d76483a2bc512
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -49,7 +49,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 155, y: 184, z: 157, w: 165}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 512
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -97,23 +97,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: card rare
+      name: button_0
       rect:
         serializedVersion: 2
-        x: 94
-        y: 127
-        width: 836
-        height: 786
+        x: 90
+        y: 324
+        width: 844
+        height: 376
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 69, y: 69, z: 74, w: 61}
+      border: {x: 77, y: 77, z: 78, w: 80}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 49eafdf9e14c76d4bac291e2580251a3
-      internalID: 659915808
+      spriteID: 9c79c682e3f136b459f3bb11ad62a6c5
+      internalID: -533934712
       vertices: []
       indices: 
       edges: []
@@ -122,19 +122,17 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: cd86c871a74071e4a847483e7f63bd1f
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      card rare: 659915808
+      button_0: -533934712
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
