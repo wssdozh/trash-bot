@@ -35,10 +35,10 @@ public class LineSightFader : MonoBehaviour
     {
         WaitForSeconds waitForSeconds = new WaitForSeconds(_checkInterval);
 
-        while (true)
+        while (enabled)
         {
             UpdateVisibility();
-            
+
             yield return waitForSeconds;
         }
     }
@@ -74,26 +74,26 @@ public class LineSightFader : MonoBehaviour
     {
         float hitDistance = hit.distance;
 
-        if (hitDistance < _minDistanceFromCamera) 
+        if (hitDistance < _minDistanceFromCamera)
             return;
-        
-        if (distanceToTarget - hitDistance < _minDistanceToTarget) 
+
+        if (distanceToTarget - hitDistance < _minDistanceToTarget)
             return;
 
         Transform hitTransform = hit.transform;
 
-        if (hitTransform == _target) 
+        if (hitTransform == _target)
             return;
-        
-        if (hitTransform.IsChildOf(_target) == true) 
+
+        if (hitTransform.IsChildOf(_target))
             return;
 
         IFadable fadable;
-        
-        if (hitTransform.TryGetComponent<IFadable>(out fadable) == false) 
+
+        if (hitTransform.TryGetComponent<IFadable>(out fadable) == false)
             return;
 
-        if (_current.Add(fadable) == false)     
+        if (_current.Add(fadable) == false)
             return;
 
         fadable.OnOccluded();

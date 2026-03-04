@@ -11,7 +11,7 @@ public class AmmoReturner : MonoBehaviour
 
     public Ammo Ammo => _ammo;
 
-    public event Action Return;
+    public event Action Returned;
 
     public void Initialize(IAmmoSpawner spawner)
     {
@@ -25,21 +25,21 @@ public class AmmoReturner : MonoBehaviour
 
     public void ReturnToPool()
     {
-        if (_isReturned == true)
+        if (_isReturned)
         {
             return;
         }
 
         _isReturned = true;
 
-        Action returnAction = Return;
+        Action returnedAction = Returned;
 
-        if (returnAction == null == false)
+        if (returnedAction != null)
         {
-            returnAction.Invoke();
+            returnedAction.Invoke();
         }
 
-        if (_spawner == null == false)
+        if (_spawner != null)
         {
             _spawner.Despawn(_ammo);
 

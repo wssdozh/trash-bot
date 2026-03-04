@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4766248844830549363
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2679585313219043316}
+  m_Layer: 0
+  m_Name: RoomsRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2679585313219043316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4766248844830549363}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7312079363675327127}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6025506535198833129
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7312079363675327127}
+  - component: {fileID: 1539516662376536076}
+  m_Layer: 0
+  m_Name: LevelGen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7312079363675327127
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6025506535198833129}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 34.89884, y: 4, z: 14.66893}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2679585313219043316}
+  - {fileID: 3767421390256361801}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1539516662376536076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6025506535198833129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b46c6d35aee83f84dbe0a9203d3211b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelGenerator
+  _roomsRoot: {fileID: 2679585313219043316}
+  _corridorsRoot: {fileID: 3767421390256361801}
+  _levelSequenceProfile: {fileID: 11400000, guid: 3c454d79593b01d4cac779a45eec9db4, type: 2}
+  _roomPrefabLibrary: {fileID: 11400000, guid: 1457c061938feab46bcd0627ff9dd317, type: 2}
+  _corridorBuilder: {fileID: 2632561195082893375}
+  _levelSeed: 434
+  _generationAttempts: 5
+  _maximumRoomRegenerateAttempts: 8
+  _corridorMinimumLengthInBlocks: 6
+  _corridorMaximumLengthInBlocks: 20
+  _corridorLengthJitterInBlocks: 8
+  _corridorWidthInBlocks: 3
+  _corridorCollisionExtraWidthInBlocks: 1
+  _corridorIgnoreEndsInBlocks: 2
+  _roomSpacingPaddingInBlocks: 3
+  _disallowCorridorIntersections: 1
+  _randomizeRootRotation: 1
+  _snapRoomsToGrid: 1
+  _roomGridStepInBlocks: 0.5
+  _treasurePerCombatNumerator: 1
+  _treasurePerCombatDenominator: 2
+--- !u!1 &6447186613324292721
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3767421390256361801}
+  - component: {fileID: 2632561195082893375}
+  m_Layer: 0
+  m_Name: CorridorsRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3767421390256361801
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6447186613324292721}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7312079363675327127}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2632561195082893375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6447186613324292721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da791d2cfd770df44be02b4abb71abfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelCorridorBuilder
+  _blockSize: 1
+  _floorPrefab: {fileID: 2152623805651872328, guid: 5e43f441b71743b4d8cda95e325bd27c, type: 3}
+  _autoDetectFloorPrefabSize: 1
+  _floorPrefabSizeInUnits: {x: 10, y: 10}
+  _floorLocalOffset: {x: 0, y: 0, z: 0}
+  _wallPrefab: {fileID: 2152623805651872328, guid: d22b72efe69f17b45849fe7f12510ea9, type: 3}
+  _wallPrefabLengthInUnits: 1
+  _wallPrefabHeightInUnits: 1
+  _wallHeightInUnits: 6
+  _wallSideOffsetInUnits: 0
+  _wallLocalOffset: {x: 0, y: 4, z: 0}

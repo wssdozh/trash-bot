@@ -6,6 +6,7 @@ public class HighlightAnimator : HighlighterBase
     [SerializeField] private Color _highlightColor = Color.yellow;
     [SerializeField] private float _blinkTime = 0.7f;
 
+    private readonly ColorerRenderer _colorerRenderer = new ColorerRenderer();
     private Renderer[] _renderers;
     private Color[] _originalColors;
 
@@ -18,7 +19,7 @@ public class HighlightAnimator : HighlighterBase
         {
             Material material = _renderers[index].sharedMaterial;
 
-            if (material.HasProperty("_BaseColor") == true)
+            if (material.HasProperty("_BaseColor"))
             {
                 _originalColors[index] = material.GetColor("_BaseColor");
             }
@@ -33,7 +34,7 @@ public class HighlightAnimator : HighlighterBase
     {
         for (int index = 0; index < _renderers.Length; index++)
         {
-            ColorerRenderer.LerpToColor(_renderers[index], _highlightColor, _blinkTime);
+            _colorerRenderer.LerpToColor(_renderers[index], _highlightColor, _blinkTime);
         }
     }
 
@@ -41,7 +42,7 @@ public class HighlightAnimator : HighlighterBase
     {
         for (int index = 0; index < _renderers.Length; index++)
         {
-            ColorerRenderer.Stop(_renderers[index], _originalColors[index], _blinkTime);
+            _colorerRenderer.Stop(_renderers[index], _originalColors[index], _blinkTime);
         }
     }
 }

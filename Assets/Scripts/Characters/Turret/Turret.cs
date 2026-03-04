@@ -16,14 +16,14 @@ public class Turret : MonoBehaviour
 
     private void OnEnable()
     {
-        _targetVision.TargetFound += OnTargetFound;
-        _targetVision.TargetLost += OnTargetLost;
+        _targetVision.TargetDetected += OnTargetFound;
+        _targetVision.TargetCleared += OnTargetLost;
     }
 
     private void OnDisable()
     {
-        _targetVision.TargetFound -= OnTargetFound;
-        _targetVision.TargetLost -= OnTargetLost;
+        _targetVision.TargetDetected -= OnTargetFound;
+        _targetVision.TargetCleared -= OnTargetLost;
 
         StopFireDelay();
     }

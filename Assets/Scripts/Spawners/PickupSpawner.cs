@@ -5,7 +5,7 @@ public class PickupSpawner : Spawner<BasePickup>
     protected override void Awake()
     {
         base.Awake();
-        
+
         for (int i = 0; i < PoolSize; i++)
         {
             BasePickup pickup = Pool.Get();

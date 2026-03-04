@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,13 +40,13 @@ public sealed class ModifierOfferCardView : MonoBehaviour
 
         _buyButton.interactable = canBuy;
 
-        if (canBuy == true)
+        if (canBuy)
         {
-            _buyButtonText.text = "РљСѓРїРёС‚СЊ";
+            _buyButtonText.text = "Купить";
         }
         else
         {
-            _buyButtonText.text = "РќРµС‚ РґРµРЅРµРі";
+            _buyButtonText.text = "Нет денег";
         }
     }
 

@@ -14,24 +14,20 @@ public struct WeaponModifierContext
     public float CriticalChance01;
     public float CriticalDamageMultiplier;
 
-    public static WeaponModifierContext CreateDefault()
+    public void SetDefaults()
     {
-        WeaponModifierContext context = new WeaponModifierContext();
+        WeaponType = WeaponType.None;
 
-        context.WeaponType = WeaponType.None;
+        FireRateMultiplier = 1f;
+        DamageMultiplier = 1f;
 
-        context.FireRateMultiplier = 1f;
-        context.DamageMultiplier = 1f;
+        SpreadMultiplier = 1f;
+        PelletBonus = 0;
 
-        context.SpreadMultiplier = 1f;
-        context.PelletBonus = 0;
+        ProjectileSpeedMultiplier = 1f;
+        ExplosionRadiusMultiplier = 1f;
 
-        context.ProjectileSpeedMultiplier = 1f;
-        context.ExplosionRadiusMultiplier = 1f;
-
-        context.CriticalChance01 = 0f;
-        context.CriticalDamageMultiplier = 2f;
-
-        return context;
+        CriticalChance01 = 0f;
+        CriticalDamageMultiplier = 2f;
     }
 }

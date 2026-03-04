@@ -13,47 +13,47 @@ public class AudioBinder : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_masterSlider != null) 
+        if (_masterSlider != null)
             _masterSlider.onValueChanged.AddListener(OnMasterChanged);
 
-        if (_buttonsSlider != null) 
+        if (_buttonsSlider != null)
             _buttonsSlider.onValueChanged.AddListener(OnButtonsChanged);
 
-        if (_musicSlider != null) 
+        if (_musicSlider != null)
             _musicSlider.onValueChanged.AddListener(OnMusicChanged);
-    
-        if (_masterToggle != null) 
+
+        if (_masterToggle != null)
             _masterToggle.onValueChanged.AddListener(OnMasterToggled);
     }
 
     private void OnDisable()
     {
-        if (_masterSlider != null) 
+        if (_masterSlider != null)
             _masterSlider.onValueChanged.RemoveListener(OnMasterChanged);
-            
+
         if (_buttonsSlider != null)
             _buttonsSlider.onValueChanged.RemoveListener(OnButtonsChanged);
-            
+
         if (_musicSlider != null)
             _musicSlider.onValueChanged.RemoveListener(OnMusicChanged);
 
-        if (_masterToggle != null) 
+        if (_masterToggle != null)
             _masterToggle.onValueChanged.RemoveListener(OnMasterToggled);
     }
 
     private void Start()
     {
-        if (_masterSlider  != null) 
+        if (_masterSlider  != null)
             OnMasterChanged (_masterSlider.value);
-            
+
         if (_buttonsSlider != null)
             OnButtonsChanged(_buttonsSlider.value);
-            
+
         if (_musicSlider != null)
             OnMusicChanged(_musicSlider.value);
 
 
-        if (_masterToggle  != null) 
+        if (_masterToggle  != null)
             OnMasterToggled(_masterToggle.isOn);
     }
 
@@ -65,11 +65,11 @@ public class AudioBinder : MonoBehaviour
 
         _panelAudio.ToggleMaster(enabled);
     }
-    
+
     private void OnMasterChanged(float value) => _panelAudio.ChangeMaster(value);
-   
+
     private void OnButtonsChanged(float value) => _panelAudio.ChangeButtons(value);
-  
+
     private void OnMusicChanged(float value) => _panelAudio.ChangeMusic(value);
 
 }

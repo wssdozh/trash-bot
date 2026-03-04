@@ -39,7 +39,7 @@ public sealed class DieFracture : MonoBehaviour
 
     private void OnHealthEnded()
     {
-        if (_swapped == true)
+        if (_swapped)
         {
             return;
         }

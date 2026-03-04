@@ -5,26 +5,39 @@ using UnityEngine.UI;
 public sealed class PauseMenuNavigation : MonoBehaviour
 {
     [SerializeField] private List<ButtonMenu> _buttonMenus;
+    private readonly List<PauseMenuButtonListener> _buttonListeners = new List<PauseMenuButtonListener>();
 
     private void OnEnable()
     {
-        _buttonMenus.ForEach(buttonMenu =>
+        _buttonListeners.Clear();
+
+        for (int buttonIndex = 0; buttonIndex < _buttonMenus.Count; buttonIndex++)
         {
-                buttonMenu.Button.onClick.AddListener(() => ToggleMenu(buttonMenu.MenuView));
-        });
+            ButtonMenu buttonMenu = _buttonMenus[buttonIndex];
+            PauseMenuButtonListener buttonListener = new PauseMenuButtonListener(this, buttonMenu.MenuView);
+
+            _buttonListeners.Add(buttonListener);
+            buttonMenu.Button.onClick.AddListener(buttonListener.OnClicked);
+        }
     }
 
     private void OnDisable()
     {
-        _buttonMenus.ForEach(buttonMenu =>
+        int buttonCount = Mathf.Min(_buttonMenus.Count, _buttonListeners.Count);
+
+        for (int buttonIndex = 0; buttonIndex < buttonCount; buttonIndex++)
         {
-            buttonMenu.Button.onClick.RemoveListener(() => ToggleMenu(buttonMenu.MenuView));
-        });
+            ButtonMenu buttonMenu = _buttonMenus[buttonIndex];
+            PauseMenuButtonListener buttonListener = _buttonListeners[buttonIndex];
+            buttonMenu.Button.onClick.RemoveListener(buttonListener.OnClicked);
+        }
+
+        _buttonListeners.Clear();
     }
 
-    private void ToggleMenu(BaseMenuView menuView)
+    internal void ToggleMenu(BaseMenuView menuView)
     {
-        if (menuView.IsOpen == true)
+        if (menuView.IsOpen)
         {
             CloseMenu(menuView);
 
@@ -36,7 +49,7 @@ public sealed class PauseMenuNavigation : MonoBehaviour
 
     private void OpenMenu(BaseMenuView menuView)
     {
-        if (menuView.IsAnimating == true)
+        if (menuView.IsAnimating)
         {
             return;
         }
@@ -51,16 +64,17 @@ public sealed class PauseMenuNavigation : MonoBehaviour
 
     private void CloseMenu(BaseMenuView menuView)
     {
-        if (menuView.IsAnimating == true)
+        if (menuView.IsAnimating)
         {
             return;
         }
 
-        if (menuView.IsOpen == true)
+        if (menuView.IsOpen)
         {
             menuView.Hide();
 
             return;
         }
     }
+
 }

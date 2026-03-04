@@ -15,26 +15,18 @@ public sealed class ParentScaleCompensator : MonoBehaviour
         Transform parentTransform = transform.parent;
 
         if (parentTransform == null)
-
             return;
-
 
         Vector3 parentWorldScale = parentTransform.lossyScale;
 
-        if (parentWorldScale.x == 0f)
-
+        if (Mathf.Abs(parentWorldScale.x) <= Mathf.Epsilon)
             return;
 
-
-        if (parentWorldScale.y == 0f)
-
+        if (Mathf.Abs(parentWorldScale.y) <= Mathf.Epsilon)
             return;
 
-
-        if (parentWorldScale.z == 0f)
-
+        if (Mathf.Abs(parentWorldScale.z) <= Mathf.Epsilon)
             return;
-
 
         Vector3 localScale = new Vector3(
             _targetWorldScale.x / parentWorldScale.x,

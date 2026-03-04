@@ -68,7 +68,7 @@ public class DamagePopup : MonoBehaviour
     {
         _text.text = string.Empty;
 
-        if (Completed == null == false)
+        if (Completed != null)
         {
             Completed.Invoke(this);
         }

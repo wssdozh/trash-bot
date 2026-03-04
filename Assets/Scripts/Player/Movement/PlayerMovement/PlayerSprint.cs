@@ -30,7 +30,7 @@ public sealed class PlayerSprint
             return false;
         }
 
-        if (IsSprinting == true)
+        if (IsSprinting)
         {
             return true;
         }

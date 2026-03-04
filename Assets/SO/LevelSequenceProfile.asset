@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c45456fc3515b44d84d4a6fe92ca3b7, type: 3}
+  m_Name: LevelSequenceProfile
+  m_EditorClassIdentifier: Assembly-CSharp::LevelSequenceProfile
+  _mainCombatCountRange: {x: 2, y: 3}
+  _allowTreasureOnMainPath: 1
+  _mainTreasurePerCombatRatio: 0.5
+  _mainTreasureCountClamp: {x: 1, y: 3}
+  _mainTreasureMinimumSpacing: 1
+  _totalBranchCountRange: {x: 1, y: 2}
+  _branchLengthRange: {x: 1, y: 2}
+  _maximumBranchDepth: 2
+  _nestedBranchChance: 0.35
+  _allowBranchesFromStart: 0
+  _allowBranchesFromBoss: 0
+  _allowTreasureInsideBranches: 1
+  _branchTreasureChance: 0.35
+  _branchTerminalIsTreasure: 1
+  _maximumChildrenPerRoom: 2

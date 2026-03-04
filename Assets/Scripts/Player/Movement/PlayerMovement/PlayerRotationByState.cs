@@ -16,7 +16,7 @@ sealed class PlayerRotationByState
 
     public void TickFixed(bool isInBattle, bool isMovementAllowed)
     {
-        if (isInBattle == true)
+        if (isInBattle)
         {
             _rotator.Rotate();
             return;
@@ -28,7 +28,7 @@ sealed class PlayerRotationByState
             return;
         }
 
-        if (_attackMovementBlend.IsRecoverActive == true)
+        if (_attackMovementBlend.IsRecoverActive)
         {
             _rotator.RotateTowardsMovement(_moveApplier.AppliedMoveVector);
             return;

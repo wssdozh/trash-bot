@@ -33,7 +33,7 @@ public class PlayerInventory : MonoBehaviour
     {
         InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
 
-        if (activeSlot.IsEmpty() == true)
+        if (activeSlot.IsEmpty())
         {
             return;
         }

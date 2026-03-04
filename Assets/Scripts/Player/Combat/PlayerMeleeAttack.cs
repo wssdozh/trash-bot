@@ -32,9 +32,9 @@ public sealed class PlayerMeleeAttack
 
     public bool StartAttack()
     {
-        if (_isAttackInProgress == true)
+        if (_isAttackInProgress)
         {
-            if (_isAttackBuffered == true)
+            if (_isAttackBuffered)
             {
                 return false;
             }
@@ -100,7 +100,7 @@ public sealed class PlayerMeleeAttack
             return;
         }
 
-        if (_attacker.PerformAttack() == true)
+        if (_attacker.PerformAttack())
         {
             _stamina.Decrease(_attackStaminaCost);
         }
@@ -113,7 +113,7 @@ public sealed class PlayerMeleeAttack
             return;
         }
 
-        if (_isAttackBuffered == true)
+        if (_isAttackBuffered)
         {
             _isAttackBuffered = false;
 
@@ -140,7 +140,7 @@ public sealed class PlayerMeleeAttack
 
     private void ResetState()
     {
-        if (_isAttackInProgress == true)
+        if (_isAttackInProgress)
         {
             _animationEvents.Attacking -= OnAttackingFrame;
             _animationEvents.AttackEnded -= OnAttackEnded;

@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public static class ColorerGraphic
+public sealed class ColorerGraphic
 {
-    public static void LerpToColor(Graphic graphic, Color targetColor, float duration, bool useUnscaledTime)
+    public void LerpToColor(Graphic graphic, Color targetColor, float duration, bool useUnscaledTime)
     {
         if (graphic == null)
         {
@@ -20,7 +20,7 @@ public static class ColorerGraphic
             .SetId(graphic);
     }
 
-    public static void Stop(Graphic graphic, Color baseColor, float duration, bool useUnscaledTime)
+    public void Stop(Graphic graphic, Color baseColor, float duration, bool useUnscaledTime)
     {
         if (graphic == null)
         {
@@ -36,7 +36,7 @@ public static class ColorerGraphic
             .SetId(graphic);
     }
 
-    public static void Flash(Graphic graphic, Color flashColor, Color baseColor, float flashDuration, float returnDuration, bool useUnscaledTime)
+    public void Flash(Graphic graphic, Color flashColor, Color baseColor, float flashDuration, float returnDuration, bool useUnscaledTime)
     {
         if (graphic == null)
         {
@@ -61,7 +61,7 @@ public static class ColorerGraphic
         });
     }
 
-    public static void FadeToTransparency(Graphic graphic, float targetTransparency, float duration, bool useUnscaledTime)
+    public void FadeToTransparency(Graphic graphic, float targetTransparency, float duration, bool useUnscaledTime)
     {
         if (graphic == null)
         {
@@ -77,7 +77,7 @@ public static class ColorerGraphic
             .SetId(graphic);
     }
 
-    public static void StopFade(Graphic graphic)
+    public void StopFade(Graphic graphic)
     {
         if (graphic == null)
         {

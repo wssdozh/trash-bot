@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public abstract class StatIndicatorBase<T> : MonoBehaviour where T : Stat
 {
     [SerializeField] protected T Stat;
@@ -22,4 +21,3 @@ public abstract class StatIndicatorBase<T> : MonoBehaviour where T : Stat
 
     protected abstract void Display();
 }
- 

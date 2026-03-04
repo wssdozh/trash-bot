@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd6a9bd0f9b288b47802fba3fa93ec70, type: 3}
+  m_Name: LevelRoomPrefabLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::LevelRoomPrefabLibrary
+  _startRooms:
+  - _prefab: {fileID: 8679981737600290697, guid: aa9db6ec783a16b45ad789747aba59ee, type: 3}
+    _weight: 1
+  _combatRooms:
+  - _prefab: {fileID: 7973211220835135010, guid: 355dbf3199db18b409b9d6fa68aea1ff, type: 3}
+    _weight: 1
+  _treasureRooms:
+  - _prefab: {fileID: 8679981737600290697, guid: cc0ba5d6f05e41e6a5fcc17a1a3e961f, type: 3}
+    _weight: 1
+  _bossRooms:
+  - _prefab: {fileID: 1688540552551259826, guid: b9b9b93fa8bd164438400ca42d58c57b, type: 3}
+    _weight: 1

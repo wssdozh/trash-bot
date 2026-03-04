@@ -68,7 +68,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void PlayClick()
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -93,7 +93,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void BeginHoldCandidate(float thresholdSeconds)
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -116,7 +116,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void CancelHoldCandidate()
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -126,7 +126,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void ConfirmHold()
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -192,7 +192,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void PlaySecondaryClick()
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -209,7 +209,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     public void PlayScroll(float direction)
     {
-        if (_isHeld == true)
+        if (_isHeld)
         {
             return;
         }
@@ -260,7 +260,7 @@ public sealed class CursorAnimator : MonoBehaviour
 
     private void KillTween(Tween tween)
     {
-        if (tween != null && tween.IsActive() == true)
+        if (tween != null && tween.IsActive())
         {
             tween.Kill(false);
         }

@@ -30,7 +30,8 @@ public sealed class WeaponModifierApplier : MonoBehaviour
             return;
         }
 
-        WeaponModifierContext context = WeaponModifierContext.CreateDefault();
+        WeaponModifierContext context = new WeaponModifierContext();
+        context.SetDefaults();
 
         context.WeaponType = GetCurrentWeaponType();
 
@@ -65,7 +66,7 @@ public sealed class WeaponModifierApplier : MonoBehaviour
 
         InventorySlot activeSlot = slots[activeIndex];
 
-        if (activeSlot.IsEmpty() == true)
+        if (activeSlot.IsEmpty())
         {
             return WeaponType.None;
         }

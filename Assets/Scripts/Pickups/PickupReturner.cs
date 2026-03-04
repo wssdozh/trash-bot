@@ -32,7 +32,7 @@ public class PickupReturner : MonoBehaviour, SpawnerRef
             return;
         }
 
-        if (_spawner == null == false)
+        if (_spawner != null)
         {
             _spawner.Despawn(_pickup);
         }

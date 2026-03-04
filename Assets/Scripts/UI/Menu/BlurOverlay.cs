@@ -36,7 +36,7 @@ public sealed class BlurOverlay : MonoBehaviour
 
     private void Animate(float targetAlpha, float durationSeconds, AnimationCurve easeCurve)
     {
-        if (_tween != null && _tween.IsActive() == true)
+        if (_tween != null && _tween.IsActive())
         {
             _tween.Kill(false);
         }

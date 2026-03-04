@@ -22,14 +22,14 @@ public class InventorySlotHighlight : MonoBehaviour
 
     public void SetActive(bool isActive)
     {
-        if (_scaleTween != null && _scaleTween.IsActive() == true)
+        if (_scaleTween != null && _scaleTween.IsActive())
         {
             _scaleTween.Kill();
         }
 
         Vector3 targetScale = _defaultScale;
 
-        if (isActive == true)
+        if (isActive)
         {
             targetScale = _defaultScale * _activeScale;
         }

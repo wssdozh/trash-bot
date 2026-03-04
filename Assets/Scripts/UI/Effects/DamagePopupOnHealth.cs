@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class DamagePopupOnHealth : MonoBehaviour
@@ -9,23 +10,43 @@ public class DamagePopupOnHealth : MonoBehaviour
     private DamagePopupSpawner _spawner;
     private float _previousValue;
 
-    private void Start()
+    private void Awake()
     {
-        if (_health == null == false)
+        if (_health == null)
         {
-            _previousValue = _health.Value;
-            _health.Changed += OnHealthChanged;
+            throw new InvalidOperationException(nameof(_health));
         }
 
-        _spawner = SpawnerServiceLocator.Get<DamagePopup>(_prefab.name) as DamagePopupSpawner;
+        if (_spawnPoint == null)
+        {
+            throw new InvalidOperationException(nameof(_spawnPoint));
+        }
+
+        if (_prefab == null)
+        {
+            throw new InvalidOperationException(nameof(_prefab));
+        }
     }
 
-    private void OnDestroy()
+    private void Start()
     {
-        if (_health == null == false)
+        _spawner = SpawnerServiceLocator.Get<DamagePopup>(_prefab.name) as DamagePopupSpawner;
+
+        if (_spawner == null)
         {
-            _health.Changed -= OnHealthChanged;
+            throw new InvalidOperationException(nameof(_spawner));
         }
+    }
+
+    private void OnEnable()
+    {
+        _previousValue = _health.Value;
+        _health.Changed += OnHealthChanged;
+    }
+
+    private void OnDisable()
+    {
+        _health.Changed -= OnHealthChanged;
     }
 
     private void OnHealthChanged()

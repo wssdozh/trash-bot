@@ -40,7 +40,7 @@ class PlayerDie : MonoBehaviour
         _characterDied.EnableRegdoll();
         _heldMode.SetHeld(true);
         _health.SetAutoRegen(false);
-        
+
         _timeScale.Animate(
             _timeScaleSettings.PausedTimeScale,
             _timeScaleSettings.PauseDurationSeconds,
@@ -67,7 +67,7 @@ class PlayerDie : MonoBehaviour
         _exitMenuView.Hide();
 
         yield return new WaitForSecondsRealtime(0.6f);
-        
+
         _timeScale.ResetToDefault();
         DOTween.KillAll(true);
 

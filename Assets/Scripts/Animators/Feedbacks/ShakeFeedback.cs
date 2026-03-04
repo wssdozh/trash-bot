@@ -61,12 +61,12 @@ public class ShakeFeedback : Feedback
 
     public override void Stop()
     {
-        if (_positionTween != null && _positionTween.IsActive() == true)
+        if (_positionTween != null && _positionTween.IsActive())
         {
             _positionTween.Kill(true);
         }
 
-        if (_rotationTween != null && _rotationTween.IsActive() == true)
+        if (_rotationTween != null && _rotationTween.IsActive())
         {
             _rotationTween.Kill(true);
         }

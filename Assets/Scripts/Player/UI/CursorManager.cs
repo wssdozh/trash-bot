@@ -24,14 +24,14 @@ public class CursorManager : MonoBehaviour
     private void Update()
     {
         _rectTransform.position = MouseScreenPos;
-        
+
         UpdateWorldPositions();
     }
 
     public bool TryGetHitObject(out RaycastHit hitInfo)
     {
         Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
-        
+
         return Physics.Raycast(ray, out hitInfo, 100f, _interactableMask);
     }
 

@@ -1,17 +1,12 @@
 using UnityEngine;
 using DG.Tweening;
 
-public static class ToonRendererEmissiveColorer
+public sealed class ToonRendererEmissiveColorer
 {
-    private static readonly string EmissionColorProperty = "_EmissionColor";
-    private static readonly string EmissionIntensityProperty = "_EmissionIntensity";
+    private const string EmissionColorProperty = "_EmissionColor";
+    private const string EmissionIntensityProperty = "_EmissionIntensity";
 
-    public static void LerpToEmission(
-        Renderer renderer,
-        Color targetColor,
-        float duration,
-        float intensity = 1.0f,
-        bool useUnscaledTime = true)
+    public void LerpToEmission(Renderer renderer, Color targetColor, float duration, float intensity = 1.0f, bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
@@ -27,7 +22,7 @@ public static class ToonRendererEmissiveColorer
 
         DOTween.Kill(material);
 
-        if (material.HasProperty(EmissionIntensityProperty) == true)
+        if (material.HasProperty(EmissionIntensityProperty))
         {
             material
                 .DOColor(targetColor, EmissionColorProperty, duration)
@@ -51,7 +46,7 @@ public static class ToonRendererEmissiveColorer
             .SetId(material);
     }
 
-    public static Color ReadBaseEmission(Renderer renderer)
+    public Color ReadBaseEmission(Renderer renderer)
     {
         if (renderer == null)
         {
@@ -77,7 +72,7 @@ public static class ToonRendererEmissiveColorer
         return emissionColor * emissionIntensity;
     }
 
-    public static void Stop(Renderer renderer)
+    public void Stop(Renderer renderer)
     {
         if (renderer == null)
         {

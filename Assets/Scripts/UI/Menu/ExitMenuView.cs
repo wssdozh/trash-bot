@@ -65,7 +65,7 @@ class ExitMenuView : BaseMenuView
                 _panelTransform.anchoredPosition = _shownAnchoredPosition;
                 _panelTransform.localScale = new Vector3(_shownScale, _shownScale, 1.0f);
                 IsAnimating = false;
-            }); 
+            });
     }
 
     public override void Hide()
@@ -112,7 +112,7 @@ class ExitMenuView : BaseMenuView
 
     private void KillSequence()
     {
-        if (_sequence != null && _sequence.IsActive() == true)
+        if (_sequence != null && _sequence.IsActive())
         {
             _sequence.Kill(false);
         }

@@ -39,8 +39,8 @@ public class AudioControler : MonoBehaviour
     {
         _mixer.SetFloat(_musicParameter.name, LinearToDb(linear));
     }
-    
-    private static float LinearToDb(float value)
+
+    private float LinearToDb(float value)
     {
         float threshold = 0.0001f;
         float multipler = 20f;

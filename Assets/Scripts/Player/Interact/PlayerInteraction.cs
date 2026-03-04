@@ -33,7 +33,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (_modifierVendingMachineMenuView != null)
         {
-            if (_modifierVendingMachineMenuView.TryClose() == true)
+            if (_modifierVendingMachineMenuView.TryClose())
             {
                 return;
             }
@@ -47,7 +47,7 @@ public class PlayerInteraction : MonoBehaviour
     {
         WaitForSeconds waitForSeconds = new WaitForSeconds(_hoverTickSeconds);
 
-        while (enabled == true)
+        while (enabled)
         {
             _interactor.TickHover();
             _combat.SetAimPoint(_cursor.MouseHitPos);

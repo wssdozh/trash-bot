@@ -91,12 +91,12 @@ public class PlayerCombat : MonoBehaviour
     {
         InitializeIfNeeded();
 
-        if (IsInBattle == true)
+        if (IsInBattle)
         {
             return _combatCore.AttackStart();
         }
 
-        if (_isAttackStartPending == true)
+        if (_isAttackStartPending)
         {
             return true;
         }
@@ -191,7 +191,7 @@ public class PlayerCombat : MonoBehaviour
 
     private void InitializeIfNeeded()
     {
-        if (_isInitialized == true)
+        if (_isInitialized)
         {
             return;
         }

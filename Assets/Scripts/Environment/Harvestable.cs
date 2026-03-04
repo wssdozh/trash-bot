@@ -5,7 +5,7 @@ public class Harvestable : DamageableObject
     [SerializeField] private float _spawnHeightOffset = 0.5f;
     [SerializeField] private BasePickup _pickupPrefab;
 
-    [Header("Ось X")] 
+    [Header("Ось X")]
     [SerializeField] private float _forceXMin = -1f;
     [SerializeField] private float _forceXMax = 1f;
     [Header("Ось Y")]

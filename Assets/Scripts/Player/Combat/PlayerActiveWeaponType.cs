@@ -26,7 +26,7 @@ public sealed class PlayerActiveWeaponType
 
             InventorySlot slot = _inventory.Slots[activeIndex];
 
-            if (slot.IsEmpty() == true)
+            if (slot.IsEmpty())
             {
                 return WeaponType.None;
             }

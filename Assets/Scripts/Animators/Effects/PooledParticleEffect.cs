@@ -9,7 +9,7 @@ public sealed class ParticleEffect : MonoBehaviour
     private void Awake()
     {
         ParticleSystem.MainModule mainModule = _particleSystem.main;
-        
+
         mainModule.stopAction = ParticleSystemStopAction.Callback;
     }
 
@@ -30,7 +30,7 @@ public sealed class ParticleEffect : MonoBehaviour
 
     private void OnParticleSystemStopped()
     {
-        if (_particleEffectSpawner == null == false)
+        if (_particleEffectSpawner != null)
         {
             _particleEffectSpawner.Despawn(this);
         }

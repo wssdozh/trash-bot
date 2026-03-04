@@ -97,7 +97,7 @@ public class Inventory : MonoBehaviour
 
             int addAmount = remainingAmount;
 
-            if (item.IsStackable == true && addAmount > item.MaxStack)
+            if (item.IsStackable && addAmount > item.MaxStack)
             {
                 addAmount = item.MaxStack;
             }
@@ -134,7 +134,7 @@ public class Inventory : MonoBehaviour
 
         InventorySlot slot = _slots[slotIndex];
 
-        if (slot.IsEmpty() == true)
+        if (slot.IsEmpty())
         {
             return false;
         }
@@ -147,7 +147,7 @@ public class Inventory : MonoBehaviour
 
     private void ConsumeFromSlot(InventorySlot slot, int amount)
     {
-        if (slot.Item.IsStackable == true)
+        if (slot.Item.IsStackable)
         {
             slot.Amount -= amount;
 
@@ -211,12 +211,12 @@ public class Inventory : MonoBehaviour
 
         InventorySlot slot = _slots[slotIndex];
 
-        if (slot.IsEmpty() == true)
+        if (slot.IsEmpty())
         {
             return false;
         }
 
-        if (slot.Item.IsStackable == true)
+        if (slot.Item.IsStackable)
         {
             if (amount > slot.Amount)
             {

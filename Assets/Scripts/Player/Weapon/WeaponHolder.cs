@@ -34,7 +34,7 @@ public class WeaponHolder : MonoBehaviour
             return;
         }
 
-        if (_hasPendingPickupSpawner == true && IsSwitchLocked == false)
+        if (_hasPendingPickupSpawner && IsSwitchLocked == false)
         {
             EquipInternal(_pendingPickupSpawnerKey);
         }
@@ -51,7 +51,7 @@ public class WeaponHolder : MonoBehaviour
 
         IsSwitchLocked = isSwitchLocked;
 
-        if (IsSwitchLocked == false && IsHoldAllowed == true && _hasPendingPickupSpawner == true)
+        if (IsSwitchLocked == false && IsHoldAllowed && _hasPendingPickupSpawner)
         {
             Spawner<BasePickup> pendingPickupSpawner = SpawnerServiceLocator.Get<BasePickup>(_pendingPickupSpawnerKey);
 
@@ -82,7 +82,7 @@ public class WeaponHolder : MonoBehaviour
             return;
         }
 
-        if (IsSwitchLocked == true)
+        if (IsSwitchLocked)
         {
             return;
         }

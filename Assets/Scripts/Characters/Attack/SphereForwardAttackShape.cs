@@ -3,12 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SphereForwardAttackShape", menuName = "Combat/Attack Shapes/Sphere Forward")]
 public class SphereForwardAttackShape : AttackShapeBase
 {
-    public override Collider[] GetTargets(Transform originTransform, float range, LayerMask hitLayers)
+    public override int GetTargets(Transform originTransform, float range, LayerMask hitLayers, Collider[] resultBuffer)
     {
         Vector3 center = originTransform.position + originTransform.forward * (range * 0.5f);
-        Collider[] hits = Physics.OverlapSphere(center, range, hitLayers);
 
-        return hits;
+        return Physics.OverlapSphereNonAlloc(center, range, resultBuffer, hitLayers);
     }
 
     public override void DrawGizmos(Transform originTransform, float range)

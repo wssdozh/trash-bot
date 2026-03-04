@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class CharacterInteractor : MonoBehaviour
 {
+    private const int InteractableBufferSize = 32;
+
     [Header("Зависимости")]
     [SerializeField] private Transform _origin;
     [SerializeField] private Texter _texter;
@@ -11,6 +13,7 @@ public class CharacterInteractor : MonoBehaviour
     [SerializeField] private LayerMask _interactableMask;
 
     private Interactable _hovered;
+    private readonly Collider[] _interactableBuffer = new Collider[InteractableBufferSize];
 
     private void Awake()
     {
@@ -35,7 +38,7 @@ public class CharacterInteractor : MonoBehaviour
         if (closest == null)
         {
             ClearHovered();
-            
+
             return;
         }
 
@@ -65,13 +68,15 @@ public class CharacterInteractor : MonoBehaviour
 
     private Interactable FindClosestInteractable()
     {
-        Collider[] colliders = Physics.OverlapSphere(_origin.position, _interactionSphereRadius, _interactableMask);
+        int colliderCount = Physics.OverlapSphereNonAlloc(_origin.position, _interactionSphereRadius, _interactableBuffer, _interactableMask);
 
         Interactable closest = null;
         float minSqrDistance = float.MaxValue;
 
-        foreach (Collider collider in colliders)
+        for (int i = 0; i < colliderCount; i++)
         {
+            Collider collider = _interactableBuffer[i];
+
             if (TryFindInteractable(collider, out Interactable interactable) == false)
                 continue;
 

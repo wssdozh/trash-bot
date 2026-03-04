@@ -10,4 +10,3 @@ public class ItemAudioProfile : ScriptableObject
         get { return _useClip; }
     }
 }
- 

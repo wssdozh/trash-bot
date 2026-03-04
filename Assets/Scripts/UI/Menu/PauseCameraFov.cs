@@ -18,7 +18,7 @@ public sealed class PauseCameraFov : MonoBehaviour
     private float _currentFov;
     private bool _forceApply;
 
-    private void Awake() 
+    private void Awake()
     {
         _baseFov = _camera.fieldOfView;
         _currentFov = _baseFov;
@@ -68,7 +68,7 @@ public sealed class PauseCameraFov : MonoBehaviour
 
     private void KillTween()
     {
-        if (_tween != null && _tween.IsActive() == true)
+        if (_tween != null && _tween.IsActive())
         {
             _tween.Kill(false);
         }

@@ -70,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
         _sprint.Tick(deltaTime);
 
-        if (_attackMovementBlend.IsRecoverActive == true)
+        if (_attackMovementBlend.IsRecoverActive)
         {
             _attackMovementBlend.TickRecover(deltaTime);
             return;
@@ -88,7 +88,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (_attackMovementBlend.IsRecoverActive == true)
+        if (_attackMovementBlend.IsRecoverActive)
         {
             return;
         }

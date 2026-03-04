@@ -58,7 +58,7 @@ public sealed class PickupIdleParticles : PickupIdleBehaviour
         _startDelayTween = null;
 
 
-        if (_clearOnStop == true)
+        if (_clearOnStop)
         {
             _particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 

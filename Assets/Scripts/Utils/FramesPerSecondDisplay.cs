@@ -12,7 +12,8 @@ public class FramesPerSecondDisplay : MonoBehaviour
 
     private void Update()
     {
-        if (textElement == null) return;
+        if (textElement == null)
+            return;
 
         timeAccumulatorSeconds += Time.unscaledDeltaTime;
         frameAccumulatorCount += 1;

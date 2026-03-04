@@ -20,7 +20,7 @@ public class AttackData : ScriptableObject
     public int GetDamage()
     {
         int damage = Random.Range(_minDamage, _maxDamage + 1);
-        
+
         return damage;
     }
 }

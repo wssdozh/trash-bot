@@ -38,7 +38,7 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (_isLifeEnded == true)
+        if (_isLifeEnded)
         {
             return;
         }
@@ -80,17 +80,17 @@ public abstract class Ammo : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_isLifeEnded == true)
+        if (_isLifeEnded)
         {
             return;
         }
 
-        if (other.isTrigger == true)
+        if (other.isTrigger)
         {
             return;
         }
 
-        if (IsInTargetLayers(other.gameObject.layer) == true)
+        if (IsInTargetLayers(other.gameObject.layer))
         {
 
             if (_damage <= 0f)
@@ -104,7 +104,7 @@ public abstract class Ammo : MonoBehaviour
 
         Action impacted = Impacted;
 
-        if (impacted == null == false)
+        if (impacted != null)
         {
             impacted.Invoke();
         }
@@ -129,7 +129,7 @@ public abstract class Ammo : MonoBehaviour
 
     protected void EndLife()
     {
-        if (_isLifeEnded == true)
+        if (_isLifeEnded)
         {
             return;
         }
@@ -140,7 +140,7 @@ public abstract class Ammo : MonoBehaviour
 
         Action lifeEnded = LifeEnded;
 
-        if (lifeEnded == null == false)
+        if (lifeEnded != null)
         {
             lifeEnded.Invoke();
         }

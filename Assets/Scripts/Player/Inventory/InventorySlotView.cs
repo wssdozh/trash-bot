@@ -18,7 +18,7 @@ public class InventorySlotView : MonoBehaviour
 
     public void Refresh()
     {
-        if (_slot.IsEmpty() == true)
+        if (_slot.IsEmpty())
         {
             _icon.enabled = false;
             _amountText.enabled = false;
@@ -28,7 +28,7 @@ public class InventorySlotView : MonoBehaviour
         _icon.enabled = true;
         _icon.sprite = _slot.Item.Icon;
 
-        if (_slot.Item.IsStackable == true && _slot.Amount > 1)
+        if (_slot.Item.IsStackable && _slot.Amount > 1)
         {
             _amountText.enabled = true;
             _amountText.text = _slot.Amount.ToString();

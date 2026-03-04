@@ -58,7 +58,7 @@ public class CharacterMover : MonoBehaviour
     {
         float speed = _speed;
 
-        if (_isSprinting == true)
+        if (_isSprinting)
         {
             speed = _speedSprint;
         }

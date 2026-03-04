@@ -8,9 +8,9 @@ public abstract class Stat : MonoBehaviour
     [SerializeField] protected float _value = 100f;
 
     public event Action Changed;
-    public event Action Increased;  
-    public event Action Decreased; 
-    public event Action Ended;    
+    public event Action Increased;
+    public event Action Decreased;
+    public event Action Ended;
 
     public float MinValue => _minValue;
     public float MaxValue => _maxValue;

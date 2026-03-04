@@ -141,7 +141,7 @@ public sealed class FireExecutorPresenter
 
     public bool TryStartFiring()
     {
-        if (_isFiring == true)
+        if (_isFiring)
         {
             return false;
         }

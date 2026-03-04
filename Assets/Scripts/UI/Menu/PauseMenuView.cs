@@ -3,16 +3,10 @@ using DG.Tweening;
 
 public sealed class PauseMenuView : BaseMenuView
 {
-    private enum SlideDirection
-    {
-        FromLeft,
-        FromTop
-    }
-
     [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private RectTransform _panelTransform;
 
-    [SerializeField] private SlideDirection _slideDirection = SlideDirection.FromLeft;
+    [SerializeField] private PauseSlideDirection _slideDirection = PauseSlideDirection.FromLeft;
 
     [SerializeField] private float _slideDistance = 800.0f;
 
@@ -104,7 +98,7 @@ public sealed class PauseMenuView : BaseMenuView
 
     private Vector2 GetHiddenAnchoredPosition()
     {
-        if (_slideDirection == SlideDirection.FromLeft)
+        if (_slideDirection == PauseSlideDirection.FromLeft)
         {
             return _shownAnchoredPosition + new Vector2(-_slideDistance, 0.0f);
         }
@@ -126,7 +120,7 @@ public sealed class PauseMenuView : BaseMenuView
 
     private void KillSequence()
     {
-        if (_sequence != null && _sequence.IsActive() == true)
+        if (_sequence != null && _sequence.IsActive())
         {
             _sequence.Kill(false);
         }

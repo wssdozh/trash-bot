@@ -4,7 +4,7 @@ public abstract class HighlighterBase : MonoBehaviour
 {
     public void Highlight(bool state)
     {
-        if (state == true)
+        if (state)
         {
             EnableHighlight();
         }

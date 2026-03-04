@@ -34,7 +34,7 @@ public sealed class FireDamageCalculator : IDamageCalculator
 
         bool isCritical = UnityEngine.Random.value <= _modifierState.CriticalChance01;
 
-        if (isCritical == true)
+        if (isCritical)
         {
             scaledDamage *= _modifierState.CriticalDamageMultiplier;
         }

@@ -1,13 +1,6 @@
 using System.Collections;
 using UnityEngine;
 
-public enum InitialSpawnMode
-{
-    None = 0,
-    Immediate = 1,
-    Delayed = 2
-}
-
 public class PickupSpawnPoint : MonoBehaviour
 {
     [Header("Links")]
@@ -38,7 +31,7 @@ public class PickupSpawnPoint : MonoBehaviour
             StartCoroutine(SpawnDelayed());
         }
 
-        if (_enableRegularSpawn == true)
+        if (_enableRegularSpawn)
         {
             StartRegularSpawn();
         }
@@ -53,7 +46,7 @@ public class PickupSpawnPoint : MonoBehaviour
 
     public void StartRegularSpawn()
     {
-        if (_regularSpawnCoroutine == null == false)
+        if (_regularSpawnCoroutine != null)
         {
             return;
         }
@@ -63,7 +56,7 @@ public class PickupSpawnPoint : MonoBehaviour
 
     public void StopRegularSpawn()
     {
-        if (_regularSpawnCoroutine == null == false)
+        if (_regularSpawnCoroutine != null)
         {
             StopCoroutine(_regularSpawnCoroutine);
             _regularSpawnCoroutine = null;
@@ -79,10 +72,12 @@ public class PickupSpawnPoint : MonoBehaviour
 
     private IEnumerator RegularSpawnLoop()
     {
-        while (true)
+        WaitForSeconds waitForSeconds = new WaitForSeconds(_regularIntervalSeconds);
+
+        while (enabled)
         {
-            yield return new WaitForSeconds(_regularIntervalSeconds);
-            
+            yield return waitForSeconds;
+
             SpawnNow();
         }
     }

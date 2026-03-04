@@ -26,7 +26,7 @@ public class InventoryDropper : MonoBehaviour
 
         InventorySlot slot = _inventory.Slots[slotIndex];
 
-        if (slot.IsEmpty() == true)
+        if (slot.IsEmpty())
         {
             return;
         }
@@ -40,7 +40,7 @@ public class InventoryDropper : MonoBehaviour
 
         InventorySlot slot = _inventory.Slots[slotIndex];
 
-        if (slot.IsEmpty() == true)
+        if (slot.IsEmpty())
         {
             return;
         }
@@ -69,7 +69,7 @@ public class InventoryDropper : MonoBehaviour
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
-        if (item.IsStackable == true && amount > slot.Amount)
+        if (item.IsStackable && amount > slot.Amount)
         {
             amount = slot.Amount;
         }

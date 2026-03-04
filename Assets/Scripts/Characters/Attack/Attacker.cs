@@ -3,42 +3,45 @@ using System.Collections;
 
 public class Attacker : MonoBehaviour
 {
+    private const int TargetBufferSize = 16;
+
     [SerializeField] private AttackData _attackData;
     [SerializeField] private float _hitForce = 6f;
     [SerializeField] private ForceMode _hitForceMode = ForceMode.Impulse;
 
     private bool _isOnCooldown = false;
+    private readonly Collider[] _targetBuffer = new Collider[TargetBufferSize];
 
     public bool PerformAttack()
     {
-        if (_isOnCooldown == true)
+        if (_isOnCooldown)
         {
             return false;
         }
 
         int damage = _attackData.GetDamage();
 
-        Collider[] hits = _attackData.AttackShape.GetTargets(transform, _attackData.AttackRange, _attackData.HitLayers);
+        int hitCount = _attackData.AttackShape.GetTargets(transform, _attackData.AttackRange, _attackData.HitLayers, _targetBuffer);
 
-        if (hits.Length == 0)
+        if (hitCount == 0)
         {
             StartCoroutine(StartCooldown());
 
             return true;
         }
 
-        Collider hit = hits[0];
+        Collider hit = _targetBuffer[0];
         Rigidbody rigidbody;
 
-        if (hit.TryGetComponent(out rigidbody) == true)
+        if (hit.TryGetComponent(out rigidbody))
         {
             Vector3 direction = (hit.transform.position - transform.position).normalized;
             rigidbody.AddForce(direction * _hitForce, _hitForceMode);
         }
 
         Health health;
-        
-        if (hit.TryGetComponent(out health) == true)
+
+        if (hit.TryGetComponent(out health))
         {
             health.Decrease(damage);
         }

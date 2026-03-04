@@ -1,0 +1,519 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &100171545063783697
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 500605067292396560}
+  m_Layer: 0
+  m_Name: FloorBlockRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &500605067292396560
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100171545063783697}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1643581262542181326
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6034161103198927398}
+  m_Layer: 0
+  m_Name: WallBlockRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6034161103198927398
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1643581262542181326}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3842882892116338562
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4095525575061839362}
+  - component: {fileID: 9147981554327449395}
+  m_Layer: 0
+  m_Name: Generate
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4095525575061839362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3842882892116338562}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9147981554327449395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3842882892116338562}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20afb4a329f9e3e4487ba76aeace1146, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomInteriorChunkVariantRootComposer
+--- !u!1 &5794089906056615894
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1551181830282732250}
+  m_Layer: 0
+  m_Name: EnemiesRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1551181830282732250
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5794089906056615894}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6794795610959526156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6005602296582948486}
+  - component: {fileID: 4568357495639586377}
+  - component: {fileID: 3793999067029316328}
+  - component: {fileID: 4835821493221202258}
+  - component: {fileID: 6914092317264303648}
+  - component: {fileID: 2532975748191752634}
+  - component: {fileID: 1028724452094934606}
+  - component: {fileID: 5067124418032363646}
+  m_Layer: 0
+  m_Name: Room
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6005602296582948486
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 500605067292396560}
+  - {fileID: 6034161103198927398}
+  - {fileID: 378822545636471837}
+  - {fileID: 9073623126965759547}
+  - {fileID: 1551181830282732250}
+  - {fileID: 777803408109760421}
+  - {fileID: 1948990677818766642}
+  - {fileID: 4095525575061839362}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4568357495639586377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9c911782e8387a4b814aadd94cd34ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomGenerator
+  _roomSizeInBlocks: {x: 60, y: 7, z: 60}
+  _randomSeed: 77
+  _entranceDoorEnabled: 1
+  _exitDoorEnabled: 1
+  _roomTypeProfile: {fileID: 11400000, guid: ffee623558e3b314ea85639c8442d279, type: 2}
+  _roomDoorPlanner: {fileID: 3793999067029316328}
+  _roomShellBuilder: {fileID: 4835821493221202258}
+  _roomPassagePlanner: {fileID: 1028724452094934606}
+  _roomInteriorBlockFiller: {fileID: 6914092317264303648}
+  _roomContentSpawner: {fileID: 2532975748191752634}
+  _roomNookSpawner: {fileID: 5067124418032363646}
+  _combineInteriorChunks: 1
+  _roomInteriorChunkCombiner: {fileID: 3931650285194374921}
+--- !u!114 &3793999067029316328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93aa5d749cbdbb047a42837816810d99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomDoorPlanner
+  _minimumDoorCount: 2
+  _maximumDoorCount: 2
+  _openingWidthInBlocks: 8
+  _openingHeightInBlocks: 4
+  _innerWallClearDepthInCells: 2
+  _cornerMarginInBlocks: 15
+  _distanceSlackInCells: 6
+--- !u!114 &4835821493221202258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4efceb7f0b96a57439c15c07ae57389e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomShellBuilder
+  _floorBlocksRoot: {fileID: 500605067292396560}
+  _floorBlockPrefab: {fileID: 2152623805651872328, guid: 5e43f441b71743b4d8cda95e325bd27c, type: 3}
+  _floorBuildMode: 1
+  _floorPrefab: {fileID: 5821738437956798356, guid: 804832120d9ca554aa535b58956855a2, type: 3}
+  _autoScaleFloorPrefab: 1
+  _floorPrefabBaseSizeInUnits: {x: 10, y: 10}
+  _floorPrefabLocalOffset: {x: 0, y: 1, z: 0}
+  _floorPrefabScaleMultiplier: {x: 1, y: 1, z: 1}
+  _fencePostsRoot: {fileID: 500605067292396560}
+  _fencePostPrefab: {fileID: 8519452763209203792, guid: 68a457e87213d194b95867fcfc048e9c, type: 3}
+  _fenceSegmentsRoot: {fileID: 6034161103198927398}
+  _fenceSegmentPrefab: {fileID: 2152623805651872328, guid: d22b72efe69f17b45849fe7f12510ea9, type: 3}
+  _doorMarkersRoot: {fileID: 9073623126965759547}
+  _doorMarkerPrefab: {fileID: 8535360583959270923, guid: afcac13f1e9c1214bb8746fd3999cd55, type: 3}
+  _blockSize: 1
+  _ceilingEnabled: 0
+  _postsEnabled: 1
+  _totalPostCount: 20
+  _minimumPostDistanceInCells: 6
+  _postHeightInBlocks: 6
+  _segmentHeightInBlocks: 7
+  _postPivotAtBase: 0
+  _segmentPivotAtBase: 0
+  _segmentEndGapInBlocks: 0.5
+  _floorSurfaceYOffset: 0
+--- !u!114 &6914092317264303648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2566a119317730140b5750cd01473562, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomInteriorBlockFiller
+  _interiorBlocksRoot: {fileID: 378822545636471837}
+  _fallbackInteriorCubePrefab: {fileID: 0}
+  _interiorSmallPrefabs:
+  - _prefab: {fileID: 3367844286714612241, guid: 26a866cda2b00fc47b4a245af02f482d, type: 3}
+    _weight: 1
+    _guaranteed: 0
+  _interiorLargePrefabs:
+  - _prefab: {fileID: 3367844286714612241, guid: 4a758b2fd99128645a2d126bee6e3013, type: 3}
+    _weight: 1
+    _guaranteed: 0
+  _blockSize: 1
+  _spawnOnlyExposedSmallCubes: 1
+  _minimumSolidSmallHeightInBlocks: 1
+--- !u!114 &2532975748191752634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ccc514fa32bae647bf5fbf21d79479a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomContentSpawner
+  _objectsRoot: {fileID: 777803408109760421}
+  _enemiesRoot: {fileID: 1551181830282732250}
+  _blockSize: 1
+  _cornerAvoidanceInCells: 3
+  _minimumResourceDistanceFromCorridorInCells: 3
+  _maximumResourceDistanceFromCorridorInCells: 12
+  _minimumDistanceFromEntranceInCells: 4
+  _resourceClusterRadiusInCells: 3
+  _enemyGuardRadiusInCells: 4
+  _minimumEnemySpacingInCells: 2
+  _enemyEncounterMinCorridorDistanceInCells: 2
+  _enemyEncounterMaxCorridorDistanceInCells: 6
+  _enemyReservedFloorAvoidanceInCells: 1
+  _enemyWallAvoidanceInCells: 4
+  _enemyPreferredWallDistanceInCells: 10
+  _enemyPreferredCover: 0.2
+--- !u!114 &1028724452094934606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a83ffa62dcddf6489618299dbe147d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomPassagePlanner
+  _doorClearDepthInCells: 4
+  _additionalPassageWidthPaddingInCells: 0
+  _noiseCostMultiplier: 20
+  _cornerSmoothingAdditionalRadiusInCells: 5
+--- !u!114 &5067124418032363646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6794795610959526156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9408a3b39748bea43ade869869bf23bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomNookSpawner
+  _nooksRoot: {fileID: 1948990677818766642}
+  _blockSize: 1
+--- !u!1 &7064980075140450971
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9073623126965759547}
+  m_Layer: 0
+  m_Name: DoorMarkersRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9073623126965759547
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7064980075140450971}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7856331531165512054
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 777803408109760421}
+  m_Layer: 0
+  m_Name: ObjectsRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &777803408109760421
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7856331531165512054}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8248132293317072423
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1948990677818766642}
+  m_Layer: 0
+  m_Name: NooksRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1948990677818766642
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8248132293317072423}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9107880251298316852
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 378822545636471837}
+  - component: {fileID: 8260388841254455456}
+  - component: {fileID: 3931650285194374921}
+  m_Layer: 0
+  m_Name: InteriorBlocksRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &378822545636471837
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9107880251298316852}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6005602296582948486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8260388841254455456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9107880251298316852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cacbbb5a9334884a9f1fcc518d983f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomInteriorHiddenBlockCuller
+  _interiorBlocksRoot: {fileID: 378822545636471837}
+  _blockSize: 1
+  _destroyHiddenObjects: 1
+  _disableHiddenObjects: 0
+  _treatFloorAsSolid: 1
+  _floorSolidYIndex: 0
+  _includeInactive: 0
+  _ignoreRoot: {fileID: 0}
+--- !u!114 &3931650285194374921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9107880251298316852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1578b87331e5fa47b4b52c8da72ed02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomInteriorMeshCombiner
+  _interiorBlocksRoot: {fileID: 378822545636471837}
+  _combinedRoot: {fileID: 4095525575061839362}
+  _chunkRootCompositionProfile: {fileID: 11400000, guid: d6cadc7320b84f68ba19085f498e1a04, type: 2}
+  _blockSize: 1
+  _chunkSizeInCells: 4
+  _includeInactive: 0
+  _disableSourceRenderers: 0
+  _disableSourceColliders: 0
+  _createMeshCollider: 1
+  _meshColliderConvex: 0
+  _meshColliderIsTrigger: 0
+

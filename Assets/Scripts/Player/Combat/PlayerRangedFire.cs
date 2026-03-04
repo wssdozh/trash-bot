@@ -33,7 +33,7 @@ public sealed class PlayerRangedFire
 
     public bool StartFiring()
     {
-        if (IsFiring == true)
+        if (IsFiring)
         {
             _battleState.Touch();
 

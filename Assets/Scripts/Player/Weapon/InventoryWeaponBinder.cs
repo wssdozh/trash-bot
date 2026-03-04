@@ -30,7 +30,7 @@ public class InventoryWeaponBinder : MonoBehaviour
         if (activeSlot.IsEmpty())
         {
             _weaponHolder.Clear();
-            
+
             return;
         }
 
@@ -45,4 +45,4 @@ public class InventoryWeaponBinder : MonoBehaviour
 
         _weaponHolder.Equip(item.Prefab);
     }
-}      
+}

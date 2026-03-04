@@ -1,13 +1,13 @@
 using UnityEngine;
 using DG.Tweening;
 
-public static class ColorerRenderer
+public sealed class ColorerRenderer
 {
-    private static readonly string BaseColorProperty = "_BaseColor";
-    private static readonly string ColorProperty = "_Color";
-    private static readonly string TransparencyProperty = "_Tweak_transparency";
+    private const string BaseColorProperty = "_BaseColor";
+    private const string ColorProperty = "_Color";
+    private const string TransparencyProperty = "_Tweak_transparency";
 
-    public static void LerpToColor(Renderer renderer, Color targetColor, float duration, bool useUnscaledTime = true)
+    public void LerpToColor(Renderer renderer, Color targetColor, float duration, bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
@@ -26,7 +26,7 @@ public static class ColorerRenderer
             .SetId(material);
     }
 
-    public static void Stop(Renderer renderer, Color baseColor, float duration, bool useUnscaledTime = true)
+    public void Stop(Renderer renderer, Color baseColor, float duration, bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
@@ -45,7 +45,7 @@ public static class ColorerRenderer
             .SetId(material);
     }
 
-    public static void FadeToTransparency(Renderer renderer, float targetTransparency, float duration, bool useUnscaledTime = true)
+    public void FadeToTransparency(Renderer renderer, float targetTransparency, float duration, bool useUnscaledTime = true)
     {
         if (renderer == null)
         {
@@ -68,7 +68,7 @@ public static class ColorerRenderer
             .SetId(material);
     }
 
-    public static void StopFade(Renderer renderer)
+    public void StopFade(Renderer renderer)
     {
         if (renderer == null)
         {
@@ -79,14 +79,14 @@ public static class ColorerRenderer
         DOTween.Kill(material);
     }
 
-    private static string GetColorProperty(Material material)
+    private string GetColorProperty(Material material)
     {
-        if (material.HasProperty(BaseColorProperty) == true)
+        if (material.HasProperty(BaseColorProperty))
         {
             return BaseColorProperty;
         }
 
-        if (material.HasProperty(ColorProperty) == true)
+        if (material.HasProperty(ColorProperty))
         {
             return ColorProperty;
         }

@@ -8,27 +8,28 @@ public class ColorEmissionFeedback : Feedback
     [SerializeField] private float _returnDuration = 0.4f;
     [SerializeField] private float _intensity = 3.0f;
 
+    private readonly ToonRendererEmissiveColorer _toonRendererEmissiveColorer = new ToonRendererEmissiveColorer();
     private Color _baseEmission;
 
     private void Awake()
     {
-        _baseEmission = ToonRendererEmissiveColorer.ReadBaseEmission(_renderer);
+        _baseEmission = _toonRendererEmissiveColorer.ReadBaseEmission(_renderer);
     }
 
     public override void Play()
     {
-        ToonRendererEmissiveColorer.LerpToEmission(_renderer, _flashColor, _flashDuration, _intensity);
+        _toonRendererEmissiveColorer.LerpToEmission(_renderer, _flashColor, _flashDuration, _intensity);
         Invoke(nameof(ReturnBaseEmission), _flashDuration);
     }
 
     public override void Stop()
     {
         CancelInvoke(nameof(ReturnBaseEmission));
-        ToonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
+        _toonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
     }
 
     private void ReturnBaseEmission()
     {
-        ToonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
+        _toonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
     }
 }

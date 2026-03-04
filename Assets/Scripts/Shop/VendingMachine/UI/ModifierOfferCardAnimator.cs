@@ -88,7 +88,7 @@ public sealed class ModifierOfferCardAnimator : MonoBehaviour, IPointerEnterHand
     {
         float deltaTime = Time.deltaTime;
 
-        if (_ignoreTimeScale == true)
+        if (_ignoreTimeScale)
         {
             deltaTime = Time.unscaledDeltaTime;
         }
@@ -109,7 +109,7 @@ public sealed class ModifierOfferCardAnimator : MonoBehaviour, IPointerEnterHand
 
         float targetScale = 1f;
 
-        if (_isHover == true)
+        if (_isHover)
         {
             targetScale = _hoverScale;
         }

@@ -10,7 +10,7 @@ public abstract class BaseMenuView : MonoBehaviour
 
     public virtual void Show()
     {
-        if (IsAnimating == true || IsOpen == true)
+        if (IsAnimating || IsOpen)
         {
             return;
         }
@@ -20,9 +20,9 @@ public abstract class BaseMenuView : MonoBehaviour
         Opened?.Invoke();
     }
 
-    public virtual void Hide() 
+    public virtual void Hide()
     {
-        if (IsAnimating == true || IsOpen == false)
+        if (IsAnimating || IsOpen == false)
         {
             return;
         }

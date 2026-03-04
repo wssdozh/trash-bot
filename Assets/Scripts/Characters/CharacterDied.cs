@@ -17,19 +17,19 @@ class CharacterDied : MonoBehaviour
         _mainCollider.enabled = false;
         _mainRigidbody.useGravity = false;
         _animator.enabled = false;
- 
+
         _rigidbodies.ForEach(
             rb =>
             {
                 rb.isKinematic = false;
-                rb.useGravity = true;    
+                rb.useGravity = true;
             }
         );
 
         _colliders.ForEach(
             collider =>
             {
-                collider.enabled = true;   
+                collider.enabled = true;
             }
         );
     }
@@ -45,14 +45,14 @@ class CharacterDied : MonoBehaviour
             rb =>
             {
                 rb.isKinematic = true;
-                rb.useGravity = false;    
+                rb.useGravity = false;
             }
         );
 
         _colliders.ForEach(
             collider =>
             {
-                collider.enabled = false;   
+                collider.enabled = false;
             }
         );
     }

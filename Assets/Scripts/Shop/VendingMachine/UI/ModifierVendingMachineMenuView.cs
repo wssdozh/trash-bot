@@ -1,4 +1,4 @@
-п»їusing System;
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -10,10 +10,10 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
     [SerializeField] private TMP_Text _coinsText;
     [SerializeField] private ModifierOfferCardView[] _cardViews;
 
-    [Header("РџРѕРєСѓРїРєР°")]
+    [Header("Покупка")]
     [SerializeField] private ModifierVendingMachinePurchase _purchase;
 
-    [Header("РђРЅРёРјР°С†РёРё")]
+    [Header("Анимации")]
     [SerializeField] private ModifierVendingMachineMenuAnimator _animator;
 
     private ModifierVendingMachine _machine;
@@ -42,7 +42,7 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
 
     public void HandleInteractionRequest(ModifierVendingMachine machine, GameObject buyer)
     {
-        if (IsOpen == true)
+        if (IsOpen)
         {
             TryClose();
 

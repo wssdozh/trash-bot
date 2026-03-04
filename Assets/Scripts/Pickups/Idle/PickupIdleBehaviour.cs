@@ -13,7 +13,7 @@ public abstract class PickupIdleBehaviour : MonoBehaviour
 
         _isIdleActive = isIdleActive;
 
-        if (_isIdleActive == true)
+        if (_isIdleActive)
         {
             OnIdleActivated();
 

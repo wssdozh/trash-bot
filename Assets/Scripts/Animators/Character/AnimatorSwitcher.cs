@@ -112,7 +112,7 @@ public class AnimatorSwitcher : MonoBehaviour
             WeaponAnimatorEntry entry = _weaponAnimators[i];
 
 
-            if (_overridesByWeaponType.ContainsKey(entry.WeaponType) == true)
+            if (_overridesByWeaponType.ContainsKey(entry.WeaponType))
             {
                 continue;
             }
@@ -144,7 +144,7 @@ public class AnimatorSwitcher : MonoBehaviour
     private float GetBattleLayerTargetWeight()
     {
 
-        if (IsBattleMode == true)
+        if (IsBattleMode)
         {
             return Mathf.Clamp01(_battleLayerWeight);
         }
@@ -160,7 +160,7 @@ public class AnimatorSwitcher : MonoBehaviour
         if (duration <= 0f)
         {
             _animator.SetLayerWeight(layerIndex, targetWeight);
-            
+
             yield break;
         }
 
@@ -184,7 +184,7 @@ public class AnimatorSwitcher : MonoBehaviour
     private void ApplyWeaponType(WeaponType weaponType)
     {
 
-        if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController) == true)
+        if (_overridesByWeaponType.TryGetValue(weaponType, out AnimatorOverrideController sourceOverrideController))
         {
             List<KeyValuePair<AnimationClip, AnimationClip>> overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
             sourceOverrideController.GetOverrides(overrides);

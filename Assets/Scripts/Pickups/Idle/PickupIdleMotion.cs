@@ -48,17 +48,13 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
 
         _baseLocalPosition = _defaultLocalPosition;
 
-        if (_baseHeightOffset != 0f)
-
+        if (Mathf.Abs(_baseHeightOffset) > Mathf.Epsilon)
             _baseLocalPosition = new Vector3(_baseLocalPosition.x, _baseLocalPosition.y + _baseHeightOffset, _baseLocalPosition.z);
-
 
         float startDelaySeconds = 0f;
 
         if (_randomStartDelaySeconds > 0f)
-
             startDelaySeconds = Random.Range(0f, _randomStartDelaySeconds);
-
 
         _startDelayTween = DOVirtual.DelayedCall(startDelaySeconds, StartLoopTweens);
         _startDelayTween.SetId(this);
@@ -73,7 +69,6 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
         _baseOffsetTween = null;
         _moveTween = null;
         _rotationTween = null;
-
 
         transform.localPosition = _defaultLocalPosition;
         transform.localEulerAngles = _defaultLocalRotation;
@@ -95,7 +90,6 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
             return;
         }
 
-
         transform.localPosition = _baseLocalPosition;
 
         StartLoopTweensAfterBaseReached();
@@ -106,7 +100,7 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
         Vector3 targetLocalPosition = _baseLocalPosition + Vector3.up * _moveAmplitude;
         Vector3 targetLocalRotation = _defaultLocalRotation + _rotationDegrees;
 
-        if (_moveAmplitude != 0f)
+        if (Mathf.Abs(_moveAmplitude) > Mathf.Epsilon)
         {
             _moveTween = transform.DOLocalMove(targetLocalPosition, _moveDurationSeconds);
             _moveTween.SetEase(Ease.InOutSine);
@@ -115,8 +109,7 @@ public sealed class PickupIdleMotion : PickupIdleBehaviour
             _moveTween.SetLink(gameObject, LinkBehaviour.KillOnDestroy);
         }
 
-
-        if (_rotationDegrees != Vector3.zero)
+        if (_rotationDegrees.sqrMagnitude > Mathf.Epsilon)
         {
             _rotationTween = transform.DOLocalRotate(targetLocalRotation, _rotationDurationSeconds, RotateMode.FastBeyond360);
             _rotationTween.SetEase(Ease.InOutSine);

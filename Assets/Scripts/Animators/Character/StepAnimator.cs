@@ -2,19 +2,10 @@ using UnityEngine;
 
 public class StepAnimator
 {
-    private static readonly int _stepLeftHash = Animator.StringToHash("StepLeft");
-    private static readonly int _stepRightHash = Animator.StringToHash("StepRight");
-    private static readonly int _stepForwardHash = Animator.StringToHash("StepForward");
-    private static readonly int _stepBackwardHash = Animator.StringToHash("StepBackward");
-
-    private enum StepDirection
-    {
-        None,
-        Left,
-        Right,
-        Forward,
-        Backward
-    }
+    private readonly int _stepLeftHash = Animator.StringToHash("StepLeft");
+    private readonly int _stepRightHash = Animator.StringToHash("StepRight");
+    private readonly int _stepForwardHash = Animator.StringToHash("StepForward");
+    private readonly int _stepBackwardHash = Animator.StringToHash("StepBackward");
 
     private readonly Animator _animator;
     private readonly Transform _transform;

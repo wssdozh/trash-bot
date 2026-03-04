@@ -1,15 +1,15 @@
-п»їusing System;
+using System;
 using UnityEngine;
 
 public sealed class ModifierVendingMachine : Interactable
 {
-    [Header("РџСѓР» РѕС„С„РµСЂРѕРІ")]
+    [Header("Пул офферов")]
     [SerializeField] private ModifierOfferPool _offerPool;
 
-    [Header("РљР°СЂС‚РѕС‡РєРё")]
+    [Header("Карточки")]
     [SerializeField] private int _cardCount = 3;
 
-    [Header("РћРґРЅРѕСЂР°Р·РѕРІС‹Р№")]
+    [Header("Одноразовый")]
     [SerializeField] private bool _disableColliderOnPurchase = true;
 
     private ModifierOffer[] _rolledOffers;
@@ -46,7 +46,7 @@ public sealed class ModifierVendingMachine : Interactable
 
     public override string GetPrompt()
     {
-        if (_isPurchased == true)
+        if (_isPurchased)
         {
             return string.Empty;
         }
@@ -56,7 +56,7 @@ public sealed class ModifierVendingMachine : Interactable
 
     public override void Interact(GameObject interactor)
     {
-        if (_isPurchased == true)
+        if (_isPurchased)
         {
             return;
         }
@@ -75,7 +75,7 @@ public sealed class ModifierVendingMachine : Interactable
 
     public void MarkPurchased()
     {
-        if (_isPurchased == true)
+        if (_isPurchased)
         {
             return;
         }
@@ -84,7 +84,7 @@ public sealed class ModifierVendingMachine : Interactable
 
         Highlight(false);
 
-        if (_disableColliderOnPurchase == true)
+        if (_disableColliderOnPurchase)
         {
             Collider collider = GetComponent<Collider>();
 
@@ -99,7 +99,7 @@ public sealed class ModifierVendingMachine : Interactable
 
     private void RollOffersOnce()
     {
-        if (_hasRolled == true)
+        if (_hasRolled)
         {
             return;
         }

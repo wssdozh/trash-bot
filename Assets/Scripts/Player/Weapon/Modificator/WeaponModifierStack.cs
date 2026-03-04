@@ -22,7 +22,7 @@ public sealed class WeaponModifierStack : MonoBehaviour
 
         _modifiers.Add(modifier);
 
-        if (Changed == null == false)
+        if (Changed != null)
         {
             Changed.Invoke();
         }
@@ -32,7 +32,7 @@ public sealed class WeaponModifierStack : MonoBehaviour
     {
         _modifiers.Clear();
 
-        if (Changed == null == false)
+        if (Changed != null)
         {
             Changed.Invoke();
         }

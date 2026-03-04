@@ -7,7 +7,7 @@ public class BerryPickup : BaseAnimatedPickup
         base.OnConsumed(player);
 
         Player playerComponent = player.GetComponent<Player>();
-        
+
         if (playerComponent != null)
         {
             // playerComponent.AddHealth(_healAmount);

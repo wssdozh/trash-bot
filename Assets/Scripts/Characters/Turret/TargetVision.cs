@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class TargetVision : MonoBehaviour
 {
+    private const int TargetsBufferSize = 32;
+
     [Header("Зависимости")]
     [SerializeField] private Transform _origin;
     [SerializeField] private Transform _currentTarget;
@@ -15,9 +17,10 @@ public class TargetVision : MonoBehaviour
     [SerializeField] private string _targetTag = "Player";
 
     private Coroutine _scanCoroutine;
+    private readonly Collider[] _targetsBuffer = new Collider[TargetsBufferSize];
 
-    public event Action TargetFound;
-    public event Action TargetLost;
+    public event Action TargetDetected;
+    public event Action TargetCleared;
 
     public bool IsTargetVisible { get; private set; }
 
@@ -32,7 +35,7 @@ public class TargetVision : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_scanCoroutine == null == false)
+        if (_scanCoroutine != null)
         {
             StopCoroutine(_scanCoroutine);
             _scanCoroutine = null;
@@ -44,7 +47,7 @@ public class TargetVision : MonoBehaviour
         while (enabled)
         {
             Scan();
-            
+
             yield return new WaitForSeconds(_scanInterval);
         }
     }
@@ -55,14 +58,14 @@ public class TargetVision : MonoBehaviour
 
         EvaluateTargets();
 
-        if (wasTargetVisible == false && IsTargetVisible == true)
+        if (wasTargetVisible == false && IsTargetVisible)
         {
-            TargetFound?.Invoke();
+            TargetDetected?.Invoke();
         }
 
-        if (wasTargetVisible == true && IsTargetVisible == false)
+        if (wasTargetVisible && IsTargetVisible == false)
         {
-            TargetLost?.Invoke();
+            TargetCleared?.Invoke();
         }
     }
 
@@ -70,21 +73,20 @@ public class TargetVision : MonoBehaviour
     {
         Vector3 originPosition = GetOriginPosition();
 
-        Collider[] hits = Physics.OverlapSphere(
+        int hitsCount = Physics.OverlapSphereNonAlloc(
             originPosition,
             _viewDistance,
+            _targetsBuffer,
             _targetLayerMask
         );
 
-        int hitsCount = hits.Length;
-
         for (int i = 0; i < hitsCount; i++)
         {
-            Collider candidate = hits[i];
+            Collider candidate = _targetsBuffer[i];
 
             bool isValid = TryValidateTarget(candidate, originPosition);
 
-            if (isValid == true)
+            if (isValid)
             {
                 return;
             }
@@ -113,7 +115,7 @@ public class TargetVision : MonoBehaviour
             _obstacleLayerMask
         );
 
-        if (hasObstacle == true)
+        if (hasObstacle)
         {
             return false;
         }
@@ -134,7 +136,7 @@ public class TargetVision : MonoBehaviour
 
     private Vector3 GetOriginPosition()
     {
-        if (_origin == null == false)
+        if (_origin != null)
         {
             return _origin.position;
         }

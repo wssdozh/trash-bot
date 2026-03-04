@@ -18,6 +18,7 @@ public sealed class FractureFx : MonoBehaviour
     [SerializeField] private List<Rigidbody> _rigidbodies = new List<Rigidbody>();
     [SerializeField] private List<Renderer> _renderers = new List<Renderer>();
 
+    private readonly ColorerRenderer _colorerRenderer = new ColorerRenderer();
     private bool _played = false;
 
     [ContextMenu("Collect Children")]
@@ -29,7 +30,7 @@ public sealed class FractureFx : MonoBehaviour
 
     public void Play()
     {
-        if (_played == true)
+        if (_played)
         {
             return;
         }
@@ -85,7 +86,7 @@ public sealed class FractureFx : MonoBehaviour
 
             if (renderer != null)
             {
-                ColorerRenderer.FadeToTransparency(renderer, _targetTransparency, _fadeDuration, false);
+                _colorerRenderer.FadeToTransparency(renderer, _targetTransparency, _fadeDuration, false);
             }
 
             rendererIndex++;

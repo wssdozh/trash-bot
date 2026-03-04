@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class SpawnerServiceLocator
+public sealed class SpawnerServiceLocator
 {
-    private static readonly Dictionary<string, object> _sources = new Dictionary<string, object>();
+    private static readonly Dictionary<Type, Dictionary<string, object>> _sourcesByType = new Dictionary<Type, Dictionary<string, object>>();
 
     public static void Register<T>(string key, Spawner<T> spawner) where T : MonoBehaviour
     {
@@ -18,7 +18,9 @@ public static class SpawnerServiceLocator
             throw new ArgumentNullException(nameof(spawner));
         }
 
-        _sources[key] = spawner;
+        Type sourceType = typeof(T);
+        Dictionary<string, object> sources = GetOrCreateSources(sourceType);
+        sources[key] = spawner;
     }
 
     public static Spawner<T> Get<T>(string key) where T : MonoBehaviour
@@ -28,19 +30,24 @@ public static class SpawnerServiceLocator
             throw new ArgumentNullException(nameof(key));
         }
 
-        if (_sources.ContainsKey(key) == false)
+        Type sourceType = typeof(T);
+
+        if (_sourcesByType.TryGetValue(sourceType, out Dictionary<string, object> sources) == false)
         {
             throw new InvalidOperationException(nameof(key));
         }
 
-        object spawnerObject = _sources[key];
+        if (sources.TryGetValue(key, out object spawnerObject) == false)
+        {
+            throw new InvalidOperationException(nameof(key));
+        }
 
         if (spawnerObject is Spawner<T> spawner == false)
         {
             throw new InvalidCastException(nameof(spawnerObject));
         }
 
-        return (Spawner<T>)spawnerObject;
+        return spawner;
     }
 
     public static void Unregister<T>(string key) where T : MonoBehaviour
@@ -50,6 +57,31 @@ public static class SpawnerServiceLocator
             return;
         }
 
-        _sources.Remove(key);
+        Type sourceType = typeof(T);
+
+        if (_sourcesByType.TryGetValue(sourceType, out Dictionary<string, object> sources) == false)
+        {
+            return;
+        }
+
+        sources.Remove(key);
+
+        if (sources.Count == 0)
+        {
+            _sourcesByType.Remove(sourceType);
+        }
+    }
+
+    private static Dictionary<string, object> GetOrCreateSources(Type sourceType)
+    {
+        if (_sourcesByType.TryGetValue(sourceType, out Dictionary<string, object> sources))
+        {
+            return sources;
+        }
+
+        Dictionary<string, object> createdSources = new Dictionary<string, object>();
+        _sourcesByType.Add(sourceType, createdSources);
+
+        return createdSources;
     }
 }

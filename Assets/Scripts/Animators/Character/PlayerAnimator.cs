@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour
 {
-    private static readonly int _moveHash = Animator.StringToHash("Move");
-    private static readonly int _jumpHash = Animator.StringToHash("Jump");
-    private static readonly int _pointHash = Animator.StringToHash("Point");
-    private static readonly int _isFightHash = Animator.StringToHash("IsFight");
-    private static readonly int _attackHash = Animator.StringToHash("Attack");
-    private static readonly int _attackIndexHash = Animator.StringToHash("AttackIndex");
-    private static readonly int _takeDamageHash = Animator.StringToHash("TakeDamage");
+    private readonly int _moveHash = Animator.StringToHash("Move");
+    private readonly int _jumpHash = Animator.StringToHash("Jump");
+    private readonly int _pointHash = Animator.StringToHash("Point");
+    private readonly int _isFightHash = Animator.StringToHash("IsFight");
+    private readonly int _attackHash = Animator.StringToHash("Attack");
+    private readonly int _attackIndexHash = Animator.StringToHash("AttackIndex");
+    private readonly int _takeDamageHash = Animator.StringToHash("TakeDamage");
 
     [SerializeField] private Animator _animator;
     [SerializeField] private float _moveLerpSpeed = 5f;
@@ -121,7 +121,7 @@ public class PlayerAnimator : MonoBehaviour
         }
         else
         {
-            if (_isSprinting == true)
+            if (_isSprinting)
             {
                 _targetMove = _runMoveValue;
             }

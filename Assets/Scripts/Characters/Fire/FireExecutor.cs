@@ -42,7 +42,9 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _modifierState = new FireModifierState();
-        _modifierState.SetContext(WeaponModifierContext.CreateDefault());
+        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
+        weaponModifierContext.SetDefaults();
+        _modifierState.SetContext(weaponModifierContext);
 
         _fireRateProvider = new FireRateProvider(_fireRatePerSecond, _modifierState);
         _damageCalculator = new FireDamageCalculator(_modifierState);
@@ -55,19 +57,19 @@ public abstract class FireExecutor : MonoBehaviour
 
         EnsurePresenterCreated();
 
-        if (_shouldEnablePresenterWhenReady == true)
+        if (_shouldEnablePresenterWhenReady)
         {
             _shouldEnablePresenterWhenReady = false;
 
             EnablePresenterIfNeeded();
         }
 
-        if (_hasBufferedAimPoint == true)
+        if (_hasBufferedAimPoint)
         {
             _presenter.SetAimPoint(_bufferedAimPoint);
         }
 
-        if (_shouldStartFiringWhenReady == true)
+        if (_shouldStartFiringWhenReady)
         {
             _shouldStartFiringWhenReady = false;
 
@@ -264,7 +266,7 @@ public abstract class FireExecutor : MonoBehaviour
     private void EnsurePresenterCreated()
     {
 
-        if (_presenter == null == false)
+        if (_presenter != null)
         {
             return;
         }
@@ -300,7 +302,7 @@ public abstract class FireExecutor : MonoBehaviour
             return;
         }
 
-        if (_isPresenterEnabled == true)
+        if (_isPresenterEnabled)
         {
             return;
         }

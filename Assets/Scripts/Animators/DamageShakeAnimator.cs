@@ -18,7 +18,7 @@ public class DamageShakeAnimator : MonoBehaviour
     private Tween _positionTween;
     private Tween _rotationTween;
 
-    private Vector3 _initialLocalPosition; 
+    private Vector3 _initialLocalPosition;
     private Quaternion _initialLocalRotation;
 
     private void OnEnable()
@@ -75,12 +75,12 @@ public class DamageShakeAnimator : MonoBehaviour
 
     private void KillTweens(bool isComplete)
     {
-        if (_positionTween != null && _positionTween.IsActive() == true)
+        if (_positionTween != null && _positionTween.IsActive())
         {
             _positionTween.Kill(isComplete);
         }
 
-        if (_rotationTween != null && _rotationTween.IsActive() == true)
+        if (_rotationTween != null && _rotationTween.IsActive())
         {
             _rotationTween.Kill(isComplete);
         }

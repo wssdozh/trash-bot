@@ -53,7 +53,7 @@ public sealed class ShotgunBurstShotStrategy : IShotStrategy
     public bool TryStartShot(FireShotContext context)
     {
 
-        if (_isBursting == true)
+        if (_isBursting)
         {
             return false;
         }

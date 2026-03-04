@@ -35,17 +35,17 @@ public sealed class PauseController : MonoBehaviour
 
     public void Pause()
     {
-        if (_isPaused == true)
+        if (_isPaused)
         {
             return;
         }
 
-        if (_pauseMenuView.IsAnimating == true || _baseMenuViews.Any(view => view.IsAnimating == true))
+        if (_pauseMenuView.IsAnimating || _baseMenuViews.Any(view => view.IsAnimating))
         {
             return;
         }
 
-        if (_timeScale.IsAnimating == true)
+        if (_timeScale.IsAnimating)
         {
             return;
         }
@@ -71,12 +71,12 @@ public sealed class PauseController : MonoBehaviour
             return;
         }
 
-        if (_pauseMenuView.IsAnimating == true || _baseMenuViews.Any(view => view.IsAnimating == true))
+        if (_pauseMenuView.IsAnimating || _baseMenuViews.Any(view => view.IsAnimating))
         {
             return;
         }
 
-        if (_timeScale.IsAnimating == true)
+        if (_timeScale.IsAnimating)
         {
             return;
         }

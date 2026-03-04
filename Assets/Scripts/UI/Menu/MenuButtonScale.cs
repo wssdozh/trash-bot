@@ -67,13 +67,13 @@ public sealed class MenuButtonScale : MonoBehaviour,
             return;
         }
 
-        if (_pressed == true)
+        if (_pressed)
         {
             TweenScale(_scalePressed, _durationPress, Ease.OutQuart);
             return;
         }
 
-        if (_inside == true)
+        if (_inside)
         {
             TweenScale(_scaleHover, _durationHover, Ease.OutQuart);
             return;
@@ -106,7 +106,7 @@ public sealed class MenuButtonScale : MonoBehaviour,
 
     private void KillTween()
     {
-        if (_tween != null && _tween.IsActive() == true)
+        if (_tween != null && _tween.IsActive())
         {
             _tween.Kill(false);
         }

@@ -70,7 +70,7 @@ public sealed class PlayerBattleState
             return;
         }
 
-        if (_weaponHolder.IsSwitchLocked == true)
+        if (_weaponHolder.IsSwitchLocked)
         {
             return;
         }

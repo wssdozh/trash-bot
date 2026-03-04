@@ -140,7 +140,7 @@ public class Player : MonoBehaviour
     {
         bool attackStarted = _combat.AttackStart();
 
-        if (attackStarted == true)
+        if (attackStarted)
         {
             _movement.StopSprinting();
         }

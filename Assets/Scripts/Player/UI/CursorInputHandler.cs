@@ -45,9 +45,20 @@ public sealed class CursorInputHandler : MonoBehaviour
         _cursorAnimator.ResetToBase();
     }
 
+    private void OnDestroy()
+    {
+        if (_inputs == null)
+        {
+            return;
+        }
+
+        _inputs.Dispose();
+        _inputs = null;
+    }
+
     private void Update()
     {
-        if (_isAttackPressed == true && _isHoldConfirmed == false)
+        if (_isAttackPressed && _isHoldConfirmed == false)
         {
             float elapsedTime = Time.unscaledTime - _attackPressedAtTime;
             if (elapsedTime >= _holdThresholdSeconds)
@@ -69,7 +80,7 @@ public sealed class CursorInputHandler : MonoBehaviour
 
     private void OnAttackCanceled(InputAction.CallbackContext callbackContext)
     {
-        if (_isHoldConfirmed == true)
+        if (_isHoldConfirmed)
         {
             _cursorAnimator.EndHold();
         }
@@ -93,7 +104,7 @@ public sealed class CursorInputHandler : MonoBehaviour
         Vector2 scrollValue = callbackContext.ReadValue<Vector2>();
         float direction = scrollValue.y;
 
-        if (direction == 0f)
+        if (Mathf.Abs(direction) <= Mathf.Epsilon)
         {
             direction = scrollValue.x;
         }

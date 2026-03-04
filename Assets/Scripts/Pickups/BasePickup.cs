@@ -4,7 +4,7 @@ public abstract class BasePickup : MonoBehaviour
 {
     [SerializeField] private Item _item;
     [SerializeField] private int _amount;
- 
+
     protected bool _isPickedUp = false;
 
     public Item Item { get { return _item; } }

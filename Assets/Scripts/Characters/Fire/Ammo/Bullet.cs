@@ -7,12 +7,12 @@ public sealed class Bullet : Ammo
 
     protected override void OnHitTarget(Collider other)
     {
-        if (other.gameObject.TryGetComponent<Health>(out Health health) == true)
+        if (other.gameObject.TryGetComponent<Health>(out Health health))
         {
             health.Decrease(Damage);
         }
 
-        if (other.gameObject.TryGetComponent<Rigidbody>(out Rigidbody rigidbody) == true)
+        if (other.gameObject.TryGetComponent<Rigidbody>(out Rigidbody rigidbody))
         {
             rigidbody.AddForce(transform.forward * _impulseStrength, ForceMode.Impulse);
         }

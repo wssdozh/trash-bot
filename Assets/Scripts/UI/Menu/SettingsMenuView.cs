@@ -3,16 +3,10 @@ using DG.Tweening;
 
 public sealed class SettingsMenuView : BaseMenuView
 {
-    private enum SlideDirection
-    {
-        FromLeft,
-        FromTop
-    }
-
     [SerializeField] private CanvasGroup _canvasGroup;
     [SerializeField] private RectTransform _panel;
 
-    [SerializeField] private SlideDirection _direction = SlideDirection.FromLeft;
+    [SerializeField] private SettingsSlideDirection _direction = SettingsSlideDirection.FromLeft;
     [SerializeField] private float _distance = 900.0f;
 
     [SerializeField] private float _fadeInDuration = 0.10f;
@@ -103,7 +97,7 @@ public sealed class SettingsMenuView : BaseMenuView
 
     private Vector2 GetHiddenPosition()
     {
-        if (_direction == SlideDirection.FromLeft)
+        if (_direction == SettingsSlideDirection.FromLeft)
         {
             return _shownPosition + new Vector2(-_distance, 0.0f);
         }
@@ -123,7 +117,7 @@ public sealed class SettingsMenuView : BaseMenuView
 
     private void KillSequence()
     {
-        if (_sequence != null && _sequence.IsActive() == true)
+        if (_sequence != null && _sequence.IsActive())
         {
             _sequence.Kill(false);
         }

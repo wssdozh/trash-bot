@@ -13,7 +13,7 @@ public class StaminaSmoothSliderIndicator : StatIndicatorBase<Stamina>
     {
         float targetValue = Stat.Value / Stat.MaxValue;
 
-        if (_currentTween != null && _currentTween.IsActive() == true)
+        if (_currentTween != null && _currentTween.IsActive())
         {
             _currentTween.Kill();
         }

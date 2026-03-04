@@ -37,12 +37,12 @@ public class InventoryView : MonoBehaviour
 
     private void BuildIfNeeded()
     {
-        if (_isBuilt == true)
+        if (_isBuilt)
         {
             return;
         }
 
-        _slotViews.Clear();
+        ClearSlotViews();
 
         int slotsCount = _inventory.Slots.Count;
 
@@ -55,6 +55,23 @@ public class InventoryView : MonoBehaviour
         }
 
         _isBuilt = true;
+    }
+
+    private void ClearSlotViews()
+    {
+        for (int i = 0; i < _slotViews.Count; i++)
+        {
+            InventorySlotView slotView = _slotViews[i];
+
+            if (slotView == null)
+            {
+                continue;
+            }
+
+            Destroy(slotView.gameObject);
+        }
+
+        _slotViews.Clear();
     }
 
     private void OnInventoryChanged()

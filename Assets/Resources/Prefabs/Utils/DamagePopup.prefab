@@ -46,4 +46,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DamagePopupOnHealth
   _health: {fileID: 0}
   _spawnPoint: {fileID: 300669076334867404}
-  _spawner: {fileID: 11400000, guid: 0b40bed66c56b424081d1c5389960b38, type: 2}
+  _prefab: {fileID: 5595567820870251461, guid: 3ecd13fc324bc0643951f494b641385c, type: 3}
