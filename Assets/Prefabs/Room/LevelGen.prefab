@@ -167,6 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelCorridorBuilder
   _blockSize: 1
+  _doorInsetInBlocks: 1
   _floorPrefab: {fileID: 2152623805651872328, guid: 5e43f441b71743b4d8cda95e325bd27c, type: 3}
   _autoDetectFloorPrefabSize: 1
   _floorPrefabSizeInUnits: {x: 10, y: 10}
@@ -177,3 +178,4 @@ MonoBehaviour:
   _wallHeightInUnits: 6
   _wallSideOffsetInUnits: 0
   _wallLocalOffset: {x: 0, y: 4, z: 0}
+  _enableColliders: 1

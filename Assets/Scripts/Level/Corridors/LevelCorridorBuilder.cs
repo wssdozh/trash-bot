@@ -5,6 +5,7 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
 {
     [Header("Grid")]
     [SerializeField, Min(0.01f)] private float _blockSize = 1f;
+    [SerializeField, Min(0f)] private float _doorInsetInBlocks = 1f;
 
     [Header("Floor (one stretched prefab)")]
     [SerializeField] private GameObject _floorPrefab;
@@ -80,6 +81,8 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
         float verticalScale = GetVerticalScale(parent);
         float widthUnits = corridorWidthInBlocks * _blockSize * horizontalScale;
 
+        float endInsetUnits = _doorInsetInBlocks * _blockSize * horizontalScale;
+
         float lengthUnits;
         Vector3 center;
         Quaternion rotation;
@@ -97,19 +100,30 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
             rotation = Quaternion.Euler(0f, 90f, 0f);
         }
 
+        float minLengthUnits = endInsetUnits * 2f;
+
+        if (lengthUnits <= minLengthUnits)
+            throw new InvalidOperationException(nameof(lengthUnits));
+
+        lengthUnits = lengthUnits - minLengthUnits;
+
+
+        float doorSurfaceY = (fromDoor.transform.position.y + toDoor.transform.position.y) * 0.5f;
 
         GameObject corridorRoot = new GameObject("Corridor");
         corridorRoot.transform.position = center;
         corridorRoot.transform.rotation = rotation;
         corridorRoot.transform.SetParent(parent, true);
 
-        BuildFloor(corridorRoot.transform, lengthUnits, widthUnits, horizontalScale, verticalScale);
+        GameObject floor = BuildFloor(corridorRoot.transform, lengthUnits, widthUnits, horizontalScale, verticalScale);
 
         if (_wallPrefab != null)
             BuildWalls(corridorRoot.transform, lengthUnits, widthUnits, horizontalScale, verticalScale);
+
+        AlignCorridorHeight(corridorRoot.transform, floor, doorSurfaceY);
     }
 
-    private void BuildFloor(Transform corridorTransform, float lengthUnits, float widthUnits, float horizontalScale, float verticalScale)
+    private GameObject BuildFloor(Transform corridorTransform, float lengthUnits, float widthUnits, float horizontalScale, float verticalScale)
     {
         Vector2 baseSizeInUnits = GetFloorBaseSizeInUnits();
 
@@ -136,6 +150,8 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
         floor.transform.localScale = new Vector3(baseScale.x * scaleX, baseScale.y, baseScale.z * scaleZ);
 
         EnableColliders(floor);
+
+        return floor;
     }
 
     private Vector2 GetFloorBaseSizeInUnits()
@@ -226,8 +242,9 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
 
         float scaleX = lengthUnits / baseLength;
         float scaleY = (_wallHeightInUnits * verticalScale) / baseHeight;
+        float scaleZ = _blockSize * horizontalScale;
 
-        wall.transform.localScale = new Vector3(baseScale.x * scaleX, baseScale.y * scaleY, baseScale.z);
+        wall.transform.localScale = new Vector3(baseScale.x * scaleX, baseScale.y * scaleY, baseScale.z * scaleZ);
 
         EnableColliders(wall);
     }
@@ -294,5 +311,77 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
 
         BoxCollider newCollider = targetObject.AddComponent<BoxCollider>();
         newCollider.enabled = true;
+    }
+
+    private void AlignCorridorHeight(Transform corridorTransform, GameObject floor, float doorSurfaceY)
+    {
+        if (floor == null)
+            throw new InvalidOperationException(nameof(floor));
+
+        Collider[] floorColliders = floor.GetComponentsInChildren<Collider>(true);
+
+        if (floorColliders != null && floorColliders.Length > 0)
+        {
+            float highestFloorY = float.MinValue;
+
+            for (int colliderIndex = 0; colliderIndex < floorColliders.Length; colliderIndex++)
+            {
+                Collider floorCollider = floorColliders[colliderIndex];
+
+                if (floorCollider == null)
+                {
+                    continue;
+                }
+
+                float currentTopY = floorCollider.bounds.max.y;
+
+                if (currentTopY > highestFloorY)
+                {
+                    highestFloorY = currentTopY;
+                }
+            }
+
+            if (highestFloorY == float.MinValue)
+                throw new InvalidOperationException(nameof(highestFloorY));
+
+            float shiftY = doorSurfaceY - highestFloorY;
+            Vector3 corridorPosition = corridorTransform.position;
+            corridorPosition.y = corridorPosition.y + shiftY;
+            corridorTransform.position = corridorPosition;
+
+            return;
+        }
+
+        Renderer[] floorRenderers = floor.GetComponentsInChildren<Renderer>(true);
+
+        if (floorRenderers == null || floorRenderers.Length == 0)
+            throw new InvalidOperationException(nameof(floorRenderers));
+
+        float highestRendererY = float.MinValue;
+
+        for (int rendererIndex = 0; rendererIndex < floorRenderers.Length; rendererIndex++)
+        {
+            Renderer floorRenderer = floorRenderers[rendererIndex];
+
+            if (floorRenderer == null)
+            {
+                continue;
+            }
+
+            float currentTopY = floorRenderer.bounds.max.y;
+
+            if (currentTopY > highestRendererY)
+            {
+                highestRendererY = currentTopY;
+            }
+        }
+
+        if (highestRendererY == float.MinValue)
+            throw new InvalidOperationException(nameof(highestRendererY));
+
+        float renderShiftY = doorSurfaceY - highestRendererY;
+        Vector3 renderCorridorPosition = corridorTransform.position;
+        renderCorridorPosition.y = renderCorridorPosition.y + renderShiftY;
+        corridorTransform.position = renderCorridorPosition;
     }
 }
