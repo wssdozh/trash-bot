@@ -66,6 +66,8 @@ public sealed class LevelGenerator : MonoBehaviour
     private readonly LevelCorridorExecutor _corridorExecutor = new LevelCorridorExecutor();
     private readonly LevelRoomFinalizer _roomFinalizer = new LevelRoomFinalizer();
 
+    public bool HasGeneratedLevel => _generationContext.PlacedRooms.Count > 0;
+
     public event Action GenerationCompleted;
 
     private void Awake()

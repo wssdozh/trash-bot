@@ -4388,10 +4388,6 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -4.16
       objectReference: {fileID: 0}
-    - target: {fileID: 6944983852052773198, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
-      propertyPath: _height
-      value: 9
-      objectReference: {fileID: 0}
     - target: {fileID: 7052495058418967132, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -8425,7 +8421,7 @@ PrefabInstance:
       objectReference: {fileID: 920821248}
     - target: {fileID: 4817328054312691558, guid: 0be5f8d6aa66d9847a129a51fb445e82, type: 3}
       propertyPath: _syncFrames
-      value: 10
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 7312079363675327127, guid: 0be5f8d6aa66d9847a129a51fb445e82, type: 3}
       propertyPath: m_LocalPosition.x

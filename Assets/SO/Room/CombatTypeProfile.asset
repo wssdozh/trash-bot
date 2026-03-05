@@ -26,6 +26,12 @@ MonoBehaviour:
   - _prefab: {fileID: 625229030526185096, guid: fa4493f117e180d41826086377115b5a, type: 3}
     _weight: 1
     _guaranteed: 0
+  - _prefab: {fileID: 625229030526185096, guid: f18352863eccbe144b20b35c02dc805a, type: 3}
+    _weight: 1
+    _guaranteed: 0
+  - _prefab: {fileID: 625229030526185096, guid: 93470d33be65f054a84a4b6a491dbd4d, type: 3}
+    _weight: 1
+    _guaranteed: 0
   _objectSpawnCountRange: {x: 3, y: 10}
   _objectPrefabs:
   - _prefab: {fileID: 9099302578165322558, guid: a5dce081a04d9194890a00c14c0b1fc7, type: 3}

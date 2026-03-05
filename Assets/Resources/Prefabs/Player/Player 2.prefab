@@ -432,10 +432,10 @@ MonoBehaviour:
   _player: {fileID: 3480807702779279668}
   _cursorManager: {fileID: 8146462238665572604}
   _camera: {fileID: 5883766244847082059}
-  _height: 7
+  _height: 9
   _smoothSpeed: 5
   _mouseInfluence: 0.07
-  _positionOffset: {x: 0, y: 0, z: -2.7}
+  _positionOffset: {x: 0, y: 0, z: -3.5}
   _tiltAngle: 67
 --- !u!1 &1512025030539424559
 GameObject:
@@ -2438,6 +2438,7 @@ MonoBehaviour:
   _animator: {fileID: 7390188348284092011}
   _cursor: {fileID: 8146462238665572604}
   _combat: {fileID: 1509442326114603394}
+  _modifierVendingMachineMenuView: {fileID: 0}
   _hoverTickSeconds: 0.15
 --- !u!1 &6692241948726916204
 GameObject:
