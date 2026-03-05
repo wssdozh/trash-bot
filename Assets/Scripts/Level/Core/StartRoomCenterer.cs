@@ -6,6 +6,8 @@ public sealed class StartRoomCenterer : MonoBehaviour
     [SerializeField] private LevelGenerator _levelGenerator;
     [SerializeField] private Transform _playerRoot;
     [SerializeField] private Transform _playerBody;
+    [SerializeField] private float _heightOffset = 0.35f;
+
     private Rigidbody _playerBodyRigidbody;
 
     private void Awake()
@@ -41,6 +43,8 @@ public sealed class StartRoomCenterer : MonoBehaviour
     private void OnGenerationCompleted()
     {
         Vector3 startRoomCenterPosition = _levelGenerator.GetStartRoomCenter();
+        startRoomCenterPosition.y += _heightOffset;
+
         Vector3 rootToBodyOffset = _playerRoot.position - _playerBody.position;
         Vector3 targetRootPosition = startRoomCenterPosition + rootToBodyOffset;
 
