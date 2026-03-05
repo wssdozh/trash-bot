@@ -10,12 +10,12 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 625229030526185096, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: m_Name
-      value: Turret (1) Variant
+      value: ExplosionTurret
       objectReference: {fileID: 0}
     - target: {fileID: 3601055731436968810, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: _bulletPrefab
       value: 
-      objectReference: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
+      objectReference: {fileID: 8755970277695282883, guid: 851fd8a41c4dc544ab4beda61ce8157e, type: 3}
     - target: {fileID: 6861736879144483679, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.01

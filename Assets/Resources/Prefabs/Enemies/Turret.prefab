@@ -345,8 +345,11 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
+  _maxAimAngleDegrees: 30
   _muzzle: {fileID: 5363890313950826456}
-  _bulletPrefab: {fileID: 8755970277695282883, guid: 851fd8a41c4dc544ab4beda61ce8157e, type: 3}
+  _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
+  _minDamage: 3
+  _maxDamage: 6
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0
