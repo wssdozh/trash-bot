@@ -120,8 +120,7 @@ MonoBehaviour:
   _levelGenerator: {fileID: 1539516662376536076}
   _playerRoot: {fileID: 0}
   _playerBody: {fileID: 0}
-  _bodyHeight: 1.5
-  _syncFrames: 3
+  _heightOffset: 0.5
 --- !u!1 &6447186613324292721
 GameObject:
   m_ObjectHideFlags: 0

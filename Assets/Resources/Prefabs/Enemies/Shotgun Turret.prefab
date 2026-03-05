@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 625229030526185096, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: m_Name
-      value: Turret (2) Variant
+      value: Shotgun Turret
       objectReference: {fileID: 0}
     - target: {fileID: 3601055731436968810, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: _fireRatePerSecond
@@ -20,6 +20,10 @@ PrefabInstance:
       propertyPath: _fireExecutor
       value: 
       objectReference: {fileID: 640595256473407410}
+    - target: {fileID: 6103377313372541687, guid: fa4493f117e180d41826086377115b5a, type: 3}
+      propertyPath: _fireDelaySeconds
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8438972018461338632, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 8.6
