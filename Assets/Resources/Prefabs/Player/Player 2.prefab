@@ -2588,14 +2588,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5aefeead8b3209949974ee598da78c08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierStack
-  _modifiers:
-  - {fileID: 11400000, guid: c73201d12e671a74ab2ec240601f6aa7, type: 2}
-  - {fileID: 11400000, guid: 70de05bfc26ee544a8530c96c1fc9f84, type: 2}
-  - {fileID: 11400000, guid: bfb0c93b6f3f4c64d83a099662711061, type: 2}
-  - {fileID: 11400000, guid: cbc3df470c9e13e4f8305fabae94ea8e, type: 2}
-  - {fileID: 11400000, guid: df27ea492a6959143b13344d5c56e1dd, type: 2}
-  - {fileID: 11400000, guid: 240c4ca3b6d1e4841b22b2464585a8fd, type: 2}
-  - {fileID: 11400000, guid: 50c004b5a4be4194c8139c9f3ea6ce15, type: 2}
+  _modifiers: []
 --- !u!1 &7854238819709204048
 GameObject:
   m_ObjectHideFlags: 0
