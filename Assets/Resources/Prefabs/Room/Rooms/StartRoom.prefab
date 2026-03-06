@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 8e525e327d7aba240a481e1c7fa900aa, type: 2}
     - target: {fileID: 4568357495639586377, guid: 029dff8f35d916d4f914f97b3f7e231d, type: 3}
       propertyPath: _roomSizeInBlocks.x
-      value: 50
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 4568357495639586377, guid: 029dff8f35d916d4f914f97b3f7e231d, type: 3}
       propertyPath: _roomSizeInBlocks.y
@@ -26,7 +26,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4568357495639586377, guid: 029dff8f35d916d4f914f97b3f7e231d, type: 3}
       propertyPath: _roomSizeInBlocks.z
-      value: 50
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 6005602296582948486, guid: 029dff8f35d916d4f914f97b3f7e231d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -70,7 +70,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6794795610959526156, guid: 029dff8f35d916d4f914f97b3f7e231d, type: 3}
       propertyPath: m_Name
-      value: Room Variant
+      value: StartRoom
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

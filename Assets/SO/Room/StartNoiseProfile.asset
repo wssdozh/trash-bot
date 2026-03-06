@@ -35,4 +35,4 @@ MonoBehaviour:
   _bias: 0.041
   _invert: 0
   _applySmoothstep: 1
-  _previewResolution: 60
+  _previewResolution: 20

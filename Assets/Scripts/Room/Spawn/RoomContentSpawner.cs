@@ -35,6 +35,10 @@ public sealed class RoomContentSpawner : MonoBehaviour
     [SerializeField, Min(0)] private int _enemyWallAvoidanceInCells = 4;
     [SerializeField, Min(0)] private int _enemyPreferredWallDistanceInCells = 10;
     [SerializeField, Range(0f, 1f)] private float _enemyPreferredCover = 0.2f;
+    [SerializeField, Min(1)] private int _enemyOpenAreaRadiusInCells = 3;
+    [SerializeField, Min(0)] private int _enemyMinOpenAreaInCells = 9;
+    [SerializeField, Min(0)] private int _enemyPreferredOpenAreaInCells = 16;
+    [SerializeField, Min(1)] private int _enemyMinSpanInCells = 3;
 
     public void Spawn(
         RoomTypeProfile roomTypeProfile,
@@ -605,6 +609,172 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return count;
     }
 
+    private bool TryGetEnemyArenaScore(
+        Vector2Int cell,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        bool relaxedRules,
+        out float arenaScore
+    )
+    {
+        arenaScore = 0f;
+
+        if (floorOccupancy.IsFree(cell) == false)
+        {
+            return false;
+        }
+
+        int minimumOpenArea = _enemyMinOpenAreaInCells;
+        int minimumSpan = _enemyMinSpanInCells;
+
+        if (relaxedRules == true)
+        {
+            minimumOpenArea = Mathf.Max(4, Mathf.CeilToInt(minimumOpenArea * 0.6f));
+            minimumSpan = Mathf.Max(2, minimumSpan - 1);
+        }
+
+        int preferredOpenArea = Mathf.Max(minimumOpenArea, _enemyPreferredOpenAreaInCells);
+        int openArea = CountLocalFreeArea(cell, roomSizeInBlocks, floorOccupancy, _enemyOpenAreaRadiusInCells, preferredOpenArea);
+
+        if (openArea < minimumOpenArea)
+        {
+            return false;
+        }
+
+        int openSpan = GetOpenSpan(cell, roomSizeInBlocks, floorOccupancy);
+
+        if (openSpan < minimumSpan)
+        {
+            return false;
+        }
+
+        int preferredSpan = Mathf.Max(minimumSpan, minimumSpan + 2);
+        float openAreaScore = Mathf.Clamp01((float)openArea / preferredOpenArea);
+        float spanScore = Mathf.Clamp01((float)openSpan / preferredSpan);
+
+        arenaScore = (openAreaScore * 0.65f) + (spanScore * 0.35f);
+
+        return true;
+    }
+
+    private int CountLocalFreeArea(
+        Vector2Int startCell,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        int radiusInCells,
+        int stopCount
+    )
+    {
+        if (radiusInCells <= 0)
+        {
+            return 1;
+        }
+
+        if (stopCount < 1)
+        {
+            stopCount = 1;
+        }
+
+        HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
+        Queue<Vector2Int> cellsToVisit = new Queue<Vector2Int>();
+        Queue<int> distanceQueue = new Queue<int>();
+
+        visitedCells.Add(startCell);
+        cellsToVisit.Enqueue(startCell);
+        distanceQueue.Enqueue(0);
+
+        int openArea = 0;
+        int[] offsetX = new int[4] { 1, -1, 0, 0 };
+        int[] offsetZ = new int[4] { 0, 0, 1, -1 };
+
+        while (cellsToVisit.Count > 0)
+        {
+            Vector2Int currentCell = cellsToVisit.Dequeue();
+            int currentDistance = distanceQueue.Dequeue();
+
+            openArea++;
+
+            if (openArea >= stopCount)
+            {
+                return openArea;
+            }
+
+            if (currentDistance >= radiusInCells)
+            {
+                continue;
+            }
+
+            for (int directionIndex = 0; directionIndex < 4; directionIndex++)
+            {
+                Vector2Int neighborCell = new Vector2Int(currentCell.x + offsetX[directionIndex], currentCell.y + offsetZ[directionIndex]);
+
+                if (IsInteriorCell(neighborCell, roomSizeInBlocks) == false)
+                {
+                    continue;
+                }
+
+                if (floorOccupancy.IsFree(neighborCell) == false)
+                {
+                    continue;
+                }
+
+                if (visitedCells.Add(neighborCell) == false)
+                {
+                    continue;
+                }
+
+                cellsToVisit.Enqueue(neighborCell);
+                distanceQueue.Enqueue(currentDistance + 1);
+            }
+        }
+
+        return openArea;
+    }
+
+    private int GetOpenSpan(Vector2Int cell, Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy)
+    {
+        int horizontalSpan = 1;
+        int verticalSpan = 1;
+
+        horizontalSpan += CountFreeCellsInDirection(cell, 1, 0, roomSizeInBlocks, floorOccupancy);
+        horizontalSpan += CountFreeCellsInDirection(cell, -1, 0, roomSizeInBlocks, floorOccupancy);
+
+        verticalSpan += CountFreeCellsInDirection(cell, 0, 1, roomSizeInBlocks, floorOccupancy);
+        verticalSpan += CountFreeCellsInDirection(cell, 0, -1, roomSizeInBlocks, floorOccupancy);
+
+        if (horizontalSpan < verticalSpan)
+        {
+            return horizontalSpan;
+        }
+
+        return verticalSpan;
+    }
+
+    private int CountFreeCellsInDirection(
+        Vector2Int cell,
+        int offsetX,
+        int offsetZ,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy
+    )
+    {
+        int count = 0;
+        Vector2Int currentCell = new Vector2Int(cell.x + offsetX, cell.y + offsetZ);
+
+        while (IsInteriorCell(currentCell, roomSizeInBlocks) == true)
+        {
+            if (floorOccupancy.IsFree(currentCell) == false)
+            {
+                break;
+            }
+
+            count++;
+            currentCell = new Vector2Int(currentCell.x + offsetX, currentCell.y + offsetZ);
+        }
+
+        return count;
+    }
+
     private Vector3 GetLocalPosition(Vector2Int floorCell)
     {
         float localPositionX = (floorCell.x + 0.5f) * _blockSize;
@@ -1102,7 +1272,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         float progressWindow = 0.30f;
-        int desiredSpacingInCells = 4;
+        int desiredSpacingInCells = Mathf.Max(_minimumEnemySpacingInCells + 2, 5);
 
         for (int enemyIndex = 0; enemyIndex < remainingCount; enemyIndex++)
         {
@@ -1158,6 +1328,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
                     continue;
                 }
 
+                float arenaScore;
+
+                if (TryGetEnemyArenaScore(cell, roomSizeInBlocks, floorOccupancy, false, out arenaScore) == false)
+                {
+                    continue;
+                }
+
                 float cover = (float)CountObstacleNeighbors(cell, obstacleFloorCellSet) / 4f;
                 float coverScore = ComputeCoverPreferenceScore(cover);
                 float wallDistanceScore = ComputeWallDistanceScore(cell, roomSizeInBlocks, _enemyPreferredWallDistanceInCells);
@@ -1181,7 +1358,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
                 float noiseValue = noiseValues[cell.x, cell.y];
 
-                float score = (coverScore * 0.30f) + (wallDistanceScore * 0.30f) + (progressScoreFinal * 0.20f) + (noiseValue * 0.10f) + (spreadScore * 0.10f);
+                float score = (arenaScore * 0.30f) + (spreadScore * 0.25f) + (wallDistanceScore * 0.20f) + (progressScoreFinal * 0.15f) + (coverScore * 0.05f) + (noiseValue * 0.05f);
                 score += (float)random.NextDouble() * 0.01f;
 
                 if (found == false || score > bestScore)
@@ -1291,6 +1468,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
         bool hasCandidate = false;
         float bestScore = -1f;
         Vector2Int bestCell = Vector2Int.zero;
+        int desiredSpacingInCells = Mathf.Max(_minimumEnemySpacingInCells + 1, 4);
+        int preferredGuardDistanceInCells = Mathf.Max(1, radiusInCells / 2);
 
         for (int offsetX = -radiusInCells; offsetX <= radiusInCells; offsetX++)
         {
@@ -1323,6 +1502,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
                     continue;
                 }
 
+                float arenaScore;
+
+                if (TryGetEnemyArenaScore(candidateCell, roomSizeInBlocks, floorOccupancy, false, out arenaScore) == false)
+                {
+                    continue;
+                }
+
                 int corridorDistance = distanceFromCorridor[candidateCell.x, candidateCell.y];
 
                 if (corridorDistance != -1 && corridorDistance < 1)
@@ -1334,10 +1520,18 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 float coverScore = ComputeCoverPreferenceScore(cover);
                 float wallDistanceScore = ComputeWallDistanceScore(candidateCell, roomSizeInBlocks, _enemyPreferredWallDistanceInCells);
                 int distanceToCenter = Mathf.Abs(offsetX) + Mathf.Abs(offsetZ);
-                float centerScore = 1f - Mathf.Clamp01((float)distanceToCenter / Mathf.Max(1, radiusInCells));
+                float centerScore = 1f - Mathf.Clamp01(Mathf.Abs((float)distanceToCenter - preferredGuardDistanceInCells) / Mathf.Max(1, preferredGuardDistanceInCells));
+
+                float spreadScore = 1f;
+
+                if (enemyCells.Count > 0)
+                {
+                    int nearestDistance = GetMinimumManhattanDistance(enemyCells, candidateCell);
+                    spreadScore = Mathf.Clamp01((float)nearestDistance / desiredSpacingInCells);
+                }
 
                 float noiseValue = noiseValues[candidateCell.x, candidateCell.y];
-                float score = (coverScore * 0.35f) + (wallDistanceScore * 0.35f) + (centerScore * 0.20f) + (noiseValue * 0.10f);
+                float score = (arenaScore * 0.35f) + (spreadScore * 0.25f) + (centerScore * 0.20f) + (wallDistanceScore * 0.10f) + (coverScore * 0.05f) + (noiseValue * 0.05f);
                 score += (float)random.NextDouble() * 0.01f;
 
                 if (hasCandidate == false || score > bestScore)
@@ -1361,6 +1555,11 @@ public sealed class RoomContentSpawner : MonoBehaviour
         out Vector2Int chosenCell
     )
     {
+        bool found = false;
+        float bestScore = -1f;
+        Vector2Int bestCell = Vector2Int.zero;
+        int desiredSpacingInCells = Mathf.Max(_minimumEnemySpacingInCells + 2, 5);
+
         for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
         {
             for (int cellZ = 1; cellZ <= roomSizeInBlocks.z - 2; cellZ++)
@@ -1382,13 +1581,34 @@ public sealed class RoomContentSpawner : MonoBehaviour
                     continue;
                 }
 
-                chosenCell = cell;
-                return true;
+                float arenaScore;
+
+                if (TryGetEnemyArenaScore(cell, roomSizeInBlocks, floorOccupancy, true, out arenaScore) == false)
+                {
+                    continue;
+                }
+
+                float spreadScore = 1f;
+
+                if (enemyCells.Count > 0)
+                {
+                    int nearestDistance = GetMinimumManhattanDistance(enemyCells, cell);
+                    spreadScore = Mathf.Clamp01((float)nearestDistance / desiredSpacingInCells);
+                }
+
+                float score = (arenaScore * 0.7f) + (spreadScore * 0.3f);
+
+                if (found == false || score > bestScore)
+                {
+                    found = true;
+                    bestScore = score;
+                    bestCell = cell;
+                }
             }
         }
 
-        chosenCell = Vector2Int.zero;
-        return false;
+        chosenCell = bestCell;
+        return found;
     }
 
     private bool IsTooCloseToExisting(Vector2Int cell, HashSet<Vector2Int> existingCells, int minimumDistanceInCells)
