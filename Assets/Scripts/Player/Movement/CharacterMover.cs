@@ -34,6 +34,19 @@ public class CharacterMover : MonoBehaviour
         _isSprinting = sprinting;
     }
 
+    public void StopMove()
+    {
+        _moveDirection = Vector3.zero;
+    }
+
+    public void ForceStop()
+    {
+        _moveDirection = Vector3.zero;
+
+        float currentVerticalVelocity = _rigidbody.linearVelocity.y;
+        _rigidbody.linearVelocity = new Vector3(0f, currentVerticalVelocity, 0f);
+    }
+
     private void OnCollisionStay(Collision collision)
     {
         int contactCount = collision.contactCount;

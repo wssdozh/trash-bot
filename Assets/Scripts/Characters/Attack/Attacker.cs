@@ -8,9 +8,13 @@ public class Attacker : MonoBehaviour
     [SerializeField] private AttackData _attackData;
     [SerializeField] private float _hitForce = 6f;
     [SerializeField] private ForceMode _hitForceMode = ForceMode.Impulse;
+    [SerializeField] private bool _isGizmoVisible = true;
+    [SerializeField] private float _gizmoPointSize = 0.12f;
 
     private bool _isOnCooldown = false;
     private readonly Collider[] _targetBuffer = new Collider[TargetBufferSize];
+
+    public AttackData AttackData => _attackData;
 
     public bool PerformAttack()
     {
@@ -30,20 +34,70 @@ public class Attacker : MonoBehaviour
             return true;
         }
 
-        Collider hit = _targetBuffer[0];
-        Rigidbody rigidbody;
+        Transform targetTransform = null;
+        Rigidbody targetRigidbody = null;
+        Health targetHealth = null;
+        float closestDistance = float.MaxValue;
 
-        if (hit.TryGetComponent(out rigidbody))
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
         {
-            Vector3 direction = (hit.transform.position - transform.position).normalized;
-            rigidbody.AddForce(direction * _hitForce, _hitForceMode);
+            Collider hit = _targetBuffer[hitIndex];
+
+            if (hit == null)
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            if (hit.transform.IsChildOf(transform))
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            Health hitHealth = hit.GetComponentInParent<Health>();
+            Rigidbody hitRigidbody = hit.attachedRigidbody;
+
+            if (hitHealth == null && hitRigidbody == null)
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            float distance = Vector3.Distance(transform.position, hit.transform.position);
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                targetTransform = hit.transform;
+                targetRigidbody = hitRigidbody;
+                targetHealth = hitHealth;
+            }
+
+            hitIndex += 1;
         }
 
-        Health health;
-
-        if (hit.TryGetComponent(out health))
+        if (targetTransform == null)
         {
-            health.Decrease(damage);
+            StartCoroutine(StartCooldown());
+
+            return true;
+        }
+
+        if (targetRigidbody != null)
+        {
+            Vector3 direction = (targetTransform.position - transform.position).normalized;
+            targetRigidbody.AddForce(direction * _hitForce, _hitForceMode);
+        }
+
+        if (targetHealth != null)
+        {
+            targetHealth.Decrease(damage);
         }
 
         StartCoroutine(StartCooldown());
@@ -60,8 +114,13 @@ public class Attacker : MonoBehaviour
         _isOnCooldown = false;
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
+        if (_isGizmoVisible == false)
+        {
+            return;
+        }
+
         if (_attackData == null)
         {
             return;
@@ -74,5 +133,11 @@ public class Attacker : MonoBehaviour
 
         Gizmos.color = Color.red;
         _attackData.AttackShape.DrawGizmos(transform, _attackData.AttackRange);
+
+        Vector3 attackPoint = transform.position + (transform.forward * _attackData.AttackRange);
+
+        Gizmos.color = new Color(1f, 0.6f, 0.2f);
+        Gizmos.DrawLine(transform.position, attackPoint);
+        Gizmos.DrawWireSphere(attackPoint, _gizmoPointSize);
     }
 }
