@@ -49,6 +49,11 @@ public class CharacterMover : MonoBehaviour
 
     private void OnCollisionStay(Collision collision)
     {
+        if (ShouldTrackWall(collision) == false)
+        {
+            return;
+        }
+
         int contactCount = collision.contactCount;
         int contactIndex = 0;
 
@@ -65,6 +70,23 @@ public class CharacterMover : MonoBehaviour
 
             contactIndex += 1;
         }
+    }
+
+    private bool ShouldTrackWall(Collision collision)
+    {
+        Rigidbody collisionRigidbody = collision.rigidbody;
+
+        if (collisionRigidbody == null)
+        {
+            return true;
+        }
+
+        if (collisionRigidbody.isKinematic == false)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void Move()

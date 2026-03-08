@@ -12,14 +12,17 @@ public sealed class EnemyMove : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private float _steerSpeed = 180f;
     [SerializeField] private float _moveScale = 0.6f;
+    [SerializeField] private float _runScaleFactor = 1.25f;
     [SerializeField] private float _moveInputSpeed = 3f;
 
     private Vector3 _moveDirection;
     private Vector2 _moveInput;
     private bool _isMoving;
+    private bool _isRunning;
 
     public Vector3 MoveDirection => _moveDirection;
     public float MoveAmount => _moveInput.magnitude;
+    public bool IsRunning => _isRunning;
 
     private void Awake()
     {
@@ -43,6 +46,11 @@ public sealed class EnemyMove : MonoBehaviour
             throw new InvalidOperationException(nameof(_moveScale));
         }
 
+        if (_runScaleFactor < 1f)
+        {
+            throw new InvalidOperationException(nameof(_runScaleFactor));
+        }
+
         if (_moveInputSpeed <= 0f)
         {
             throw new InvalidOperationException(nameof(_moveInputSpeed));
@@ -52,10 +60,19 @@ public sealed class EnemyMove : MonoBehaviour
     private void FixedUpdate()
     {
         Vector2 targetMoveInput = Vector2.zero;
+        bool isSprinting = false;
 
         if (_isMoving)
         {
-            targetMoveInput = GetMoveInput(_moveDirection);
+            float moveScale = _moveScale;
+
+            if (_isRunning)
+            {
+                moveScale = Mathf.Min(_moveScale * _runScaleFactor, 1f);
+                isSprinting = true;
+            }
+
+            targetMoveInput = GetMoveInput(_moveDirection, moveScale);
         }
 
         _moveInput = Vector2.MoveTowards(
@@ -66,11 +83,13 @@ public sealed class EnemyMove : MonoBehaviour
         if (_moveInput.sqrMagnitude <= ZeroThreshold)
         {
             _moveInput = Vector2.zero;
+            _characterMover.OnSprint(false);
             _characterMover.StopMove();
 
             return;
         }
 
+        _characterMover.OnSprint(isSprinting);
         _characterMover.OnMove(_moveInput);
     }
 
@@ -91,44 +110,38 @@ public sealed class EnemyMove : MonoBehaviour
             desiredDirection.Normalize();
         }
 
-        if (_isMoving == false || _moveDirection.sqrMagnitude <= ZeroThreshold)
-        {
-            _moveDirection = desiredDirection;
-        }
-
-        else
-        {
-            float maxRadiansDelta = _steerSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime;
-
-            _moveDirection = Vector3.RotateTowards(
-                _moveDirection,
-                desiredDirection,
-                maxRadiansDelta,
-                0f);
-        }
-
-        if (_moveDirection.sqrMagnitude > 1f)
-        {
-            _moveDirection.Normalize();
-        }
-
+        _moveDirection = desiredDirection;
         _isMoving = true;
+    }
+
+    public void SetRun(bool isRunning)
+    {
+        _isRunning = isRunning;
     }
 
     public void StopMove()
     {
         _isMoving = false;
+        _isRunning = false;
+        _characterMover.OnSprint(false);
     }
 
     public void ForceStop()
     {
         _isMoving = false;
+        _isRunning = false;
         _moveDirection = Vector3.zero;
         _moveInput = Vector2.zero;
+        _characterMover.OnSprint(false);
         _characterMover.ForceStop();
     }
 
     private Vector2 GetMoveInput(Vector3 direction)
+    {
+        return GetMoveInput(direction, _moveScale);
+    }
+
+    private Vector2 GetMoveInput(Vector3 direction, float moveScale)
     {
         Vector3 flatDirection = direction;
         flatDirection.y = 0f;
@@ -143,6 +156,6 @@ public sealed class EnemyMove : MonoBehaviour
             flatDirection.Normalize();
         }
 
-        return new Vector2(flatDirection.x, flatDirection.z) * _moveScale;
+        return new Vector2(flatDirection.x, flatDirection.z) * moveScale;
     }
 }

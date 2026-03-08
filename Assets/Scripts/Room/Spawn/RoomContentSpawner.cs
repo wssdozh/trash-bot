@@ -1,8 +1,17 @@
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public sealed class RoomContentSpawner : MonoBehaviour
 {
+    private const int SpawnFixTryCount = 8;
+    private const int SpawnSearchDirections = 8;
+    private const int SpawnCheckBufferSize = 32;
+    private const float SpawnFixSkin = 0.02f;
+    private const float SpawnSearchStep = 0.35f;
+    private const float SpawnCheckPadding = 0.25f;
+    private const float ZeroThreshold = 0.0001f;
+
     private struct SpawnCandidate
     {
         public Vector2Int Cell;
@@ -15,9 +24,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
     }
 
+    private readonly Collider[] _spawnCheckBuffer = new Collider[SpawnCheckBufferSize];
+
     [SerializeField] private Transform _objectsRoot;
     [SerializeField] private Transform _enemiesRoot;
     [SerializeField] private float _blockSize = 1f;
+    [SerializeField] private float _objectSpawnHeight = 1f;
+    [SerializeField] private float _enemySpawnHeight = 1.75f;
 
     [SerializeField, Min(0)] private int _cornerAvoidanceInCells = 3;
     [SerializeField, Min(0)] private int _minimumResourceDistanceFromCorridorInCells = 3;
@@ -49,6 +62,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
         System.Random random
     )
     {
+        EnsureEnemyNavMeshIgnore();
+
         ClearChildren(_objectsRoot);
         ClearChildren(_enemiesRoot);
 
@@ -60,13 +75,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         HashSet<Vector2Int> reservedFloorCellSet = new HashSet<Vector2Int>(reservedFloorCells);
-        HashSet<Vector2Int> obstacleFloorCellSet = CreateObstacleFloorCells(floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
+        HashSet<Vector2Int> resourceObstacleFloorCellSet = CreateObstacleFloorCells(floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
 
         HashSet<Vector2Int> enemyForbiddenCellSet = CreateExpandedCellSet(roomSizeInBlocks, reservedFloorCellSet, _enemyReservedFloorAvoidanceInCells);
 
         Vector2Int entranceCell = GetReferenceEntranceCell(roomSizeInBlocks, doorPlans);
 
-        int[,] distanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, obstacleFloorCellSet);
+        int[,] distanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, resourceObstacleFloorCellSet);
         int maximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, distanceFromEntrance);
 
         HashSet<Vector2Int> corridorStartCells = new HashSet<Vector2Int>(reservedFloorCellSet);
@@ -76,7 +91,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             corridorStartCells.Add(entranceCell);
         }
 
-        int[,] distanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, obstacleFloorCellSet);
+        int[,] distanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, resourceObstacleFloorCellSet);
 
         List<Vector2Int> freeCells = CreateFreeCells(roomSizeInBlocks, floorOccupancy);
 
@@ -86,7 +101,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             floorOccupancy,
             freeCells,
             reservedFloorCellSet,
-            obstacleFloorCellSet,
+            resourceObstacleFloorCellSet,
             noiseValues,
             distanceFromEntrance,
             maximumEntranceDistance,
@@ -94,18 +109,23 @@ public sealed class RoomContentSpawner : MonoBehaviour
             random
         );
 
+        HashSet<Vector2Int> enemyObstacleFloorCellSet = CreateObstacleFloorCells(floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
+        int[,] enemyDistanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, enemyObstacleFloorCellSet);
+        int enemyMaximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, enemyDistanceFromEntrance);
+        int[,] enemyDistanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, enemyObstacleFloorCellSet);
+
         SpawnEnemies(
             roomTypeProfile,
             roomSizeInBlocks,
             floorOccupancy,
             freeCells,
             reservedFloorCellSet,
-            obstacleFloorCellSet,
+            enemyObstacleFloorCellSet,
             enemyForbiddenCellSet,
             noiseValues,
-            distanceFromEntrance,
-            maximumEntranceDistance,
-            distanceFromCorridor,
+            enemyDistanceFromEntrance,
+            enemyMaximumEntranceDistance,
+            enemyDistanceFromCorridor,
             resourceCenters,
             random
         );
@@ -127,6 +147,19 @@ public sealed class RoomContentSpawner : MonoBehaviour
     {
         ClearChildren(_objectsRoot);
         ClearChildren(_enemiesRoot);
+    }
+
+    private void EnsureEnemyNavMeshIgnore()
+    {
+        NavMeshModifier navMeshModifier = _enemiesRoot.GetComponent<NavMeshModifier>();
+
+        if (navMeshModifier == null)
+        {
+            navMeshModifier = _enemiesRoot.gameObject.AddComponent<NavMeshModifier>();
+        }
+
+        navMeshModifier.ignoreFromBuild = true;
+        navMeshModifier.applyToChildren = true;
     }
 
     private Vector2Int GetReferenceEntranceCell(Vector3Int roomSizeInBlocks, IReadOnlyList<RoomDoorPlan> doorPlans)
@@ -775,49 +808,315 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return count;
     }
 
-    private Vector3 GetLocalPosition(Vector2Int floorCell)
+    private Vector3 GetLocalPosition(Vector2Int floorCell, float spawnHeight)
     {
         float localPositionX = (floorCell.x + 0.5f) * _blockSize;
         float localPositionZ = (floorCell.y + 0.5f) * _blockSize;
-        float localPositionY = 1f * _blockSize;
+        float localPositionY = spawnHeight * _blockSize;
 
         return new Vector3(localPositionX, localPositionY, localPositionZ);
     }
 
-    private void ApplyOriginalWorldScale(Transform objectTransform)
+    private void InstantiateObjectOnCell(GameObject prefab, Vector2Int floorCell)
     {
-        if (objectTransform == null)
-        {
-            return;
-        }
-
-        Transform parentTransform = objectTransform.parent;
-
-        if (parentTransform == null)
-        {
-            return;
-        }
-
-        Vector3 parentLossyScale = parentTransform.lossyScale;
-        float parentScaleX = GetSafeParentScale(parentLossyScale.x);
-        float parentScaleY = GetSafeParentScale(parentLossyScale.y);
-        float parentScaleZ = GetSafeParentScale(parentLossyScale.z);
-
-        Vector3 localScale = objectTransform.localScale;
-
-        objectTransform.localScale = new Vector3(localScale.x / parentScaleX, localScale.y / parentScaleY, localScale.z / parentScaleZ);
+        InstantiateOnCell(prefab, _objectsRoot, floorCell, _objectSpawnHeight);
     }
 
-    private float GetSafeParentScale(float parentScale)
+    private void InstantiateEnemyOnCell(GameObject prefab, Vector2Int floorCell)
     {
-        float absoluteParentScale = Mathf.Abs(parentScale);
+        GameObject instance = InstantiateOnCell(prefab, _enemiesRoot, floorCell, _enemySpawnHeight);
 
-        if (absoluteParentScale <= 0.0001f)
+        FixEnemySpawn(instance);
+    }
+
+    private GameObject InstantiateOnCell(GameObject prefab, Transform rootTransform, Vector2Int floorCell, float spawnHeight)
+    {
+        if (prefab == null)
         {
-            return 1f;
+            return null;
         }
 
-        return absoluteParentScale;
+        Vector3 worldPosition = GetWorldPosition(rootTransform, floorCell, spawnHeight);
+        Quaternion worldRotation = rootTransform.rotation;
+
+        GameObject instance = Instantiate(prefab, worldPosition, worldRotation);
+        instance.transform.SetParent(rootTransform, true);
+
+        return instance;
+    }
+
+    private void FixEnemySpawn(GameObject enemyObject)
+    {
+        if (enemyObject == null)
+        {
+            return;
+        }
+
+        Collider[] bodyColliders = enemyObject.GetComponentsInChildren<Collider>();
+
+        if (bodyColliders.Length == 0)
+        {
+            return;
+        }
+
+        int tryIndex = 0;
+
+        while (tryIndex < SpawnFixTryCount)
+        {
+            Vector3 pushDirection = GetSpawnPush(enemyObject.transform, bodyColliders);
+
+            if (pushDirection.sqrMagnitude <= ZeroThreshold)
+            {
+                return;
+            }
+
+            enemyObject.transform.position += pushDirection;
+            tryIndex += 1;
+        }
+
+        Vector3 fallbackPoint;
+
+        if (TryFindSpawnPoint(enemyObject.transform, bodyColliders, out fallbackPoint))
+        {
+            enemyObject.transform.position = fallbackPoint;
+        }
+    }
+
+    private Vector3 GetSpawnPush(Transform enemyTransform, Collider[] bodyColliders)
+    {
+        float searchRadius = GetSpawnRadius(bodyColliders) + SpawnCheckPadding;
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            enemyTransform.position,
+            searchRadius,
+            _spawnCheckBuffer,
+            ~0,
+            QueryTriggerInteraction.Ignore);
+
+        if (hitCount == 0)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 pushDirection = Vector3.zero;
+        int bodyIndex = 0;
+
+        while (bodyIndex < bodyColliders.Length)
+        {
+            Collider bodyCollider = bodyColliders[bodyIndex];
+
+            if (CanUseSpawnCollider(bodyCollider))
+            {
+                int hitIndex = 0;
+
+                while (hitIndex < hitCount)
+                {
+                    Collider hitCollider = _spawnCheckBuffer[hitIndex];
+
+                    if (CanUseHitCollider(enemyTransform, hitCollider))
+                    {
+                        Vector3 overlapDirection;
+                        float overlapDistance;
+                        bool hasOverlap = Physics.ComputePenetration(
+                            bodyCollider,
+                            bodyCollider.transform.position,
+                            bodyCollider.transform.rotation,
+                            hitCollider,
+                            hitCollider.transform.position,
+                            hitCollider.transform.rotation,
+                            out overlapDirection,
+                            out overlapDistance);
+
+                        if (hasOverlap)
+                        {
+                            if (overlapDistance > 0f)
+                            {
+                                overlapDirection.y = 0f;
+
+                                if (overlapDirection.sqrMagnitude > ZeroThreshold)
+                                {
+                                    overlapDirection.Normalize();
+                                    pushDirection += overlapDirection * (overlapDistance + SpawnFixSkin);
+                                }
+                            }
+                        }
+                    }
+
+                    hitIndex += 1;
+                }
+            }
+
+            bodyIndex += 1;
+        }
+
+        return GetFlatDirection(pushDirection);
+    }
+
+    private bool TryFindSpawnPoint(Transform enemyTransform, Collider[] bodyColliders, out Vector3 fallbackPoint)
+    {
+        Vector3 startPoint = enemyTransform.position;
+        int ringIndex = 1;
+
+        while (ringIndex <= SpawnFixTryCount)
+        {
+            float radius = SpawnSearchStep * ringIndex;
+            int directionIndex = 0;
+
+            while (directionIndex < SpawnSearchDirections)
+            {
+                Vector3 candidateDirection = GetSpawnSearchDirection(directionIndex);
+                Vector3 candidatePoint = startPoint + (candidateDirection * radius);
+                enemyTransform.position = candidatePoint;
+
+                if (GetSpawnPush(enemyTransform, bodyColliders).sqrMagnitude <= ZeroThreshold)
+                {
+                    enemyTransform.position = startPoint;
+                    fallbackPoint = candidatePoint;
+
+                    return true;
+                }
+
+                directionIndex += 1;
+            }
+
+            ringIndex += 1;
+        }
+
+        enemyTransform.position = startPoint;
+        fallbackPoint = startPoint;
+
+        return false;
+    }
+
+    private float GetSpawnRadius(Collider[] bodyColliders)
+    {
+        float radius = 0.5f;
+        int colliderIndex = 0;
+
+        while (colliderIndex < bodyColliders.Length)
+        {
+            Collider bodyCollider = bodyColliders[colliderIndex];
+
+            if (CanUseSpawnCollider(bodyCollider))
+            {
+                Bounds bounds = bodyCollider.bounds;
+                float colliderRadius = Mathf.Max(bounds.extents.x, bounds.extents.z);
+
+                if (colliderRadius > radius)
+                {
+                    radius = colliderRadius;
+                }
+            }
+
+            colliderIndex += 1;
+        }
+
+        return radius;
+    }
+
+    private bool CanUseSpawnCollider(Collider bodyCollider)
+    {
+        if (bodyCollider == null)
+        {
+            return false;
+        }
+
+        if (bodyCollider.enabled == false)
+        {
+            return false;
+        }
+
+        if (bodyCollider.isTrigger)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool CanUseHitCollider(Transform enemyTransform, Collider hitCollider)
+    {
+        if (hitCollider == null)
+        {
+            return false;
+        }
+
+        if (hitCollider.enabled == false)
+        {
+            return false;
+        }
+
+        if (hitCollider.isTrigger)
+        {
+            return false;
+        }
+
+        if (hitCollider.transform.IsChildOf(enemyTransform))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private Vector3 GetSpawnSearchDirection(int directionIndex)
+    {
+        if (directionIndex == 0)
+        {
+            return Vector3.forward;
+        }
+
+        if (directionIndex == 1)
+        {
+            return Vector3.back;
+        }
+
+        if (directionIndex == 2)
+        {
+            return Vector3.left;
+        }
+
+        if (directionIndex == 3)
+        {
+            return Vector3.right;
+        }
+
+        if (directionIndex == 4)
+        {
+            return new Vector3(1f, 0f, 1f).normalized;
+        }
+
+        if (directionIndex == 5)
+        {
+            return new Vector3(1f, 0f, -1f).normalized;
+        }
+
+        if (directionIndex == 6)
+        {
+            return new Vector3(-1f, 0f, 1f).normalized;
+        }
+
+        return new Vector3(-1f, 0f, -1f).normalized;
+    }
+
+    private Vector3 GetFlatDirection(Vector3 direction)
+    {
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= ZeroThreshold)
+        {
+            return Vector3.zero;
+        }
+
+        direction.Normalize();
+
+        return direction;
+    }
+
+    private Vector3 GetWorldPosition(Transform rootTransform, Vector2Int floorCell, float spawnHeight)
+    {
+        Vector3 localPosition = GetLocalPosition(floorCell, spawnHeight);
+
+        return rootTransform.TransformPoint(localPosition);
     }
 
     private List<Vector2Int> SpawnResources(
@@ -991,26 +1290,28 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             int corridorDistance = distanceFromCorridor[cell.x, cell.y];
 
-            if (corridorDistance != -1)
+            if (corridorDistance == -1)
             {
-                if (relaxedRules == false)
-                {
-                    if (corridorDistance < _minimumResourceDistanceFromCorridorInCells)
-                    {
-                        continue;
-                    }
+                continue;
+            }
 
-                    if (corridorDistance > _maximumResourceDistanceFromCorridorInCells)
-                    {
-                        continue;
-                    }
-                }
-                else
+            if (relaxedRules == false)
+            {
+                if (corridorDistance < _minimumResourceDistanceFromCorridorInCells)
                 {
-                    if (corridorDistance < 1)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
+
+                if (corridorDistance > _maximumResourceDistanceFromCorridorInCells)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                if (corridorDistance < 1)
+                {
+                    continue;
                 }
             }
 
@@ -1096,7 +1397,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             if (found == false)
             {
-                found = TryPickAnyResourceCell(roomSizeInBlocks, floorOccupancy, out chosenCell);
+                found = TryPickAnyResourceCell(roomSizeInBlocks, floorOccupancy, distanceFromCorridor, out chosenCell);
 
                 if (found == false)
                 {
@@ -1105,11 +1406,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             }
 
             GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.ObjectPrefabs, random);
-            GameObject instance = Instantiate(prefab, _objectsRoot);
-
-            instance.transform.localPosition = GetLocalPosition(chosenCell);
-            instance.transform.localRotation = Quaternion.identity;
-            ApplyOriginalWorldScale(instance.transform);
+            InstantiateObjectOnCell(prefab, chosenCell);
 
             floorOccupancy.OccupiedFloorCells.Add(chosenCell);
         }
@@ -1149,7 +1446,12 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
                 int corridorDistance = distanceFromCorridor[candidateCell.x, candidateCell.y];
 
-                if (corridorDistance != -1 && corridorDistance < _minimumResourceDistanceFromCorridorInCells)
+                if (corridorDistance == -1)
+                {
+                    continue;
+                }
+
+                if (corridorDistance < _minimumResourceDistanceFromCorridorInCells)
                 {
                     continue;
                 }
@@ -1173,7 +1475,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return hasCandidate;
     }
 
-    private bool TryPickAnyResourceCell(Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy, out Vector2Int chosenCell)
+    private bool TryPickAnyResourceCell(Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy, int[,] distanceFromCorridor, out Vector2Int chosenCell)
     {
         for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
         {
@@ -1182,6 +1484,11 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 Vector2Int cell = new Vector2Int(cellX, cellZ);
 
                 if (floorOccupancy.IsFree(cell) == false)
+                {
+                    continue;
+                }
+
+                if (distanceFromCorridor[cell.x, cell.y] == -1)
                 {
                     continue;
                 }
@@ -1310,17 +1617,19 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
                 int corridorDistance = distanceFromCorridor[cell.x, cell.y];
 
-                if (corridorDistance != -1)
+                if (corridorDistance == -1)
                 {
-                    if (corridorDistance < _enemyEncounterMinCorridorDistanceInCells)
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    if (corridorDistance > _enemyEncounterMaxCorridorDistanceInCells)
-                    {
-                        continue;
-                    }
+                if (corridorDistance < _enemyEncounterMinCorridorDistanceInCells)
+                {
+                    continue;
+                }
+
+                if (corridorDistance > _enemyEncounterMaxCorridorDistanceInCells)
+                {
+                    continue;
                 }
 
                 if (IsTooCloseToExisting(cell, enemyCells, _minimumEnemySpacingInCells) == true)
@@ -1374,6 +1683,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 bool hasFallbackCell = TryPickFallbackEnemyCell(
                     roomSizeInBlocks,
                     floorOccupancy,
+                    distanceFromCorridor,
                     enemyForbiddenCellSet,
                     enemyCells,
                     out bestCell
@@ -1386,11 +1696,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             }
 
             GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            GameObject instance = Instantiate(prefab, _enemiesRoot);
-
-            instance.transform.localPosition = GetLocalPosition(bestCell);
-            instance.transform.localRotation = Quaternion.identity;
-            ApplyOriginalWorldScale(instance.transform);
+            InstantiateEnemyOnCell(prefab, bestCell);
 
             floorOccupancy.OccupiedFloorCells.Add(bestCell);
             enemyCells.Add(bestCell);
@@ -1437,11 +1743,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             }
 
             GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            GameObject instance = Instantiate(prefab, _enemiesRoot);
-
-            instance.transform.localPosition = GetLocalPosition(chosenCell);
-            instance.transform.localRotation = Quaternion.identity;
-            ApplyOriginalWorldScale(instance.transform);
+            InstantiateEnemyOnCell(prefab, chosenCell);
 
             floorOccupancy.OccupiedFloorCells.Add(chosenCell);
             enemyCells.Add(chosenCell);
@@ -1511,7 +1813,12 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
                 int corridorDistance = distanceFromCorridor[candidateCell.x, candidateCell.y];
 
-                if (corridorDistance != -1 && corridorDistance < 1)
+                if (corridorDistance == -1)
+                {
+                    continue;
+                }
+
+                if (corridorDistance < 1)
                 {
                     continue;
                 }
@@ -1550,6 +1857,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private bool TryPickFallbackEnemyCell(
         Vector3Int roomSizeInBlocks,
         RoomFloorOccupancy floorOccupancy,
+        int[,] distanceFromCorridor,
         HashSet<Vector2Int> enemyForbiddenCellSet,
         HashSet<Vector2Int> enemyCells,
         out Vector2Int chosenCell
@@ -1572,6 +1880,11 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
 
                 if (enemyForbiddenCellSet.Contains(cell) == true)
+                {
+                    continue;
+                }
+
+                if (distanceFromCorridor[cell.x, cell.y] == -1)
                 {
                     continue;
                 }
