@@ -39,6 +39,8 @@ public sealed class RoomInteriorChunkCombiner : MonoBehaviour
 
         ClearCombined();
 
+        bool includeInactive = ResolveIncludeInactive();
+
         List<RoomInteriorBlockRange> blockRanges = new List<RoomInteriorBlockRange>();
 
         RoomInteriorBlockRangeCollector.Collect(
@@ -46,7 +48,7 @@ public sealed class RoomInteriorChunkCombiner : MonoBehaviour
             _combinedRoot,
             _blockSize,
             _chunkSizeInCells,
-            _includeInactive,
+            includeInactive,
             blockRanges
         );
 
@@ -71,7 +73,7 @@ public sealed class RoomInteriorChunkCombiner : MonoBehaviour
             meshCombiner.CreateClusterRoot(clusterIndex, objectIndices, blockRanges, combinedSourceObjectIds);
         }
 
-        MeshFilter[] meshFilters = _interiorBlocksRoot.GetComponentsInChildren<MeshFilter>(_includeInactive);
+        MeshFilter[] meshFilters = _interiorBlocksRoot.GetComponentsInChildren<MeshFilter>(includeInactive);
 
         if (_disableSourceRenderers == true)
         {
@@ -82,6 +84,21 @@ public sealed class RoomInteriorChunkCombiner : MonoBehaviour
         {
             RoomInteriorSourceDisabler.DisableColliders(meshFilters, _combinedRoot, combinedSourceObjectIds);
         }
+    }
+
+    private bool ResolveIncludeInactive()
+    {
+        if (_includeInactive == true)
+        {
+            return true;
+        }
+
+        if (_interiorBlocksRoot.gameObject.activeInHierarchy == false)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     [ContextMenu("Clear Combined")]

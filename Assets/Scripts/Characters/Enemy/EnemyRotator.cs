@@ -85,4 +85,26 @@ public sealed class EnemyRotator : MonoBehaviour
 
         _rotationRoot.rotation = nextRotation;
     }
+
+    public void SnapToDirection(Vector3 direction)
+    {
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= 0.0001f)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction.normalized);
+
+        if (_rigidbody != null && _rotationRoot == transform)
+        {
+            _rigidbody.angularVelocity = Vector3.zero;
+            _rigidbody.rotation = targetRotation;
+
+            return;
+        }
+
+        _rotationRoot.rotation = targetRotation;
+    }
 }

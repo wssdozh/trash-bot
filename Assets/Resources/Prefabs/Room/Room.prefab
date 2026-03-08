@@ -226,7 +226,6 @@ MonoBehaviour:
   _openingHeightInBlocks: 4
   _innerWallClearDepthInCells: 2
   _cornerMarginInBlocks: 15
-  _distanceSlackInCells: 6
 --- !u!114 &4835821493221202258
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,6 +303,8 @@ MonoBehaviour:
   _objectsRoot: {fileID: 777803408109760421}
   _enemiesRoot: {fileID: 1551181830282732250}
   _blockSize: 1
+  _objectSpawnHeight: 1
+  _enemySpawnHeight: 2
   _cornerAvoidanceInCells: 3
   _minimumResourceDistanceFromCorridorInCells: 3
   _maximumResourceDistanceFromCorridorInCells: 12
@@ -317,6 +318,10 @@ MonoBehaviour:
   _enemyWallAvoidanceInCells: 4
   _enemyPreferredWallDistanceInCells: 10
   _enemyPreferredCover: 0.2
+  _enemyOpenAreaRadiusInCells: 3
+  _enemyMinOpenAreaInCells: 9
+  _enemyPreferredOpenAreaInCells: 16
+  _enemyMinSpanInCells: 3
 --- !u!114 &1028724452094934606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -516,4 +521,3 @@ MonoBehaviour:
   _createMeshCollider: 1
   _meshColliderConvex: 0
   _meshColliderIsTrigger: 0
-

@@ -117,6 +117,8 @@ public sealed class LevelGenerator : MonoBehaviour
                     InvokeGenerationCompletedEvent();
                 }
 
+                BuildRuntimeNavMesh();
+
                 return;
             }
 
@@ -130,6 +132,7 @@ public sealed class LevelGenerator : MonoBehaviour
     public void Clear()
     {
         _generationContext.ClearData();
+        ClearRuntimeNavMesh();
 
         LevelGeneratorUtility.DestroyChildren(_roomsRoot);
         LevelGeneratorUtility.DestroyChildren(_corridorsRoot);
@@ -203,6 +206,36 @@ public sealed class LevelGenerator : MonoBehaviour
         }
 
         generationCompleted.Invoke();
+    }
+
+    private void BuildRuntimeNavMesh()
+    {
+        LevelRuntimeNavMesh levelRuntimeNavMesh = GetOrCreateRuntimeNavMesh();
+        levelRuntimeNavMesh.RequestBuild();
+    }
+
+    private void ClearRuntimeNavMesh()
+    {
+        LevelRuntimeNavMesh levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
+
+        if (levelRuntimeNavMesh == null)
+        {
+            return;
+        }
+
+        levelRuntimeNavMesh.ClearData();
+    }
+
+    private LevelRuntimeNavMesh GetOrCreateRuntimeNavMesh()
+    {
+        LevelRuntimeNavMesh levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
+
+        if (levelRuntimeNavMesh != null)
+        {
+            return levelRuntimeNavMesh;
+        }
+
+        return gameObject.AddComponent<LevelRuntimeNavMesh>();
     }
 
     private int GetRandomSeed()

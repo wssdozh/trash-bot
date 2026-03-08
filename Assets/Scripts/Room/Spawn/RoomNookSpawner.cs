@@ -133,7 +133,7 @@ public sealed class RoomNookSpawner : MonoBehaviour
             instance.transform.localRotation = Quaternion.identity;
             ApplyOriginalWorldScale(instance.transform);
 
-            floorOccupancy.OccupiedFloorCells.Add(chosenCell);
+            MarkFootprintOccupied(chosenCell, config.FootprintRadiusInCells, roomSizeInBlocks, floorOccupancy);
             placed.Add(new PlacedNook(configIndex, chosenCell));
         }
     }
@@ -487,6 +487,29 @@ public sealed class RoomNookSpawner : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void MarkFootprintOccupied(
+        Vector2Int centerCell,
+        int footprintRadiusInCells,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy
+    )
+    {
+        for (int offsetX = -footprintRadiusInCells; offsetX <= footprintRadiusInCells; offsetX++)
+        {
+            for (int offsetZ = -footprintRadiusInCells; offsetZ <= footprintRadiusInCells; offsetZ++)
+            {
+                Vector2Int cell = new Vector2Int(centerCell.x + offsetX, centerCell.y + offsetZ);
+
+                if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+                {
+                    continue;
+                }
+
+                floorOccupancy.OccupiedFloorCells.Add(cell);
+            }
+        }
     }
 
     private bool SatisfiesNeighborRules(int configIndex, NookPrefabConfig config, Vector2Int cell, List<PlacedNook> placed, IReadOnlyList<NookPrefabConfig> configs)

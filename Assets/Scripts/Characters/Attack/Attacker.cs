@@ -34,10 +34,13 @@ public class Attacker : MonoBehaviour
             return true;
         }
 
-        Transform targetTransform = null;
-        Rigidbody targetRigidbody = null;
-        Health targetHealth = null;
-        float closestDistance = float.MaxValue;
+        Transform nearestHealthTransform = null;
+        Rigidbody nearestHealthRigidbody = null;
+        Health nearestHealth = null;
+        float nearestHealthDistance = float.MaxValue;
+        Transform nearestRigidbodyTransform = null;
+        Rigidbody nearestRigidbody = null;
+        float nearestRigidbodyDistance = float.MaxValue;
 
         int hitIndex = 0;
 
@@ -62,24 +65,40 @@ public class Attacker : MonoBehaviour
             Health hitHealth = hit.GetComponentInParent<Health>();
             Rigidbody hitRigidbody = hit.attachedRigidbody;
 
-            if (hitHealth == null && hitRigidbody == null)
-            {
-                hitIndex += 1;
-
-                continue;
-            }
-
             float distance = Vector3.Distance(transform.position, hit.transform.position);
 
-            if (distance < closestDistance)
+            if (hitHealth != null)
             {
-                closestDistance = distance;
-                targetTransform = hit.transform;
-                targetRigidbody = hitRigidbody;
-                targetHealth = hitHealth;
+                if (distance < nearestHealthDistance)
+                {
+                    nearestHealthDistance = distance;
+                    nearestHealthTransform = hit.transform;
+                    nearestHealthRigidbody = hitRigidbody;
+                    nearestHealth = hitHealth;
+                }
+            }
+
+            else if (hitRigidbody != null)
+            {
+                if (distance < nearestRigidbodyDistance)
+                {
+                    nearestRigidbodyDistance = distance;
+                    nearestRigidbodyTransform = hit.transform;
+                    nearestRigidbody = hitRigidbody;
+                }
             }
 
             hitIndex += 1;
+        }
+
+        Transform targetTransform = nearestHealthTransform;
+        Rigidbody targetRigidbody = nearestHealthRigidbody;
+        Health targetHealth = nearestHealth;
+
+        if (targetTransform == null)
+        {
+            targetTransform = nearestRigidbodyTransform;
+            targetRigidbody = nearestRigidbody;
         }
 
         if (targetTransform == null)

@@ -21,7 +21,7 @@ MonoBehaviour:
   _heightExponent: 1.49
   _largeCubeStackHeightRange: {x: 1, y: 7}
   _randomYawRotation: 1
-  _enemySpawnCountRange: {x: 3, y: 20}
+  _enemySpawnCountRange: {x: 3, y: 15}
   _enemyPrefabs:
   - _prefab: {fileID: 625229030526185096, guid: fa4493f117e180d41826086377115b5a, type: 3}
     _weight: 3
@@ -31,6 +31,9 @@ MonoBehaviour:
     _guaranteed: 0
   - _prefab: {fileID: 7498234434704418352, guid: f18352863eccbe144b20b35c02dc805a, type: 3}
     _weight: 1
+    _guaranteed: 0
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 3
     _guaranteed: 0
   _objectSpawnCountRange: {x: 3, y: 10}
   _objectPrefabs:

@@ -1,3 +1,4 @@
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public sealed class DieFracture : MonoBehaviour
@@ -22,6 +23,8 @@ public sealed class DieFracture : MonoBehaviour
         {
             _fractureFx = _fracturedObject.GetComponent<FractureFx>();
         }
+
+        EnsureFracturedNavMeshIgnore();
 
         if (_health != null)
         {
@@ -68,5 +71,37 @@ public sealed class DieFracture : MonoBehaviour
         {
             _intactObject.SetActive(false);
         }
+
+        RequestNavMeshUpdate();
+    }
+
+    private void EnsureFracturedNavMeshIgnore()
+    {
+        if (_fracturedObject == null)
+        {
+            return;
+        }
+
+        NavMeshModifier navMeshModifier = _fracturedObject.GetComponent<NavMeshModifier>();
+
+        if (navMeshModifier == null)
+        {
+            navMeshModifier = _fracturedObject.AddComponent<NavMeshModifier>();
+        }
+
+        navMeshModifier.ignoreFromBuild = true;
+        navMeshModifier.applyToChildren = true;
+    }
+
+    private void RequestNavMeshUpdate()
+    {
+        LevelRuntimeNavMesh levelRuntimeNavMesh = GetComponentInParent<LevelRuntimeNavMesh>();
+
+        if (levelRuntimeNavMesh == null)
+        {
+            return;
+        }
+
+        levelRuntimeNavMesh.RequestUpdate();
     }
 }

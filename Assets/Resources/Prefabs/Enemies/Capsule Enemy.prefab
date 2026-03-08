@@ -118,7 +118,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.45
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -163,7 +163,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6695405994909000428}
   _speed: 2.2
-  _speedSprint: 6
+  _speedSprint: 4
   _wallNormalMaxY: 0.2
 --- !u!114 &6367953433166089997
 MonoBehaviour:
@@ -234,7 +234,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMove
   _characterMover: {fileID: 924719609261421840}
   _steerSpeed: 140
-  _moveScale: 0.6
+  _moveScale: 0.8
   _moveInputSpeed: 2.4
 --- !u!114 &9123886638528049474
 MonoBehaviour:
@@ -288,39 +288,33 @@ MonoBehaviour:
   _attackDistance: 1.25
   _attackAngle: 35
   _combatRadius: 1.2
-  _combatTolerance: 0.2
-  _orbitMin: 1.15
-  _orbitMax: 1.85
-  _recoverMin: 0.25
-  _recoverMax: 0.45
+  _combatChaos: 0.25
   _idleMoveMin: 4.5
   _idleMoveMax: 7.5
   _idleWaitMin: 2.2
   _idleWaitMax: 3.6
+  _idleTurnMin: 14
+  _idleTurnMax: 38
   _idleLookAngle: 42
   _idleReachDistance: 0.2
+  _lostChaseDistance: 1.15
+  _lostStopDistance: 0.05
   _searchPointDistance: 0.35
   _searchWaitSeconds: 1.25
+  _searchAngle: 55
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 385
   _allyMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _probeRadius: 0.3
+  _probeRadius: 0.22
   _probeHeight: 0.6
-  _probeDistance: 1.5
-  _probeAngle: 35
-  _avoidWeight: 1.6
-  _separationRadius: 1.05
+  _probeDistance: 0.9
+  _probeAngle: 25
+  _wallGap: 0.12
+  _avoidWeight: 1.05
+  _separationRadius: 0.8
   _separationWeight: 1.1
-  _orbitWeight: 0.95
-  _ringWeight: 1.35
-  _slotWeight: 0.75
-  _slotAngle: 22
-  _slotRadius: 3
-  _slotCount: 5
-  _recoverBack: 1.1
-  _recoverSide: 0.8
   _isAttackZoneVisible: 1
   _isMoveGizmoVisible: 1

@@ -179,8 +179,6 @@ public sealed class RoomGenerator : MonoBehaviour
             _roomInteriorChunkCombiner.Combine();
         }
 
-        _roomContentSpawner.Spawn(_roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, random);
-
         bool hasGuaranteed = _roomPassagePlanner.TryGetGuaranteedNookCell(out Vector2Int guaranteedCell);
 
         _roomNookSpawner.Spawn(
@@ -192,6 +190,8 @@ public sealed class RoomGenerator : MonoBehaviour
             guaranteedCell,
             random
         );
+
+        _roomContentSpawner.Spawn(_roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, random);
 
         if (noiseProfile != null)
         {
