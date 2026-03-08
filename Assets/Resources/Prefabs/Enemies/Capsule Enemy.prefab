@@ -163,7 +163,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6695405994909000428}
   _speed: 2.2
-  _speedSprint: 4
+  _speedSprint: 3.6
   _wallNormalMaxY: 0.2
 --- !u!114 &6367953433166089997
 MonoBehaviour:
@@ -289,6 +289,7 @@ MonoBehaviour:
   _attackAngle: 35
   _combatRadius: 1.2
   _combatChaos: 0.25
+  _combatTolerance: 0.2
   _idleMoveMin: 4.5
   _idleMoveMax: 7.5
   _idleWaitMin: 2.2
@@ -316,5 +317,8 @@ MonoBehaviour:
   _avoidWeight: 1.05
   _separationRadius: 0.8
   _separationWeight: 1.1
+  _slotAngle: 22
+  _slotRadius: 3
+  _slotCount: 5
   _isAttackZoneVisible: 1
   _isMoveGizmoVisible: 1

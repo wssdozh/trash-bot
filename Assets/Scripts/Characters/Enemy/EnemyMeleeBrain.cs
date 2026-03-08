@@ -31,9 +31,13 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
     [SerializeField] private float _attackAngle = 20f;
     [SerializeField] private float _combatRadius = 1.2f;
     [SerializeField] private float _combatChaos = 0.25f;
+    [SerializeField] private float _combatTolerance = 0.2f;
     [SerializeField] private float _fightExitGap = 0.35f;
     [SerializeField] private float _runStartDistance = 4.4f;
     [SerializeField] private float _runStopDistance = 3.1f;
+    [SerializeField] private float _slotAngle = 22f;
+    [SerializeField] private float _slotRadius = 3f;
+    [SerializeField] private int _slotCount = 5;
 
     [Header("Idle")]
     [SerializeField] private float _idleMoveMin = 4f;
@@ -144,6 +148,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
             throw new InvalidOperationException(nameof(_combatChaos));
         }
 
+        if (_combatTolerance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_combatTolerance));
+        }
+
         if (_fightExitGap < 0f)
         {
             throw new InvalidOperationException(nameof(_fightExitGap));
@@ -162,6 +171,21 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         if (_runStartDistance < _runStopDistance)
         {
             throw new InvalidOperationException(nameof(_runStartDistance));
+        }
+
+        if (_slotAngle < 0f)
+        {
+            throw new InvalidOperationException(nameof(_slotAngle));
+        }
+
+        if (_slotRadius <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_slotRadius));
+        }
+
+        if (_slotCount <= 0)
+        {
+            throw new InvalidOperationException(nameof(_slotCount));
         }
 
         if (_idleMoveMin <= 0f)
@@ -263,6 +287,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         _enemySteering = new EnemySteering(transform, _enemyMove, _enemyRotator);
         _enemySteering.SetObstacle(_obstacleMask, _probeRadius, _probeHeight, _probeDistance, _probeAngle, _avoidWeight);
         _enemySteering.SetSpacing(_allyMask, _separationRadius, _separationWeight);
+        _enemySteering.SetSlot(_slotAngle, _slotRadius, _slotCount);
     }
 
     private void OnEnable()
@@ -444,7 +469,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
             _state = EnemyState.Chase;
             _enemyMove.SetRun(IsRunNeeded(distance));
 
-            if (TryVisibleMove(_enemySteering.MoveToPoint(targetPoint, _fightRadius, targetPoint), currentPoint))
+            if (TryVisibleMove(_enemySteering.ChaseTarget(currentTarget, _fightRadius, _combatTolerance), currentPoint))
             {
                 return;
             }

@@ -3976,7 +3976,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 826700105}
   _speed: 2.2
-  _speedSprint: 4
+  _speedSprint: 3.6
   _wallNormalMaxY: 0.2
 --- !u!1 &832575517
 GameObject:

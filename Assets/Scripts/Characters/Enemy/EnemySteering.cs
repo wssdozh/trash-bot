@@ -104,6 +104,13 @@ public sealed class EnemySteering
         _separationWeight = separationWeight;
     }
 
+    public void SetSlot(float slotAngle, float slotRadius, int slotCount)
+    {
+        _slotAngle = slotAngle;
+        _slotRadius = slotRadius;
+        _slotCount = Mathf.Max(slotCount, 1);
+    }
+
     public void SetCombat(float orbitWeight, float ringWeight, float slotWeight, float slotAngle, float slotRadius, int slotCount, float recoverBack, float recoverSide)
     {
         _orbitWeight = orbitWeight;
@@ -190,7 +197,7 @@ public sealed class EnemySteering
         return true;
     }
 
-    public bool ChaseTarget(Transform target, float ringDistance, float ringTolerance, bool isClockwise)
+    public bool ChaseTarget(Transform target, float ringDistance, float ringTolerance)
     {
         if (target == null)
         {
@@ -199,9 +206,23 @@ public sealed class EnemySteering
             return false;
         }
 
-        float stopDistance = Mathf.Max(0.05f, ringDistance - ringTolerance);
+        Vector3 currentPoint = GetFlatPoint(_root.position);
+        Vector3 targetPoint = GetFlatPoint(target.position);
+        Vector3 toTarget = targetPoint - currentPoint;
 
-        return MoveToPoint(target.position, stopDistance);
+        if (toTarget.sqrMagnitude <= MinDistance)
+        {
+            _enemyMove.StopMove();
+
+            return false;
+        }
+
+        Vector3 targetDirection = toTarget.normalized;
+        Vector3 slotPoint = GetSlotPoint(currentPoint, targetPoint, targetDirection, ringDistance);
+        Vector3 safePoint = GetSafePoint(slotPoint, _probeRadius);
+        float stopDistance = Mathf.Max(ringTolerance, 0.05f);
+
+        return MoveToPoint(safePoint, stopDistance, targetPoint);
     }
 
     public bool OrbitTarget(Transform target, float ringDistance, float ringTolerance, bool isClockwise)
@@ -894,6 +915,103 @@ public sealed class EnemySteering
         }
 
         return false;
+    }
+
+    private Vector3 GetSlotPoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 targetDirection, float ringDistance)
+    {
+        Vector3 fromTargetDirection = -targetDirection;
+        float slotOffset = GetSlotOffset(targetPoint);
+        Vector3 slotDirection = RotateDirection(fromTargetDirection, slotOffset);
+        Vector3 slotPoint = targetPoint + (slotDirection * ringDistance);
+        slotPoint.y = currentPoint.y;
+
+        return slotPoint;
+    }
+
+    private float GetSlotOffset(Vector3 targetPoint)
+    {
+        if (_slotCount <= 1)
+        {
+            return 0f;
+        }
+
+        if (_allyMask.value == 0)
+        {
+            return 0f;
+        }
+
+        if (_slotRadius <= MinDistance)
+        {
+            return 0f;
+        }
+
+        if (_slotAngle <= 0f)
+        {
+            return 0f;
+        }
+
+        Vector3 origin = targetPoint + (Vector3.up * _probeHeight);
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            origin,
+            _slotRadius,
+            _allyBuffer,
+            _allyMask,
+            QueryTriggerInteraction.Ignore);
+        int uniqueCount = 0;
+        int rank = 0;
+        int currentId = _root.gameObject.GetInstanceID();
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
+        {
+            Collider hitCollider = _allyBuffer[hitIndex];
+
+            if (hitCollider != null)
+            {
+                Enemy otherEnemy = hitCollider.GetComponentInParent<Enemy>();
+
+                if (otherEnemy != null)
+                {
+                    if (otherEnemy.gameObject != _root.gameObject && otherEnemy.IsDead == false)
+                    {
+                        int otherId = otherEnemy.gameObject.GetInstanceID();
+
+                        if (ContainsAlly(otherId, uniqueCount) == false)
+                        {
+                            if (uniqueCount < _allyIdBuffer.Length)
+                            {
+                                _allyIdBuffer[uniqueCount] = otherId;
+                                uniqueCount += 1;
+                            }
+
+                            if (otherId < currentId)
+                            {
+                                rank += 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            hitIndex += 1;
+        }
+
+        int slotIndex = rank % _slotCount;
+
+        if (slotIndex == 0)
+        {
+            return 0f;
+        }
+
+        int offsetStep = ((slotIndex - 1) / 2) + 1;
+        float angle = _slotAngle * offsetStep;
+
+        if (slotIndex % 2 == 0)
+        {
+            angle = -angle;
+        }
+
+        return angle;
     }
 
     private bool HasObstaclePoint(Vector3 point)
