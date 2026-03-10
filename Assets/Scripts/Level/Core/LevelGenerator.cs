@@ -26,6 +26,14 @@ public sealed class LevelGenerator : MonoBehaviour
     [SerializeField, Min(0)] private int _seedMax = int.MaxValue;
     [SerializeField] private bool _removeLegacyEnvironment = true;
 
+    [Header("Room Runtime")]
+    [SerializeField] private bool _streamRooms = true;
+    [SerializeField] private Transform _player;
+    [SerializeField, Min(0f)] private float _enemyBorderGap = 0.35f;
+    [SerializeField, Min(0f)] private float _roomEnableDistance = 35f;
+    [SerializeField, Min(0f)] private float _roomDisableDistance = 45f;
+    [SerializeField, Min(0f)] private float _roomStreamDelay = 0.5f;
+
     [Header("Attempts")]
     [SerializeField, Min(1)] private int _generationAttempts = 3;
     [SerializeField, Min(0)] private int _maximumRoomRegenerateAttempts = 8;
@@ -119,6 +127,11 @@ public sealed class LevelGenerator : MonoBehaviour
 
                 BuildRuntimeNavMesh();
 
+                if (Application.isPlaying == true)
+                {
+                    ConfigureRoomStreaming();
+                }
+
                 return;
             }
 
@@ -133,6 +146,7 @@ public sealed class LevelGenerator : MonoBehaviour
     {
         _generationContext.ClearData();
         ClearRuntimeNavMesh();
+        ClearRoomStreaming();
 
         LevelGeneratorUtility.DestroyChildren(_roomsRoot);
         LevelGeneratorUtility.DestroyChildren(_corridorsRoot);
@@ -167,7 +181,7 @@ public sealed class LevelGenerator : MonoBehaviour
         if (_corridorExecutor.BuildCorridors(_generationContext, _corridorsRoot, _corridorBuilder) == false)
             return false;
 
-        _roomFinalizer.FinalizeInteriors(_generationContext);
+        _roomFinalizer.FinalizeInteriors(_generationContext, _enemyBorderGap);
 
         return true;
     }
@@ -214,6 +228,42 @@ public sealed class LevelGenerator : MonoBehaviour
         levelRuntimeNavMesh.RequestBuild();
     }
 
+    private void ConfigureRoomStreaming()
+    {
+        LevelRoomStreamer levelRoomStreamer = GetComponent<LevelRoomStreamer>();
+
+        if (_streamRooms == false)
+        {
+            if (levelRoomStreamer != null)
+            {
+                levelRoomStreamer.ClearRooms();
+                levelRoomStreamer.enabled = false;
+            }
+
+            return;
+        }
+
+        RoomRuntimeState[] roomRuntimeStates = CollectRoomStates();
+
+        if (roomRuntimeStates.Length == 0)
+        {
+            if (levelRoomStreamer != null)
+            {
+                levelRoomStreamer.ClearRooms();
+                levelRoomStreamer.enabled = false;
+            }
+
+            return;
+        }
+
+        if (levelRoomStreamer == null)
+        {
+            levelRoomStreamer = gameObject.AddComponent<LevelRoomStreamer>();
+        }
+
+        levelRoomStreamer.Setup(_player, _roomEnableDistance, _roomDisableDistance, _roomStreamDelay, roomRuntimeStates);
+    }
+
     private void ClearRuntimeNavMesh()
     {
         LevelRuntimeNavMesh levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
@@ -226,6 +276,19 @@ public sealed class LevelGenerator : MonoBehaviour
         levelRuntimeNavMesh.ClearData();
     }
 
+    private void ClearRoomStreaming()
+    {
+        LevelRoomStreamer levelRoomStreamer = GetComponent<LevelRoomStreamer>();
+
+        if (levelRoomStreamer == null)
+        {
+            return;
+        }
+
+        levelRoomStreamer.ClearRooms();
+        levelRoomStreamer.enabled = false;
+    }
+
     private LevelRuntimeNavMesh GetOrCreateRuntimeNavMesh()
     {
         LevelRuntimeNavMesh levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
@@ -236,6 +299,56 @@ public sealed class LevelGenerator : MonoBehaviour
         }
 
         return gameObject.AddComponent<LevelRuntimeNavMesh>();
+    }
+
+    private RoomRuntimeState[] CollectRoomStates()
+    {
+        RoomRuntimeState[] roomRuntimeStates = new RoomRuntimeState[_generationContext.PlacedRooms.Count];
+        int count = 0;
+
+        for (int index = 0; index < _generationContext.PlacedRooms.Count; index++)
+        {
+            PlacedRoomInfo placedRoomInfo = _generationContext.PlacedRooms[index];
+
+            if (placedRoomInfo == null)
+            {
+                continue;
+            }
+
+            if (placedRoomInfo.Node == null)
+            {
+                continue;
+            }
+
+            if (placedRoomInfo.Node.RoomInstance == null)
+            {
+                continue;
+            }
+
+            RoomRuntimeState roomRuntimeState = placedRoomInfo.Node.RoomInstance.GetComponent<RoomRuntimeState>();
+
+            if (roomRuntimeState == null)
+            {
+                continue;
+            }
+
+            roomRuntimeStates[count] = roomRuntimeState;
+            count += 1;
+        }
+
+        if (count == roomRuntimeStates.Length)
+        {
+            return roomRuntimeStates;
+        }
+
+        RoomRuntimeState[] compactStates = new RoomRuntimeState[count];
+
+        for (int index = 0; index < count; index++)
+        {
+            compactStates[index] = roomRuntimeStates[index];
+        }
+
+        return compactStates;
     }
 
     private int GetRandomSeed()

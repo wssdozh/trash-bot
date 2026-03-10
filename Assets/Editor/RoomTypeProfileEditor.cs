@@ -39,7 +39,7 @@ public sealed class RoomTypeProfileEditor : Editor
         SortEntries(fillEntries, new string[2] { "blockFillPercent", "largeCubeAreaPercent" });
         SortEntries(heightEntries, new string[3] { "minimumStackHeightInBlocks", "maximumStackHeightInBlocks", "heightExponent" });
         SortEntries(bigEntries, new string[2] { "largeCubeStackHeightRange", "randomYawRotation" });
-        SortEntries(enemyEntries, new string[3] { "enemySpawnCountRange", "enemyPrefabs", "enemySpawnHeights" });
+        SortEntries(enemyEntries, new string[2] { "enemySpawnCountRange", "enemyPrefabs" });
         SortEntries(objectEntries, new string[2] { "objectSpawnCountRange", "objectPrefabs" });
         SortEntries(nookEntries, new string[8]
         {
@@ -54,13 +54,12 @@ public sealed class RoomTypeProfileEditor : Editor
         });
 
         DrawSection("RoomTypeProfileEditor.Main", "Основное", mainEntries, true);
-        DrawSection("RoomTypeProfileEditor.Fill", "Заполнение препятствиями", fillEntries, true);
-        DrawSection("RoomTypeProfileEditor.Height", "Высота препятствий", heightEntries, true);
-        DrawSection("RoomTypeProfileEditor.Big", "Крупные блоки 2×2", bigEntries, true);
+        DrawSection("RoomTypeProfileEditor.Fill", "Заполнение", fillEntries, true);
+        DrawSection("RoomTypeProfileEditor.Height", "Высота", heightEntries, true);
+        DrawSection("RoomTypeProfileEditor.Big", "Крупные блоки", bigEntries, true);
         DrawSection("RoomTypeProfileEditor.Enemies", "Враги", enemyEntries, true);
         DrawSection("RoomTypeProfileEditor.Objects", "Ресурсы", objectEntries, true);
-        DrawSection("RoomTypeProfileEditor.Nooks", "Закоулки (POI)", nookEntries, true);
-
+        DrawSection("RoomTypeProfileEditor.Nooks", "Закоулки", nookEntries, true);
         DrawSection("RoomTypeProfileEditor.Other", "Прочее", otherEntries, false);
 
         serializedObject.ApplyModifiedProperties();
@@ -69,6 +68,7 @@ public sealed class RoomTypeProfileEditor : Editor
     private void DrawScriptField()
     {
         SerializedProperty scriptProperty = serializedObject.FindProperty("m_Script");
+
         if (scriptProperty == null)
         {
             return;
@@ -89,14 +89,14 @@ public sealed class RoomTypeProfileEditor : Editor
         }
 
         bool isOpen = EditorPrefs.GetBool(key, defaultValue);
-        bool newIsOpen = EditorGUILayout.Foldout(isOpen, title, true);
+        bool nextIsOpen = EditorGUILayout.Foldout(isOpen, title, true);
 
-        if (newIsOpen != isOpen)
+        if (nextIsOpen != isOpen)
         {
-            EditorPrefs.SetBool(key, newIsOpen);
+            EditorPrefs.SetBool(key, nextIsOpen);
         }
 
-        if (newIsOpen == false)
+        if (nextIsOpen == false)
         {
             return;
         }
@@ -106,6 +106,7 @@ public sealed class RoomTypeProfileEditor : Editor
         for (int index = 0; index < entries.Count; index++)
         {
             SerializedProperty property = serializedObject.FindProperty(entries[index].PropertyPath);
+
             if (property == null)
             {
                 continue;
@@ -113,7 +114,6 @@ public sealed class RoomTypeProfileEditor : Editor
 
             string label = GetLocalizedLabel(entries[index].NormalizedName, ObjectNames.NicifyVariableName(property.name));
             GUIContent guiContent = new GUIContent(label, property.tooltip);
-
             EditorGUILayout.PropertyField(property, guiContent, true);
         }
 
@@ -151,51 +151,58 @@ public sealed class RoomTypeProfileEditor : Editor
             }
 
             string normalizedName = NormalizeName(iterator.name);
-            PropertyEntry entry = new PropertyEntry(iterator.propertyPath, normalizedName);
+            PropertyEntry propertyEntry = new PropertyEntry(iterator.propertyPath, normalizedName);
 
-            if (IsMain(normalizedName) == true)
+            if (IsMain(normalizedName))
             {
-                mainEntries.Add(entry);
+                mainEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsFill(normalizedName) == true)
+            if (IsFill(normalizedName))
             {
-                fillEntries.Add(entry);
+                fillEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsHeight(normalizedName) == true)
+            if (IsHeight(normalizedName))
             {
-                heightEntries.Add(entry);
+                heightEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsBig(normalizedName) == true)
+            if (IsBig(normalizedName))
             {
-                bigEntries.Add(entry);
+                bigEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsEnemies(normalizedName) == true)
+            if (IsEnemies(normalizedName))
             {
-                enemyEntries.Add(entry);
+                enemyEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsObjects(normalizedName) == true)
+            if (IsObjects(normalizedName))
             {
-                objectEntries.Add(entry);
+                objectEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            if (IsNooks(normalizedName) == true)
+            if (IsNooks(normalizedName))
             {
-                nookEntries.Add(entry);
+                nookEntries.Add(propertyEntry);
+
                 continue;
             }
 
-            otherEntries.Add(entry);
+            otherEntries.Add(propertyEntry);
         }
     }
 
@@ -240,12 +247,12 @@ public sealed class RoomTypeProfileEditor : Editor
 
     private string NormalizeName(string name)
     {
-        if (string.IsNullOrEmpty(name) == true)
+        if (string.IsNullOrEmpty(name))
         {
             return string.Empty;
         }
 
-        if (name.StartsWith("_") == true)
+        if (name.StartsWith("_"))
         {
             return name.Substring(1);
         }
@@ -253,71 +260,64 @@ public sealed class RoomTypeProfileEditor : Editor
         return name;
     }
 
-    private bool IsMain(string n)
+    private bool IsMain(string normalizedName)
     {
-        return n == "roomType" || n == "noiseProfile";
+        return normalizedName == "roomType" || normalizedName == "noiseProfile";
     }
 
-    private bool IsFill(string n)
+    private bool IsFill(string normalizedName)
     {
-        return n.StartsWith("blockFill") == true || n.StartsWith("largeCubeArea") == true;
+        return normalizedName.StartsWith("blockFill") || normalizedName.StartsWith("largeCubeArea");
     }
 
-    private bool IsHeight(string n)
+    private bool IsHeight(string normalizedName)
     {
-        return n.Contains("stackHeight") == true || n.Contains("heightExponent") == true;
+        return normalizedName.Contains("stackHeight") || normalizedName.Contains("heightExponent");
     }
 
-    private bool IsBig(string n)
+    private bool IsBig(string normalizedName)
     {
-        return n.Contains("largeCube") == true || n.Contains("randomYaw") == true;
+        return normalizedName.Contains("largeCube") || normalizedName.Contains("randomYaw");
     }
 
-    private bool IsEnemies(string n)
+    private bool IsEnemies(string normalizedName)
     {
-        return n.StartsWith("enemy") == true;
+        return normalizedName.StartsWith("enemy");
     }
 
-    private bool IsObjects(string n)
+    private bool IsObjects(string normalizedName)
     {
-        return n.StartsWith("object") == true;
+        return normalizedName.StartsWith("object");
     }
 
-    private bool IsNooks(string n)
+    private bool IsNooks(string normalizedName)
     {
-        return n.StartsWith("nook") == true;
+        return normalizedName.StartsWith("nook");
     }
 
     private string GetLocalizedLabel(string normalizedName, string fallback)
     {
         if (normalizedName == "roomType") return "Тип комнаты";
         if (normalizedName == "noiseProfile") return "Профиль шума";
-
         if (normalizedName == "blockFillPercent") return "Заполнение (%)";
-        if (normalizedName == "largeCubeAreaPercent") return "Доля 2×2";
-
+        if (normalizedName == "largeCubeAreaPercent") return "Доля 2x2";
         if (normalizedName == "minimumStackHeightInBlocks") return "Мин. высота";
         if (normalizedName == "maximumStackHeightInBlocks") return "Макс. высота";
-        if (normalizedName == "heightExponent") return "Экспонента высоты";
-
-        if (normalizedName == "largeCubeStackHeightRange") return "Ярусы 2×2";
-        if (normalizedName == "randomYawRotation") return "Случайный поворот Y";
-
+        if (normalizedName == "heightExponent") return "Экспонента";
+        if (normalizedName == "largeCubeStackHeightRange") return "Ярусы 2x2";
+        if (normalizedName == "randomYawRotation") return "Случайный Y";
         if (normalizedName == "enemySpawnCountRange") return "Количество врагов";
         if (normalizedName == "enemyPrefabs") return "Префабы врагов";
-        if (normalizedName == "enemySpawnHeights") return "Высоты спавна врагов";
-
         if (normalizedName == "objectSpawnCountRange") return "Количество ресурсов";
         if (normalizedName == "objectPrefabs") return "Префабы ресурсов";
-
         if (normalizedName == "nookPrefabs") return "Префабы POI";
         if (normalizedName == "nookSpawnCountRange") return "Кол-во закоулков";
         if (normalizedName == "nookItemsPerNookRange") return "Предметов в закоулке";
-        if (normalizedName == "nookMinimumDistanceFromCorridorInCells") return "Мин. дистанция от тропы";
-        if (normalizedName == "nookMinimumAreaInCells") return "Мин. размер кармана";
-        if (normalizedName == "nookScatterRadiusInCells") return "Разброс внутри кармана";
+        if (normalizedName == "nookMinimumDistanceFromCorridorInCells") return "Мин. дистанция";
+        if (normalizedName == "nookMinimumAreaInCells") return "Мин. размер";
+        if (normalizedName == "nookScatterRadiusInCells") return "Разброс";
         if (normalizedName == "nookWallMarginInCells") return "Отступ от стен";
-        if (normalizedName == "nookFootprintRadiusInCells") return "Требуемая площадка";
+        if (normalizedName == "nookFootprintRadiusInCells") return "Требуемая площадь";
 
         return fallback;
     }

@@ -53,6 +53,7 @@ public sealed class EnemySteering
     private Vector3 _lastNavPoint;
     private bool _hasPathTarget;
     private bool _hasLastNavPoint;
+    private EnemyRoomLock _enemyRoomLock;
 
     public EnemySteering(Transform root, EnemyMove enemyMove, EnemyRotator enemyRotator)
     {
@@ -124,6 +125,11 @@ public sealed class EnemySteering
         _recoverSide = recoverSide;
     }
 
+    public void SetRoomLock(EnemyRoomLock enemyRoomLock)
+    {
+        _enemyRoomLock = enemyRoomLock;
+    }
+
     public bool MoveToPoint(Vector3 targetPoint, float stopDistance)
     {
         return MoveToPoint(targetPoint, stopDistance, false, Vector3.zero);
@@ -137,7 +143,7 @@ public sealed class EnemySteering
     private bool MoveToPoint(Vector3 targetPoint, float stopDistance, bool isLookLocked, Vector3 lookPoint)
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
-        Vector3 flatTargetPoint = GetFlatPoint(targetPoint);
+        Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
 
         if (SyncAgent(currentPoint) == false)
         {
@@ -352,9 +358,19 @@ public sealed class EnemySteering
 
     public bool HasPointClearance(Vector3 point)
     {
+        if (ContainsMovePoint(point) == false)
+        {
+            return false;
+        }
+
         Vector3 navPoint;
 
         if (TryGetNavPoint(point, out navPoint) == false)
+        {
+            return false;
+        }
+
+        if (ContainsMovePoint(navPoint) == false)
         {
             return false;
         }
@@ -394,7 +410,7 @@ public sealed class EnemySteering
 
     public Vector3 GetSafePoint(Vector3 point, float wallGap)
     {
-        Vector3 flatPoint = GetFlatPoint(point);
+        Vector3 flatPoint = ClampMovePoint(point);
         float sampleDistance = Mathf.Max(GetNavSampleGap(), wallGap * 4f);
         Vector3 navPoint;
 
@@ -405,7 +421,7 @@ public sealed class EnemySteering
 
         if (wallGap <= MinDistance)
         {
-            return navPoint;
+            return ClampMovePoint(navPoint);
         }
 
         NavMeshHit edgeHit;
@@ -413,19 +429,19 @@ public sealed class EnemySteering
 
         if (hasEdge == false)
         {
-            return navPoint;
+            return ClampMovePoint(navPoint);
         }
 
         if (edgeHit.distance >= wallGap)
         {
-            return navPoint;
+            return ClampMovePoint(navPoint);
         }
 
         Vector3 edgeDirection = GetFlatDirection(edgeHit.normal);
 
         if (edgeDirection.sqrMagnitude <= MinDistance)
         {
-            return navPoint;
+            return ClampMovePoint(navPoint);
         }
 
         float pushDistance = wallGap - edgeHit.distance;
@@ -434,16 +450,16 @@ public sealed class EnemySteering
 
         if (TryGetNavPoint(pushedPoint, sampleDistance, out safePoint))
         {
-            return safePoint;
+            return ClampMovePoint(safePoint);
         }
 
-        return navPoint;
+        return ClampMovePoint(navPoint);
     }
 
     public Vector3 GetReachPoint(Vector3 targetPoint, float wallGap)
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
-        Vector3 flatTargetPoint = GetFlatPoint(targetPoint);
+        Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
         Vector3 navStartPoint;
         Vector3 navTargetPoint;
 
@@ -465,8 +481,13 @@ public sealed class EnemySteering
 
     public bool IsLineBlocked(Vector3 targetPoint)
     {
+        if (ContainsMovePoint(targetPoint) == false)
+        {
+            return true;
+        }
+
         Vector3 currentPoint = GetFlatPoint(_root.position);
-        Vector3 flatTargetPoint = GetFlatPoint(targetPoint);
+        Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
         Vector3 navStartPoint;
         Vector3 navTargetPoint;
 
@@ -1296,6 +1317,26 @@ public sealed class EnemySteering
         float minSampleGap = Mathf.Max(NavSampleGap, _probeRadius * 4f);
 
         return Mathf.Max(minSampleGap, _probeHeight * 4f);
+    }
+
+    private bool ContainsMovePoint(Vector3 point)
+    {
+        if (_enemyRoomLock == null)
+        {
+            return true;
+        }
+
+        return _enemyRoomLock.ContainsMovePoint(point);
+    }
+
+    private Vector3 ClampMovePoint(Vector3 point)
+    {
+        if (_enemyRoomLock == null)
+        {
+            return GetFlatPoint(point);
+        }
+
+        return GetFlatPoint(_enemyRoomLock.ClampMovePoint(point));
     }
 
     private Vector3 GetOrbitDirection(Vector3 targetDirection, bool isClockwise)

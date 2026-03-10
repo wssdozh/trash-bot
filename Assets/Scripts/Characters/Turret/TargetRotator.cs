@@ -20,7 +20,7 @@ public class TargetRotator : MonoBehaviour
             return;
         }
 
-        Vector3 directionToTarget = (currentTarget.position - _rotationPivot.position).normalized;
+        Vector3 directionToTarget = (_targetVision.CurrentTargetPoint - _rotationPivot.position).normalized;
 
         if (directionToTarget.sqrMagnitude <= Mathf.Epsilon)
         {
