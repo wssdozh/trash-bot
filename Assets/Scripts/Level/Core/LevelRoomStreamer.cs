@@ -91,28 +91,63 @@ public sealed class LevelRoomStreamer : MonoBehaviour
     {
         if (_player != null)
         {
+            _player = ResolvePlayerTrack(_player);
+
+            return _player;
+        }
+
+        Player playerComponent = FindFirstObjectByType<Player>();
+
+        if (playerComponent != null)
+        {
+            _player = ResolvePlayerTrack(playerComponent.transform);
+
             return _player;
         }
 
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
 
-        if (playerObject != null)
-        {
-            _player = playerObject.transform;
-
-            return _player;
-        }
-
-        Player player = FindFirstObjectByType<Player>();
-
-        if (player == null)
+        if (playerObject == null)
         {
             return null;
         }
 
-        _player = player.transform;
+        Player rootPlayer = playerObject.GetComponentInParent<Player>();
+
+        if (rootPlayer != null)
+        {
+            _player = ResolvePlayerTrack(rootPlayer.transform);
+
+            return _player;
+        }
+
+        _player = ResolvePlayerTrack(playerObject.transform);
 
         return _player;
+    }
+
+    private Transform ResolvePlayerTrack(Transform playerTransform)
+    {
+        Rigidbody[] rigidbodyComponents = playerTransform.GetComponentsInChildren<Rigidbody>(true);
+
+        for (int index = 0; index < rigidbodyComponents.Length; index++)
+        {
+            Rigidbody rigidbodyComponent = rigidbodyComponents[index];
+
+            if (rigidbodyComponent == null)
+            {
+                continue;
+            }
+
+            if (rigidbodyComponent.isKinematic)
+            {
+                continue;
+            }
+
+            return rigidbodyComponent.transform;
+        }
+
+        return playerTransform;
     }
 
     private void UpdateRooms(Vector3 playerPoint)

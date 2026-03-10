@@ -17,6 +17,11 @@ public class Attacker : MonoBehaviour
 
     public AttackData AttackData => _attackData;
 
+    public bool CanStartAttack()
+    {
+        return _isOnCooldown == false;
+    }
+
     public bool PerformAttack()
     {
         return PerformAttack(transform.forward);

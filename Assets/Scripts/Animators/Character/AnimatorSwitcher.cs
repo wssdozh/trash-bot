@@ -66,6 +66,20 @@ public class AnimatorSwitcher : MonoBehaviour
         _layerBlendCoroutine = StartCoroutine(BlendLayerWeightRoutine(_weaponLayerIndex, targetWeight, _switchBlendTime));
     }
 
+    public void SetBattleModeInstant(bool isBattleMode)
+    {
+        IsBattleMode = isBattleMode;
+
+        if (_layerBlendCoroutine != null)
+        {
+            StopCoroutine(_layerBlendCoroutine);
+            _layerBlendCoroutine = null;
+        }
+
+        float targetWeight = GetBattleLayerTargetWeight();
+        _animator.SetLayerWeight(_weaponLayerIndex, targetWeight);
+    }
+
     public void SetWeaponType(WeaponType weaponType)
     {
 
@@ -83,6 +97,19 @@ public class AnimatorSwitcher : MonoBehaviour
         }
 
         _weaponSwitchCoroutine = StartCoroutine(SwitchWeaponRoutine(_currentWeaponType));
+    }
+
+    public void SetWeaponTypeInstant(WeaponType weaponType)
+    {
+        _currentWeaponType = weaponType;
+
+        if (_weaponSwitchCoroutine != null)
+        {
+            StopCoroutine(_weaponSwitchCoroutine);
+            _weaponSwitchCoroutine = null;
+        }
+
+        ApplyWeaponType(_currentWeaponType);
     }
 
     private void CacheBaseOverrides()

@@ -19,6 +19,7 @@ public class TargetVision : MonoBehaviour
     private Coroutine _scanCoroutine;
     private readonly Collider[] _targetsBuffer = new Collider[TargetsBufferSize];
     private Vector3 _currentTargetPoint;
+    private Transform _currentLookTarget;
 
     public event Action TargetDetected;
     public event Action TargetCleared;
@@ -42,6 +43,16 @@ public class TargetVision : MonoBehaviour
             StopCoroutine(_scanCoroutine);
             _scanCoroutine = null;
         }
+    }
+
+    private void Update()
+    {
+        RefreshTargetPoint();
+    }
+
+    public void Refresh()
+    {
+        Scan();
     }
 
     private IEnumerator ScanLoop()
@@ -144,6 +155,7 @@ public class TargetVision : MonoBehaviour
         DistanceToTarget = Vector3.Distance(originPosition, lookTransform.position);
         _currentTarget = hitTransform;
         _currentTargetPoint = lookTransform.position;
+        _currentLookTarget = lookTransform;
 
         return true;
     }
@@ -178,6 +190,24 @@ public class TargetVision : MonoBehaviour
         DistanceToTarget = 0f;
         _currentTargetPoint = Vector3.zero;
         _currentTarget = null;
+        _currentLookTarget = null;
+    }
+
+    private void RefreshTargetPoint()
+    {
+        if (IsTargetVisible == false)
+        {
+            return;
+        }
+
+        if (_currentLookTarget == null)
+        {
+            return;
+        }
+
+        Vector3 originPosition = GetOriginPosition();
+        DistanceToTarget = Vector3.Distance(originPosition, _currentLookTarget.position);
+        _currentTargetPoint = _currentLookTarget.position;
     }
 
     private Vector3 GetOriginPosition()
