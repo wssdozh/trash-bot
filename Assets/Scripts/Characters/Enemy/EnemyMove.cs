@@ -5,6 +5,8 @@ using UnityEngine;
 public sealed class EnemyMove : MonoBehaviour
 {
     private const float ZeroThreshold = 0.0001f;
+    private const float RunDotMin = 0.25f;
+    private const float RunDotMax = 0.9f;
 
     [Header("Dependencies")]
     [SerializeField] private CharacterMover _characterMover;
@@ -13,20 +15,31 @@ public sealed class EnemyMove : MonoBehaviour
     [SerializeField] private float _steerSpeed = 180f;
     [SerializeField] private float _moveScale = 0.6f;
     [SerializeField] private float _runScaleFactor = 1.25f;
-    [SerializeField] private float _moveInputSpeed = 1.2f;
+    [SerializeField] private float _moveGainSpeed = 5f;
+    [SerializeField] private float _moveDropSpeed = 12f;
 
+    private EnemyRotator _enemyRotator;
     private Vector3 _moveDirection;
     private Vector3 _targetDirection;
     private Vector2 _moveInput;
     private bool _isMoving;
-    private bool _isRunning;
+    private bool _isRunRequested;
+    private bool _isSprintApplied;
 
-    public Vector3 MoveDirection => _moveDirection;
+    public Vector3 MoveDirection => GetWorldMoveDirection();
     public float MoveAmount => _moveInput.magnitude;
-    public bool IsRunning => _isRunning;
+    public bool IsRunning => _isSprintApplied;
+    public bool IsRunRequested => _isRunRequested;
 
     private void Awake()
     {
+        _enemyRotator = GetComponent<EnemyRotator>();
+
+        if (_enemyRotator == null)
+        {
+            throw new InvalidOperationException(nameof(_enemyRotator));
+        }
+
         if (_characterMover == null)
         {
             throw new InvalidOperationException(nameof(_characterMover));
@@ -52,9 +65,14 @@ public sealed class EnemyMove : MonoBehaviour
             throw new InvalidOperationException(nameof(_runScaleFactor));
         }
 
-        if (_moveInputSpeed <= 0f)
+        if (_moveGainSpeed <= 0f)
         {
-            throw new InvalidOperationException(nameof(_moveInputSpeed));
+            throw new InvalidOperationException(nameof(_moveGainSpeed));
+        }
+
+        if (_moveDropSpeed <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_moveDropSpeed));
         }
     }
 
@@ -69,23 +87,30 @@ public sealed class EnemyMove : MonoBehaviour
         {
             float moveScale = _moveScale;
 
-            if (_isRunning)
+            if (_isRunRequested)
             {
                 moveScale = Mathf.Min(_moveScale * _runScaleFactor, 1f);
-                isSprinting = true;
+                targetMoveInput = GetRunInput(moveScale);
+                isSprinting = targetMoveInput.sqrMagnitude > ZeroThreshold;
             }
 
-            targetMoveInput = GetMoveInput(_moveDirection, moveScale);
+            else
+            {
+                targetMoveInput = GetMoveInput(_moveDirection, moveScale);
+            }
         }
 
+        float inputSpeed = GetInputSpeed(targetMoveInput);
         _moveInput = Vector2.MoveTowards(
             _moveInput,
             targetMoveInput,
-            _moveInputSpeed * Time.fixedDeltaTime);
+            inputSpeed * Time.fixedDeltaTime);
+        _isSprintApplied = isSprinting;
 
         if (_moveInput.sqrMagnitude <= ZeroThreshold)
         {
             _moveInput = Vector2.zero;
+            _isSprintApplied = false;
             _characterMover.OnSprint(false);
             _characterMover.StopMove();
 
@@ -125,13 +150,14 @@ public sealed class EnemyMove : MonoBehaviour
 
     public void SetRun(bool isRunning)
     {
-        _isRunning = isRunning;
+        _isRunRequested = isRunning;
     }
 
     public void StopMove()
     {
         _isMoving = false;
-        _isRunning = false;
+        _isRunRequested = false;
+        _isSprintApplied = false;
         _targetDirection = Vector3.zero;
         _characterMover.OnSprint(false);
     }
@@ -139,7 +165,8 @@ public sealed class EnemyMove : MonoBehaviour
     public void ForceStop()
     {
         _isMoving = false;
-        _isRunning = false;
+        _isRunRequested = false;
+        _isSprintApplied = false;
         _moveDirection = Vector3.zero;
         _targetDirection = Vector3.zero;
         _moveInput = Vector2.zero;
@@ -182,9 +209,47 @@ public sealed class EnemyMove : MonoBehaviour
         _moveDirection = nextDirection;
     }
 
-    private Vector2 GetMoveInput(Vector3 direction)
+    private Vector2 GetRunInput(float moveScale)
     {
-        return GetMoveInput(direction, _moveScale);
+        Vector3 forwardDirection = _enemyRotator.ForwardDirection;
+        float forwardDot = Vector3.Dot(forwardDirection, _moveDirection);
+
+        if (forwardDot <= RunDotMin)
+        {
+            return Vector2.zero;
+        }
+
+        float dotScale = Mathf.InverseLerp(RunDotMin, RunDotMax, forwardDot);
+        float speedScale = Mathf.SmoothStep(0f, 1f, dotScale);
+
+        return GetMoveInput(forwardDirection, moveScale * speedScale);
+    }
+
+    private float GetInputSpeed(Vector2 targetMoveInput)
+    {
+        if (targetMoveInput.sqrMagnitude < _moveInput.sqrMagnitude)
+        {
+            return _moveDropSpeed;
+        }
+
+        if (targetMoveInput.sqrMagnitude <= ZeroThreshold)
+        {
+            return _moveDropSpeed;
+        }
+
+        if (_moveInput.sqrMagnitude <= ZeroThreshold)
+        {
+            return _moveGainSpeed;
+        }
+
+        float inputDot = Vector2.Dot(_moveInput.normalized, targetMoveInput.normalized);
+
+        if (inputDot < 0f)
+        {
+            return _moveDropSpeed;
+        }
+
+        return _moveGainSpeed;
     }
 
     private Vector2 GetMoveInput(Vector3 direction, float moveScale)
@@ -203,5 +268,22 @@ public sealed class EnemyMove : MonoBehaviour
         }
 
         return new Vector2(flatDirection.x, flatDirection.z) * moveScale;
+    }
+
+    private Vector3 GetWorldMoveDirection()
+    {
+        if (_moveInput.sqrMagnitude <= ZeroThreshold)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 moveDirection = new Vector3(_moveInput.x, 0f, _moveInput.y);
+
+        if (moveDirection.sqrMagnitude > 1f)
+        {
+            moveDirection.Normalize();
+        }
+
+        return moveDirection;
     }
 }

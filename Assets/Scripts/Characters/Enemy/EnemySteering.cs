@@ -132,27 +132,18 @@ public sealed class EnemySteering
 
     public bool MoveToPoint(Vector3 targetPoint, float stopDistance)
     {
-        return MoveToPoint(targetPoint, stopDistance, false, Vector3.zero);
+        return MoveToPoint(targetPoint, stopDistance, 0f, Vector3.zero);
     }
 
     public bool MoveToPoint(Vector3 targetPoint, float stopDistance, Vector3 lookPoint)
     {
-        return MoveToPoint(targetPoint, stopDistance, true, lookPoint);
+        return MoveToPoint(targetPoint, stopDistance, 1f, lookPoint);
     }
 
-    private bool MoveToPoint(Vector3 targetPoint, float stopDistance, bool isLookLocked, Vector3 lookPoint)
+    private bool MoveToPoint(Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
         Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
-
-        if (SyncAgent(currentPoint) == false)
-        {
-            _enemyMove.StopMove();
-            ClearPath();
-
-            return false;
-        }
-
         float safeStopDistance = Mathf.Max(stopDistance, 0.01f);
         float targetDistance = Vector3.Distance(currentPoint, flatTargetPoint);
 
@@ -164,12 +155,18 @@ public sealed class EnemySteering
             return false;
         }
 
-        if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
+        if (SyncAgent(currentPoint) == false)
         {
-            _enemyMove.StopMove();
             ClearPath();
 
-            return false;
+            return TryDirectMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
+        }
+
+        if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
+        {
+            ClearPath();
+
+            return TryDirectMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
 
         Vector3 moveDirection = GetMoveDirection(currentPoint);
@@ -179,7 +176,7 @@ public sealed class EnemySteering
         {
             _enemyMove.StopMove();
 
-            if (isLookLocked)
+            if (lookBlend > 0f)
             {
                 _enemyRotator.RotateToPoint(GetFlatPoint(lookPoint));
             }
@@ -192,31 +189,58 @@ public sealed class EnemySteering
             return false;
         }
 
-        Vector3 currentLookPoint = currentPoint + steerDirection;
+        Vector3 lookDirection = GetLookDirection(currentPoint, steerDirection, lookPoint, lookBlend);
 
-        if (isLookLocked)
-        {
-            currentLookPoint = GetFlatPoint(lookPoint);
-        }
-
-        _enemyRotator.RotateToPoint(currentLookPoint);
+        _enemyRotator.RotateToDirection(lookDirection);
         _enemyMove.SetDirection(steerDirection);
 
         return true;
     }
 
-    public bool ChaseTarget(Transform target, float ringDistance, float ringTolerance)
+    private bool TryDirectMove(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
     {
-        if (target == null)
+        float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+
+        if (targetDistance <= stopDistance)
         {
             _enemyMove.StopMove();
 
             return false;
         }
 
+        Vector3 moveDirection = GetFlatDirection(targetPoint - currentPoint);
+        Vector3 steerDirection = GetSteerDirection(currentPoint, moveDirection);
+
+        if (steerDirection.sqrMagnitude <= MinDistance)
+        {
+            steerDirection = moveDirection;
+        }
+
+        if (steerDirection.sqrMagnitude <= MinDistance)
+        {
+            _enemyMove.StopMove();
+
+            if (lookBlend > 0f)
+            {
+                _enemyRotator.RotateToPoint(GetFlatPoint(lookPoint));
+            }
+
+            return false;
+        }
+
+        Vector3 lookDirection = GetLookDirection(currentPoint, steerDirection, lookPoint, lookBlend);
+
+        _enemyRotator.RotateToDirection(lookDirection);
+        _enemyMove.SetDirection(steerDirection);
+
+        return true;
+    }
+
+    public bool ChaseTarget(Vector3 targetPoint, float ringDistance, float ringTolerance, float lookBlend)
+    {
         Vector3 currentPoint = GetFlatPoint(_root.position);
-        Vector3 targetPoint = GetFlatPoint(target.position);
-        Vector3 toTarget = targetPoint - currentPoint;
+        Vector3 flatTargetPoint = GetFlatPoint(targetPoint);
+        Vector3 toTarget = flatTargetPoint - currentPoint;
 
         if (toTarget.sqrMagnitude <= MinDistance)
         {
@@ -226,19 +250,16 @@ public sealed class EnemySteering
         }
 
         Vector3 targetDirection = toTarget.normalized;
-        float slotOffset = GetSlotOffset(targetPoint);
-        float chaseDistance = ringDistance;
-
-        if (Mathf.Abs(slotOffset) > SlotOffsetMin)
-        {
-            chaseDistance = GetChaseDistance(toTarget.magnitude, ringDistance);
-        }
-
-        Vector3 slotPoint = GetSlotPoint(currentPoint, targetPoint, targetDirection, chaseDistance, slotOffset);
-        Vector3 safePoint = GetSafePoint(slotPoint, _probeRadius);
+        Vector3 chasePoint = GetChasePoint(currentPoint, flatTargetPoint, targetDirection, ringDistance, toTarget.magnitude);
+        Vector3 safePoint = GetSafePoint(chasePoint, _probeRadius);
         float stopDistance = Mathf.Max(ringTolerance, 0.05f);
 
-        return MoveToPoint(safePoint, stopDistance, targetPoint);
+        if (lookBlend > 0f)
+        {
+            return MoveToPoint(safePoint, stopDistance, lookBlend, flatTargetPoint);
+        }
+
+        return MoveToPoint(safePoint, stopDistance);
     }
 
     public bool OrbitTarget(Transform target, float ringDistance, float ringTolerance, bool isClockwise)
@@ -524,7 +545,7 @@ public sealed class EnemySteering
         navMeshAgent.angularSpeed = 0f;
         navMeshAgent.speed = AgentSpeed;
         navMeshAgent.avoidancePriority = GetAvoidPriority();
-        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
 
         return navMeshAgent;
     }
@@ -776,6 +797,38 @@ public sealed class EnemySteering
         return steerDirection;
     }
 
+    private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 steerDirection, Vector3 lookPoint, float lookBlend)
+    {
+        Vector3 baseDirection = GetFlatDirection(steerDirection);
+
+        if (lookBlend <= 0f)
+        {
+            return baseDirection;
+        }
+
+        Vector3 lookDirection = GetFlatDirection(GetFlatPoint(lookPoint) - currentPoint);
+
+        if (lookDirection.sqrMagnitude <= MinDistance)
+        {
+            return baseDirection;
+        }
+
+        if (lookBlend >= 1f)
+        {
+            return lookDirection;
+        }
+
+        Vector3 blendedDirection = (baseDirection * (1f - lookBlend)) + (lookDirection * lookBlend);
+        blendedDirection = GetFlatDirection(blendedDirection);
+
+        if (blendedDirection.sqrMagnitude <= MinDistance)
+        {
+            return lookDirection;
+        }
+
+        return blendedDirection;
+    }
+
     private Vector3 GetAvoidDirection(Vector3 currentPoint, Vector3 moveDirection)
     {
         if (_obstacleMask.value == 0)
@@ -1025,6 +1078,40 @@ public sealed class EnemySteering
         return Mathf.Lerp(ringDistance, maxDistance, blend);
     }
 
+    private Vector3 GetChasePoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 targetDirection, float ringDistance, float targetDistance)
+    {
+        Vector3 chasePoint = targetPoint - (targetDirection * ringDistance);
+        chasePoint.y = currentPoint.y;
+
+        if (CanUseSlot(targetDistance, ringDistance) == false)
+        {
+            return chasePoint;
+        }
+
+        float slotOffset = GetSlotOffset(targetPoint);
+
+        if (Mathf.Abs(slotOffset) <= SlotOffsetMin)
+        {
+            return chasePoint;
+        }
+
+        float chaseDistance = GetChaseDistance(targetDistance, ringDistance);
+
+        return GetSlotPoint(currentPoint, targetPoint, targetDirection, chaseDistance, slotOffset);
+    }
+
+    private bool CanUseSlot(float targetDistance, float ringDistance)
+    {
+        float slotUseDistance = Mathf.Max(_slotRadius, ringDistance) + _separationRadius;
+
+        if (targetDistance > slotUseDistance)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private float GetSlotOffset(Vector3 targetPoint)
     {
         if (_slotCount <= 1)
@@ -1180,56 +1267,50 @@ public sealed class EnemySteering
         {
             Collider bodyCollider = _bodyBuffer[bodyIndex];
 
-            if (bodyCollider != null)
+            if (CanUseBodyCollider(bodyCollider))
             {
-                if (bodyCollider.enabled)
+                int hitIndex = 0;
+
+                while (hitIndex < hitCount)
                 {
-                    if (bodyCollider.isTrigger == false)
+                    Collider hitCollider = _pointBuffer[hitIndex];
+
+                    if (hitCollider != null)
                     {
-                        int hitIndex = 0;
-
-                        while (hitIndex < hitCount)
+                        if (hitCollider.transform.IsChildOf(_root) == false && hitCollider.isTrigger == false)
                         {
-                            Collider hitCollider = _pointBuffer[hitIndex];
-
-                            if (hitCollider != null)
+                            if (IsEnemyCollider(hitCollider) == false)
                             {
-                                if (hitCollider.transform.IsChildOf(_root) == false && hitCollider.isTrigger == false)
+                                Vector3 overlapDirection;
+                                float overlapDistance;
+                                bool hasOverlap = Physics.ComputePenetration(
+                                    bodyCollider,
+                                    bodyCollider.transform.position,
+                                    bodyCollider.transform.rotation,
+                                    hitCollider,
+                                    hitCollider.transform.position,
+                                    hitCollider.transform.rotation,
+                                    out overlapDirection,
+                                    out overlapDistance);
+
+                                if (hasOverlap)
                                 {
-                                    if (IsEnemyCollider(hitCollider) == false)
+                                    if (overlapDistance > 0f)
                                     {
-                                        Vector3 overlapDirection;
-                                        float overlapDistance;
-                                        bool hasOverlap = Physics.ComputePenetration(
-                                            bodyCollider,
-                                            bodyCollider.transform.position,
-                                            bodyCollider.transform.rotation,
-                                            hitCollider,
-                                            hitCollider.transform.position,
-                                            hitCollider.transform.rotation,
-                                            out overlapDirection,
-                                            out overlapDistance);
+                                        overlapDirection.y = 0f;
 
-                                        if (hasOverlap)
+                                        if (overlapDirection.sqrMagnitude > MinDistance)
                                         {
-                                            if (overlapDistance > 0f)
-                                            {
-                                                overlapDirection.y = 0f;
-
-                                                if (overlapDirection.sqrMagnitude > MinDistance)
-                                                {
-                                                    overlapDirection.Normalize();
-                                                    pushDirection += overlapDirection * overlapDistance;
-                                                }
-                                            }
+                                            overlapDirection.Normalize();
+                                            pushDirection += overlapDirection * overlapDistance;
                                         }
                                     }
                                 }
                             }
-
-                            hitIndex += 1;
                         }
                     }
+
+                    hitIndex += 1;
                 }
             }
 
@@ -1239,6 +1320,33 @@ public sealed class EnemySteering
         pushDirection.y = 0f;
 
         return pushDirection;
+    }
+
+    private bool CanUseBodyCollider(Collider bodyCollider)
+    {
+        if (bodyCollider == null)
+        {
+            return false;
+        }
+
+        if (bodyCollider.enabled == false)
+        {
+            return false;
+        }
+
+        if (bodyCollider.isTrigger)
+        {
+            return false;
+        }
+
+        Rigidbody bodyRigidbody = bodyCollider.attachedRigidbody;
+
+        if (bodyRigidbody != null && bodyRigidbody != _rigidbody)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private bool IsEnemyCollider(Collider hitCollider)

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour
@@ -28,9 +29,22 @@ public class PlayerAnimator : MonoBehaviour
     private StepAnimator _stepAnimator;
 
     private int _nextAttackIndex;
+    private bool _hasMove;
+    private bool _hasJump;
+    private bool _hasPoint;
+    private bool _hasIsFight;
+    private bool _hasAttack;
+    private bool _hasAttackIndex;
+    private bool _hasTakeDamage;
 
     private void Awake()
     {
+        if (_animator == null)
+        {
+            throw new InvalidOperationException(nameof(_animator));
+        }
+
+        CacheParameters();
         _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
         _worldMoveDirection = Vector3.zero;
         _nextAttackIndex = 0;
@@ -64,29 +78,82 @@ public class PlayerAnimator : MonoBehaviour
 
     public void TriggerJump()
     {
+        if (_hasJump == false)
+        {
+            return;
+        }
+
         _animator.SetTrigger(_jumpHash);
     }
 
     public void TriggerPoint()
     {
+        if (_hasPoint == false)
+        {
+            return;
+        }
+
         _animator.SetTrigger(_pointHash);
     }
 
     public void TriggerAttack()
     {
+        if (_hasAttack == false)
+        {
+            return;
+        }
+
         int attackIndex = GetNextAttackIndex();
-        _animator.SetInteger(_attackIndexHash, attackIndex);
+
+        if (_hasAttackIndex)
+        {
+            _animator.SetInteger(_attackIndexHash, attackIndex);
+        }
+
         _animator.SetTrigger(_attackHash);
     }
 
     public void TriggerTakeDamage()
     {
+        if (_hasTakeDamage == false)
+        {
+            return;
+        }
+
         _animator.SetTrigger(_takeDamageHash);
     }
 
     public void SetFight(bool isFight)
     {
+        if (_hasIsFight == false)
+        {
+            return;
+        }
+
         _animator.SetBool(_isFightHash, isFight);
+    }
+
+    public void SetController(RuntimeAnimatorController controller)
+    {
+        if (controller == null)
+        {
+            throw new InvalidOperationException(nameof(controller));
+        }
+
+        _animator.runtimeAnimatorController = controller;
+        _animator.Rebind();
+        _animator.Update(0f);
+        ClearParameters();
+        CacheParameters();
+        _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
+        _currentMove = 0f;
+        _targetMove = 0f;
+        _nextAttackIndex = 0;
+    }
+
+    public void SetLayerWeight(int layerIndex, float layerWeight)
+    {
+        _animator.SetLayerWeight(layerIndex, layerWeight);
     }
 
     public void ResetAttackOrder()
@@ -115,6 +182,11 @@ public class PlayerAnimator : MonoBehaviour
 
     private void UpdateMove()
     {
+        if (_hasMove == false)
+        {
+            return;
+        }
+
         if (_isMoving == false)
         {
             _targetMove = 0f;
@@ -133,5 +205,65 @@ public class PlayerAnimator : MonoBehaviour
 
         _currentMove = Mathf.MoveTowards(_currentMove, _targetMove, _moveLerpSpeed * Time.deltaTime);
         _animator.SetFloat(_moveHash, _currentMove);
+    }
+
+    private void CacheParameters()
+    {
+        AnimatorControllerParameter[] parameters = _animator.parameters;
+        int parameterIndex = 0;
+
+        while (parameterIndex < parameters.Length)
+        {
+            AnimatorControllerParameter parameter = parameters[parameterIndex];
+            int hash = parameter.nameHash;
+
+            if (parameter.type == AnimatorControllerParameterType.Float && hash == _moveHash)
+            {
+                _hasMove = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Trigger && hash == _jumpHash)
+            {
+                _hasJump = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Trigger && hash == _pointHash)
+            {
+                _hasPoint = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Bool && hash == _isFightHash)
+            {
+                _hasIsFight = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Trigger && hash == _attackHash)
+            {
+                _hasAttack = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Int && hash == _attackIndexHash)
+            {
+                _hasAttackIndex = true;
+            }
+
+            if (parameter.type == AnimatorControllerParameterType.Trigger && hash == _takeDamageHash)
+            {
+                _hasTakeDamage = true;
+            }
+
+            parameterIndex += 1;
+        }
+    }
+
+    private void ClearParameters()
+    {
+        _hasMove = false;
+        _hasJump = false;
+        _hasPoint = false;
+        _hasIsFight = false;
+        _hasAttack = false;
+        _hasAttackIndex = false;
+        _hasTakeDamage = false;
     }
 }

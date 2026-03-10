@@ -4,12 +4,32 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class EnemyRotator : MonoBehaviour
 {
+    private const float ZeroThreshold = 0.0001f;
+
     [Header("Dependencies")]
     [SerializeField] private Transform _rotationRoot;
     [SerializeField] private Rigidbody _rigidbody;
 
     [Header("Settings")]
     [SerializeField] private float _rotationSpeed = 240f;
+
+    public Vector3 ForwardDirection
+    {
+        get
+        {
+            Vector3 forwardDirection = _rotationRoot.forward;
+            forwardDirection.y = 0f;
+
+            if (forwardDirection.sqrMagnitude <= ZeroThreshold)
+            {
+                return Vector3.forward;
+            }
+
+            forwardDirection.Normalize();
+
+            return forwardDirection;
+        }
+    }
 
     private void Awake()
     {
@@ -23,34 +43,12 @@ public sealed class EnemyRotator : MonoBehaviour
             _rotationRoot = transform;
         }
 
-        if (_rotationRoot == transform && _rigidbody == null)
+        if (_rigidbody == null)
         {
             _rigidbody = GetComponent<Rigidbody>();
         }
 
-        if (_rigidbody != null)
-        {
-            RigidbodyConstraints constraints = _rigidbody.constraints;
-            constraints &= ~RigidbodyConstraints.FreezeRotationY;
-            constraints |= RigidbodyConstraints.FreezeRotationX;
-            constraints |= RigidbodyConstraints.FreezeRotationZ;
-            _rigidbody.constraints = constraints;
-        }
-    }
-
-    private void FixedUpdate()
-    {
-        if (_rigidbody == null)
-        {
-            return;
-        }
-
-        if (_rotationRoot != transform)
-        {
-            return;
-        }
-
-        _rigidbody.angularVelocity = Vector3.zero;
+        LockPhysicsRotation();
     }
 
     public void RotateToPoint(Vector3 targetPoint)
@@ -75,14 +73,6 @@ public sealed class EnemyRotator : MonoBehaviour
             targetRotation,
             rotationStep);
 
-        if (_rigidbody != null && _rotationRoot == transform)
-        {
-            _rigidbody.angularVelocity = Vector3.zero;
-            _rigidbody.MoveRotation(nextRotation);
-
-            return;
-        }
-
         _rotationRoot.rotation = nextRotation;
     }
 
@@ -97,14 +87,20 @@ public sealed class EnemyRotator : MonoBehaviour
 
         Quaternion targetRotation = Quaternion.LookRotation(direction.normalized);
 
-        if (_rigidbody != null && _rotationRoot == transform)
-        {
-            _rigidbody.angularVelocity = Vector3.zero;
-            _rigidbody.rotation = targetRotation;
+        _rotationRoot.rotation = targetRotation;
+    }
 
+    private void LockPhysicsRotation()
+    {
+        if (_rigidbody == null)
+        {
             return;
         }
 
-        _rotationRoot.rotation = targetRotation;
+        RigidbodyConstraints constraints = _rigidbody.constraints;
+        constraints |= RigidbodyConstraints.FreezeRotationX;
+        constraints |= RigidbodyConstraints.FreezeRotationY;
+        constraints |= RigidbodyConstraints.FreezeRotationZ;
+        _rigidbody.constraints = constraints;
     }
 }
