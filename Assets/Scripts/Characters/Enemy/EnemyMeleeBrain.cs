@@ -489,6 +489,17 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         }
 
         _enemyMove.SetRun(false);
+
+        if (_enemyMove.MoveAmount > 0f)
+        {
+            _state = EnemyState.Chase;
+            _enemyMove.ForceStop();
+            ResetMoveStuck();
+            _enemySteering.LookToPoint(targetPoint);
+
+            return;
+        }
+
         ProcessFight(currentTarget, targetPoint, distance);
     }
 
