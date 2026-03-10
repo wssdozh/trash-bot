@@ -18,6 +18,7 @@ public class TargetVision : MonoBehaviour
 
     private Coroutine _scanCoroutine;
     private readonly Collider[] _targetsBuffer = new Collider[TargetsBufferSize];
+    private Vector3 _currentTargetPoint;
 
     public event Action TargetDetected;
     public event Action TargetCleared;
@@ -25,6 +26,7 @@ public class TargetVision : MonoBehaviour
     public bool IsTargetVisible { get; private set; }
 
     public float DistanceToTarget { get; private set; }
+    public Vector3 CurrentTargetPoint { get { return _currentTargetPoint; } }
 
     public Transform CurrentTarget { get { return _currentTarget; } }
 
@@ -97,14 +99,32 @@ public class TargetVision : MonoBehaviour
 
     private bool TryValidateTarget(Collider candidate, Vector3 originPosition)
     {
-        if (candidate.CompareTag(_targetTag) == false)
+        Transform hitTransform = GetHitTransform(candidate);
+        Transform lookTransform = GetLookTransform(candidate);
+
+        if (hitTransform == null)
         {
             return false;
         }
 
-        Transform candidateTransform = candidate.transform;
-        Vector3 directionToTarget = candidateTransform.position - originPosition;
+        if (lookTransform == null)
+        {
+            return false;
+        }
+
+        if (lookTransform.CompareTag(_targetTag) == false)
+        {
+            return false;
+        }
+
+        Vector3 candidatePoint = candidate.bounds.center;
+        Vector3 directionToTarget = candidatePoint - originPosition;
         float distance = directionToTarget.magnitude;
+
+        if (distance <= Mathf.Epsilon)
+        {
+            return false;
+        }
 
         directionToTarget.Normalize();
 
@@ -121,16 +141,42 @@ public class TargetVision : MonoBehaviour
         }
 
         IsTargetVisible = true;
-        DistanceToTarget = distance;
-        _currentTarget = candidateTransform;
+        DistanceToTarget = Vector3.Distance(originPosition, lookTransform.position);
+        _currentTarget = hitTransform;
+        _currentTargetPoint = lookTransform.position;
 
         return true;
+    }
+
+    private Transform GetHitTransform(Collider candidate)
+    {
+        Rigidbody targetRigidbody = candidate.attachedRigidbody;
+
+        if (targetRigidbody != null)
+        {
+            return targetRigidbody.transform;
+        }
+
+        return candidate.transform;
+    }
+
+    private Transform GetLookTransform(Collider candidate)
+    {
+        Health targetHealth = candidate.GetComponentInParent<Health>();
+
+        if (targetHealth != null)
+        {
+            return targetHealth.transform;
+        }
+
+        return GetHitTransform(candidate);
     }
 
     private void ResetState()
     {
         IsTargetVisible = false;
         DistanceToTarget = 0f;
+        _currentTargetPoint = Vector3.zero;
         _currentTarget = null;
     }
 

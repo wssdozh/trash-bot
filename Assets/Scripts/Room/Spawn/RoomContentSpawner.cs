@@ -53,6 +53,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
     [SerializeField, Min(0)] private int _enemyPreferredOpenAreaInCells = 16;
     [SerializeField, Min(1)] private int _enemyMinSpanInCells = 3;
 
+    private RoomRuntimeState _roomRuntimeState;
+
     public void Spawn(
         RoomTypeProfile roomTypeProfile,
         Vector3Int roomSizeInBlocks,
@@ -62,6 +64,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         System.Random random
     )
     {
+        _roomRuntimeState = GetComponentInParent<RoomRuntimeState>();
         EnsureEnemyNavMeshIgnore();
 
         ClearChildren(_objectsRoot);
@@ -828,6 +831,30 @@ public sealed class RoomContentSpawner : MonoBehaviour
         GameObject instance = InstantiateOnCell(prefab, _enemiesRoot, floorCell, spawnHeight);
 
         FixEnemySpawn(instance);
+        BindEnemyRoom(instance);
+    }
+
+    private void BindEnemyRoom(GameObject enemyObject)
+    {
+        if (enemyObject == null)
+        {
+            return;
+        }
+
+        if (_roomRuntimeState == null)
+        {
+            return;
+        }
+
+        EnemyRoomLock enemyRoomLock = enemyObject.GetComponent<EnemyRoomLock>();
+
+        if (enemyRoomLock == null)
+        {
+            enemyRoomLock = enemyObject.AddComponent<EnemyRoomLock>();
+        }
+
+        enemyRoomLock.Setup(_roomRuntimeState);
+        enemyRoomLock.SnapInside();
     }
 
     private GameObject InstantiateOnCell(GameObject prefab, Transform rootTransform, Vector2Int floorCell, float spawnHeight)

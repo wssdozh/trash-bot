@@ -94,6 +94,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
     private float _moveStuckTimer;
     private int _idleStep;
     private int _searchStep;
+    private EnemyRoomLock _enemyRoomLock;
 
     public EnemyState State => _state;
 
@@ -316,6 +317,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
 
     private void FixedUpdate()
     {
+        RefreshRoomLock();
         Transform currentTarget = GetVisibleTarget();
 
         if (_enemy.IsDead)
@@ -453,7 +455,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
             return;
         }
 
-        Vector3 targetPoint = GetFlatPoint(_targetVision.CurrentTarget.position);
+        Vector3 targetPoint = GetFlatPoint(_targetVision.CurrentTargetPoint);
 
         Gizmos.color = Color.white;
         Gizmos.DrawLine(transform.position, targetPoint);
@@ -467,7 +469,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         _searchStep = 0;
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
-        Vector3 targetPoint = GetFlatPoint(currentTarget.position);
+        Vector3 targetPoint = GetTargetPoint(currentTarget);
         float distance = Vector3.Distance(currentPoint, targetPoint);
 
         if (IsChaseNeeded(distance))
@@ -869,7 +871,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         }
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
-        Vector3 targetPoint = GetFlatPoint(currentTarget.position);
+        Vector3 targetPoint = GetTargetPoint(currentTarget);
         Vector3 direction = targetPoint - currentPoint;
         direction.y = 0f;
 
@@ -913,6 +915,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         ResetMoveStuck();
         _enemySteering.Stop();
         enabled = false;
+    }
+
+    private void RefreshRoomLock()
+    {
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+        _enemySteering.SetRoomLock(enemyRoomLock);
     }
 
     private float GetIdleStopDistance()
@@ -1047,6 +1055,13 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
         Vector3 chaseDirection = GetSearchDirection();
         Vector3 chasePoint = _lastSeenPoint + (chaseDirection * _lostChaseDistance);
 
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+
+        if (enemyRoomLock != null)
+        {
+            chasePoint = enemyRoomLock.ClampMovePoint(chasePoint);
+        }
+
         return GetFlatPoint(chasePoint);
     }
 
@@ -1134,7 +1149,58 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
             return null;
         }
 
-        return _targetVision.CurrentTarget;
+        Transform currentTarget = _targetVision.CurrentTarget;
+
+        if (currentTarget == null)
+        {
+            return null;
+        }
+
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+
+        if (enemyRoomLock == null)
+        {
+            return currentTarget;
+        }
+
+        Vector3 targetPoint = GetTargetPoint(currentTarget);
+
+        if (enemyRoomLock.ContainsRoomPoint(currentTarget.position) == false && enemyRoomLock.ContainsRoomPoint(targetPoint) == false)
+        {
+            return null;
+        }
+
+        return currentTarget;
+    }
+
+    private Vector3 GetTargetPoint(Transform currentTarget)
+    {
+        if (currentTarget == null)
+        {
+            return GetFlatPoint(transform.position);
+        }
+
+        if (_targetVision != null)
+        {
+            if (currentTarget == _targetVision.CurrentTarget)
+            {
+                return GetFlatPoint(_targetVision.CurrentTargetPoint);
+            }
+        }
+
+        return GetFlatPoint(currentTarget.position);
+    }
+
+    private EnemyRoomLock GetEnemyRoomLock()
+    {
+        if (_enemyRoomLock != null)
+        {
+            return _enemyRoomLock;
+        }
+
+        _enemyRoomLock = GetComponent<EnemyRoomLock>();
+
+        return _enemyRoomLock;
     }
 
     private void RotateTarget(Transform currentTarget)
@@ -1144,7 +1210,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour
             return;
         }
 
-        Vector3 targetPoint = GetFlatPoint(currentTarget.position);
+        Vector3 targetPoint = GetTargetPoint(currentTarget);
         _enemyRotator.RotateToPoint(targetPoint);
     }
 

@@ -58,7 +58,7 @@ public class Turret : MonoBehaviour
             return;
         }
 
-        _fireExecutor.SetAimPoint(currentTarget.position);
+        _fireExecutor.SetAimPoint(_targetVision.CurrentTargetPoint);
     }
 
     private void OnTargetFound()
