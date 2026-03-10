@@ -235,6 +235,7 @@ MonoBehaviour:
   _characterMover: {fileID: 924719609261421840}
   _steerSpeed: 140
   _moveScale: 0.8
+  _runScaleFactor: 1.25
   _moveInputSpeed: 1.2
 --- !u!114 &9123886638528049474
 MonoBehaviour:
@@ -288,14 +289,20 @@ MonoBehaviour:
   _attackDistance: 3.5
   _attackGap: 0
   _attackAngle: 35
-  _combatRadius: 0.55
+  _combatRadius: 1
   _combatChaos: 0.04
   _combatTolerance: 0.05
   _fightExitGap: 0.12
+  _runStartDistance: 4.4
+  _runStopDistance: 3.1
+  _slotAngle: 12
+  _slotRadius: 1.2
+  _slotCount: 7
   _idleMoveMin: 4.5
   _idleMoveMax: 7.5
   _idleWaitMin: 2.2
   _idleWaitMax: 3.6
+  _idleWaitScale: 0.35
   _idleTurnMin: 14
   _idleTurnMax: 38
   _idleLookAngle: 42
@@ -303,8 +310,6 @@ MonoBehaviour:
   _lostChaseDistance: 1.15
   _lostStopDistance: 0.05
   _searchPointDistance: 0.35
-  _searchWaitSeconds: 1.25
-  _searchAngle: 55
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 385
@@ -315,12 +320,8 @@ MonoBehaviour:
   _probeHeight: 0.6
   _probeDistance: 0.9
   _probeAngle: 25
-  _wallGap: 0.12
   _avoidWeight: 1.05
   _separationRadius: 1.35
   _separationWeight: 2.2
-  _slotAngle: 12
-  _slotRadius: 1.2
-  _slotCount: 7
   _isAttackZoneVisible: 1
   _isMoveGizmoVisible: 1

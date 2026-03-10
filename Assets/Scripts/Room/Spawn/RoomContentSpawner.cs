@@ -822,9 +822,10 @@ public sealed class RoomContentSpawner : MonoBehaviour
         InstantiateOnCell(prefab, _objectsRoot, floorCell, _objectSpawnHeight);
     }
 
-    private void InstantiateEnemyOnCell(GameObject prefab, Vector2Int floorCell)
+    private void InstantiateEnemyOnCell(RoomTypeProfile roomTypeProfile, GameObject prefab, Vector2Int floorCell)
     {
-        GameObject instance = InstantiateOnCell(prefab, _enemiesRoot, floorCell, _enemySpawnHeight);
+        float spawnHeight = roomTypeProfile.GetEnemySpawnHeight(prefab, _enemySpawnHeight);
+        GameObject instance = InstantiateOnCell(prefab, _enemiesRoot, floorCell, spawnHeight);
 
         FixEnemySpawn(instance);
     }
@@ -1696,7 +1697,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             }
 
             GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            InstantiateEnemyOnCell(prefab, bestCell);
+            InstantiateEnemyOnCell(roomTypeProfile, prefab, bestCell);
 
             floorOccupancy.OccupiedFloorCells.Add(bestCell);
             enemyCells.Add(bestCell);
@@ -1743,7 +1744,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             }
 
             GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            InstantiateEnemyOnCell(prefab, chosenCell);
+            InstantiateEnemyOnCell(roomTypeProfile, prefab, chosenCell);
 
             floorOccupancy.OccupiedFloorCells.Add(chosenCell);
             enemyCells.Add(chosenCell);
