@@ -42,6 +42,9 @@ public sealed class RoomTypeProfile : ScriptableObject
     [Tooltip("Набор префабов врагов с весами.")]
     [SerializeField] private List<WeightedPrefab> _enemyPrefabs = new List<WeightedPrefab>();
 
+    [Tooltip("Индивидуальная высота спавна для конкретных префабов врагов.")]
+    [SerializeField] private List<EnemySpawnHeight> _enemySpawnHeights = new List<EnemySpawnHeight>();
+
     [Header("Ресурсы (обычные объекты)")]
     [Tooltip("Сколько объектов/ресурсов спавнить.\nX — минимум, Y — максимум.")]
     [SerializeField] private Vector2Int _objectSpawnCountRange = new Vector2Int(0, 0);
@@ -79,12 +82,40 @@ public sealed class RoomTypeProfile : ScriptableObject
 
     public Vector2Int EnemySpawnCountRange => _enemySpawnCountRange;
     public IReadOnlyList<WeightedPrefab> EnemyPrefabs => _enemyPrefabs;
+    public IReadOnlyList<EnemySpawnHeight> EnemySpawnHeights => _enemySpawnHeights;
 
     public Vector2Int ObjectSpawnCountRange => _objectSpawnCountRange;
     public IReadOnlyList<WeightedPrefab> ObjectPrefabs => _objectPrefabs;
 
     public IReadOnlyList<NookPrefabConfig> NookPrefabs => _nookPrefabs;
     public int NookMinimumAreaInCells => _nookMinimumAreaInCells;
+
+    public float GetEnemySpawnHeight(GameObject prefab, float defaultSpawnHeight)
+    {
+        if (prefab == null)
+        {
+            return defaultSpawnHeight;
+        }
+
+        for (int index = 0; index < _enemySpawnHeights.Count; index++)
+        {
+            EnemySpawnHeight enemySpawnHeight = _enemySpawnHeights[index];
+
+            if (enemySpawnHeight == null)
+            {
+                continue;
+            }
+
+            if (enemySpawnHeight.Prefab != prefab)
+            {
+                continue;
+            }
+
+            return enemySpawnHeight.SpawnHeight;
+        }
+
+        return defaultSpawnHeight;
+    }
 
     public bool HasGuaranteedNookDemand
     {

@@ -39,7 +39,7 @@ public sealed class RoomTypeProfileEditor : Editor
         SortEntries(fillEntries, new string[2] { "blockFillPercent", "largeCubeAreaPercent" });
         SortEntries(heightEntries, new string[3] { "minimumStackHeightInBlocks", "maximumStackHeightInBlocks", "heightExponent" });
         SortEntries(bigEntries, new string[2] { "largeCubeStackHeightRange", "randomYawRotation" });
-        SortEntries(enemyEntries, new string[2] { "enemySpawnCountRange", "enemyPrefabs" });
+        SortEntries(enemyEntries, new string[3] { "enemySpawnCountRange", "enemyPrefabs", "enemySpawnHeights" });
         SortEntries(objectEntries, new string[2] { "objectSpawnCountRange", "objectPrefabs" });
         SortEntries(nookEntries, new string[8]
         {
@@ -305,6 +305,7 @@ public sealed class RoomTypeProfileEditor : Editor
 
         if (normalizedName == "enemySpawnCountRange") return "Количество врагов";
         if (normalizedName == "enemyPrefabs") return "Префабы врагов";
+        if (normalizedName == "enemySpawnHeights") return "Высоты спавна врагов";
 
         if (normalizedName == "objectSpawnCountRange") return "Количество ресурсов";
         if (normalizedName == "objectPrefabs") return "Префабы ресурсов";
