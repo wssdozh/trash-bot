@@ -16,6 +16,7 @@ public sealed class EnemySteering
     private const float AgentSpeed = 3.5f;
     private const float NavRecoverGap = 6f;
     private const float NavSnapGap = 0.35f;
+    private const float ReachGap = 0.05f;
     private const float SlotOffsetMin = 0.01f;
 
     private readonly Transform _root;
@@ -159,14 +160,14 @@ public sealed class EnemySteering
         {
             ClearPath();
 
-            return TryDirectMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
+            return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
 
         if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
         {
             ClearPath();
 
-            return TryDirectMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
+            return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
 
         Vector3 moveDirection = GetMoveDirection(currentPoint);
@@ -234,6 +235,25 @@ public sealed class EnemySteering
         _enemyMove.SetDirection(steerDirection);
 
         return true;
+    }
+
+    private bool TryReachMove(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
+    {
+        Vector3 reachPoint;
+
+        if (TryGetReachMovePoint(currentPoint, targetPoint, stopDistance, out reachPoint))
+        {
+            return TryDirectMove(currentPoint, reachPoint, stopDistance, lookBlend, lookPoint);
+        }
+
+        _enemyMove.ForceStop();
+
+        if (lookBlend > 0f)
+        {
+            _enemyRotator.RotateToPoint(GetFlatPoint(lookPoint));
+        }
+
+        return false;
     }
 
     public bool ChaseTarget(Vector3 targetPoint, float ringDistance, float ringTolerance, float lookBlend)
@@ -498,6 +518,38 @@ public sealed class EnemySteering
         }
 
         return GetSafePoint(currentPoint, wallGap);
+    }
+
+    private bool TryGetReachMovePoint(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, out Vector3 reachPoint)
+    {
+        Vector3 nextReachPoint = GetReachPoint(targetPoint, _probeRadius);
+        nextReachPoint = GetSafePoint(nextReachPoint, _probeRadius);
+        float reachDistance = Vector3.Distance(currentPoint, nextReachPoint);
+
+        if (reachDistance <= stopDistance + ReachGap)
+        {
+            reachPoint = Vector3.zero;
+
+            return false;
+        }
+
+        if (ContainsMovePoint(nextReachPoint) == false)
+        {
+            reachPoint = Vector3.zero;
+
+            return false;
+        }
+
+        if (HasObstaclePoint(nextReachPoint))
+        {
+            reachPoint = Vector3.zero;
+
+            return false;
+        }
+
+        reachPoint = ClampMovePoint(nextReachPoint);
+
+        return true;
     }
 
     public bool IsLineBlocked(Vector3 targetPoint)

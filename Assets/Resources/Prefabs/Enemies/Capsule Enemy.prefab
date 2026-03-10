@@ -319,6 +319,8 @@ MonoBehaviour:
   _lostChaseDistance: 1.15
   _lostStopDistance: 0.05
   _searchPointDistance: 0.35
+  _chaseRetryDelay: 0.45
+  _chaseRetryGap: 0.8
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 385

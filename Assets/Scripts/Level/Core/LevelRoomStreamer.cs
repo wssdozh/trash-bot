@@ -11,6 +11,7 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
     private readonly List<RoomRuntimeState> _rooms = new List<RoomRuntimeState>(64);
 
+    private LevelRuntimeNavMesh _levelRuntimeNavMesh;
     private float _startTime;
     private bool _isStarted;
 
@@ -22,6 +23,7 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         _startDelay = Mathf.Max(0f, startDelay);
         _startTime = Time.unscaledTime;
         _isStarted = _startDelay <= 0f;
+        _levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
 
         _rooms.Clear();
 
@@ -154,6 +156,7 @@ public sealed class LevelRoomStreamer : MonoBehaviour
     {
         float enableDistanceSqr = _enableDistance * _enableDistance;
         float disableDistanceSqr = _disableDistance * _disableDistance;
+        bool hasRoomStateChanged = false;
 
         for (int index = _rooms.Count - 1; index >= 0; index--)
         {
@@ -174,6 +177,7 @@ public sealed class LevelRoomStreamer : MonoBehaviour
                 if (distanceSqr > disableDistanceSqr)
                 {
                     roomRuntimeState.SetRoomActive(false);
+                    hasRoomStateChanged = true;
                 }
 
                 continue;
@@ -182,7 +186,28 @@ public sealed class LevelRoomStreamer : MonoBehaviour
             if (distanceSqr <= enableDistanceSqr)
             {
                 roomRuntimeState.SetRoomActive(true);
+                hasRoomStateChanged = true;
             }
         }
+
+        if (hasRoomStateChanged)
+        {
+            RequestNavMeshUpdate();
+        }
+    }
+
+    private void RequestNavMeshUpdate()
+    {
+        if (_levelRuntimeNavMesh == null)
+        {
+            _levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
+        }
+
+        if (_levelRuntimeNavMesh == null)
+        {
+            return;
+        }
+
+        _levelRuntimeNavMesh.RequestUpdate();
     }
 }
