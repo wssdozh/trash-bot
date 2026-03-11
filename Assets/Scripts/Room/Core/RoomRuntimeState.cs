@@ -33,7 +33,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return true;
         }
 
-        return _roomBounds.Contains(GetFlatPoint(point, _roomBounds.center.y));
+        return _moveBounds.Contains(GetFlatPoint(point, _moveBounds.center.y));
     }
 
     public Vector3 ClampMovePoint(Vector3 point)
@@ -43,7 +43,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return point;
         }
 
-        return ClampPoint(_roomBounds, point);
+        return ClampPoint(_moveBounds, point);
     }
 
     public Vector3 ClampSnapPoint(Vector3 point)

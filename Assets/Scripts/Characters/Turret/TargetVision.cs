@@ -90,7 +90,8 @@ public class TargetVision : MonoBehaviour
             originPosition,
             _viewDistance,
             _targetsBuffer,
-            _targetLayerMask
+            _targetLayerMask,
+            QueryTriggerInteraction.Ignore
         );
 
         for (int i = 0; i < hitsCount; i++)
@@ -143,7 +144,8 @@ public class TargetVision : MonoBehaviour
             originPosition,
             directionToTarget,
             distance,
-            _obstacleLayerMask
+            _obstacleLayerMask,
+            QueryTriggerInteraction.Ignore
         );
 
         if (hasObstacle)

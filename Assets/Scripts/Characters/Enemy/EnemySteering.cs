@@ -449,6 +449,43 @@ public sealed class EnemySteering
         return true;
     }
 
+    public bool HasWallGap(Vector3 point, float wallGap)
+    {
+        if (wallGap <= MinDistance)
+        {
+            return true;
+        }
+
+        Vector3 flatPoint = ClampMovePoint(point);
+        float sampleDistance = Mathf.Max(GetNavSampleGap(), wallGap * 4f);
+        Vector3 navPoint;
+
+        if (TryGetNavPoint(flatPoint, sampleDistance, out navPoint) == false)
+        {
+            return false;
+        }
+
+        if (ContainsMovePoint(navPoint) == false)
+        {
+            return false;
+        }
+
+        NavMeshHit edgeHit;
+        bool hasEdge = NavMesh.FindClosestEdge(navPoint, out edgeHit, NavMesh.AllAreas);
+
+        if (hasEdge == false)
+        {
+            return true;
+        }
+
+        if (edgeHit.distance < wallGap)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public Vector3 GetSafePoint(Vector3 point, float wallGap)
     {
         Vector3 flatPoint = ClampMovePoint(point);

@@ -11,7 +11,12 @@ public class SphereForwardAttackShape : AttackShapeBase
         Vector3 normalizedDirection = GetDirection(attackDirection);
         Vector3 center = originPoint + normalizedDirection * GetForwardOffset(range);
 
-        return Physics.OverlapSphereNonAlloc(center, GetHitRadius(range), resultBuffer, hitLayers);
+        return Physics.OverlapSphereNonAlloc(
+            center,
+            GetHitRadius(range),
+            resultBuffer,
+            hitLayers,
+            QueryTriggerInteraction.Ignore);
     }
 
     public override void DrawGizmos(Vector3 originPoint, Vector3 attackDirection, float range)

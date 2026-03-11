@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: CapsuleEnemyAttackShape
   m_EditorClassIdentifier: Assembly-CSharp::SphereForwardAttackShape
   _hitRadiusFactor: 0.5
-  _forwardOffsetFactor: 0.5
+  _forwardOffsetFactor: 0.35
