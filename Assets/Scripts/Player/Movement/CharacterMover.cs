@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class CharacterMover : MonoBehaviour
 {
+    private const int WallBufferSize = 16;
+    private const float ZeroThreshold = 0.0001f;
+    private const float WallNormalDot = 0.98f;
+
+    private readonly Vector3[] _wallNormals = new Vector3[WallBufferSize];
+
     [Header("Зависимости")]
     [SerializeField] private Rigidbody _rigidbody;
 
@@ -14,8 +20,6 @@ public class CharacterMover : MonoBehaviour
 
     private Vector3 _moveDirection;
     private bool _isSprinting;
-
-    private Vector3 _wallNormalSum;
     private int _wallNormalCount;
 
     private void FixedUpdate()
@@ -60,12 +64,11 @@ public class CharacterMover : MonoBehaviour
         while (contactIndex < contactCount)
         {
             ContactPoint contactPoint = collision.GetContact(contactIndex);
-            Vector3 normal = contactPoint.normal;
+            Vector3 wallNormal = contactPoint.normal;
 
-            if (normal.y <= _wallNormalMaxY)
+            if (wallNormal.y <= _wallNormalMaxY)
             {
-                _wallNormalSum += normal;
-                _wallNormalCount += 1;
+                AddWallNormal(wallNormal);
             }
 
             contactIndex += 1;
@@ -100,33 +103,79 @@ public class CharacterMover : MonoBehaviour
 
         Vector3 clampedMoveDirection = Vector3.ClampMagnitude(_moveDirection, 1f);
         Vector3 targetVelocity = clampedMoveDirection * speed;
-
         Vector3 adjustedVelocity = targetVelocity;
 
         if (_wallNormalCount > 0)
         {
-            Vector3 averageWallNormal = _wallNormalSum / (float)_wallNormalCount;
-
-            if (averageWallNormal.sqrMagnitude > 0.0001f)
-            {
-                averageWallNormal.Normalize();
-
-                float velocityAlongNormal = Vector3.Dot(targetVelocity, averageWallNormal);
-
-                if (velocityAlongNormal < 0f)
-                {
-                    adjustedVelocity = targetVelocity - (averageWallNormal * velocityAlongNormal);
-                }
-            }
+            adjustedVelocity = GetSlideVelocity(targetVelocity);
         }
 
         float currentVerticalVelocity = _rigidbody.linearVelocity.y;
         _rigidbody.linearVelocity = new Vector3(adjustedVelocity.x, currentVerticalVelocity, adjustedVelocity.z);
     }
 
+    private Vector3 GetSlideVelocity(Vector3 targetVelocity)
+    {
+        Vector3 adjustedVelocity = targetVelocity;
+        int normalIndex = 0;
+
+        while (normalIndex < _wallNormalCount)
+        {
+            Vector3 wallNormal = _wallNormals[normalIndex];
+            float velocityAlongNormal = Vector3.Dot(adjustedVelocity, wallNormal);
+
+            if (velocityAlongNormal < 0f)
+            {
+                adjustedVelocity -= wallNormal * velocityAlongNormal;
+            }
+
+            normalIndex += 1;
+        }
+
+        adjustedVelocity.y = 0f;
+
+        if (adjustedVelocity.sqrMagnitude <= ZeroThreshold)
+        {
+            return Vector3.zero;
+        }
+
+        return adjustedVelocity;
+    }
+
+    private void AddWallNormal(Vector3 wallNormal)
+    {
+        if (wallNormal.sqrMagnitude <= ZeroThreshold)
+        {
+            return;
+        }
+
+        wallNormal.Normalize();
+
+        int normalIndex = 0;
+
+        while (normalIndex < _wallNormalCount)
+        {
+            float normalDot = Vector3.Dot(_wallNormals[normalIndex], wallNormal);
+
+            if (normalDot >= WallNormalDot)
+            {
+                return;
+            }
+
+            normalIndex += 1;
+        }
+
+        if (_wallNormalCount >= _wallNormals.Length)
+        {
+            return;
+        }
+
+        _wallNormals[_wallNormalCount] = wallNormal;
+        _wallNormalCount += 1;
+    }
+
     private void ClearWallContacts()
     {
-        _wallNormalSum = Vector3.zero;
         _wallNormalCount = 0;
     }
 }
