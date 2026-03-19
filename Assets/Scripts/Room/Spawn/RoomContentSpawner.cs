@@ -949,6 +949,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
             return;
         }
 
+        EnsureRoomAlert();
+
         EnemyRoomLock enemyRoomLock = enemyObject.GetComponent<EnemyRoomLock>();
 
         if (enemyRoomLock == null)
@@ -958,6 +960,18 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         enemyRoomLock.Setup(_roomRuntimeState);
         enemyRoomLock.SnapInside();
+    }
+
+    private void EnsureRoomAlert()
+    {
+        EnemyRoomAlert enemyRoomAlert = _roomRuntimeState.GetComponent<EnemyRoomAlert>();
+
+        if (enemyRoomAlert != null)
+        {
+            return;
+        }
+
+        _roomRuntimeState.gameObject.AddComponent<EnemyRoomAlert>();
     }
 
     private GameObject InstantiateOnCell(GameObject prefab, Transform rootTransform, Vector2Int floorCell, float spawnHeight)

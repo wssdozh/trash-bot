@@ -6,21 +6,30 @@ public class TargetRotator : MonoBehaviour
     [SerializeField] private Transform _rotationPivot;
     [SerializeField] private float _rotationSpeed = 10f;
 
+    private Vector3 _aimPoint;
+    private bool _hasAimPoint;
+
+    public void SetAimPoint(Vector3 aimPoint)
+    {
+        _aimPoint = aimPoint;
+        _hasAimPoint = true;
+    }
+
+    public void ClearAimPoint()
+    {
+        _hasAimPoint = false;
+    }
+
     private void Update()
     {
-        if (_targetVision.IsTargetVisible == false)
+        Vector3 targetPoint;
+
+        if (TryGetTargetPoint(out targetPoint) == false)
         {
             return;
         }
 
-        Transform currentTarget = _targetVision.CurrentTarget;
-
-        if (currentTarget == null)
-        {
-            return;
-        }
-
-        Vector3 directionToTarget = (_targetVision.CurrentTargetPoint - _rotationPivot.position).normalized;
+        Vector3 directionToTarget = (targetPoint - _rotationPivot.position).normalized;
 
         if (directionToTarget.sqrMagnitude <= Mathf.Epsilon)
         {
@@ -35,5 +44,31 @@ public class TargetRotator : MonoBehaviour
             targetRotation,
             step
         );
+    }
+
+    private bool TryGetTargetPoint(out Vector3 targetPoint)
+    {
+        if (_targetVision.IsTargetVisible)
+        {
+            Transform currentTarget = _targetVision.CurrentTarget;
+
+            if (currentTarget != null)
+            {
+                targetPoint = _targetVision.CurrentTargetPoint;
+
+                return true;
+            }
+        }
+
+        if (_hasAimPoint)
+        {
+            targetPoint = _aimPoint;
+
+            return true;
+        }
+
+        targetPoint = Vector3.zero;
+
+        return false;
     }
 }

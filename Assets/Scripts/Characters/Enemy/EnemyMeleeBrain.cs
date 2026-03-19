@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
+public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
     private const int SearchStepsCount = 4;
     private const int IdlePointTryCount = 16;
@@ -106,6 +106,48 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
     private bool _isHitPending;
 
     public EnemyState State => _state;
+
+    public void ApplyAlert(Vector3 point)
+    {
+        if (_enemy.IsDead)
+        {
+            return;
+        }
+
+        if (_targetVision.IsTargetVisible)
+        {
+            return;
+        }
+
+        Vector3 currentPoint = GetFlatPoint(transform.position);
+        Vector3 alertPoint = GetFlatPoint(point);
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+
+        if (enemyRoomLock != null)
+        {
+            alertPoint = GetFlatPoint(enemyRoomLock.ClampMovePoint(alertPoint));
+        }
+
+        Vector3 alertDirection = alertPoint - currentPoint;
+        alertDirection.y = 0f;
+
+        if (alertDirection.sqrMagnitude > ZeroThreshold)
+        {
+            alertDirection.Normalize();
+            _lastSeenDirection = alertDirection;
+        }
+
+        _lastSeenPoint = alertPoint;
+        _hasLastSeenPoint = true;
+        _hasLastSeenMovePoint = false;
+        _hasSearchPoint = false;
+        _searchStep = 0;
+        _isIdleWalking = false;
+        _idleTimer = 0f;
+        StopFire();
+        ResetMoveStuck();
+        _enemySteering.Stop();
+    }
 
     private void Awake()
     {
