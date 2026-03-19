@@ -6,6 +6,7 @@ public sealed class EnemyRoomLock : MonoBehaviour
     private Rigidbody _rigidbody;
     private EnemyMove _enemyMove;
     private EnemyDroneMove _enemyDroneMove;
+    private EnemyRoomAlert _enemyRoomAlert;
     private RoomRuntimeState _roomRuntimeState;
 
     private void Awake()
@@ -48,6 +49,7 @@ public sealed class EnemyRoomLock : MonoBehaviour
         }
 
         _roomRuntimeState = roomRuntimeState;
+        _enemyRoomAlert = roomRuntimeState.GetComponent<EnemyRoomAlert>();
     }
 
     public bool ContainsRoomPoint(Vector3 point)
@@ -110,6 +112,18 @@ public sealed class EnemyRoomLock : MonoBehaviour
         return _roomRuntimeState.GetRandomMovePoint(height, random);
     }
 
+    public void AlertPoint(Vector3 point, MonoBehaviour sender)
+    {
+        EnemyRoomAlert enemyRoomAlert = GetRoomAlert();
+
+        if (enemyRoomAlert == null)
+        {
+            return;
+        }
+
+        enemyRoomAlert.AlertPoint(point, sender);
+    }
+
     public void SnapInside()
     {
         if (_roomRuntimeState == null)
@@ -144,5 +158,17 @@ public sealed class EnemyRoomLock : MonoBehaviour
         }
 
         transform.position = point;
+    }
+
+    private EnemyRoomAlert GetRoomAlert()
+    {
+        if (_enemyRoomAlert != null)
+        {
+            return _enemyRoomAlert;
+        }
+
+        _enemyRoomAlert = GetComponentInParent<EnemyRoomAlert>();
+
+        return _enemyRoomAlert;
     }
 }

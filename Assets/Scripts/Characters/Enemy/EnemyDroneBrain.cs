@@ -2,8 +2,9 @@ using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
+public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
+    private const float AlertDelay = 0.35f;
     private const int IdlePointTryCount = 6;
     private const float ZeroThreshold = 0.0001f;
     private const float OrbitTurnAngle = 90f;
@@ -47,11 +48,36 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
     private bool _hasIdlePoint;
     private float _searchTimer;
     private float _idleTimer;
+    private float _alertTimer;
     private float _strafeTimer;
     private bool _isStrafeMove;
     private int _strafeDirection = 1;
 
     public EnemyState State => _state;
+
+    public void ApplyAlert(Vector3 point)
+    {
+        if (_enemy.IsDead)
+        {
+            return;
+        }
+
+        if (_targetVision.IsTargetVisible)
+        {
+            return;
+        }
+
+        Vector3 alertPoint = ClampPoint(point);
+        alertPoint.y = _spawnPoint.y;
+        _lastSeenPoint = alertPoint;
+        _hasLastSeenPoint = true;
+        _searchTimer = _searchTime;
+        _idleTimer = 0f;
+        _hasIdlePoint = false;
+        _alertTimer = 0f;
+        ResetStrafe();
+        ApplyTrackMode();
+    }
 
     private void Awake()
     {
@@ -174,6 +200,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
         _targetVision.TargetDetected += OnTargetFound;
         _targetVision.TargetCleared += OnTargetLost;
 
+        _alertTimer = 0f;
         ApplyIdleMode();
         _state = EnemyState.Idle;
     }
@@ -190,6 +217,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
         _targetVision.TargetDetected -= OnTargetFound;
         _targetVision.TargetCleared -= OnTargetLost;
 
+        _alertTimer = 0f;
         StopAll();
     }
 
@@ -225,6 +253,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
         _searchTimer = _searchTime;
 
         ApplyTrackMode();
+        TickAlert(targetPoint);
 
         float targetDistance = GetFlatDistance(transform.position, targetPoint);
 
@@ -450,6 +479,31 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
         _strafeTimer = 0f;
     }
 
+    private void TickAlert(Vector3 point)
+    {
+        _alertTimer -= Time.deltaTime;
+
+        if (_alertTimer > 0f)
+        {
+            return;
+        }
+
+        AlertRoom(point);
+        _alertTimer = AlertDelay;
+    }
+
+    private void AlertRoom(Vector3 point)
+    {
+        EnemyRoomLock enemyRoomLock = GetRoomLock();
+
+        if (enemyRoomLock == null)
+        {
+            return;
+        }
+
+        enemyRoomLock.AlertPoint(point, this);
+    }
+
     private void ApplyTrackMode()
     {
         if (_idleRotator.enabled)
@@ -558,14 +612,17 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain
     {
         _hasIdlePoint = false;
         _idleTimer = 0f;
+        _alertTimer = 0f;
         ResetStrafe();
         _strafeTimer = GetRandomValue(0.05f, 0.2f);
+        AlertRoom(_targetVision.CurrentTargetPoint);
         ApplyTrackMode();
     }
 
     private void OnTargetLost()
     {
         _searchTimer = _searchTime;
+        _alertTimer = 0f;
         ResetStrafe();
         ApplyIdleMode();
     }
