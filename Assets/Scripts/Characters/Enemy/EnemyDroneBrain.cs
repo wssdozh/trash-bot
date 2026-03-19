@@ -4,7 +4,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
-    private const float AlertDelay = 0.35f;
+    private const float AlertDelay = 0.9f;
+    private const float AlertGap = 1.75f;
     private const int IdlePointTryCount = 6;
     private const float ZeroThreshold = 0.0001f;
     private const float OrbitTurnAngle = 90f;
@@ -18,11 +19,11 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private FireExecutor _fireExecutor;
 
     [Header("Fight")]
-    [SerializeField] private float _fightMinDistance = 3.2f;
-    [SerializeField] private float _fightMaxDistance = 5.2f;
-    [SerializeField] private float _pursuitDistance = 3.55f;
+    [SerializeField] private float _fightMinDistance = 2.9f;
+    [SerializeField] private float _fightMaxDistance = 4.7f;
+    [SerializeField] private float _pursuitDistance = 3.15f;
     [SerializeField] private float _fireDistance = 8.5f;
-    [SerializeField] private float _strafeDistance = 0.85f;
+    [SerializeField] private float _strafeDistance = 0.7f;
     [SerializeField] private float _strafeTimeMin = 1f;
     [SerializeField] private float _strafeTimeMax = 1.45f;
     [SerializeField] private float _strafeWaitMin = 0.35f;
@@ -55,20 +56,29 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     public EnemyState State => _state;
 
-    public void ApplyAlert(Vector3 point)
+    public bool ApplyAlert(Vector3 point)
     {
         if (_enemy.IsDead)
         {
-            return;
+            return false;
         }
 
         if (_targetVision.IsTargetVisible)
         {
-            return;
+            return false;
         }
 
         Vector3 alertPoint = ClampPoint(point);
         alertPoint.y = _spawnPoint.y;
+
+        if (_hasLastSeenPoint)
+        {
+            if (GetFlatDistance(_lastSeenPoint, alertPoint) <= AlertGap)
+            {
+                return false;
+            }
+        }
+
         _lastSeenPoint = alertPoint;
         _hasLastSeenPoint = true;
         _searchTimer = _searchTime;
@@ -77,6 +87,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _alertTimer = 0f;
         ResetStrafe();
         ApplyTrackMode();
+
+        return true;
     }
 
     private void Awake()

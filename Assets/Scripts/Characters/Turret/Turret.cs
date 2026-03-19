@@ -4,6 +4,7 @@ using UnityEngine;
 public class Turret : MonoBehaviour, IEnemyAlert
 {
     private const float AlertTime = 2.5f;
+    private const float AlertGap = 1f;
 
     [Header("Зависимости")]
     [SerializeField] private TargetVision _targetVision;
@@ -19,17 +20,27 @@ public class Turret : MonoBehaviour, IEnemyAlert
     private float _alertTimer;
     private Coroutine _fireDelayCoroutine;
 
-    public void ApplyAlert(Vector3 point)
+    public bool ApplyAlert(Vector3 point)
     {
         if (_targetVision.IsTargetVisible)
         {
-            return;
+            return false;
+        }
+
+        if (_hasAlertPoint)
+        {
+            if (Vector3.Distance(_alertPoint, point) <= AlertGap)
+            {
+                return false;
+            }
         }
 
         _alertPoint = point;
         _hasAlertPoint = true;
         _alertTimer = AlertTime;
         SetAlertState();
+
+        return true;
     }
 
     private void OnEnable()
