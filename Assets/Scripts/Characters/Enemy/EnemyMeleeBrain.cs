@@ -4,6 +4,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
+    private const float AlertGap = 1f;
     private const int SearchStepsCount = 4;
     private const int IdlePointTryCount = 16;
     private const int IdleChainMin = 2;
@@ -107,16 +108,16 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     public EnemyState State => _state;
 
-    public void ApplyAlert(Vector3 point)
+    public bool ApplyAlert(Vector3 point)
     {
         if (_enemy.IsDead)
         {
-            return;
+            return false;
         }
 
         if (_targetVision.IsTargetVisible)
         {
-            return;
+            return false;
         }
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
@@ -126,6 +127,16 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (enemyRoomLock != null)
         {
             alertPoint = GetFlatPoint(enemyRoomLock.ClampMovePoint(alertPoint));
+        }
+
+        alertPoint = GetMovePoint(alertPoint);
+
+        if (_hasLastSeenPoint)
+        {
+            if (Vector3.Distance(_lastSeenPoint, alertPoint) <= AlertGap)
+            {
+                return false;
+            }
         }
 
         Vector3 alertDirection = alertPoint - currentPoint;
@@ -147,6 +158,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         StopFire();
         ResetMoveStuck();
         _enemySteering.Stop();
+
+        return true;
     }
 
     private void Awake()
@@ -719,10 +732,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private bool StartSearchPoint()
     {
         Vector3 currentPoint = GetFlatPoint(transform.position);
+        float wallGap = GetMoveWallGap();
 
         while (_searchStep < SearchStepsCount)
         {
-            Vector3 candidatePoint = _enemySteering.GetSafePoint(GetFlatPoint(GetSearchPoint()), _probeRadius);
+            Vector3 candidatePoint = _enemySteering.GetSafePoint(GetFlatPoint(GetSearchPoint()), wallGap);
             float distance = Vector3.Distance(currentPoint, candidatePoint);
 
             if (distance <= _searchPointDistance)
@@ -778,8 +792,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRunNeeded(distance));
+        Vector3 chasePoint = GetMovePoint(targetPoint);
 
-        if (TryCombatMove(currentPoint, targetPoint))
+        if (TryCombatMove(currentPoint, chasePoint, targetPoint))
         {
             return;
         }
@@ -816,8 +831,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRangeRunNeeded(distance));
+        Vector3 chasePoint = GetMovePoint(targetPoint);
 
-        if (TryRangeMove(targetPoint, _fightMaxDistance, targetPoint, currentPoint))
+        if (TryRangeMove(chasePoint, _fightMaxDistance, targetPoint, currentPoint))
         {
             return;
         }
@@ -830,7 +846,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Fight;
         _enemyMove.SetRun(false);
-        Vector3 retreatPoint = GetRetreatPoint(currentPoint, targetPoint);
+        Vector3 retreatPoint = GetMovePoint(GetRetreatPoint(currentPoint, targetPoint));
 
         if (TryRangeMove(retreatPoint, _fightGapDistance, targetPoint, currentPoint))
         {
@@ -854,7 +870,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        if (TryRangeMove(targetPoint, _fightMinDistance, targetPoint, currentPoint))
+        if (TryRangeMove(GetMovePoint(targetPoint), _fightMinDistance, targetPoint, currentPoint))
         {
             return;
         }
@@ -901,10 +917,10 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         fireExecutor.TryFire();
     }
 
-    private bool TryCombatMove(Vector3 currentPoint, Vector3 targetPoint)
+    private bool TryCombatMove(Vector3 currentPoint, Vector3 movePoint, Vector3 lookPoint)
     {
-        float stopDistance = MinFightRadius;
-        bool isMoving = _enemySteering.MoveToPoint(targetPoint, stopDistance, targetPoint);
+        float stopDistance = GetCombatStopDistance();
+        bool isMoving = _enemySteering.MoveToPoint(movePoint, stopDistance, lookPoint);
 
         if (isMoving == false)
         {
@@ -1304,7 +1320,22 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             chasePoint = enemyRoomLock.ClampMovePoint(chasePoint);
         }
 
-        return GetFlatPoint(chasePoint);
+        return GetMovePoint(GetFlatPoint(chasePoint));
+    }
+
+    private float GetCombatStopDistance()
+    {
+        return Mathf.Max(MinFightRadius, _fightGapDistance * 0.5f);
+    }
+
+    private float GetMoveWallGap()
+    {
+        return Mathf.Max(_idleWallGap, _probeRadius * 2f);
+    }
+
+    private Vector3 GetMovePoint(Vector3 point)
+    {
+        return _enemySteering.GetSafePoint(point, GetMoveWallGap());
     }
 
     private void ResetAttackState()
@@ -1379,8 +1410,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         float distance = Vector3.Distance(currentPoint, lostPoint);
         _lastSeenMovePoint = lostPoint;
         _hasLastSeenMovePoint = true;
+        float stopDistance = Mathf.Max(_lostStopDistance, _searchPointDistance);
 
-        if (distance <= _lostStopDistance)
+        if (distance <= stopDistance)
         {
             return false;
         }
@@ -1388,7 +1420,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRunNeeded(distance));
 
-        return TryLostMove(_enemySteering.MoveToPoint(lostPoint, _lostStopDistance), currentPoint);
+        return TryLostMove(_enemySteering.MoveToPoint(lostPoint, stopDistance), currentPoint);
     }
 
     private bool TryLostMove(bool isMoving, Vector3 currentPoint)

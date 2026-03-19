@@ -199,11 +199,11 @@ MonoBehaviour:
   _targetRotator: {fileID: 3084461313394651049}
   _idleRotator: {fileID: 7344053562206653070}
   _fireExecutor: {fileID: 3601055731436968810}
-  _fightMinDistance: 3.2
-  _fightMaxDistance: 5.2
-  _pursuitDistance: 3.55
+  _fightMinDistance: 2.9
+  _fightMaxDistance: 4.7
+  _pursuitDistance: 3.15
   _fireDistance: 8.5
-  _strafeDistance: 0.85
+  _strafeDistance: 0.7
   _strafeTimeMin: 1
   _strafeTimeMax: 1.45
   _strafeWaitMin: 0.35
