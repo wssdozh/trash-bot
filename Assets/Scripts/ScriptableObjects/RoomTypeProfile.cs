@@ -23,7 +23,7 @@ public sealed class RoomTypeProfile : ScriptableObject
 
     [Header("Enemies")]
     [SerializeField] private Vector2Int _enemySpawnCountRange = new Vector2Int(0, 0);
-    [SerializeField] private List<WeightedPrefab> _enemyPrefabs = new List<WeightedPrefab>();
+    [SerializeField] private List<EnemySpawnConfig> _enemyPrefabs = new List<EnemySpawnConfig>();
     [SerializeField, HideInInspector] private List<EnemySpawnHeight> _enemySpawnHeights = new List<EnemySpawnHeight>();
 
     [Header("Objects")]
@@ -44,7 +44,7 @@ public sealed class RoomTypeProfile : ScriptableObject
     public Vector2Int LargeCubeStackHeightRange => _largeCubeStackHeightRange;
     public bool RandomYawRotation => _randomYawRotation;
     public Vector2Int EnemySpawnCountRange => _enemySpawnCountRange;
-    public IReadOnlyList<WeightedPrefab> EnemyPrefabs => _enemyPrefabs;
+    public IReadOnlyList<EnemySpawnConfig> EnemyPrefabs => _enemyPrefabs;
     public Vector2Int ObjectSpawnCountRange => _objectSpawnCountRange;
     public IReadOnlyList<WeightedPrefab> ObjectPrefabs => _objectPrefabs;
     public IReadOnlyList<NookPrefabConfig> NookPrefabs => _nookPrefabs;
@@ -64,33 +64,21 @@ public sealed class RoomTypeProfile : ScriptableObject
         return copy;
     }
 
-    public float GetEnemySpawnHeight(GameObject prefab, float defaultSpawnHeight)
+    public float GetEnemySpawnHeight(EnemySpawnConfig enemySpawn, float defaultSpawnHeight)
     {
         MigrateEnemySpawnHeights();
 
-        if (prefab == null)
+        if (enemySpawn == null)
         {
             return defaultSpawnHeight;
         }
 
-        for (int index = 0; index < _enemyPrefabs.Count; index++)
+        if (enemySpawn.Prefab == null)
         {
-            WeightedPrefab weightedPrefab = _enemyPrefabs[index];
-
-            if (weightedPrefab == null)
-            {
-                continue;
-            }
-
-            if (weightedPrefab.Prefab != prefab)
-            {
-                continue;
-            }
-
-            return weightedPrefab.SpawnHeight;
+            return defaultSpawnHeight;
         }
 
-        return defaultSpawnHeight;
+        return enemySpawn.SpawnHeight;
     }
 
     public bool HasGuaranteedNookDemand
@@ -224,33 +212,33 @@ public sealed class RoomTypeProfile : ScriptableObject
                 continue;
             }
 
-            WeightedPrefab weightedPrefab = FindEnemyPrefab(prefab);
+            EnemySpawnConfig enemySpawn = FindEnemyPrefab(prefab);
 
-            if (weightedPrefab == null)
+            if (enemySpawn == null)
             {
                 continue;
             }
 
-            weightedPrefab.SetSpawnHeight(enemySpawnHeight.SpawnHeight);
+            enemySpawn.SetSpawnHeight(enemySpawnHeight.SpawnHeight);
         }
 
         _enemySpawnHeights.Clear();
     }
 
-    private WeightedPrefab FindEnemyPrefab(GameObject prefab)
+    private EnemySpawnConfig FindEnemyPrefab(GameObject prefab)
     {
         for (int index = 0; index < _enemyPrefabs.Count; index++)
         {
-            WeightedPrefab weightedPrefab = _enemyPrefabs[index];
+            EnemySpawnConfig enemySpawn = _enemyPrefabs[index];
 
-            if (weightedPrefab == null)
+            if (enemySpawn == null)
             {
                 continue;
             }
 
-            if (weightedPrefab.Prefab == prefab)
+            if (enemySpawn.Prefab == prefab)
             {
-                return weightedPrefab;
+                return enemySpawn;
             }
         }
 

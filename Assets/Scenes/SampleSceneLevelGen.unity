@@ -4426,7 +4426,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5883766244847082059, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: field of view
-      value: 40
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944983852052773198, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: _height
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 6944983852052773198, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: _positionOffset.z
+      value: -4
       objectReference: {fileID: 0}
     - target: {fileID: 7052495058418967132, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_AnchorMax.x

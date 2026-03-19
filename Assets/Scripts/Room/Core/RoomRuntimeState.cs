@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 [DisallowMultipleComponent]
 public sealed class RoomRuntimeState : MonoBehaviour
@@ -56,6 +58,46 @@ public sealed class RoomRuntimeState : MonoBehaviour
         return ClampPoint(_moveBounds, point);
     }
 
+    public float GetMoveTop()
+    {
+        if (_isReady == false)
+        {
+            return 0f;
+        }
+
+        return _moveBounds.max.y;
+    }
+
+    public float GetMoveBottom()
+    {
+        if (_isReady == false)
+        {
+            return 0f;
+        }
+
+        return _moveBounds.min.y;
+    }
+
+    public Vector3 GetRandomMovePoint(float height, System.Random random)
+    {
+        if (_isReady == false)
+        {
+            return new Vector3(0f, height, 0f);
+        }
+
+        if (random == null)
+        {
+            throw new InvalidOperationException(nameof(random));
+        }
+
+        float xProgress = (float)random.NextDouble();
+        float zProgress = (float)random.NextDouble();
+        float pointX = Mathf.Lerp(_moveBounds.min.x, _moveBounds.max.x, xProgress);
+        float pointZ = Mathf.Lerp(_moveBounds.min.z, _moveBounds.max.z, zProgress);
+
+        return new Vector3(pointX, height, pointZ);
+    }
+
     public float GetDistanceSqr(Vector3 point)
     {
         if (_isReady == false)
@@ -78,7 +120,29 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return;
         }
 
+        if (isActive == false)
+        {
+            DisableNavMeshAgents();
+        }
+
         gameObject.SetActive(isActive);
+    }
+
+    private void DisableNavMeshAgents()
+    {
+        NavMeshAgent[] navMeshAgents = GetComponentsInChildren<NavMeshAgent>(true);
+
+        for (int agentIndex = 0; agentIndex < navMeshAgents.Length; agentIndex++)
+        {
+            NavMeshAgent navMeshAgent = navMeshAgents[agentIndex];
+
+            if (navMeshAgent == null)
+            {
+                continue;
+            }
+
+            navMeshAgent.enabled = false;
+        }
     }
 
     private Bounds NormalizeBounds(Bounds roomBounds)

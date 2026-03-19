@@ -883,15 +883,23 @@ public sealed class RoomContentSpawner : MonoBehaviour
         InstantiateOnCell(prefab, _objectsRoot, floorCell, _objectSpawnHeight);
     }
 
-    private bool TryInstantiateEnemyOnCell(RoomTypeProfile roomTypeProfile, GameObject prefab, Vector2Int floorCell)
+    private bool TryInstantiateEnemyOnCell(RoomTypeProfile roomTypeProfile, EnemySpawnConfig enemySpawn, Vector2Int floorCell)
     {
-        float spawnHeight = roomTypeProfile.GetEnemySpawnHeight(prefab, _enemySpawnHeight);
+        if (enemySpawn == null)
+        {
+            return false;
+        }
+
+        GameObject prefab = enemySpawn.Prefab;
+        float spawnHeight = roomTypeProfile.GetEnemySpawnHeight(enemySpawn, _enemySpawnHeight);
         GameObject instance = InstantiateOnCell(prefab, _enemiesRoot, floorCell, spawnHeight);
 
         if (instance == null)
         {
             return false;
         }
+
+        SetupEnemy(instance, enemySpawn);
 
         Vector3 spawnPoint = instance.transform.position;
 
@@ -905,6 +913,28 @@ public sealed class RoomContentSpawner : MonoBehaviour
         BindEnemyRoom(instance);
 
         return true;
+    }
+
+    private void SetupEnemy(GameObject enemyObject, EnemySpawnConfig enemySpawn)
+    {
+        if (enemyObject == null)
+        {
+            return;
+        }
+
+        if (enemySpawn == null)
+        {
+            return;
+        }
+
+        EnemyAnimation enemyAnimation = enemyObject.GetComponentInChildren<EnemyAnimation>(true);
+
+        if (enemyAnimation == null)
+        {
+            return;
+        }
+
+        enemyAnimation.SetWeapon(enemySpawn.WeaponPrefab);
     }
 
     private void BindEnemyRoom(GameObject enemyObject)
@@ -1844,8 +1874,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
             }
 
-            GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, prefab, bestCell);
+            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, random);
+            bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, bestCell);
 
             if (isSpawned)
             {
@@ -1909,8 +1939,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 break;
             }
 
-            GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.EnemyPrefabs, random);
-            bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, prefab, chosenCell);
+            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, random);
+            bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, chosenCell);
 
             if (isSpawned)
             {

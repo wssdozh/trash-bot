@@ -95,6 +95,30 @@ public sealed class EnemyAnimation : MonoBehaviour
         _animator.TriggerAttack();
     }
 
+    public void SetWeapon(BasePickup weaponPrefab)
+    {
+        if (weaponPrefab != null && _weaponHolder == null)
+        {
+            throw new InvalidOperationException(nameof(_weaponHolder));
+        }
+
+        if (_weaponPrefab == weaponPrefab)
+        {
+            return;
+        }
+
+        _weaponPrefab = weaponPrefab;
+
+        if (isActiveAndEnabled == false)
+        {
+            return;
+        }
+
+        _animatorSwitcher.SetWeaponTypeInstant(GetWeaponType());
+        RefreshWeaponView();
+        ApplyState();
+    }
+
     private void OnHealthDecreased()
     {
         if (_enemy.IsDead)
@@ -161,7 +185,7 @@ public sealed class EnemyAnimation : MonoBehaviour
 
     private void ConfigureAnimator()
     {
-        _animatorSwitcher.SetWeaponTypeInstant(_weaponType);
+        _animatorSwitcher.SetWeaponTypeInstant(GetWeaponType());
         _animatorSwitcher.SetBattleModeInstant(false);
         _animator.ResetAttackOrder();
     }
@@ -194,6 +218,21 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         _weaponHolder.Clear();
+    }
+
+    private WeaponType GetWeaponType()
+    {
+        if (_weaponPrefab == null)
+        {
+            return WeaponType.None;
+        }
+
+        if (_weaponPrefab.Item == null)
+        {
+            return _weaponType;
+        }
+
+        return _weaponPrefab.Item.WeaponType;
     }
 
     private void ResolveBrain()

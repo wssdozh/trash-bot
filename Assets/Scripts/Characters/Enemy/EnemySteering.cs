@@ -635,6 +635,7 @@ public sealed class EnemySteering
         navMeshAgent.speed = AgentSpeed;
         navMeshAgent.avoidancePriority = GetAvoidPriority();
         navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        navMeshAgent.enabled = false;
 
         return navMeshAgent;
     }
@@ -660,7 +661,7 @@ public sealed class EnemySteering
     {
         if (_navMeshAgent.enabled == false)
         {
-            _navMeshAgent.enabled = true;
+            return TryActivateAgent(currentPoint);
         }
 
         if (_navMeshAgent.isOnNavMesh == false)
@@ -669,6 +670,8 @@ public sealed class EnemySteering
 
             if (TryGetRecoverPoint(currentPoint, out navPoint) == false)
             {
+                _navMeshAgent.enabled = false;
+
                 return false;
             }
 
@@ -682,6 +685,8 @@ public sealed class EnemySteering
 
             if (isWarped == false)
             {
+                _navMeshAgent.enabled = false;
+
                 return false;
             }
 
@@ -698,6 +703,41 @@ public sealed class EnemySteering
         {
             CacheNavPoint(currentNavPoint);
         }
+
+        return true;
+    }
+
+    private bool TryActivateAgent(Vector3 currentPoint)
+    {
+        Vector3 navPoint;
+
+        if (TryGetNavPoint(currentPoint, out navPoint) == false)
+        {
+            return false;
+        }
+
+        if (Vector3.Distance(currentPoint, navPoint) > NavSnapGap)
+        {
+            SnapToPoint(navPoint);
+            currentPoint = navPoint;
+        }
+
+        _navMeshAgent.enabled = true;
+
+        if (_navMeshAgent.isOnNavMesh == false)
+        {
+            bool isWarped = _navMeshAgent.Warp(navPoint);
+
+            if (isWarped == false)
+            {
+                _navMeshAgent.enabled = false;
+
+                return false;
+            }
+        }
+
+        _navMeshAgent.nextPosition = currentPoint;
+        CacheNavPoint(navPoint);
 
         return true;
     }

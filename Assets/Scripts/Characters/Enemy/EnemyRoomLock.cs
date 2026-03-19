@@ -5,16 +5,23 @@ public sealed class EnemyRoomLock : MonoBehaviour
 {
     private Rigidbody _rigidbody;
     private EnemyMove _enemyMove;
+    private EnemyDroneMove _enemyDroneMove;
     private RoomRuntimeState _roomRuntimeState;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
         _enemyMove = GetComponent<EnemyMove>();
+        _enemyDroneMove = GetComponent<EnemyDroneMove>();
 
         if (_enemyMove == null)
         {
             _enemyMove = GetComponentInChildren<EnemyMove>();
+        }
+
+        if (_enemyDroneMove == null)
+        {
+            _enemyDroneMove = GetComponentInChildren<EnemyDroneMove>();
         }
     }
 
@@ -73,6 +80,36 @@ public sealed class EnemyRoomLock : MonoBehaviour
         return _roomRuntimeState.ClampMovePoint(point);
     }
 
+    public float GetMoveTop()
+    {
+        if (_roomRuntimeState == null)
+        {
+            return transform.position.y;
+        }
+
+        return _roomRuntimeState.GetMoveTop();
+    }
+
+    public float GetMoveBottom()
+    {
+        if (_roomRuntimeState == null)
+        {
+            return transform.position.y;
+        }
+
+        return _roomRuntimeState.GetMoveBottom();
+    }
+
+    public Vector3 GetPatrolPoint(float height, System.Random random)
+    {
+        if (_roomRuntimeState == null)
+        {
+            return new Vector3(transform.position.x, height, transform.position.z);
+        }
+
+        return _roomRuntimeState.GetRandomMovePoint(height, random);
+    }
+
     public void SnapInside()
     {
         if (_roomRuntimeState == null)
@@ -85,6 +122,11 @@ public sealed class EnemyRoomLock : MonoBehaviour
         if (_enemyMove != null)
         {
             _enemyMove.ForceStop();
+        }
+
+        if (_enemyDroneMove != null)
+        {
+            _enemyDroneMove.ForceStop();
         }
 
         ApplyPoint(clampedPoint);

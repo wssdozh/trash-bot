@@ -160,8 +160,15 @@ MonoBehaviour:
   _attacker: {fileID: 7366375601686959552}
   _animation: {fileID: 5741961401539005627}
   _animationEvents: {fileID: 5646352223129568357}
+  _weaponHolder: {fileID: 1908533539380365251}
   _runStartDistance: 2.6
   _runStopDistance: 1
+  _fightMinDistance: 2.75
+  _fightMaxDistance: 5.75
+  _fireMaxDistance: 7.25
+  _fightGapDistance: 0.45
+  _rangeRunStart: 7
+  _rangeRunStop: 5.5
   _idleMoveMin: 3
   _idleMoveMax: 5
   _idleWaitMin: 2.2
@@ -383,7 +390,7 @@ MonoBehaviour:
     Controller: {fileID: 22100000, guid: 573abf707039860498b8c9807cef311f, type: 2}
   - WeaponType: 3
     Controller: {fileID: 22100000, guid: e5afbc114886b934281046e42b5f7e20, type: 2}
-  - WeaponType: 2
+  - WeaponType: 1
     Controller: {fileID: 22100000, guid: 22f0999258184534d957c4e84d458298, type: 2}
   _defaultWeaponType: 0
   _weaponLayerIndex: 1
@@ -404,7 +411,7 @@ MonoBehaviour:
   _weaponSocket: {fileID: 8297373444735015656}
   _targetLayers:
     serializedVersion: 2
-    m_Bits: 4993
+    m_Bits: 449
 --- !u!114 &5741961401539005627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -420,7 +427,7 @@ MonoBehaviour:
   _animator: {fileID: 2587704385259913141}
   _animatorSwitcher: {fileID: 1707185457463400390}
   _enemyMove: {fileID: 9108123925921890562}
-  _enemyMeleeBrain: {fileID: 3911330252427202063}
+  _enemyBrain: {fileID: 3911330252427202063}
   _health: {fileID: 6367953433166089997}
   _enemy: {fileID: 4393048339646228811}
   _weaponHolder: {fileID: 1908533539380365251}

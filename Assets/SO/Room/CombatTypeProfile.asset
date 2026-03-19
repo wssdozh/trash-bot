@@ -27,22 +27,47 @@ MonoBehaviour:
     _weight: 3
     _spawnHeight: 0.8
     _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
+  - _prefab: {fileID: 625229030526185096, guid: c41a8d9c8e2b47e5a2d90477bd463f6f, type: 3}
+    _weight: 4
+    _spawnHeight: 2.2
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
   - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
     _weight: 3
     _spawnHeight: 1.8
     _guaranteed: 0
-  - _prefab: {fileID: 3220131145214470877, guid: c5b2d1d433ee45d8b92068065d4d2d3a, type: 3}
+    _weaponPrefab: {fileID: 0}
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
     _weight: 2
     _spawnHeight: 1.8
     _guaranteed: 0
+    _weaponPrefab: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 1
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 1864531296725922894, guid: 63964cb5d2bc33540b1943393b2507b7, type: 3}
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 1
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 1864531296725922894, guid: b63d71782bd7cc94c99fbd43145c7038, type: 3}
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 1
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 1864531296725922894, guid: ff061cd3d36838b428759a9dd5db86da, type: 3}
   - _prefab: {fileID: 2988643586977455420, guid: 93470d33be65f054a84a4b6a491dbd4d, type: 3}
     _weight: 2
     _spawnHeight: 0.8
     _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
   - _prefab: {fileID: 7498234434704418352, guid: f18352863eccbe144b20b35c02dc805a, type: 3}
     _weight: 1
     _spawnHeight: 0.8
     _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
   _enemySpawnHeights: []
   _objectSpawnCountRange: {x: 3, y: 10}
   _objectPrefabs:

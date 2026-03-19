@@ -23,6 +23,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
     private const float ForwardGizmoLength = 1.1f;
     private const float MoveGizmoLength = 1.35f;
     private const float PointGizmoSize = 0.18f;
+    private const float ZeroThreshold = 0.0001f;
 
     [Header("Dependencies")]
     [SerializeField] private Enemy _enemy;
@@ -32,10 +33,19 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
     [SerializeField] private Attacker _attacker;
     [SerializeField] private EnemyAnimation _animation;
     [SerializeField] private PlayerAnimationEvents _animationEvents;
+    [SerializeField] private WeaponHolder _weaponHolder;
 
     [Header("Combat")]
     [SerializeField] private float _runStartDistance = 4.4f;
     [SerializeField] private float _runStopDistance = 3.1f;
+
+    [Header("Range")]
+    [SerializeField] private float _fightMinDistance = 2.75f;
+    [SerializeField] private float _fightMaxDistance = 5.75f;
+    [SerializeField] private float _fireMaxDistance = 7.25f;
+    [SerializeField] private float _fightGapDistance = 0.45f;
+    [SerializeField] private float _rangeRunStart = 7f;
+    [SerializeField] private float _rangeRunStop = 5.5f;
 
     [Header("Idle")]
     [SerializeField] private float _idleMoveMin = 4f;
@@ -134,6 +144,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
             throw new InvalidOperationException(nameof(_animationEvents));
         }
 
+        if (_weaponHolder == null)
+        {
+            throw new InvalidOperationException(nameof(_weaponHolder));
+        }
+
         if (_runStartDistance <= 0f)
         {
             throw new InvalidOperationException(nameof(_runStartDistance));
@@ -147,6 +162,41 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         if (_runStartDistance < _runStopDistance)
         {
             throw new InvalidOperationException(nameof(_runStartDistance));
+        }
+
+        if (_fightMinDistance <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_fightMinDistance));
+        }
+
+        if (_fightMaxDistance < _fightMinDistance)
+        {
+            throw new InvalidOperationException(nameof(_fightMaxDistance));
+        }
+
+        if (_fireMaxDistance < _fightMaxDistance)
+        {
+            throw new InvalidOperationException(nameof(_fireMaxDistance));
+        }
+
+        if (_fightGapDistance <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_fightGapDistance));
+        }
+
+        if (_rangeRunStart <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_rangeRunStart));
+        }
+
+        if (_rangeRunStop <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_rangeRunStop));
+        }
+
+        if (_rangeRunStart < _rangeRunStop)
+        {
+            throw new InvalidOperationException(nameof(_rangeRunStart));
         }
 
         if (_idleMoveMin <= 0f)
@@ -268,6 +318,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         _enemy.Died -= OnDied;
         _animationEvents.Attacking -= OnAttackingFrame;
         _animationEvents.AttackEnded -= OnAttackEnded;
+        StopFire();
         _enemyMove.SetRun(false);
         _enemySteering.Stop();
         ResetAttackState();
@@ -405,12 +456,20 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         Vector3 currentPoint = GetFlatPoint(transform.position);
         Vector3 targetPoint = GetTargetPoint(currentTarget);
         float distance = Vector3.Distance(currentPoint, targetPoint);
+        FireExecutor fireExecutor = GetFireExecutor();
 
         if (_isAttackInProgress)
         {
             _state = EnemyState.Fight;
             StopAttackMove();
             _enemySteering.LookToPoint(targetPoint);
+
+            return;
+        }
+
+        if (fireExecutor != null)
+        {
+            ProcessRangeTarget(currentPoint, targetPoint, distance, fireExecutor);
 
             return;
         }
@@ -428,6 +487,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
 
     private void ProcessHiddenTarget()
     {
+        StopFire();
+
         if (_isAttackInProgress)
         {
             _state = EnemyState.Fight;
@@ -686,6 +747,118 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         _enemySteering.LookToPoint(targetPoint);
     }
 
+    private void ProcessRangeTarget(Vector3 currentPoint, Vector3 targetPoint, float distance, FireExecutor fireExecutor)
+    {
+        bool hasFireLine = HasFireLine(targetPoint);
+        fireExecutor.SetAimPoint(targetPoint);
+
+        if (distance > _fightMaxDistance)
+        {
+            ProcessRangeChase(currentPoint, targetPoint, distance);
+        }
+
+        else if (distance < _fightMinDistance)
+        {
+            ProcessRangeBack(currentPoint, targetPoint);
+        }
+
+        else
+        {
+            ProcessRangeFight(currentPoint, targetPoint, hasFireLine);
+        }
+
+        TryShoot(fireExecutor, targetPoint, distance, hasFireLine);
+    }
+
+    private void ProcessRangeChase(Vector3 currentPoint, Vector3 targetPoint, float distance)
+    {
+        _state = EnemyState.Chase;
+        _enemyMove.SetRun(IsRangeRunNeeded(distance));
+
+        if (TryRangeMove(targetPoint, _fightMaxDistance, targetPoint, currentPoint))
+        {
+            return;
+        }
+
+        _enemyMove.SetRun(false);
+        _enemySteering.LookToPoint(targetPoint);
+    }
+
+    private void ProcessRangeBack(Vector3 currentPoint, Vector3 targetPoint)
+    {
+        _state = EnemyState.Fight;
+        _enemyMove.SetRun(false);
+        Vector3 retreatPoint = GetRetreatPoint(currentPoint, targetPoint);
+
+        if (TryRangeMove(retreatPoint, _fightGapDistance, targetPoint, currentPoint))
+        {
+            return;
+        }
+
+        _enemySteering.LookToPoint(targetPoint);
+    }
+
+    private void ProcessRangeFight(Vector3 currentPoint, Vector3 targetPoint, bool hasFireLine)
+    {
+        _state = EnemyState.Fight;
+        _enemyMove.SetRun(false);
+
+        if (hasFireLine)
+        {
+            ResetMoveStuck();
+            _enemySteering.Stop();
+            _enemyRotator.RotateToPoint(targetPoint);
+
+            return;
+        }
+
+        if (TryRangeMove(targetPoint, _fightMinDistance, targetPoint, currentPoint))
+        {
+            return;
+        }
+
+        _enemySteering.LookToPoint(targetPoint);
+    }
+
+    private bool TryRangeMove(Vector3 movePoint, float stopDistance, Vector3 lookPoint, Vector3 currentPoint)
+    {
+        bool isMoving = _enemySteering.MoveToPoint(movePoint, stopDistance, lookPoint);
+
+        if (isMoving == false)
+        {
+            _enemyMove.ForceStop();
+            ResetMoveStuck();
+
+            return false;
+        }
+
+        if (CanKeepMove(currentPoint))
+        {
+            return true;
+        }
+
+        _enemyMove.ForceStop();
+        ResetMoveStuck();
+
+        return false;
+    }
+
+    private void TryShoot(FireExecutor fireExecutor, Vector3 targetPoint, float distance, bool hasFireLine)
+    {
+        if (distance > _fireMaxDistance)
+        {
+            return;
+        }
+
+        if (hasFireLine == false)
+        {
+            return;
+        }
+
+        fireExecutor.SetAimPoint(targetPoint);
+        fireExecutor.TryFire();
+    }
+
     private bool TryCombatMove(Vector3 currentPoint, Vector3 targetPoint)
     {
         float stopDistance = MinFightRadius;
@@ -873,6 +1046,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         _hasSearchPoint = false;
         _isIdleWalking = false;
         ResetAttackState();
+        StopFire();
         _idleLastDistance = -1f;
         _idleStuckTimer = 0f;
         ResetMoveStuck();
@@ -899,6 +1073,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
 
     private void OnDied()
     {
+        StopFire();
         _enemyMove.SetRun(false);
         ResetMoveStuck();
         ResetAttackState();
@@ -1103,6 +1278,19 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         _enemyMove.ForceStop();
     }
 
+    private void StopFire()
+    {
+        FireExecutor fireExecutor = GetFireExecutor();
+
+        if (fireExecutor == null)
+        {
+            return;
+        }
+
+        fireExecutor.StopFiring();
+        fireExecutor.ClearAimPoint();
+    }
+
     private bool IsRunNeeded(float distance)
     {
         if (_enemyMove.IsRunRequested)
@@ -1116,6 +1304,26 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         }
 
         if (distance >= _runStartDistance)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsRangeRunNeeded(float distance)
+    {
+        if (_enemyMove.IsRunRequested)
+        {
+            if (distance > _rangeRunStop)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        if (distance >= _rangeRunStart)
         {
             return true;
         }
@@ -1245,6 +1453,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         return _enemyRoomLock;
     }
 
+    private FireExecutor GetFireExecutor()
+    {
+        return _weaponHolder.FireExecutor;
+    }
+
     private void RotateTarget(Transform currentTarget)
     {
         if (currentTarget == null)
@@ -1254,6 +1467,16 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
 
         Vector3 targetPoint = GetTargetPoint(currentTarget);
         _enemyRotator.RotateToPoint(targetPoint);
+    }
+
+    private bool HasFireLine(Vector3 targetPoint)
+    {
+        if (_enemySteering.IsLineBlocked(targetPoint))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private float GetSearchStride()
@@ -1339,6 +1562,31 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain
         direction.Normalize();
 
         return direction;
+    }
+
+    private Vector3 GetRetreatPoint(Vector3 currentPoint, Vector3 targetPoint)
+    {
+        Vector3 retreatDirection = currentPoint - targetPoint;
+        retreatDirection.y = 0f;
+
+        if (retreatDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            retreatDirection = -GetStartDirection();
+        }
+
+        retreatDirection.Normalize();
+
+        float retreatDistance = _fightMinDistance - Vector3.Distance(currentPoint, targetPoint);
+
+        if (retreatDistance < _fightGapDistance)
+        {
+            retreatDistance = _fightGapDistance;
+        }
+
+        Vector3 retreatPoint = currentPoint + (retreatDirection * retreatDistance);
+        retreatPoint.y = transform.position.y;
+
+        return retreatPoint;
     }
 
     private Vector3 GetSearchDirection()
