@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 772909478261253129}
   - component: {fileID: 819026922362745416}
   - component: {fileID: 9018567847222104301}
-  - component: {fileID: 9094156253819777809}
   m_Layer: 7
   m_Name: RootTank
   m_TagString: Untagged
@@ -102,27 +101,6 @@ MonoBehaviour:
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
---- !u!114 &9094156253819777809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 735951979241723704}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce1b332037c6d1747b5fb421fac34fc6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Bush
-  Health: {fileID: 9018567847222104301}
-  _spawnHeightOffset: 1
-  _pickupPrefab: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}
-  _forceXMin: -1
-  _forceXMax: -2
-  _forceYMin: 3
-  _forceYMax: 5
-  _forceZMin: -0.5
-  _forceZMax: 0.5
 --- !u!1 &7892580720158080282
 GameObject:
   m_ObjectHideFlags: 0
@@ -166,13 +144,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7892580720158080282}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cdaaab3539cb27449ad261f11c648690, type: 3}
+  m_Script: {fileID: 11500000, guid: d4cf860167f645bcb7d4e99b851f6ec9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DieFracture
-  _health: {fileID: 0}
-  _intactObject: {fileID: 489502991992187493}
-  _fracturedObject: {fileID: 2582690811787458895}
-  _fractureFx: {fileID: 4668930797233613825}
+  m_EditorClassIdentifier: Assembly-CSharp::PickupOnDeath
+  _health: {fileID: 9018567847222104301}
+  _intactObject: {fileID: 735951979241723704}
+  _pickupPrefab: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
+  _spawnOffset: {x: 0, y: 0.75, z: 0}
 --- !u!1001 &865311916851755090
 PrefabInstance:
   m_ObjectHideFlags: 0
