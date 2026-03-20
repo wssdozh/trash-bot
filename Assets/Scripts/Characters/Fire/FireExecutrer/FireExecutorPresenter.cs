@@ -240,7 +240,7 @@ public sealed class FireExecutorPresenter
             return false;
         }
 
-        Vector3 upAxis = _ownerTransform.up;
+        Vector3 upAxis = _ownerTransform.root.up;
 
         Vector3 flatDirection = Vector3.ProjectOnPlane(desiredDirection, upAxis);
 

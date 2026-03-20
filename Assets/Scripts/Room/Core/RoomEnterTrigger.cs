@@ -9,6 +9,7 @@ public sealed class RoomEnterTrigger : MonoBehaviour
 {
     private const float MinSize = 0.0001f;
     private const float MinHeightScale = 6f;
+    private const string IgnoreRaycastLayer = "Ignore Raycast";
 
     [SerializeField, Min(0f)] private float _expandInBlocks = 0.5f;
 
@@ -80,6 +81,13 @@ public sealed class RoomEnterTrigger : MonoBehaviour
         if (_rigidbody == null)
         {
             throw new InvalidOperationException(nameof(_rigidbody));
+        }
+
+        int ignoreRaycastLayer = LayerMask.NameToLayer(IgnoreRaycastLayer);
+
+        if (ignoreRaycastLayer >= 0)
+        {
+            gameObject.layer = ignoreRaycastLayer;
         }
 
         _boxCollider.isTrigger = true;

@@ -29,6 +29,13 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        Vector3 aimPoint = GetAimPoint();
+
+        _combat.SetAimPoint(aimPoint);
+    }
+
     public void Interact()
     {
         if (_modifierVendingMachineMenuView != null)
@@ -43,6 +50,16 @@ public class PlayerInteraction : MonoBehaviour
         _animator.TriggerPoint();
     }
 
+    private Vector3 GetAimPoint()
+    {
+        if (_cursor.HasHit)
+        {
+            return _cursor.MouseHitPos;
+        }
+
+        return _cursor.MouseWorldPos;
+    }
+
     private IEnumerator HoverTickRoutine()
     {
         WaitForSeconds waitForSeconds = new WaitForSeconds(_hoverTickSeconds);
@@ -50,7 +67,6 @@ public class PlayerInteraction : MonoBehaviour
         while (enabled)
         {
             _interactor.TickHover();
-            _combat.SetAimPoint(_cursor.MouseHitPos);
 
             yield return waitForSeconds;
         }
