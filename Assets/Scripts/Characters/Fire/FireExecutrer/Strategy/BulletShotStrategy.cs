@@ -33,7 +33,7 @@ public sealed class BulletShotStrategy : IShotStrategy
             throw new InvalidOperationException(nameof(_ammoSpawner));
         }
 
-        Ammo ammo = _ammoSpawner.Spawn(context.Position, context.Rotation, context.TargetLayers);
+        Ammo ammo = _ammoSpawner.Spawn(context.Position, context.Rotation, context.TargetLayers, context.IgnoredRoot);
 
         float damage = context.DamageCalculator.CalculateScaledDamage(_minDamage, _maxDamage);
 

@@ -15,6 +15,7 @@ public abstract class Ammo : MonoBehaviour
 
     private float _damage;
     private float _speedMultiplier = 1f;
+    private Transform _ignoredRoot;
 
     public LayerMask TargetLayers => _targetLayers;
 
@@ -78,6 +79,11 @@ public abstract class Ammo : MonoBehaviour
         _speedMultiplier = speedMultiplier;
     }
 
+    public void SetIgnoredRoot(Transform ignoredRoot)
+    {
+        _ignoredRoot = ignoredRoot;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (_isLifeEnded)
@@ -86,6 +92,11 @@ public abstract class Ammo : MonoBehaviour
         }
 
         if (other.isTrigger)
+        {
+            return;
+        }
+
+        if (IsIgnoredRoot(other))
         {
             return;
         }
@@ -149,5 +160,27 @@ public abstract class Ammo : MonoBehaviour
     private bool IsInTargetLayers(int layer)
     {
         return (_targetLayers.value & (1 << layer)) != 0;
+    }
+
+    private bool IsIgnoredRoot(Collider other)
+    {
+        if (_ignoredRoot == null)
+        {
+            return false;
+        }
+
+        if (other.transform.IsChildOf(_ignoredRoot))
+        {
+            return true;
+        }
+
+        Rigidbody attachedRigidbody = other.attachedRigidbody;
+
+        if (attachedRigidbody == null)
+        {
+            return false;
+        }
+
+        return attachedRigidbody.transform.IsChildOf(_ignoredRoot);
     }
 }

@@ -221,6 +221,7 @@ public sealed class FireExecutorPresenter
 
         context.Position = _muzzle.position;
         context.Rotation = _muzzle.rotation;
+        context.IgnoredRoot = _ownerTransform.root;
 
         context.TargetLayers = _targetLayers;
 

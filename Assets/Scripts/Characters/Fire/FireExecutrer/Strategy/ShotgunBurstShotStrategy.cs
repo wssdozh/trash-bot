@@ -151,7 +151,7 @@ public sealed class ShotgunBurstShotStrategy : IShotStrategy
 
         Quaternion pelletRotation = context.Rotation * spreadRotation;
 
-        Ammo pellet = _ammoSpawner.Spawn(context.Position, pelletRotation, context.TargetLayers);
+        Ammo pellet = _ammoSpawner.Spawn(context.Position, pelletRotation, context.TargetLayers, context.IgnoredRoot);
 
         float damage = context.DamageCalculator.CalculateScaledDamage(_minPelletDamage, _maxPelletDamage);
 

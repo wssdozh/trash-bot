@@ -29,7 +29,7 @@ public sealed class RocketShotStrategy : IShotStrategy
     public bool TryStartShot(FireShotContext context)
     {
 
-        Ammo ammo = _ammoSpawner.Spawn(context.Position, context.Rotation, context.TargetLayers);
+        Ammo ammo = _ammoSpawner.Spawn(context.Position, context.Rotation, context.TargetLayers, context.IgnoredRoot);
 
         Rocket rocket = ammo as Rocket;
 

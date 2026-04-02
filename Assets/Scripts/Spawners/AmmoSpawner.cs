@@ -13,11 +13,12 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
         }
     }
 
-    public Ammo Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers)
+    public Ammo Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers, Transform ignoredRoot)
     {
         Ammo bullet = Pool.Get();
         bullet.transform.SetPositionAndRotation(position, rotation);
         bullet.SetLayers(targetLayers);
+        bullet.SetIgnoredRoot(ignoredRoot);
         bullet.GetComponent<AmmoReturner>().Initialize(this);
 
         return bullet;
@@ -25,7 +26,7 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
 
     public override Ammo Spawn(Vector3 position)
     {
-        return Spawn(position, Quaternion.identity, default);
+        return Spawn(position, Quaternion.identity, default, null);
     }
 
     public override void Despawn(Ammo bullet)

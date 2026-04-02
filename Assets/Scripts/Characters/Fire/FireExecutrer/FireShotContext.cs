@@ -6,6 +6,7 @@ public struct FireShotContext
 
     public Vector3 Position;
     public Quaternion Rotation;
+    public Transform IgnoredRoot;
 
     public LayerMask TargetLayers;
 
