@@ -10,6 +10,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField] private Transform _moveRoot;
+    [SerializeField] private Rigidbody _rigidbody;
 
     [Header("Move")]
     [SerializeField] private float _moveSpeed = 1.25f;
@@ -49,11 +50,19 @@ public sealed class EnemyDroneMove : MonoBehaviour
     private float _hoverTime;
     private float _verticalVelocity;
 
+    public Vector3 MoveVelocity => _moveDirection * _currentMoveSpeed;
+    public Vector3 ForwardDirection => GetForwardDirection();
+
     private void Awake()
     {
         if (_moveRoot == null)
         {
             _moveRoot = transform;
+        }
+
+        if (_rigidbody == null)
+        {
+            throw new InvalidOperationException(nameof(_rigidbody));
         }
 
         if (_moveSpeed <= 0f)
@@ -151,6 +160,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
             throw new InvalidOperationException(nameof(_liftDropSpeed));
         }
 
+        ApplyFlightBody();
         _movePoint = _moveRoot.position;
         _hoverTime = GetInstanceID() * 0.01f;
     }
@@ -164,23 +174,25 @@ public sealed class EnemyDroneMove : MonoBehaviour
     {
         _hoverTime += Time.fixedDeltaTime * _hoverSpeed;
 
-        Vector3 currentPoint = _moveRoot.position;
+        Vector3 currentPoint = _rigidbody.position;
         Vector3 targetPoint = GetTargetPoint(currentPoint);
         Vector3 nextPoint = GetNextPoint(currentPoint, targetPoint);
-        _moveRoot.position = ClampPoint(nextPoint);
+        _rigidbody.MovePosition(ClampPoint(nextPoint));
     }
 
     public void ResetAnchor()
     {
-        _anchorPoint = _moveRoot.position;
+        ApplyFlightBody();
+        _anchorPoint = _rigidbody.position;
         UpdateAnchorHeight(_anchorPoint.y);
-        _moveRoot.position = new Vector3(_moveRoot.position.x, _anchorPoint.y, _moveRoot.position.z);
+        _rigidbody.position = new Vector3(_rigidbody.position.x, _anchorPoint.y, _rigidbody.position.z);
         _moveDirection = Vector3.zero;
         _movePoint = _anchorPoint;
         _hasMovePoint = false;
         _currentMoveSpeed = 0f;
         _currentLiftHeight = 0f;
         _verticalVelocity = 0f;
+        enabled = true;
     }
 
     public Vector3 GetAnchorPoint()
@@ -190,7 +202,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
 
     public void SetMovePoint(Vector3 movePoint)
     {
-        UpdateAnchorHeight(_moveRoot.position.y);
+        UpdateAnchorHeight(_rigidbody.position.y);
         _movePoint = ClampPoint(movePoint);
         _movePoint.y = _anchorPoint.y;
         _hasMovePoint = true;
@@ -205,7 +217,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
     {
         _hasMovePoint = false;
         _moveDirection = Vector3.zero;
-        _movePoint = _moveRoot.position;
+        _movePoint = _rigidbody.position;
         _currentMoveSpeed = 0f;
         _currentLiftHeight = 0f;
         _verticalVelocity = 0f;
@@ -239,6 +251,31 @@ public sealed class EnemyDroneMove : MonoBehaviour
         return ClampPoint(targetPoint);
     }
 
+    private void ApplyFlightBody()
+    {
+        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
+        _rigidbody.constraints = RigidbodyConstraints.None;
+        _rigidbody.useGravity = false;
+        _rigidbody.isKinematic = true;
+        _rigidbody.position = _moveRoot.position;
+    }
+
+    private Vector3 GetForwardDirection()
+    {
+        Vector3 forwardDirection = _moveRoot.forward;
+        forwardDirection.y = 0f;
+
+        if (forwardDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            return Vector3.forward;
+        }
+
+        forwardDirection.Normalize();
+
+        return forwardDirection;
+    }
+
     private Vector3 GetNextPoint(Vector3 currentPoint, Vector3 targetPoint)
     {
         Vector3 nextPoint = currentPoint;
@@ -262,6 +299,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
 
         Vector3 currentDirection = UpdateMoveDirection(desiredDirection);
         UpdateMoveSpeed(desiredSpeed);
+        RotateMoveRoot(currentDirection);
 
         if (_currentMoveSpeed > ZeroThreshold)
         {
@@ -288,6 +326,30 @@ public sealed class EnemyDroneMove : MonoBehaviour
             Time.fixedDeltaTime);
 
         return nextPoint;
+    }
+
+    private void RotateMoveRoot(Vector3 moveDirection)
+    {
+        if (moveDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            return;
+        }
+
+        Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+        float rotationStep = _turnSpeed * Time.fixedDeltaTime;
+        Quaternion nextRotation = Quaternion.RotateTowards(
+            _moveRoot.rotation,
+            targetRotation,
+            rotationStep);
+
+        if (_moveRoot == transform)
+        {
+            _rigidbody.MoveRotation(nextRotation);
+
+            return;
+        }
+
+        _moveRoot.rotation = nextRotation;
     }
 
     private float GetDesiredSpeed(float remainingDistance)

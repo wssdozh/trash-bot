@@ -16,7 +16,10 @@ public sealed class EnemySteering
     private const float AgentSpeed = 3.5f;
     private const float NavRecoverGap = 6f;
     private const float NavSnapGap = 0.35f;
+    private const float PathLookAheadDistance = 0.45f;
     private const float ReachGap = 0.05f;
+    private const float SafePointPushGap = 0.02f;
+    private const int SafePointPushCount = 4;
     private const float SlotOffsetMin = 0.01f;
 
     private readonly Transform _root;
@@ -502,36 +505,45 @@ public sealed class EnemySteering
             return ClampMovePoint(navPoint);
         }
 
-        NavMeshHit edgeHit;
-        bool hasEdge = NavMesh.FindClosestEdge(navPoint, out edgeHit, NavMesh.AllAreas);
+        Vector3 safePoint = navPoint;
+        int pushIndex = 0;
 
-        if (hasEdge == false)
+        while (pushIndex < SafePointPushCount)
         {
-            return ClampMovePoint(navPoint);
+            NavMeshHit edgeHit;
+            bool hasEdge = NavMesh.FindClosestEdge(safePoint, out edgeHit, NavMesh.AllAreas);
+
+            if (hasEdge == false)
+            {
+                return ClampMovePoint(safePoint);
+            }
+
+            if (edgeHit.distance >= wallGap)
+            {
+                return ClampMovePoint(safePoint);
+            }
+
+            Vector3 edgeDirection = GetFlatDirection(edgeHit.normal);
+
+            if (edgeDirection.sqrMagnitude <= MinDistance)
+            {
+                return ClampMovePoint(safePoint);
+            }
+
+            float pushDistance = (wallGap - edgeHit.distance) + SafePointPushGap;
+            Vector3 pushedPoint = safePoint + (edgeDirection * pushDistance);
+            Vector3 nextPoint;
+
+            if (TryGetNavPoint(pushedPoint, sampleDistance, out nextPoint) == false)
+            {
+                return ClampMovePoint(safePoint);
+            }
+
+            safePoint = ClampMovePoint(nextPoint);
+            pushIndex += 1;
         }
 
-        if (edgeHit.distance >= wallGap)
-        {
-            return ClampMovePoint(navPoint);
-        }
-
-        Vector3 edgeDirection = GetFlatDirection(edgeHit.normal);
-
-        if (edgeDirection.sqrMagnitude <= MinDistance)
-        {
-            return ClampMovePoint(navPoint);
-        }
-
-        float pushDistance = wallGap - edgeHit.distance;
-        Vector3 pushedPoint = navPoint + (edgeDirection * pushDistance);
-        Vector3 safePoint;
-
-        if (TryGetNavPoint(pushedPoint, sampleDistance, out safePoint))
-        {
-            return ClampMovePoint(safePoint);
-        }
-
-        return ClampMovePoint(navPoint);
+        return ClampMovePoint(safePoint);
     }
 
     public Vector3 GetReachPoint(Vector3 targetPoint, float wallGap)
@@ -634,7 +646,7 @@ public sealed class EnemySteering
         navMeshAgent.angularSpeed = 0f;
         navMeshAgent.speed = AgentSpeed;
         navMeshAgent.avoidancePriority = GetAvoidPriority();
-        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
         navMeshAgent.enabled = false;
 
         return navMeshAgent;
@@ -703,6 +715,8 @@ public sealed class EnemySteering
         {
             CacheNavPoint(currentNavPoint);
         }
+
+        PullAgent(currentPoint);
 
         return true;
     }
@@ -791,6 +805,20 @@ public sealed class EnemySteering
         _hasLastNavPoint = true;
     }
 
+    private void PullAgent(Vector3 currentPoint)
+    {
+        Vector3 worldDeltaPosition = _navMeshAgent.nextPosition - currentPoint;
+        worldDeltaPosition.y = 0f;
+        float agentRadius = Mathf.Max(_navMeshAgent.radius, _probeRadius);
+
+        if (worldDeltaPosition.sqrMagnitude <= agentRadius * agentRadius)
+        {
+            return;
+        }
+
+        _navMeshAgent.nextPosition = currentPoint + (worldDeltaPosition * 0.9f);
+    }
+
     private bool TryRefreshPath(Vector3 targetPoint, float stopDistance)
     {
         if (NeedPathRefresh(targetPoint, stopDistance))
@@ -864,7 +892,23 @@ public sealed class EnemySteering
 
     private Vector3 GetMoveDirection(Vector3 currentPoint)
     {
+        Vector3 pathDirection = GetPathDirection(currentPoint);
         Vector3 moveDirection = GetFlatDirection(_navMeshAgent.desiredVelocity);
+
+        if (pathDirection.sqrMagnitude > MinDistance)
+        {
+            if (moveDirection.sqrMagnitude > MinDistance)
+            {
+                float directionDot = Vector3.Dot(pathDirection, moveDirection);
+
+                if (directionDot > 0f)
+                {
+                    return GetFlatDirection(pathDirection + moveDirection);
+                }
+            }
+
+            return pathDirection;
+        }
 
         if (moveDirection.sqrMagnitude > MinDistance)
         {
@@ -890,6 +934,61 @@ public sealed class EnemySteering
         }
 
         return Vector3.zero;
+    }
+
+    private Vector3 GetPathDirection(Vector3 currentPoint)
+    {
+        if (_navMeshAgent.hasPath == false)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3[] pathCorners = _navMeshAgent.path.corners;
+
+        if (pathCorners == null)
+        {
+            return Vector3.zero;
+        }
+
+        if (pathCorners.Length == 0)
+        {
+            return Vector3.zero;
+        }
+
+        float lookAheadDistance = Mathf.Max(PathLookAheadDistance, _probeRadius * 2f);
+        Vector3 segmentStart = currentPoint;
+        Vector3 lookPoint = currentPoint;
+        float remainingDistance = lookAheadDistance;
+        int cornerIndex = 0;
+
+        while (cornerIndex < pathCorners.Length)
+        {
+            Vector3 cornerPoint = GetFlatPoint(pathCorners[cornerIndex]);
+            Vector3 segment = cornerPoint - segmentStart;
+            float segmentLength = segment.magnitude;
+
+            if (segmentLength <= MinDistance)
+            {
+                cornerIndex += 1;
+
+                continue;
+            }
+
+            if (remainingDistance <= segmentLength)
+            {
+                Vector3 segmentDirection = segment / segmentLength;
+                lookPoint = segmentStart + (segmentDirection * remainingDistance);
+
+                break;
+            }
+
+            remainingDistance -= segmentLength;
+            segmentStart = cornerPoint;
+            lookPoint = cornerPoint;
+            cornerIndex += 1;
+        }
+
+        return GetFlatDirection(lookPoint - currentPoint);
     }
 
     private Vector3 GetSteerDirection(Vector3 currentPoint, Vector3 moveDirection)

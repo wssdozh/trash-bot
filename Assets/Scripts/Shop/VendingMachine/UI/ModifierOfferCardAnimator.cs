@@ -62,7 +62,7 @@ public sealed class ModifierOfferCardAnimator : MonoBehaviour, IPointerEnterHand
             _cardTransform = GetComponent<RectTransform>();
         }
 
-        _baseAnchoredPosition = _cardTransform.anchoredPosition;
+        CaptureBasePosition();
     }
 
     private void OnEnable()
@@ -138,6 +138,16 @@ public sealed class ModifierOfferCardAnimator : MonoBehaviour, IPointerEnterHand
         }
 
         ResetTiltInstant();
+    }
+
+    public void CaptureBasePosition()
+    {
+        if (_cardTransform == null)
+        {
+            return;
+        }
+
+        _baseAnchoredPosition = _cardTransform.anchoredPosition;
     }
 
     public void PlayReveal(float delaySeconds)
