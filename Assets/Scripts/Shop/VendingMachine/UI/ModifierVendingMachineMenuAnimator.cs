@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.UI;
 
 public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
 {
@@ -46,6 +47,8 @@ public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
 
         _root.SetActive(true);
 
+        RebuildLayout();
+
         _canvasGroup.alpha = 0f;
         _panelTransform.localScale = new Vector3(_panelScaleFrom, _panelScaleFrom, 1f);
 
@@ -58,6 +61,7 @@ public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
                 continue;
             }
 
+            cardAnimator.CaptureBasePosition();
             cardAnimator.SetHiddenInstant();
         }
 
@@ -143,5 +147,24 @@ public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
 
         _sequence.Kill();
         _sequence = null;
+    }
+
+    private void RebuildLayout()
+    {
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform rootTransform = _root.transform as RectTransform;
+
+        if (rootTransform != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rootTransform);
+        }
+
+        if (_panelTransform != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_panelTransform);
+        }
+
+        Canvas.ForceUpdateCanvases();
     }
 }

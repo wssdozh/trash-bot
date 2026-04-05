@@ -6,15 +6,18 @@ using UnityEngine.AI;
 public sealed class RoomRuntimeState : MonoBehaviour
 {
     private const float MinBoundsSize = 0.1f;
+    private const int RandomPointTryCount = 16;
 
     private Bounds _roomBounds;
     private Bounds _moveBounds;
+    private float _cornerGap;
     private bool _isReady;
 
     public void Setup(Bounds roomBounds, float enemyBorderGap)
     {
         _roomBounds = NormalizeBounds(roomBounds);
         _moveBounds = BuildMoveBounds(_roomBounds, enemyBorderGap);
+        _cornerGap = BuildCornerGap(_moveBounds, enemyBorderGap);
         _isReady = true;
     }
 
@@ -35,7 +38,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return true;
         }
 
-        return _moveBounds.Contains(GetFlatPoint(point, _moveBounds.center.y));
+        return ContainsRoundedPoint(_moveBounds, _cornerGap, point);
     }
 
     public Vector3 ClampMovePoint(Vector3 point)
@@ -45,7 +48,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return point;
         }
 
-        return ClampPoint(_moveBounds, point);
+        return ClampRoundedPoint(_moveBounds, _cornerGap, point);
     }
 
     public Vector3 ClampSnapPoint(Vector3 point)
@@ -55,7 +58,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
             return point;
         }
 
-        return ClampPoint(_moveBounds, point);
+        return ClampRoundedPoint(_moveBounds, _cornerGap, point);
     }
 
     public float GetMoveTop()
@@ -92,10 +95,29 @@ public sealed class RoomRuntimeState : MonoBehaviour
 
         float xProgress = (float)random.NextDouble();
         float zProgress = (float)random.NextDouble();
-        float pointX = Mathf.Lerp(_moveBounds.min.x, _moveBounds.max.x, xProgress);
-        float pointZ = Mathf.Lerp(_moveBounds.min.z, _moveBounds.max.z, zProgress);
+        int tryIndex = 0;
 
-        return new Vector3(pointX, height, pointZ);
+        while (tryIndex < RandomPointTryCount)
+        {
+            float pointX = Mathf.Lerp(_moveBounds.min.x, _moveBounds.max.x, xProgress);
+            float pointZ = Mathf.Lerp(_moveBounds.min.z, _moveBounds.max.z, zProgress);
+            Vector3 point = new Vector3(pointX, height, pointZ);
+
+            if (ContainsRoundedPoint(_moveBounds, _cornerGap, point))
+            {
+                return point;
+            }
+
+            xProgress = (float)random.NextDouble();
+            zProgress = (float)random.NextDouble();
+            tryIndex += 1;
+        }
+
+        float fallbackX = Mathf.Lerp(_moveBounds.min.x, _moveBounds.max.x, xProgress);
+        float fallbackZ = Mathf.Lerp(_moveBounds.min.z, _moveBounds.max.z, zProgress);
+        Vector3 fallbackPoint = new Vector3(fallbackX, height, fallbackZ);
+
+        return ClampRoundedPoint(_moveBounds, _cornerGap, fallbackPoint);
     }
 
     public float GetDistanceSqr(Vector3 point)
@@ -183,6 +205,20 @@ public sealed class RoomRuntimeState : MonoBehaviour
         return moveBounds;
     }
 
+    private float BuildCornerGap(Bounds moveBounds, float enemyBorderGap)
+    {
+        float maxCornerGap = Mathf.Min(moveBounds.extents.x, moveBounds.extents.z) - (MinBoundsSize * 0.5f);
+
+        if (maxCornerGap <= 0f)
+        {
+            return 0f;
+        }
+
+        float cornerGap = Mathf.Max(0f, enemyBorderGap) * 2f;
+
+        return Mathf.Min(cornerGap, maxCornerGap);
+    }
+
     private Vector3 GetFlatPoint(Vector3 point, float centerY)
     {
         point.y = centerY;
@@ -190,10 +226,88 @@ public sealed class RoomRuntimeState : MonoBehaviour
         return point;
     }
 
-    private Vector3 ClampPoint(Bounds bounds, Vector3 point)
+    private bool ContainsRoundedPoint(Bounds bounds, float cornerGap, Vector3 point)
     {
         Vector3 flatPoint = GetFlatPoint(point, bounds.center.y);
+
+        if (bounds.Contains(flatPoint) == false)
+        {
+            return false;
+        }
+
+        if (cornerGap <= 0f)
+        {
+            return true;
+        }
+
+        Vector3 localPoint = flatPoint - bounds.center;
+        float absX = Mathf.Abs(localPoint.x);
+        float absZ = Mathf.Abs(localPoint.z);
+        float innerX = Mathf.Max(0f, bounds.extents.x - cornerGap);
+        float innerZ = Mathf.Max(0f, bounds.extents.z - cornerGap);
+
+        if (absX <= innerX)
+        {
+            return true;
+        }
+
+        if (absZ <= innerZ)
+        {
+            return true;
+        }
+
+        float offsetX = absX - innerX;
+        float offsetZ = absZ - innerZ;
+
+        return (offsetX * offsetX) + (offsetZ * offsetZ) <= cornerGap * cornerGap;
+    }
+
+    private Vector3 ClampRoundedPoint(Bounds bounds, float cornerGap, Vector3 point)
+    {
+        Vector3 flatPoint = GetFlatPoint(point, bounds.center.y);
+
+        if (cornerGap <= 0f)
+        {
+            Vector3 clampedBoundsPoint = bounds.ClosestPoint(flatPoint);
+            clampedBoundsPoint.y = point.y;
+
+            return clampedBoundsPoint;
+        }
+
         Vector3 clampedPoint = bounds.ClosestPoint(flatPoint);
+        Vector3 localPoint = clampedPoint - bounds.center;
+        float signX = Mathf.Sign(localPoint.x);
+        float signZ = Mathf.Sign(localPoint.z);
+
+        if (Mathf.Abs(signX) <= Mathf.Epsilon)
+        {
+            signX = 1f;
+        }
+
+        if (Mathf.Abs(signZ) <= Mathf.Epsilon)
+        {
+            signZ = 1f;
+        }
+
+        float absX = Mathf.Abs(localPoint.x);
+        float absZ = Mathf.Abs(localPoint.z);
+        float innerX = Mathf.Max(0f, bounds.extents.x - cornerGap);
+        float innerZ = Mathf.Max(0f, bounds.extents.z - cornerGap);
+
+        if (absX > innerX && absZ > innerZ)
+        {
+            Vector2 cornerOffset = new Vector2(absX - innerX, absZ - innerZ);
+
+            if (cornerOffset.sqrMagnitude > cornerGap * cornerGap)
+            {
+                cornerOffset.Normalize();
+                absX = innerX + (cornerOffset.x * cornerGap);
+                absZ = innerZ + (cornerOffset.y * cornerGap);
+                clampedPoint.x = bounds.center.x + (absX * signX);
+                clampedPoint.z = bounds.center.z + (absZ * signZ);
+            }
+        }
+
         clampedPoint.y = point.y;
 
         return clampedPoint;

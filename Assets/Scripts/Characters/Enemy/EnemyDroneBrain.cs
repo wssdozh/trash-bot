@@ -14,6 +14,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private Enemy _enemy;
     [SerializeField] private TargetVision _targetVision;
     [SerializeField] private EnemyDroneMove _enemyMove;
+    [SerializeField] private EnemyDroneCrash _enemyCrash;
     [SerializeField] private TargetRotator _targetRotator;
     [SerializeField] private IdleRotator _idleRotator;
     [SerializeField] private FireExecutor _fireExecutor;
@@ -106,6 +107,11 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (_enemyMove == null)
         {
             throw new InvalidOperationException(nameof(_enemyMove));
+        }
+
+        if (_enemyCrash == null)
+        {
+            throw new InvalidOperationException(nameof(_enemyCrash));
         }
 
         if (_targetRotator == null)
@@ -273,7 +279,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             _state = EnemyState.Chase;
             ResetStrafe();
-            MoveToStand(targetPoint, _pursuitDistance);
+            _enemyMove.SetMovePoint(ClampPoint(targetPoint));
         }
         else
         {
@@ -286,7 +292,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             else
             {
                 _state = EnemyState.Fight;
-                MoveAroundTarget(targetPoint, targetDistance);
+                MoveAroundTarget(targetPoint);
             }
         }
 
@@ -304,8 +310,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void UpdateSearch()
     {
-        ApplyIdleMode();
-        StopFire();
+        ApplyTrackMode();
+        _fireExecutor.StopFiring();
+        _fireExecutor.ClearAimPoint();
 
         if (_searchTimer <= 0f)
         {
@@ -319,6 +326,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         Vector3 searchPoint = ClampPoint(_lastSeenPoint);
         searchPoint.y = _spawnPoint.y;
+        _targetRotator.SetAimPoint(searchPoint);
         _enemyMove.SetMovePoint(searchPoint);
 
         if (GetFlatDistance(transform.position, searchPoint) <= _searchReachDistance)
@@ -378,7 +386,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemyMove.SetMovePoint(ClampPoint(standPoint));
     }
 
-    private void MoveAroundTarget(Vector3 targetPoint, float targetDistance)
+    private void MoveAroundTarget(Vector3 targetPoint)
     {
         UpdateStrafe();
 
@@ -531,6 +539,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void ApplyIdleMode()
     {
+        _targetRotator.ClearAimPoint();
+
         if (_targetRotator.enabled)
         {
             _targetRotator.enabled = false;
@@ -545,6 +555,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void ApplyDeadMode()
     {
+        _targetRotator.ClearAimPoint();
         _targetRotator.enabled = false;
         _idleRotator.enabled = false;
     }
@@ -641,7 +652,12 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void OnEnemyDied()
     {
+        Vector3 moveVelocity = _enemyMove.MoveVelocity;
+        Vector3 forwardDirection = _enemyMove.ForwardDirection;
         ApplyDeadMode();
         StopAll();
+        _enemyMove.enabled = false;
+        _enemyCrash.Crash(moveVelocity, forwardDirection);
+        enabled = false;
     }
 }

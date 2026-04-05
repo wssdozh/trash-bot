@@ -9,9 +9,9 @@ public sealed class FireExecutorPresenter
     private readonly IShotStrategy _shotStrategy;
     private readonly IFireRateProvider _fireRateProvider;
     private readonly IDamageCalculator _damageCalculator;
+    private readonly AimRotationSolver _aimRotationSolver;
 
     private LayerMask _targetLayers;
-    private float _maxAimAngleDegrees;
 
     private bool _isFiring;
     private float _nextShotTime;
@@ -39,9 +39,9 @@ public sealed class FireExecutorPresenter
         _shotStrategy = shotStrategy;
         _fireRateProvider = fireRateProvider;
         _damageCalculator = damageCalculator;
+        _aimRotationSolver = new AimRotationSolver(maxAimAngleDegrees);
 
         _targetLayers = targetLayers;
-        _maxAimAngleDegrees = maxAimAngleDegrees;
     }
 
     public void OnEnable()
@@ -232,36 +232,10 @@ public sealed class FireExecutorPresenter
 
     private bool TryGetClampedMuzzleRotation(out Quaternion muzzleRotation)
     {
-        muzzleRotation = _muzzle.rotation;
-
-        Vector3 desiredDirection = _aimPoint - _muzzle.position;
-
-        if (desiredDirection.sqrMagnitude <= 0.0001f)
-        {
-            return false;
-        }
-
-        Vector3 upAxis = _ownerTransform.root.up;
-
-        Vector3 flatDirection = Vector3.ProjectOnPlane(desiredDirection, upAxis);
-
-        if (flatDirection.sqrMagnitude <= 0.0001f)
-        {
-            return false;
-        }
-
-        Quaternion yawRotation = Quaternion.LookRotation(flatDirection, upAxis);
-
-        Vector3 rightAxis = yawRotation * Vector3.right;
-
-        float pitchDegrees = Vector3.SignedAngle(flatDirection, desiredDirection, rightAxis);
-
-        float clampedPitchDegrees = Mathf.Clamp(pitchDegrees, -_maxAimAngleDegrees, _maxAimAngleDegrees);
-
-        Quaternion pitchRotation = Quaternion.AngleAxis(clampedPitchDegrees, Vector3.right);
-
-        muzzleRotation = yawRotation * pitchRotation;
-
-        return true;
+        return _aimRotationSolver.TryGetRotation(
+            _muzzle.position,
+            _ownerTransform.root.up,
+            _aimPoint,
+            out muzzleRotation);
     }
 }
