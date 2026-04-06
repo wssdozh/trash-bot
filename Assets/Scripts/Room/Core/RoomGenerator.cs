@@ -180,6 +180,11 @@ public sealed class RoomGenerator : MonoBehaviour
 
         RoomFloorOccupancy floorOccupancy = _roomInteriorBlockFiller.Fill(_roomSizeInBlocks, fillerReservedFloorCells, _roomTypeProfile, random);
 
+        foreach (Vector2Int noFillCell in _roomPassagePlanner.AdditionalNoFillCells)
+        {
+            floorOccupancy.OccupiedFloorCells.Remove(noFillCell);
+        }
+
         if (_combineInteriorChunks == true && _roomInteriorChunkCombiner != null)
         {
             _roomInteriorChunkCombiner.ClearCombined();

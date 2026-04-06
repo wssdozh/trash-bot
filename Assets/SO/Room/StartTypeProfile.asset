@@ -33,7 +33,7 @@ MonoBehaviour:
     _weight: 1
     _guaranteed: 1
     _countRange: {x: 1, y: 1}
-    _minimumDistanceFromCorridorInCells: 10
+    _minimumDistanceFromCorridorInCells: 0
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1
     _minimumDistanceToAnyNookInCells: 7

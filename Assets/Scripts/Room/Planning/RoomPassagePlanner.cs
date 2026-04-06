@@ -355,7 +355,7 @@ public sealed class RoomPassagePlanner : MonoBehaviour
             return;
         }
 
-        ReserveLineNoFillCells(roomSizeInBlocks, centerCell, guaranteedCell, footprintRadius + 1);
+        ReserveLineNoFillCells(roomSizeInBlocks, entranceInsideCell, guaranteedCell, footprintRadius + 1);
         ReserveCellAreaNoFill(roomSizeInBlocks, guaranteedCell, footprintRadius + 1);
 
         _hasGuaranteedNookCell = true;

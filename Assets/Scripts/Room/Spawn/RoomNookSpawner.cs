@@ -95,7 +95,7 @@ public sealed class RoomNookSpawner : MonoBehaviour
 
             if (usedGuaranteedCell == false && hasGuaranteedNookCell == true && config.Guaranteed == true)
             {
-                bool canUse = CanPlaceAtCell(configIndex, config, guaranteedNookCell, roomSizeInBlocks, floorOccupancy, corridorReservedSet, distanceFromCorridor, placed, configs);
+                bool canUse = CanPlaceGuaranteedAtCell(configIndex, config, guaranteedNookCell, roomSizeInBlocks, floorOccupancy, corridorReservedSet, placed, configs);
 
                 if (canUse == true)
                 {
@@ -105,7 +105,16 @@ public sealed class RoomNookSpawner : MonoBehaviour
                 }
                 else
                 {
-                    chosenCell = Vector2Int.zero;
+                    found = TryPickGuaranteedFallbackCell(configIndex, config, guaranteedNookCell, roomSizeInBlocks, floorOccupancy, corridorReservedSet, placed, configs, out chosenCell);
+
+                    if (found == true)
+                    {
+                        usedGuaranteedCell = true;
+                    }
+                    else
+                    {
+                        chosenCell = Vector2Int.zero;
+                    }
                 }
             }
             else
@@ -430,6 +439,94 @@ public sealed class RoomNookSpawner : MonoBehaviour
 
         chosenCell = Vector2Int.zero;
         return false;
+    }
+
+    private bool TryPickGuaranteedFallbackCell(
+        int configIndex,
+        NookPrefabConfig config,
+        Vector2Int startCell,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        HashSet<Vector2Int> corridorReservedSet,
+        List<PlacedNook> placed,
+        IReadOnlyList<NookPrefabConfig> configs,
+        out Vector2Int chosenCell
+    )
+    {
+        int searchRadius = Mathf.Max(config.FootprintRadiusInCells + 2, 4);
+        bool found = false;
+        int bestDistance = int.MaxValue;
+        Vector2Int bestCell = Vector2Int.zero;
+
+        for (int offsetX = -searchRadius; offsetX <= searchRadius; offsetX++)
+        {
+            for (int offsetZ = -searchRadius; offsetZ <= searchRadius; offsetZ++)
+            {
+                int manhattan = Mathf.Abs(offsetX) + Mathf.Abs(offsetZ);
+
+                if (manhattan > searchRadius)
+                {
+                    continue;
+                }
+
+                Vector2Int candidateCell = new Vector2Int(startCell.x + offsetX, startCell.y + offsetZ);
+                bool canUse = CanPlaceGuaranteedAtCell(configIndex, config, candidateCell, roomSizeInBlocks, floorOccupancy, corridorReservedSet, placed, configs);
+
+                if (canUse == false)
+                {
+                    continue;
+                }
+
+                if (found == false || manhattan < bestDistance)
+                {
+                    found = true;
+                    bestDistance = manhattan;
+                    bestCell = candidateCell;
+                }
+            }
+        }
+
+        chosenCell = bestCell;
+        return found;
+    }
+
+    private bool CanPlaceGuaranteedAtCell(
+        int configIndex,
+        NookPrefabConfig config,
+        Vector2Int cell,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        HashSet<Vector2Int> corridorReservedSet,
+        List<PlacedNook> placed,
+        IReadOnlyList<NookPrefabConfig> configs
+    )
+    {
+        if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+        {
+            return false;
+        }
+
+        if (floorOccupancy.IsFree(cell) == false)
+        {
+            return false;
+        }
+
+        if (IsWithinWallMargin(cell, roomSizeInBlocks, config.WallMarginInCells) == false)
+        {
+            return false;
+        }
+
+        if (HasFootprintClearance(cell, config.FootprintRadiusInCells, roomSizeInBlocks, floorOccupancy, corridorReservedSet) == false)
+        {
+            return false;
+        }
+
+        if (SatisfiesNeighborRules(configIndex, config, cell, placed, configs) == false)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private bool CanPlaceAtCell(
