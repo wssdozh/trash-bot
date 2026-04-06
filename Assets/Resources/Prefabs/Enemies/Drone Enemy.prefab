@@ -70,6 +70,7 @@ Transform:
   m_Children:
   - {fileID: 170424309483600535}
   - {fileID: 4788434652605597323}
+  - {fileID: 4120031786766300501}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &3300526168344387209
@@ -156,9 +157,9 @@ MonoBehaviour:
   m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 100
-  _value: 100
-  _autoRegen: 1
+  _maxValue: 20
+  _value: 20
+  _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
 --- !u!114 &8623145794061254301
@@ -171,7 +172,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64f4d7faa1488074e9d4a320c33b66d4, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   _health: {fileID: 6483522750506240681}
   _characterDied: {fileID: 0}
@@ -263,6 +264,75 @@ MonoBehaviour:
   _up: 0.12
   _back: 0.32
   _down: 0.06
+--- !u!1 &4120031786766300500
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4120031786766300501}
+  - component: {fileID: 4120031786766300502}
+  - component: {fileID: 4120031786766300503}
+  m_Layer: 9
+  m_Name: AimCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4120031786766300501
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4120031786766300500}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8438972018461338632}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4120031786766300502
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4120031786766300500}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4, y: 2.2, z: 1.4}
+  m_Center: {x: 0, y: 0.56, z: -0.23}
+--- !u!114 &4120031786766300503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4120031786766300500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0fb2f671df34031836be4d0a179d50f, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAimCollider
+  _collider: {fileID: 4120031786766300502}
+  _enemy: {fileID: 8623145794061254301}
+  _turret: {fileID: 0}
 --- !u!1 &923085245212562737
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,8 +477,8 @@ MonoBehaviour:
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 5363890313950826456}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
-  _minDamage: 4
-  _maxDamage: 7
+  _minDamage: 2
+  _maxDamage: 4
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,6 +14,8 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
     private Rigidbody _staticRigidbody;
     private Rigidbody _notStaticRigidbody;
 
+    private FeedbackGroup _notStaticFeedbackGroup;
+
     private bool _dynamicEnabled;
     private bool _isSubscribed;
 
@@ -60,7 +62,14 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
     private void OnHealthDecreased()
     {
+        bool wasDynamicEnabled = _dynamicEnabled;
+
         EnableDynamic();
+
+        if (wasDynamicEnabled == false)
+        {
+            PlayDynamicFeedback();
+        }
     }
 
     private void OnHealthEnded()
@@ -114,6 +123,7 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
         _staticRigidbody = EnsureRigidbody(_staticObject);
         _notStaticRigidbody = EnsureRigidbody(_notStaticObject);
+        _notStaticFeedbackGroup = GetFeedbackGroup(_notStaticObject);
 
         _dynamicEnabled = _notStaticObject.activeSelf;
 
@@ -218,9 +228,14 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
         if (_notStaticRigidbody != null)
         {
-            _notStaticRigidbody.isKinematic = false;
-            _notStaticRigidbody.useGravity = true;
-            _notStaticRigidbody.WakeUp();
+            if (_notStaticRigidbody.isKinematic == false)
+            {
+                _notStaticRigidbody.linearVelocity = Vector3.zero;
+                _notStaticRigidbody.angularVelocity = Vector3.zero;
+            }
+
+            _notStaticRigidbody.isKinematic = true;
+            _notStaticRigidbody.useGravity = false;
         }
     }
 
@@ -328,6 +343,26 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         }
 
         return rigidbody;
+    }
+
+    private FeedbackGroup GetFeedbackGroup(GameObject targetObject)
+    {
+        if (targetObject == null)
+        {
+            return null;
+        }
+
+        return targetObject.GetComponentInChildren<FeedbackGroup>(true);
+    }
+
+    private void PlayDynamicFeedback()
+    {
+        if (_notStaticFeedbackGroup == null)
+        {
+            return;
+        }
+
+        _notStaticFeedbackGroup.Play();
     }
 
     private void RequestNavMeshUpdate()

@@ -35,8 +35,8 @@ public sealed class RoomInteriorChunkDynamicOnDamageInstaller : ChunkRootInstall
         health.SetValue(healthValue);
 
         InstallPopup(context, health);
-        InstallFeedback(context.StaticVisualObject, health, true);
-        InstallFeedback(context.NotStaticVisualObject, health, false);
+        InstallFeedback(context.StaticVisualObject, health, false);
+        InstallFeedback(context.NotStaticVisualObject, health, true);
 
         RoomInteriorChunkDynamicOnDamage chunkDynamicOnDamage = context.RootObject.GetComponent<RoomInteriorChunkDynamicOnDamage>();
 

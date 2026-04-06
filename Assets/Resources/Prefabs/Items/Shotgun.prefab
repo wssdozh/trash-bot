@@ -176,8 +176,8 @@ MonoBehaviour:
   _maxPelletsPerShot: 12
   _spreadAngleDegrees: 9
   _pelletIntervalSeconds: 0.003
-  _minPelletDamage: 1
-  _maxPelletDamage: 2
+  _minPelletDamage: 2
+  _maxPelletDamage: 4
 --- !u!114 &8202842289096882182
 MonoBehaviour:
   m_ObjectHideFlags: 0
