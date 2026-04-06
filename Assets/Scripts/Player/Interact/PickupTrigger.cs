@@ -29,19 +29,6 @@ public class PickupTrigger : MonoBehaviour
             return;
         }
 
-        if (_inventory == null)
-        {
-            return;
-        }
-
-        bool added = _inventory.TryAddItem(itemPickup.Item, itemPickup.Amount);
-
-        if (added == false)
-        {
-            return;
-        }
-
-        itemPickup.Pickup(gameObject);
-
+        itemPickup.TryCollect(gameObject, _inventory);
     }
 }

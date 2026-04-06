@@ -15,6 +15,28 @@ public abstract class BasePickup : MonoBehaviour
         _isPickedUp = false;
     }
 
+    public virtual bool TryCollect(GameObject player, Inventory inventory)
+    {
+        if (_item == null)
+        {
+            return false;
+        }
+
+        if (inventory == null)
+        {
+            return false;
+        }
+
+        if (inventory.TryAddItem(_item, _amount) == false)
+        {
+            return false;
+        }
+
+        Pickup(player);
+
+        return true;
+    }
+
     public void Pickup(GameObject player)
     {
         if (_isPickedUp == false)
