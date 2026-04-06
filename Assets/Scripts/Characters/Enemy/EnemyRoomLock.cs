@@ -102,14 +102,59 @@ public sealed class EnemyRoomLock : MonoBehaviour
         return _roomRuntimeState.GetMoveBottom();
     }
 
-    public Vector3 GetPatrolPoint(float height, System.Random random)
+    public int GetPatrolCount()
+    {
+        if (_roomRuntimeState == null)
+        {
+            return 0;
+        }
+
+        return _roomRuntimeState.GetPatrolCount();
+    }
+
+    public int GetNearestPatrolIndex(Vector3 point)
+    {
+        if (_roomRuntimeState == null)
+        {
+            return 0;
+        }
+
+        return _roomRuntimeState.GetNearestPatrolIndex(point);
+    }
+
+    public int GetNextPatrolIndex(int patrolIndex, int patrolDirection)
+    {
+        int patrolCount = GetPatrolCount();
+
+        if (patrolCount <= 0)
+        {
+            return 0;
+        }
+
+        if (patrolDirection == 0)
+        {
+            patrolDirection = 1;
+        }
+
+        int nextIndex = patrolIndex + patrolDirection;
+        int loopIndex = nextIndex % patrolCount;
+
+        if (loopIndex < 0)
+        {
+            loopIndex += patrolCount;
+        }
+
+        return loopIndex;
+    }
+
+    public Vector3 GetPatrolPoint(int patrolIndex, float height)
     {
         if (_roomRuntimeState == null)
         {
             return new Vector3(transform.position.x, height, transform.position.z);
         }
 
-        return _roomRuntimeState.GetRandomMovePoint(height, random);
+        return _roomRuntimeState.GetPatrolPoint(patrolIndex, height);
     }
 
     public void AlertPoint(Vector3 point, MonoBehaviour sender)

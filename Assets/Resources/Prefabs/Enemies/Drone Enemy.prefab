@@ -440,7 +440,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TargetRotator
   _targetVision: {fileID: 1893900151339142335}
   _rotationPivot: {fileID: 170424309483600535}
-  _rotationSpeed: 14
+  _rotationSpeed: 8
   _maxPitchAngle: 30
 --- !u!114 &7344053562206653070
 MonoBehaviour:
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 2.2
+  _fireRatePerSecond: 1.4
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449

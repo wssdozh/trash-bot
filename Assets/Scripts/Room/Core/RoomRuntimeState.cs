@@ -7,10 +7,14 @@ public sealed class RoomRuntimeState : MonoBehaviour
 {
     private const float MinBoundsSize = 0.1f;
     private const int RandomPointTryCount = 16;
+    private const int PatrolPointCount = 12;
+    private const float PatrolInsetGap = 1.2f;
+    private const float PatrolRadiusScale = 0.72f;
 
     private Bounds _roomBounds;
     private Bounds _moveBounds;
     private float _cornerGap;
+    private Vector3[] _patrolPoints = Array.Empty<Vector3>();
     private bool _isReady;
 
     public void Setup(Bounds roomBounds, float enemyBorderGap)
@@ -18,6 +22,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
         _roomBounds = NormalizeBounds(roomBounds);
         _moveBounds = BuildMoveBounds(_roomBounds, enemyBorderGap);
         _cornerGap = BuildCornerGap(_moveBounds, enemyBorderGap);
+        _patrolPoints = BuildPatrolPoints(_moveBounds, _cornerGap);
         _isReady = true;
     }
 
@@ -79,6 +84,72 @@ public sealed class RoomRuntimeState : MonoBehaviour
         }
 
         return _moveBounds.min.y;
+    }
+
+    public int GetPatrolCount()
+    {
+        if (_isReady == false)
+        {
+            return 0;
+        }
+
+        return _patrolPoints.Length;
+    }
+
+    public Vector3 GetPatrolPoint(int patrolIndex, float height)
+    {
+        if (_isReady == false)
+        {
+            return new Vector3(0f, height, 0f);
+        }
+
+        if (_patrolPoints.Length == 0)
+        {
+            Vector3 centerPoint = _moveBounds.center;
+            centerPoint.y = height;
+
+            return centerPoint;
+        }
+
+        int loopIndex = GetLoopIndex(patrolIndex, _patrolPoints.Length);
+        Vector3 patrolPoint = _patrolPoints[loopIndex];
+        patrolPoint.y = height;
+
+        return patrolPoint;
+    }
+
+    public int GetNearestPatrolIndex(Vector3 point)
+    {
+        if (_isReady == false)
+        {
+            return 0;
+        }
+
+        if (_patrolPoints.Length == 0)
+        {
+            return 0;
+        }
+
+        Vector3 flatPoint = ClampRoundedPoint(_moveBounds, _cornerGap, point);
+        int nearestIndex = 0;
+        float nearestDistance = float.MaxValue;
+        int pointIndex = 0;
+
+        while (pointIndex < _patrolPoints.Length)
+        {
+            Vector3 patrolPoint = _patrolPoints[pointIndex];
+            float pointDistance = (patrolPoint - flatPoint).sqrMagnitude;
+
+            if (pointDistance < nearestDistance)
+            {
+                nearestDistance = pointDistance;
+                nearestIndex = pointIndex;
+            }
+
+            pointIndex += 1;
+        }
+
+        return nearestIndex;
     }
 
     public Vector3 GetRandomMovePoint(float height, System.Random random)
@@ -205,6 +276,36 @@ public sealed class RoomRuntimeState : MonoBehaviour
         return moveBounds;
     }
 
+    private Vector3[] BuildPatrolPoints(Bounds moveBounds, float cornerGap)
+    {
+        Vector3[] patrolPoints = new Vector3[PatrolPointCount];
+        float radiusX = GetPatrolRadius(moveBounds.extents.x, cornerGap);
+        float radiusZ = GetPatrolRadius(moveBounds.extents.z, cornerGap);
+        float angleStep = (Mathf.PI * 2f) / PatrolPointCount;
+        int pointIndex = 0;
+
+        while (pointIndex < PatrolPointCount)
+        {
+            float angle = angleStep * pointIndex;
+            float pointX = moveBounds.center.x + (Mathf.Cos(angle) * radiusX);
+            float pointZ = moveBounds.center.z + (Mathf.Sin(angle) * radiusZ);
+            Vector3 patrolPoint = new Vector3(pointX, moveBounds.center.y, pointZ);
+            patrolPoints[pointIndex] = ClampRoundedPoint(moveBounds, cornerGap, patrolPoint);
+            pointIndex += 1;
+        }
+
+        return patrolPoints;
+    }
+
+    private float GetPatrolRadius(float extent, float cornerGap)
+    {
+        float patrolInset = Mathf.Max(PatrolInsetGap, cornerGap + (PatrolInsetGap * 0.5f));
+        float maxRadius = Mathf.Max(MinBoundsSize * 0.5f, extent - patrolInset);
+        float scaledRadius = extent * PatrolRadiusScale;
+
+        return Mathf.Max(MinBoundsSize * 0.5f, Mathf.Min(maxRadius, scaledRadius));
+    }
+
     private float BuildCornerGap(Bounds moveBounds, float enemyBorderGap)
     {
         float maxCornerGap = Mathf.Min(moveBounds.extents.x, moveBounds.extents.z) - (MinBoundsSize * 0.5f);
@@ -311,5 +412,22 @@ public sealed class RoomRuntimeState : MonoBehaviour
         clampedPoint.y = point.y;
 
         return clampedPoint;
+    }
+
+    private int GetLoopIndex(int pointIndex, int pointCount)
+    {
+        if (pointCount <= 0)
+        {
+            return 0;
+        }
+
+        int loopIndex = pointIndex % pointCount;
+
+        if (loopIndex < 0)
+        {
+            loopIndex += pointCount;
+        }
+
+        return loopIndex;
     }
 }

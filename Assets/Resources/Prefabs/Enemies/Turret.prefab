@@ -220,7 +220,7 @@ MonoBehaviour:
   _targetRotator: {fileID: 3084461313394651049}
   _idleRotator: {fileID: 7344053562206653070}
   _fireExecutor: {fileID: 3601055731436968810}
-  _fireDelaySeconds: 0.5
+  _fireDelaySeconds: 0.85
 --- !u!114 &6483522750506240681
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -415,7 +415,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TargetRotator
   _targetVision: {fileID: 1893900151339142335}
   _rotationPivot: {fileID: 170424309483600535}
-  _rotationSpeed: 10
+  _rotationSpeed: 6
   _maxPitchAngle: 89
 --- !u!114 &7344053562206653070
 MonoBehaviour:
@@ -445,7 +445,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 3
+  _fireRatePerSecond: 2
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
