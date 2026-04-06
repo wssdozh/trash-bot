@@ -101,7 +101,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _damage: 12
-  _radius: 1.6
+  _radius: 2.2
   _impulse: 3.5
   _up: 0.35
   _effectLife: 5

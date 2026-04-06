@@ -271,11 +271,22 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void UpdateExplode()
     {
         _state = EnemyState.Fight;
-        _enemyMove.ForceStop();
+
+        if (_targetVision.IsTargetVisible)
+        {
+            _lastPoint = ClampPoint(_targetVision.CurrentTargetPoint);
+            _hasLastPoint = true;
+        }
 
         if (_hasLastPoint)
         {
             RotateToPoint(_lastPoint);
+            MoveToPoint(_lastPoint);
+        }
+        else
+        {
+            _enemySteering.Stop();
+            _enemyMove.ForceStop();
         }
 
         if (_explodeTimer > 0f)
@@ -302,8 +313,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _explodeTimer = _explodeDelay;
         _lastPoint = ClampPoint(targetPoint);
         _hasLastPoint = true;
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
         _state = EnemyState.Fight;
     }
 

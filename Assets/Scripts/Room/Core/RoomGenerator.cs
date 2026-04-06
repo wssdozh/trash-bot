@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -34,6 +35,7 @@ public sealed class RoomGenerator : MonoBehaviour
 
     private bool _hasGeneratedShell = false;
     private int _cachedSeed = 1;
+    private int _runtimeCombatRoomIndex = 0;
 
     public IReadOnlyList<RoomDoorMarker> DoorMarkers => _doorMarkers;
     public bool HasGeneratedShell => _hasGeneratedShell;
@@ -67,6 +69,16 @@ public sealed class RoomGenerator : MonoBehaviour
         _runtimeMinimumDoorCount = 0;
         _runtimeMaximumDoorCount = 0;
         _hasRuntimeDoorCountOverride = false;
+    }
+
+    public void SetRuntimeCombatRoomIndex(int combatRoomIndex)
+    {
+        if (combatRoomIndex < 0)
+        {
+            throw new InvalidOperationException(nameof(combatRoomIndex));
+        }
+
+        _runtimeCombatRoomIndex = combatRoomIndex;
     }
 
     [ContextMenu("Generate (Full)")]
@@ -203,7 +215,7 @@ public sealed class RoomGenerator : MonoBehaviour
             random
         );
 
-        _roomContentSpawner.Spawn(_roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, random);
+        _roomContentSpawner.Spawn(_roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, _runtimeCombatRoomIndex, random);
 
         if (noiseProfile != null)
         {
@@ -217,6 +229,7 @@ public sealed class RoomGenerator : MonoBehaviour
         _hasGeneratedShell = false;
         _cachedDoorPlans.Clear();
         _doorMarkers.Clear();
+        _runtimeCombatRoomIndex = 0;
 
         if (_roomShellBuilder != null)
         {

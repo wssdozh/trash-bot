@@ -4,6 +4,10 @@ using UnityEngine;
 
 public sealed class RoomContentSpawner : MonoBehaviour
 {
+    private const int CombatBaseMin = 5;
+    private const int CombatBaseMax = 7;
+    private const int CombatAddMin = 3;
+    private const int CombatAddMax = 5;
     private const int SpawnFixTryCount = 8;
     private const int SpawnSearchDirections = 8;
     private const int SpawnCheckBufferSize = 32;
@@ -62,6 +66,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         RoomFloorOccupancy floorOccupancy,
         IReadOnlyCollection<Vector2Int> reservedFloorCells,
         IReadOnlyList<RoomDoorPlan> doorPlans,
+        int combatRoomIndex,
         System.Random random
     )
     {
@@ -131,6 +136,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             enemyMaximumEntranceDistance,
             enemyDistanceFromCorridor,
             resourceCenters,
+            combatRoomIndex,
             random
         );
 
@@ -147,6 +153,26 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         _blockSize = blockSize;
+    }
+
+    private int GetEnemySpawnCount(RoomTypeProfile roomTypeProfile, int combatRoomIndex, System.Random random)
+    {
+        if (roomTypeProfile.RoomType == RoomType.Combat)
+        {
+            int combatStep = combatRoomIndex - 1;
+
+            if (combatStep < 0)
+            {
+                combatStep = 0;
+            }
+
+            int min = CombatBaseMin + (combatStep * CombatAddMin);
+            int max = CombatBaseMax + (combatStep * CombatAddMax);
+
+            return random.Next(min, max + 1);
+        }
+
+        return random.Next(roomTypeProfile.EnemySpawnCountRange.x, roomTypeProfile.EnemySpawnCountRange.y + 1);
     }
 
     public void Clear()
@@ -1717,6 +1743,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int maximumEntranceDistance,
         int[,] distanceFromCorridor,
         List<Vector2Int> resourceCenters,
+        int combatRoomIndex,
         System.Random random
     )
     {
@@ -1725,7 +1752,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             return;
         }
 
-        int enemySpawnCount = random.Next(roomTypeProfile.EnemySpawnCountRange.x, roomTypeProfile.EnemySpawnCountRange.y + 1);
+        int enemySpawnCount = GetEnemySpawnCount(roomTypeProfile, combatRoomIndex, random);
 
         if (enemySpawnCount <= 0)
         {

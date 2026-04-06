@@ -20,6 +20,10 @@ PrefabInstance:
       propertyPath: _fireRatePerSecond
       value: 0.35
       objectReference: {fileID: 0}
+    - target: {fileID: 3601055731436968810, guid: fa4493f117e180d41826086377115b5a, type: 3}
+      propertyPath: _rocketRadiusMultiplier
+      value: 1.35
+      objectReference: {fileID: 0}
     - target: {fileID: 6103377313372541687, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: _fireDelaySeconds
       value: 0.9

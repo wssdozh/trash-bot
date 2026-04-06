@@ -20,12 +20,15 @@ public abstract class Ammo : MonoBehaviour
     private float _speedMultiplier = 1f;
     private Transform _ignoredRoot;
 
+    public Transform IgnoredRoot => _ignoredRoot;
     public LayerMask TargetLayers => _targetLayers;
 
     protected float Damage => _damage;
 
     public event Action Impacted;
     public event Action LifeEnded;
+    public event Action<Vector3, Vector3> Moved;
+    public event Action<Collider> TargetImpacted;
 
     private void Awake()
     {
@@ -129,6 +132,13 @@ public abstract class Ammo : MonoBehaviour
                 throw new InvalidOperationException(nameof(_damage));
             }
 
+            Action<Collider> targetImpacted = TargetImpacted;
+
+            if (targetImpacted != null)
+            {
+                targetImpacted.Invoke(other);
+            }
+
             OnHitTarget(other);
         }
 
@@ -148,10 +158,17 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void MoveForward()
     {
+        Vector3 startPoint = _rigidbody.position;
         Vector3 moveOffset = transform.forward * _speed * _speedMultiplier * Time.fixedDeltaTime;
-        Vector3 nextPosition = _rigidbody.position + moveOffset;
+        Vector3 nextPosition = startPoint + moveOffset;
 
         _rigidbody.MovePosition(nextPosition);
+        Action<Vector3, Vector3> moved = Moved;
+
+        if (moved != null)
+        {
+            moved.Invoke(startPoint, nextPosition);
+        }
     }
 
     protected abstract void OnHitTarget(Collider other);

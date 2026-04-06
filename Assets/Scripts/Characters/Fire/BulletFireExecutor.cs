@@ -3,13 +3,16 @@ using UnityEngine;
 
 public sealed class BulletFireExecutor : FireExecutor
 {
-    [Header("Зависимости")]
+    [Header("Dependencies")]
     [SerializeField] private Transform _muzzle;
     [SerializeField] private Ammo _bulletPrefab;
 
-    [Header("Урон")]
+    [Header("Damage")]
     [SerializeField] private float _minDamage = 3f;
     [SerializeField] private float _maxDamage = 6f;
+
+    [Header("Rocket")]
+    [SerializeField] private float _rocketRadiusMultiplier = 1f;
 
     private AmmoSpawner _ammoSpawner;
 
@@ -17,7 +20,6 @@ public sealed class BulletFireExecutor : FireExecutor
 
     protected override IShotStrategy CreateShotStrategy(FireModifierState modifierState)
     {
-
         _ammoSpawner = SpawnerServiceLocator.Get<Ammo>(_bulletPrefab.name) as AmmoSpawner;
 
         if (_ammoSpawner == null)
@@ -25,7 +27,6 @@ public sealed class BulletFireExecutor : FireExecutor
             throw new InvalidOperationException(nameof(_ammoSpawner));
         }
 
-        return new BulletShotStrategy(_ammoSpawner, modifierState, _minDamage, _maxDamage);
-
+        return new BulletShotStrategy(_ammoSpawner, modifierState, _minDamage, _maxDamage, _rocketRadiusMultiplier);
     }
 }

@@ -24,9 +24,34 @@ internal sealed class LevelRoomFinalizer
             }
 
             RoomRuntimeState roomRuntimeState = GetRoomRuntimeState(node.RoomInstance);
+            int combatRoomIndex = GetCombatRoomIndex(node);
+            node.RoomInstance.SetRuntimeCombatRoomIndex(combatRoomIndex);
             roomRuntimeState.Setup(placedRoomInfo.SolidBounds, enemyBorderGap);
             node.RoomInstance.GenerateInteriorFromShell();
         }
+    }
+
+    private int GetCombatRoomIndex(LevelNode node)
+    {
+        if (node.RoomType != RoomType.Combat)
+        {
+            return 0;
+        }
+
+        int combatRoomIndex = 0;
+        LevelNode currentNode = node;
+
+        while (currentNode != null)
+        {
+            if (currentNode.RoomType == RoomType.Combat)
+            {
+                combatRoomIndex += 1;
+            }
+
+            currentNode = currentNode.Parent;
+        }
+
+        return combatRoomIndex;
     }
 
     private RoomRuntimeState GetRoomRuntimeState(RoomGenerator roomGenerator)

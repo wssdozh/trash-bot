@@ -19,6 +19,8 @@ public abstract class AmmoLifeListener : MonoBehaviour
 
     protected virtual void OnEnable()
     {
+        _ammo.Moved += HandleAmmoMoved;
+        _ammo.TargetImpacted += HandleAmmoTargetImpacted;
         _ammo.Impacted += HandleAmmoImpacted;
         _ammo.LifeEnded += HandleAmmoLifeEnded;
 
@@ -27,8 +29,20 @@ public abstract class AmmoLifeListener : MonoBehaviour
 
     protected virtual void OnDisable()
     {
+        _ammo.Moved -= HandleAmmoMoved;
+        _ammo.TargetImpacted -= HandleAmmoTargetImpacted;
         _ammo.Impacted -= HandleAmmoImpacted;
         _ammo.LifeEnded -= HandleAmmoLifeEnded;
+    }
+
+    private void HandleAmmoMoved(Vector3 startPoint, Vector3 endPoint)
+    {
+        OnAmmoMoved(startPoint, endPoint);
+    }
+
+    private void HandleAmmoTargetImpacted(Collider hitCollider)
+    {
+        OnAmmoTargetImpacted(hitCollider);
     }
 
     private void HandleAmmoImpacted()
@@ -42,6 +56,14 @@ public abstract class AmmoLifeListener : MonoBehaviour
     }
 
     protected virtual void OnAmmoEnabled()
+    {
+    }
+
+    protected virtual void OnAmmoMoved(Vector3 startPoint, Vector3 endPoint)
+    {
+    }
+
+    protected virtual void OnAmmoTargetImpacted(Collider hitCollider)
     {
     }
 
