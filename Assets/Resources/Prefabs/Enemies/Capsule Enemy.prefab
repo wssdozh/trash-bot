@@ -123,8 +123,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 35
-  _value: 35
+  _maxValue: 20
+  _value: 20
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
@@ -506,6 +506,8 @@ MonoBehaviour:
   _weaponHolder: {fileID: 1908533539380365251}
   _weaponPrefab: {fileID: 0}
   _weaponType: 0
+  _weaponFireRateScale: 0.45
+  _weaponDamageScale: 0.25
 --- !u!1 &4856043166038054591
 GameObject:
   m_ObjectHideFlags: 0

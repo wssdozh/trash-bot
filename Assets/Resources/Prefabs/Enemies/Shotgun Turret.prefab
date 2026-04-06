@@ -90,19 +90,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff8628d5c3359f14b8cd8a8f29f6d715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShotgunFireExecutor
-  _fireRatePerSecond: 0.5
+  _fireRatePerSecond: 0.35
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 7756557751483808876}
   _pelletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
-  _minPelletsPerShot: 6
-  _maxPelletsPerShot: 10
+  _minPelletsPerShot: 4
+  _maxPelletsPerShot: 7
   _spreadAngleDegrees: 8
   _pelletIntervalSeconds: 0.003
   _minPelletDamage: 1
-  _maxPelletDamage: 2
+  _maxPelletDamage: 1
 --- !u!4 &7756557751483808876 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5363890313950826456, guid: fa4493f117e180d41826086377115b5a, type: 3}

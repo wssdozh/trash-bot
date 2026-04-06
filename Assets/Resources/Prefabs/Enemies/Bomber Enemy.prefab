@@ -22,11 +22,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6367953433166089997, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _maxValue
-      value: 24
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6367953433166089997, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _value
-      value: 24
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 2404705423201745302, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _viewDistance
@@ -95,13 +95,13 @@ MonoBehaviour:
   _explosionPrefab: {fileID: 2433282508537954060, guid: a2ddbd7a826943842a7d547df0c372bc, type: 3}
   _searchTime: 1.2
   _explodeDistance: 1.25
-  _explodeDelay: 0.6
+  _explodeDelay: 1
   _stopDistance: 0.2
   _damageMask:
     serializedVersion: 2
     m_Bits: 64
-  _damage: 24
-  _radius: 2.25
+  _damage: 12
+  _radius: 1.6
   _impulse: 3.5
   _up: 0.35
   _effectLife: 5

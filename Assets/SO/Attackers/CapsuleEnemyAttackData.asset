@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: CapsuleEnemyAttackData
   m_EditorClassIdentifier: Assembly-CSharp::AttackData
   _attackRange: 0.75
-  _minDamage: 4
-  _maxDamage: 7
-  _attackCooldown: 0.5
+  _minDamage: 2
+  _maxDamage: 4
+  _attackCooldown: 0.8
   _hitLayers:
     serializedVersion: 2
     m_Bits: 64

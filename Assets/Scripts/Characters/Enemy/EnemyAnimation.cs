@@ -18,6 +18,8 @@ public sealed class EnemyAnimation : MonoBehaviour
     [Header("Weapon")]
     [SerializeField] private BasePickup _weaponPrefab;
     [SerializeField] private WeaponType _weaponType = WeaponType.None;
+    [SerializeField, Min(0.1f)] private float _weaponFireRateScale = 1f;
+    [SerializeField, Min(0.1f)] private float _weaponDamageScale = 1f;
 
     private IEnemyBrain _enemyBrainState;
 
@@ -56,6 +58,16 @@ public sealed class EnemyAnimation : MonoBehaviour
         if (_weaponPrefab != null && _weaponHolder == null)
         {
             throw new InvalidOperationException(nameof(_weaponHolder));
+        }
+
+        if (_weaponFireRateScale <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_weaponFireRateScale));
+        }
+
+        if (_weaponDamageScale <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_weaponDamageScale));
         }
 
         ResolveBrain();
@@ -208,6 +220,7 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         _weaponHolder.Equip(_weaponPrefab);
+        ApplyWeaponBalance();
     }
 
     private void ClearWeaponView()
@@ -218,6 +231,29 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         _weaponHolder.Clear();
+    }
+
+    private void ApplyWeaponBalance()
+    {
+        if (_weaponHolder == null)
+        {
+            return;
+        }
+
+        FireExecutor fireExecutor = _weaponHolder.FireExecutor;
+
+        if (fireExecutor == null)
+        {
+            return;
+        }
+
+        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
+        weaponModifierContext.SetDefaults();
+        weaponModifierContext.WeaponType = GetWeaponType();
+        weaponModifierContext.FireRateMultiplier = _weaponFireRateScale;
+        weaponModifierContext.DamageMultiplier = _weaponDamageScale;
+
+        fireExecutor.ApplyModifierContext(weaponModifierContext);
     }
 
     private WeaponType GetWeaponType()

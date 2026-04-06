@@ -13,6 +13,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
     [SerializeField] private TargetRotator _targetRotator;
     [SerializeField] private IdleRotator _idleRotator;
     [SerializeField] private FireExecutor _fireExecutor;
+    [SerializeField] private TurretHeadCrash _headCrash;
 
     [Header("РќР°СЃС‚СЂРѕР№РєРё")]
     [SerializeField] private float _fireDelaySeconds = 0.25f;
@@ -65,6 +66,11 @@ public class Turret : MonoBehaviour, IEnemyAlert
         if (_health == null)
         {
             throw new InvalidOperationException(nameof(_health));
+        }
+
+        if (_headCrash == null)
+        {
+            throw new InvalidOperationException(nameof(_headCrash));
         }
     }
 
@@ -237,6 +243,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _targetRotator.ClearAimPoint();
         _targetRotator.enabled = false;
         _idleRotator.enabled = false;
+        _headCrash.Crash();
 
         Action died = Died;
 

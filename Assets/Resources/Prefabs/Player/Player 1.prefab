@@ -1353,10 +1353,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
   _maxValue: 100
-  _value: 50
+  _value: 100
   _autoRegen: 1
-  _regenPerSecond: 2
-  _regenDelay: 3
+  _regenPerSecond: 3
+  _regenDelay: 2.5
 --- !u!1 &2877394526366005871
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 public sealed class EnemySteering
 {
+    private const int AvoidDirectionCount = 4;
     private const int AllyBufferSize = 24;
     private const int PointBufferSize = 24;
     private const int ProbeBufferSize = 24;
@@ -21,6 +22,7 @@ public sealed class EnemySteering
     private const float SafePointPushGap = 0.02f;
     private const int SafePointPushCount = 4;
     private const float SlotOffsetMin = 0.01f;
+    private const float ProbeSkin = 0.05f;
 
     private readonly Transform _root;
     private readonly EnemyMove _enemyMove;
@@ -1059,10 +1061,10 @@ public sealed class EnemySteering
 
         if (steerDirection.sqrMagnitude <= MinDistance)
         {
-            return baseDirection;
+            steerDirection = baseDirection;
         }
 
-        return steerDirection;
+        return ResolveBlockedDirection(currentPoint, baseDirection, steerDirection);
     }
 
     private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 steerDirection, Vector3 lookPoint, float lookBlend)
@@ -1126,6 +1128,93 @@ public sealed class EnemySteering
         return GetFlatVector(avoidDirection);
     }
 
+    private Vector3 ResolveBlockedDirection(Vector3 currentPoint, Vector3 baseDirection, Vector3 desiredDirection)
+    {
+        Vector3 flatDesiredDirection = GetFlatDirection(desiredDirection);
+
+        if (flatDesiredDirection.sqrMagnitude <= MinDistance)
+        {
+            return baseDirection;
+        }
+
+        float probeDistance = GetResolveProbeDistance();
+
+        if (IsBlocked(currentPoint, flatDesiredDirection, probeDistance) == false)
+        {
+            return flatDesiredDirection;
+        }
+
+        Vector3 bestDirection = Vector3.zero;
+        float bestScore = float.MinValue;
+        int directionIndex = 1;
+
+        while (directionIndex <= AvoidDirectionCount)
+        {
+            float positiveAngle = _probeAngle * directionIndex;
+            EvaluateDirectionCandidate(
+                currentPoint,
+                flatDesiredDirection,
+                positiveAngle,
+                probeDistance,
+                ref bestDirection,
+                ref bestScore);
+
+            float negativeAngle = -_probeAngle * directionIndex;
+            EvaluateDirectionCandidate(
+                currentPoint,
+                flatDesiredDirection,
+                negativeAngle,
+                probeDistance,
+                ref bestDirection,
+                ref bestScore);
+
+            directionIndex += 1;
+        }
+
+        if (bestDirection.sqrMagnitude > MinDistance)
+        {
+            return bestDirection;
+        }
+
+        Vector3 slideDirection = GetSlideDirection(currentPoint, flatDesiredDirection, probeDistance);
+
+        if (slideDirection.sqrMagnitude > MinDistance)
+        {
+            return slideDirection;
+        }
+
+        return baseDirection;
+    }
+
+    private void EvaluateDirectionCandidate(
+        Vector3 currentPoint,
+        Vector3 desiredDirection,
+        float angle,
+        float probeDistance,
+        ref Vector3 bestDirection,
+        ref float bestScore)
+    {
+        Vector3 candidateDirection = RotateDirection(desiredDirection, angle);
+
+        if (candidateDirection.sqrMagnitude <= MinDistance)
+        {
+            return;
+        }
+
+        float clearDistance = GetClearDistance(currentPoint, candidateDirection, probeDistance);
+        float distanceScore = clearDistance / probeDistance;
+        float directionScore = Vector3.Dot(desiredDirection, candidateDirection);
+        float candidateScore = (distanceScore * 1.5f) + directionScore;
+
+        if (candidateScore <= bestScore)
+        {
+            return;
+        }
+
+        bestScore = candidateScore;
+        bestDirection = candidateDirection;
+    }
+
     private Vector3 GetProbePush(Vector3 currentPoint, Vector3 probeDirection, float probeDistance)
     {
         if (probeDistance <= MinDistance)
@@ -1185,6 +1274,116 @@ public sealed class EnemySteering
         float hitFactor = 1f - Mathf.Clamp01(nearestDistance / probeDistance);
 
         return pushDirection * hitFactor;
+    }
+
+    private float GetClearDistance(Vector3 currentPoint, Vector3 probeDirection, float probeDistance)
+    {
+        if (probeDistance <= MinDistance)
+        {
+            return 0f;
+        }
+
+        Vector3 origin = currentPoint + (Vector3.up * _probeHeight);
+        int hitCount = Physics.SphereCastNonAlloc(
+            origin,
+            _probeRadius,
+            probeDirection,
+            _probeBuffer,
+            probeDistance,
+            _obstacleMask,
+            QueryTriggerInteraction.Ignore);
+
+        float nearestDistance = probeDistance;
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
+        {
+            RaycastHit hit = _probeBuffer[hitIndex];
+            Collider hitCollider = hit.collider;
+
+            if (hitCollider != null)
+            {
+                if (hitCollider.transform.IsChildOf(_root) == false)
+                {
+                    if (IsEnemyCollider(hitCollider) == false)
+                    {
+                        nearestDistance = Mathf.Min(nearestDistance, hit.distance);
+                    }
+                }
+            }
+
+            hitIndex += 1;
+        }
+
+        return nearestDistance;
+    }
+
+    private Vector3 GetSlideDirection(Vector3 currentPoint, Vector3 moveDirection, float probeDistance)
+    {
+        if (_obstacleMask.value == 0)
+        {
+            return Vector3.zero;
+        }
+
+        if (probeDistance <= MinDistance)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 origin = currentPoint + (Vector3.up * _probeHeight);
+        int hitCount = Physics.SphereCastNonAlloc(
+            origin,
+            _probeRadius,
+            moveDirection,
+            _probeBuffer,
+            probeDistance,
+            _obstacleMask,
+            QueryTriggerInteraction.Ignore);
+        float nearestDistance = float.MaxValue;
+        Vector3 nearestNormal = Vector3.zero;
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
+        {
+            RaycastHit hit = _probeBuffer[hitIndex];
+            Collider hitCollider = hit.collider;
+
+            if (hitCollider != null)
+            {
+                if (hitCollider.transform.IsChildOf(_root) == false)
+                {
+                    if (IsEnemyCollider(hitCollider) == false)
+                    {
+                        if (hit.distance < nearestDistance)
+                        {
+                            nearestDistance = hit.distance;
+                            nearestNormal = hit.normal;
+                        }
+                    }
+                }
+            }
+
+            hitIndex += 1;
+        }
+
+        if (nearestDistance == float.MaxValue)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 slideDirection = Vector3.ProjectOnPlane(moveDirection, nearestNormal);
+
+        return GetFlatDirection(slideDirection);
+    }
+
+    private float GetResolveProbeDistance()
+    {
+        return Mathf.Max(_probeRadius + ProbeSkin, _probeDistance * 0.85f);
+    }
+
+    private bool IsBlocked(Vector3 currentPoint, Vector3 probeDirection, float probeDistance)
+    {
+        return GetClearDistance(currentPoint, probeDirection, probeDistance) < probeDistance - ProbeSkin;
     }
 
     private Vector3 GetSeparationDirection(Vector3 currentPoint, Vector3 moveDirection)

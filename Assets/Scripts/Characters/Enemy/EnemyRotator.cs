@@ -59,15 +59,20 @@ public sealed class EnemyRotator : MonoBehaviour
 
     public void RotateToDirection(Vector3 direction)
     {
+        RotateToDirection(direction, Time.fixedDeltaTime);
+    }
+
+    public void RotateToDirection(Vector3 direction, float deltaTime)
+    {
         direction.y = 0f;
 
-        if (direction.sqrMagnitude <= 0.0001f)
+        if (direction.sqrMagnitude <= ZeroThreshold)
         {
             return;
         }
 
         Quaternion targetRotation = Quaternion.LookRotation(direction.normalized);
-        float rotationStep = _rotationSpeed * Time.fixedDeltaTime;
+        float rotationStep = _rotationSpeed * deltaTime;
         Quaternion nextRotation = Quaternion.RotateTowards(
             _rotationRoot.rotation,
             targetRotation,

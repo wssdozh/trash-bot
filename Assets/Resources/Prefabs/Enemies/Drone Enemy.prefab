@@ -157,8 +157,8 @@ MonoBehaviour:
   m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 20
-  _value: 20
+  _maxValue: 14
+  _value: 14
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
@@ -470,15 +470,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 1.4
+  _fireRatePerSecond: 0.9
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 5363890313950826456}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
-  _minDamage: 2
-  _maxDamage: 4
+  _minDamage: 1
+  _maxDamage: 2
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0

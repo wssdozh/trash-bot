@@ -1,11 +1,21 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 [DisallowMultipleComponent]
 public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
     private const int HitBufferSize = 32;
     private const float ZeroThreshold = 0.0001f;
+    private const int ObstacleMaskBits = 385;
+    private const int AllyMaskBits = -1;
+    private const float ProbeRadius = 0.22f;
+    private const float ProbeHeight = 0.6f;
+    private const float ProbeDistance = 0.9f;
+    private const float ProbeAngle = 25f;
+    private const float AvoidWeight = 1.05f;
+    private const float SeparationRadius = 1.35f;
+    private const float SeparationWeight = 2.2f;
 
     private readonly Collider[] _hitBuffer = new Collider[HitBufferSize];
 
@@ -32,6 +42,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _effectLife = 5f;
 
     private EnemyRoomLock _enemyRoomLock;
+    private EnemySteering _enemySteering;
     private EnemyState _state;
     private Vector3 _lastPoint;
     private bool _hasLastPoint;
@@ -141,6 +152,10 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             throw new InvalidOperationException(nameof(_effectLife));
         }
+
+        _enemySteering = new EnemySteering(transform, _enemyMove, _enemyRotator);
+        _enemySteering.SetObstacle(ObstacleMaskBits, ProbeRadius, ProbeHeight, ProbeDistance, ProbeAngle, AvoidWeight);
+        _enemySteering.SetSpacing(AllyMaskBits, SeparationRadius, SeparationWeight);
     }
 
     private void OnEnable()
@@ -156,6 +171,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemy.Died -= OnEnemyDied;
         _targetVision.TargetDetected -= OnTargetFound;
         _targetVision.TargetCleared -= OnTargetLost;
+        _enemySteering.Stop();
         _enemyMove.ForceStop();
     }
 
@@ -166,10 +182,17 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
+        RefreshRoomLock();
+
         if (_isExploding)
         {
             UpdateExplode();
 
+            return;
+        }
+
+        if (_enemySteering.ResolveOverlap())
+        {
             return;
         }
 
@@ -279,6 +302,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _explodeTimer = _explodeDelay;
         _lastPoint = ClampPoint(targetPoint);
         _hasLastPoint = true;
+        _enemySteering.Stop();
         _enemyMove.ForceStop();
         _state = EnemyState.Fight;
     }
@@ -394,23 +418,20 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void ApplyIdle()
     {
         _state = EnemyState.Idle;
-        _enemyMove.StopMove();
+        _enemySteering.Stop();
     }
 
     private void MoveToPoint(Vector3 targetPoint)
     {
-        Vector3 moveDirection = targetPoint - transform.position;
-        moveDirection.y = 0f;
+        _enemyMove.SetRun(true);
 
-        if (moveDirection.sqrMagnitude <= ZeroThreshold)
+        if (TryMoveSafe(targetPoint))
         {
-            _enemyMove.StopMove();
-
             return;
         }
 
-        _enemyMove.SetRun(true);
-        _enemyMove.SetDirection(moveDirection);
+        _enemySteering.Stop();
+        _enemyMove.ForceStop();
     }
 
     private void RotateToPoint(Vector3 targetPoint)
@@ -423,7 +444,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        _enemyRotator.RotateToDirection(direction);
+        _enemyRotator.RotateToDirection(direction, Time.deltaTime);
     }
 
     private void ClearLastPoint()
@@ -483,6 +504,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _isExploding = false;
         _searchTimer = 0f;
         _explodeTimer = 0f;
+        _enemySteering.Stop();
         _enemyMove.ForceStop();
     }
 
@@ -516,7 +538,45 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void OnEnemyDied()
     {
+        _enemySteering.Stop();
         _enemyMove.ForceStop();
         enabled = false;
+    }
+
+    private void RefreshRoomLock()
+    {
+        EnemyRoomLock enemyRoomLock = GetRoomLock();
+        _enemySteering.SetRoomLock(enemyRoomLock);
+    }
+
+    private bool TryMoveSafe(Vector3 targetPoint)
+    {
+        Vector3 targetNavPoint;
+
+        if (TryGetNavPoint(targetPoint, out targetNavPoint) == false)
+        {
+            return false;
+        }
+
+        Vector3 safePoint = _enemySteering.GetSafePoint(targetNavPoint, ProbeRadius);
+
+        return _enemySteering.MoveToPoint(safePoint, _stopDistance, targetNavPoint);
+    }
+
+    private bool TryGetNavPoint(Vector3 point, out Vector3 navPoint)
+    {
+        NavMeshHit navMeshHit;
+        bool hasNavPoint = NavMesh.SamplePosition(point, out navMeshHit, ProbeDistance * 4f, NavMesh.AllAreas);
+
+        if (hasNavPoint == false)
+        {
+            navPoint = point;
+
+            return false;
+        }
+
+        navPoint = navMeshHit.position;
+
+        return true;
     }
 }

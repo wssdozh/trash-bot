@@ -119,22 +119,17 @@ public abstract class Ammo : MonoBehaviour
 
         if (other.isTrigger)
         {
-            if (CanHitTrigger(other, isTargetLayer) == false)
-            {
-                return;
-            }
+            return;
         }
 
         if (isTargetLayer)
         {
-
             if (_damage <= 0f)
             {
                 throw new InvalidOperationException(nameof(_damage));
             }
 
             OnHitTarget(other);
-
         }
 
         Action impacted = Impacted;
@@ -187,23 +182,6 @@ public abstract class Ammo : MonoBehaviour
     private bool IsInTargetLayers(int layer)
     {
         return (_targetLayers.value & (1 << layer)) != 0;
-    }
-
-    private bool CanHitTrigger(Collider other, bool isTargetLayer)
-    {
-        if (isTargetLayer == false)
-        {
-            return false;
-        }
-
-        Health health = other.GetComponentInParent<Health>();
-
-        if (health == null)
-        {
-            return false;
-        }
-
-        return true;
     }
 
     private bool IsIgnoredRoot(Collider other)

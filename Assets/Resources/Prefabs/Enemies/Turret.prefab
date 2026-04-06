@@ -213,13 +213,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 21aa75045405d3140a7bdea379d63244, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Turret
   _health: {fileID: 6483522750506240681}
   _targetVision: {fileID: 1893900151339142335}
   _targetRotator: {fileID: 3084461313394651049}
   _idleRotator: {fileID: 7344053562206653070}
   _fireExecutor: {fileID: 3601055731436968810}
+  _headCrash: {fileID: 1704243094836005359}
   _fireDelaySeconds: 0.85
 --- !u!114 &6483522750506240681
 MonoBehaviour:
@@ -231,12 +232,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 100
-  _value: 100
-  _autoRegen: 1
+  _maxValue: 50
+  _value: 50
+  _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
 --- !u!1 &4628898603779874500
@@ -322,6 +323,9 @@ GameObject:
   - component: {fileID: 3084461313394651049}
   - component: {fileID: 7344053562206653070}
   - component: {fileID: 3601055731436968810}
+  - component: {fileID: 1704243094836005357}
+  - component: {fileID: 1704243094836005358}
+  - component: {fileID: 1704243094836005359}
   m_Layer: 9
   m_Name: Head
   m_TagString: Untagged
@@ -445,15 +449,82 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 2
+  _fireRatePerSecond: 1.1
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
   _maxAimAngleDegrees: 30
   _muzzle: {fileID: 5363890313950826456}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
-  _minDamage: 3
-  _maxDamage: 6
+  _minDamage: 1
+  _maxDamage: 3
+--- !u!65 &1704243094836005357
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 923085245212562737}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Size: {x: 1.2, y: 1.2, z: 1.8}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &1704243094836005358
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 923085245212562737}
+  serializedVersion: 5
+  m_Mass: 1.8
+  m_LinearDamping: 2.2
+  m_AngularDamping: 1.1
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 1
+  m_Constraints: 126
+  m_CollisionDetection: 1
+--- !u!114 &1704243094836005359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 923085245212562737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3f4f44909974ad39b7d374a13c8d8d8, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::TurretHeadCrash
+  _moveRoot: {fileID: 170424309483600535}
+  _rigidbody: {fileID: 1704243094836005358}
+  _collider: {fileID: 1704243094836005357}
+  _force: 0.8
+  _up: 0.14
+  _forward: 0.05
+  _spin: 1.8
 --- !u!1 &1913331555745372171
 GameObject:
   m_ObjectHideFlags: 0
