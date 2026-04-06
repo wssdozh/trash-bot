@@ -253,8 +253,12 @@ public sealed class EnemyDroneMove : MonoBehaviour
 
     private void ApplyFlightBody()
     {
-        _rigidbody.linearVelocity = Vector3.zero;
-        _rigidbody.angularVelocity = Vector3.zero;
+        if (_rigidbody.isKinematic == false)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+
         _rigidbody.constraints = RigidbodyConstraints.None;
         _rigidbody.useGravity = false;
         _rigidbody.isKinematic = true;

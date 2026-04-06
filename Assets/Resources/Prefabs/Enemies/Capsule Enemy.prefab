@@ -409,6 +409,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponHolder
   _weaponSocket: {fileID: 8297373444735015656}
+  _ownerHealth: {fileID: 6367953433166089997}
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449

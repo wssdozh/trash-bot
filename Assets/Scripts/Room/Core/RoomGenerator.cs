@@ -171,7 +171,14 @@ public sealed class RoomGenerator : MonoBehaviour
         SyncDecorationScale();
 
         HashSet<Vector2Int> reservedFloorCells = _roomPassagePlanner.CreateReservedFloorCells(_roomSizeInBlocks, _cachedDoorPlans, _roomTypeProfile);
-        RoomFloorOccupancy floorOccupancy = _roomInteriorBlockFiller.Fill(_roomSizeInBlocks, reservedFloorCells, _roomTypeProfile, random);
+        HashSet<Vector2Int> fillerReservedFloorCells = new HashSet<Vector2Int>(reservedFloorCells);
+
+        foreach (Vector2Int noFillCell in _roomPassagePlanner.AdditionalNoFillCells)
+        {
+            fillerReservedFloorCells.Add(noFillCell);
+        }
+
+        RoomFloorOccupancy floorOccupancy = _roomInteriorBlockFiller.Fill(_roomSizeInBlocks, fillerReservedFloorCells, _roomTypeProfile, random);
 
         if (_combineInteriorChunks == true && _roomInteriorChunkCombiner != null)
         {

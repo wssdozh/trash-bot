@@ -12,3 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81e5345fafa4770439b298e3a3a1acb5, type: 3}
   m_Name: RoomInteriorChunkDynamicOnDamageInstaller
   m_EditorClassIdentifier: Assembly-CSharp::RoomInteriorChunkDynamicOnDamageInstaller
+  _minHealth: 30
+  _maxHealth: 50
+  _feedbackPrefab: {fileID: 4360575089561866365, guid: 214c0604c2113224fa9b0f452f5016e5, type: 3}
+  _popupPrefab: {fileID: 4849900484795599357, guid: 4ae04f82c3928694494a80936e42f22c, type: 3}
+  _popupOffsetY: 0.35

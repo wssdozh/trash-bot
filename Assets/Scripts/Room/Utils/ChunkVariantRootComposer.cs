@@ -22,7 +22,16 @@ public abstract class ChunkVariantRootComposer : MonoBehaviour
             chunkDynamicOnDamage = rootObject.AddComponent<RoomInteriorChunkDynamicOnDamage>();
         }
 
-        chunkDynamicOnDamage.Initialize(switcher);
+        Health health = rootObject.GetComponent<Health>();
+
+        if (health == null)
+        {
+            chunkDynamicOnDamage.Initialize(switcher);
+
+            return switcher;
+        }
+
+        chunkDynamicOnDamage.Initialize(switcher, staticVisualObject, notStaticVisualObject, health);
 
         return switcher;
     }

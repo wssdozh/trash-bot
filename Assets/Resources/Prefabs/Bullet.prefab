@@ -275,7 +275,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 2
+  m_CollisionDetection: 3
 --- !u!135 &152883573251891985
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -309,6 +309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51677769fc5e41e44892ee612b0fbcea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  _rigidbody: {fileID: 5611463029158143350}
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961

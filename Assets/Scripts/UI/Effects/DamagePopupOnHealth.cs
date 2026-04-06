@@ -9,8 +9,9 @@ public class DamagePopupOnHealth : MonoBehaviour
 
     private DamagePopupSpawner _spawner;
     private float _previousValue;
+    private bool _isSubscribed;
 
-    private void Awake()
+    private void Start()
     {
         if (_health == null)
         {
@@ -26,10 +27,7 @@ public class DamagePopupOnHealth : MonoBehaviour
         {
             throw new InvalidOperationException(nameof(_prefab));
         }
-    }
 
-    private void Start()
-    {
         _spawner = SpawnerServiceLocator.Get<DamagePopup>(_prefab.name) as DamagePopupSpawner;
 
         if (_spawner == null)
@@ -40,17 +38,69 @@ public class DamagePopupOnHealth : MonoBehaviour
 
     private void OnEnable()
     {
-        _previousValue = _health.Value;
-        _health.Changed += OnHealthChanged;
+        Subscribe();
     }
 
     private void OnDisable()
     {
+        Unsubscribe();
+    }
+
+    public void Initialize(Health health, Transform spawnPoint)
+    {
+        _health = health;
+        _spawnPoint = spawnPoint;
+
+        if (isActiveAndEnabled == false)
+        {
+            return;
+        }
+
+        Subscribe();
+    }
+
+    private void Subscribe()
+    {
+        if (_health == null)
+        {
+            return;
+        }
+
+        if (_isSubscribed)
+        {
+            return;
+        }
+
+        _previousValue = _health.Value;
+        _health.Changed += OnHealthChanged;
+        _isSubscribed = true;
+    }
+
+    private void Unsubscribe()
+    {
+        if (_isSubscribed == false)
+        {
+            return;
+        }
+
+        if (_health == null)
+        {
+            _isSubscribed = false;
+
+            return;
+        }
+
         _health.Changed -= OnHealthChanged;
+        _isSubscribed = false;
     }
 
     private void OnHealthChanged()
     {
+        if (_spawner == null)
+        {
+            return;
+        }
+
         float currentValue = _health.Value;
         float damageDelta = _previousValue - currentValue;
         _previousValue = currentValue;

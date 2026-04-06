@@ -13,23 +13,55 @@ public class ColorEmissionFeedback : Feedback
 
     private void Awake()
     {
-        _baseEmission = _toonRendererEmissiveColorer.ReadBaseEmission(_renderer);
+        CacheBaseEmission();
+    }
+
+    public void Initialize(Renderer renderer)
+    {
+        _renderer = renderer;
+
+        CacheBaseEmission();
     }
 
     public override void Play()
     {
+        if (_renderer == null)
+        {
+            return;
+        }
+
         _toonRendererEmissiveColorer.LerpToEmission(_renderer, _flashColor, _flashDuration, _intensity);
         Invoke(nameof(ReturnBaseEmission), _flashDuration);
     }
 
     public override void Stop()
     {
+        if (_renderer == null)
+        {
+            return;
+        }
+
         CancelInvoke(nameof(ReturnBaseEmission));
         _toonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
     }
 
     private void ReturnBaseEmission()
     {
+        if (_renderer == null)
+        {
+            return;
+        }
+
         _toonRendererEmissiveColorer.LerpToEmission(_renderer, _baseEmission, _returnDuration, 1.0f);
+    }
+
+    private void CacheBaseEmission()
+    {
+        if (_renderer == null)
+        {
+            return;
+        }
+
+        _baseEmission = _toonRendererEmissiveColorer.ReadBaseEmission(_renderer);
     }
 }

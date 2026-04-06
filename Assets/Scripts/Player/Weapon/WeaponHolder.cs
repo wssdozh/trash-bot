@@ -4,6 +4,7 @@ using UnityEngine;
 public class WeaponHolder : MonoBehaviour
 {
     [SerializeField] private Transform _weaponSocket;
+    [SerializeField] private Health _ownerHealth;
     [SerializeField] private LayerMask _targetLayers;
 
     private Spawner<BasePickup> _pickupSpawner;
@@ -175,6 +176,12 @@ public class WeaponHolder : MonoBehaviour
 
         if (FireExecutor != null)
         {
+            if (_ownerHealth == null)
+            {
+                throw new InvalidOperationException(nameof(_ownerHealth));
+            }
+
+            FireExecutor.SetIgnoredRoot(_ownerHealth.transform);
             FireExecutor.SetTargetLayers(_targetLayers);
         }
 

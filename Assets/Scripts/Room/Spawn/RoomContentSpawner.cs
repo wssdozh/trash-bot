@@ -1733,6 +1733,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         HashSet<Vector2Int> enemyCells = new HashSet<Vector2Int>();
+        List<EnemySpawnConfig> spawnedEnemies = new List<EnemySpawnConfig>();
         Vector2Int roomCenterCell = GetRoomCenterCell(roomSizeInBlocks);
 
         int guardCount = enemySpawnCount;
@@ -1768,6 +1769,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 resourceCenters[centerIndex],
                 guardsForCenter,
                 enemyCells,
+                spawnedEnemies,
                 random
             );
 
@@ -1907,13 +1909,14 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
             }
 
-            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, random);
+            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, spawnedEnemies, random);
             bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, bestCell);
 
             if (isSpawned)
             {
                 floorOccupancy.OccupiedFloorCells.Add(bestCell);
                 enemyCells.Add(bestCell);
+                spawnedEnemies.Add(enemySpawn);
                 placedEnemyCount += 1;
             }
 
@@ -1937,6 +1940,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         Vector2Int centerCell,
         int spawnCount,
         HashSet<Vector2Int> enemyCells,
+        List<EnemySpawnConfig> spawnedEnemies,
         System.Random random
     )
     {
@@ -1972,13 +1976,14 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 break;
             }
 
-            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, random);
+            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, spawnedEnemies, random);
             bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, chosenCell);
 
             if (isSpawned)
             {
                 floorOccupancy.OccupiedFloorCells.Add(chosenCell);
                 enemyCells.Add(chosenCell);
+                spawnedEnemies.Add(enemySpawn);
                 placedGuardCount += 1;
             }
 

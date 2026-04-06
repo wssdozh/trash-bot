@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &4471000000000000001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7892580720158080282, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: m_Name
+      value: Start Shotgun Tank
+      objectReference: {fileID: 0}
+    - target: {fileID: 740280986944895310, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 740280986944895310, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 740280986944895310, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.12
+      objectReference: {fileID: 0}
+    - target: {fileID: 9018567847222104301, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: _maxValue
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 9018567847222104301, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: _value
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 131899963276513756, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: _pickupPrefab
+      value: 
+      objectReference: {fileID: 1864531296725922894, guid: b63d71782bd7cc94c99fbd43145c7038, type: 3}
+    - target: {fileID: 131899963276513756, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+      propertyPath: _spawnOffset.y
+      value: 0.9
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}

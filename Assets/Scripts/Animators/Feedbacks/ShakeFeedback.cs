@@ -25,6 +25,11 @@ public class ShakeFeedback : Feedback
 
     private void Awake()
     {
+        if (_shakeTransform == null)
+        {
+            return;
+        }
+
         _initialLocalPosition = _shakeTransform.localPosition;
         _initialLocalRotation = _shakeTransform.localRotation;
     }
@@ -41,6 +46,11 @@ public class ShakeFeedback : Feedback
 
     public override void Play()
     {
+        if (_shakeTransform == null)
+        {
+            return;
+        }
+
         Stop();
 
         _initialLocalPosition = _shakeTransform.localPosition;
@@ -61,6 +71,11 @@ public class ShakeFeedback : Feedback
 
     public override void Stop()
     {
+        if (_shakeTransform == null)
+        {
+            return;
+        }
+
         if (_positionTween != null && _positionTween.IsActive())
         {
             _positionTween.Kill(true);
@@ -73,5 +88,19 @@ public class ShakeFeedback : Feedback
 
         _shakeTransform.localPosition = _initialLocalPosition;
         _shakeTransform.localRotation = _initialLocalRotation;
+    }
+
+    public void Initialize(Transform rootTransform, Transform shakeTransform)
+    {
+        _rootTransform = rootTransform;
+        _shakeTransform = shakeTransform;
+
+        if (_shakeTransform == null)
+        {
+            return;
+        }
+
+        _initialLocalPosition = _shakeTransform.localPosition;
+        _initialLocalRotation = _shakeTransform.localRotation;
     }
 }

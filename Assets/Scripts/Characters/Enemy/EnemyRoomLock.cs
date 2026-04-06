@@ -150,9 +150,13 @@ public sealed class EnemyRoomLock : MonoBehaviour
     {
         if (_rigidbody != null)
         {
-            Vector3 currentVelocity = _rigidbody.linearVelocity;
             _rigidbody.position = point;
-            _rigidbody.linearVelocity = new Vector3(0f, currentVelocity.y, 0f);
+
+            if (_rigidbody.isKinematic == false)
+            {
+                Vector3 currentVelocity = _rigidbody.linearVelocity;
+                _rigidbody.linearVelocity = new Vector3(0f, currentVelocity.y, 0f);
+            }
 
             return;
         }

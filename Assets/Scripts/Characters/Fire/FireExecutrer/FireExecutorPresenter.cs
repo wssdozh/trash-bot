@@ -11,6 +11,7 @@ public sealed class FireExecutorPresenter
     private readonly IDamageCalculator _damageCalculator;
     private readonly AimRotationSolver _aimRotationSolver;
 
+    private Transform _ignoredRoot;
     private LayerMask _targetLayers;
 
     private bool _isFiring;
@@ -26,6 +27,7 @@ public sealed class FireExecutorPresenter
 
     public FireExecutorPresenter(
         Transform ownerTransform,
+        Transform ignoredRoot,
         Transform muzzle,
         IShotStrategy shotStrategy,
         IFireRateProvider fireRateProvider,
@@ -34,6 +36,7 @@ public sealed class FireExecutorPresenter
         float maxAimAngleDegrees)
     {
         _ownerTransform = ownerTransform;
+        _ignoredRoot = ignoredRoot;
         _muzzle = muzzle;
 
         _shotStrategy = shotStrategy;
@@ -42,6 +45,16 @@ public sealed class FireExecutorPresenter
         _aimRotationSolver = new AimRotationSolver(maxAimAngleDegrees);
 
         _targetLayers = targetLayers;
+    }
+
+    public void SetIgnoredRoot(Transform ignoredRoot)
+    {
+        if (ignoredRoot == null)
+        {
+            throw new InvalidOperationException(nameof(ignoredRoot));
+        }
+
+        _ignoredRoot = ignoredRoot;
     }
 
     public void OnEnable()
@@ -221,7 +234,7 @@ public sealed class FireExecutorPresenter
 
         context.Position = _muzzle.position;
         context.Rotation = _muzzle.rotation;
-        context.IgnoredRoot = _ownerTransform.root;
+        context.IgnoredRoot = _ignoredRoot;
 
         context.TargetLayers = _targetLayers;
 

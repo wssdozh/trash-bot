@@ -33,15 +33,11 @@ public sealed class Rocket : Ammo
 
         for (int i = 0; i < colliders.Length; i++)
         {
-
             Collider collider = colliders[i];
-
             float damageMultiplier = GetDamageMultiplier(explosionPosition, collider);
 
             TryDealDamage(collider, damageMultiplier);
-
             TryApplyExplosionForce(collider, explosionPosition);
-
         }
     }
 
@@ -64,7 +60,9 @@ public sealed class Rocket : Ammo
 
     private void TryDealDamage(Collider collider, float damageMultiplier)
     {
-        if (collider.gameObject.TryGetComponent<Health>(out Health health) == false)
+        Health health = collider.GetComponentInParent<Health>();
+
+        if (health == null)
         {
             return;
         }

@@ -15,6 +15,7 @@ public abstract class FireExecutor : MonoBehaviour
     private IFireRateProvider _fireRateProvider;
     private IDamageCalculator _damageCalculator;
     private IShotStrategy _shotStrategy;
+    private Transform _ignoredRoot;
 
     private bool _hasStarted;
 
@@ -30,7 +31,6 @@ public abstract class FireExecutor : MonoBehaviour
 
     private void Awake()
     {
-
         if (_fireRatePerSecond <= 0f)
         {
             throw new InvalidOperationException(nameof(_fireRatePerSecond));
@@ -48,7 +48,6 @@ public abstract class FireExecutor : MonoBehaviour
 
         _fireRateProvider = new FireRateProvider(_fireRatePerSecond, _modifierState);
         _damageCalculator = new FireDamageCalculator(_modifierState);
-
     }
 
     private void Start()
@@ -251,7 +250,6 @@ public abstract class FireExecutor : MonoBehaviour
 
     public void SetTargetLayers(LayerMask targetLayers)
     {
-
         _targetLayers = targetLayers;
 
         if (_presenter == null)
@@ -263,9 +261,25 @@ public abstract class FireExecutor : MonoBehaviour
 
     }
 
+    public void SetIgnoredRoot(Transform ignoredRoot)
+    {
+        if (ignoredRoot == null)
+        {
+            throw new InvalidOperationException(nameof(ignoredRoot));
+        }
+
+        _ignoredRoot = ignoredRoot;
+
+        if (_presenter == null)
+        {
+            return;
+        }
+
+        _presenter.SetIgnoredRoot(ignoredRoot);
+    }
+
     private void EnsurePresenterCreated()
     {
-
         if (_presenter != null)
         {
             return;
@@ -283,8 +297,11 @@ public abstract class FireExecutor : MonoBehaviour
             throw new InvalidOperationException(nameof(_shotStrategy));
         }
 
+        Transform ignoredRoot = GetIgnoredRoot();
+
         _presenter = new FireExecutorPresenter(
             transform,
+            ignoredRoot,
             Muzzle,
             _shotStrategy,
             _fireRateProvider,
@@ -292,6 +309,25 @@ public abstract class FireExecutor : MonoBehaviour
             _targetLayers,
             _maxAimAngleDegrees);
 
+    }
+
+    private Transform GetIgnoredRoot()
+    {
+        if (_ignoredRoot != null)
+        {
+            return _ignoredRoot;
+        }
+
+        Transform rootTransform = transform.root;
+
+        if (rootTransform == null)
+        {
+            throw new InvalidOperationException(nameof(rootTransform));
+        }
+
+        _ignoredRoot = rootTransform;
+
+        return _ignoredRoot;
     }
 
     private void EnablePresenterIfNeeded()

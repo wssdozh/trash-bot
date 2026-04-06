@@ -3,6 +3,9 @@ using UnityEngine;
 
 public abstract class Ammo : MonoBehaviour
 {
+    [Header("Зависимости")]
+    [SerializeField] private Rigidbody _rigidbody;
+
     [Header("Настройки")]
     [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private float _minSpeed = 8f;
@@ -24,6 +27,14 @@ public abstract class Ammo : MonoBehaviour
     public event Action Impacted;
     public event Action LifeEnded;
 
+    private void Awake()
+    {
+        if (_rigidbody == null)
+        {
+            throw new InvalidOperationException(nameof(_rigidbody));
+        }
+    }
+
     protected virtual void OnEnable()
     {
         _lifetimeTimer = _lifetimeSeconds;
@@ -37,7 +48,7 @@ public abstract class Ammo : MonoBehaviour
         OnAmmoEnabled();
     }
 
-    protected virtual void Update()
+    private void FixedUpdate()
     {
         if (_isLifeEnded)
         {
@@ -45,6 +56,14 @@ public abstract class Ammo : MonoBehaviour
         }
 
         MoveForward();
+    }
+
+    protected virtual void Update()
+    {
+        if (_isLifeEnded)
+        {
+            return;
+        }
 
         _lifetimeTimer -= Time.deltaTime;
 
@@ -129,7 +148,10 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void MoveForward()
     {
-        transform.Translate(Vector3.forward * _speed * _speedMultiplier * Time.deltaTime);
+        Vector3 moveOffset = transform.forward * _speed * _speedMultiplier * Time.fixedDeltaTime;
+        Vector3 nextPosition = _rigidbody.position + moveOffset;
+
+        _rigidbody.MovePosition(nextPosition);
     }
 
     protected abstract void OnHitTarget(Collider other);

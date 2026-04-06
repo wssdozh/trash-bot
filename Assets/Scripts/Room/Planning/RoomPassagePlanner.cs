@@ -231,6 +231,13 @@ public sealed class RoomPassagePlanner : MonoBehaviour
         Vector2Int entranceInsideCell
     )
     {
+        if (roomTypeProfile.RoomType == RoomType.Start)
+        {
+            TryPlanStartGuaranteedNook(roomSizeInBlocks, roomTypeProfile, entranceInsideCell);
+
+            return;
+        }
+
         int wallMargin = roomTypeProfile.MaximumNookWallMarginInCells;
         int footprintRadius = roomTypeProfile.MaximumNookFootprintRadiusInCells;
         int minimumDistance = roomTypeProfile.MaximumNookMinimumDistanceFromCorridorInCells;
@@ -312,6 +319,44 @@ public sealed class RoomPassagePlanner : MonoBehaviour
         }
 
         ReservePocketNoFillCells(roomSizeInBlocks, pocketRect);
+
+        _hasGuaranteedNookCell = true;
+        _guaranteedNookCell = guaranteedCell;
+    }
+
+    private void TryPlanStartGuaranteedNook(Vector3Int roomSizeInBlocks, RoomTypeProfile roomTypeProfile, Vector2Int entranceInsideCell)
+    {
+        int wallMargin = roomTypeProfile.MaximumNookWallMarginInCells;
+        int footprintRadius = roomTypeProfile.MaximumNookFootprintRadiusInCells;
+
+        Vector2Int centerCell = GetFallbackCenterCell(roomSizeInBlocks);
+        Vector2Int laneStep = GetDominantAxisStep(entranceInsideCell, centerCell);
+
+        if (laneStep == Vector2Int.zero)
+        {
+            laneStep = new Vector2Int(0, 1);
+        }
+
+        int forwardOffset = Mathf.Max(footprintRadius + 2, 3);
+        Vector2Int guaranteedCell = centerCell + (laneStep * forwardOffset);
+
+        if (IsCellInsideMargin(guaranteedCell, roomSizeInBlocks, wallMargin) == false)
+        {
+            guaranteedCell = centerCell + (laneStep * Mathf.Max(footprintRadius + 1, 2));
+        }
+
+        if (IsCellInsideMargin(guaranteedCell, roomSizeInBlocks, wallMargin) == false)
+        {
+            guaranteedCell = centerCell;
+        }
+
+        if (IsCellInsideMargin(guaranteedCell, roomSizeInBlocks, wallMargin) == false)
+        {
+            return;
+        }
+
+        ReserveLineNoFillCells(roomSizeInBlocks, centerCell, guaranteedCell, footprintRadius + 1);
+        ReserveCellAreaNoFill(roomSizeInBlocks, guaranteedCell, footprintRadius + 1);
 
         _hasGuaranteedNookCell = true;
         _guaranteedNookCell = guaranteedCell;
@@ -496,6 +541,105 @@ public sealed class RoomPassagePlanner : MonoBehaviour
                 _additionalNoFillCells.Add(cell);
             }
         }
+    }
+
+    private void ReserveLineNoFillCells(Vector3Int roomSizeInBlocks, Vector2Int startCell, Vector2Int endCell, int radius)
+    {
+        Vector2Int step = GetDominantAxisStep(startCell, endCell);
+        Vector2Int currentCell = startCell;
+
+        for (int i = 0; i < 256; i++)
+        {
+            ReserveCellAreaNoFill(roomSizeInBlocks, currentCell, radius);
+
+            if (currentCell == endCell)
+            {
+                return;
+            }
+
+            currentCell = new Vector2Int(currentCell.x + step.x, currentCell.y + step.y);
+        }
+    }
+
+    private void ReserveCellAreaNoFill(Vector3Int roomSizeInBlocks, Vector2Int centerCell, int radius)
+    {
+        for (int offsetX = -radius; offsetX <= radius; offsetX++)
+        {
+            for (int offsetZ = -radius; offsetZ <= radius; offsetZ++)
+            {
+                Vector2Int cell = new Vector2Int(centerCell.x + offsetX, centerCell.y + offsetZ);
+
+                if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+                {
+                    continue;
+                }
+
+                _additionalNoFillCells.Add(cell);
+            }
+        }
+    }
+
+    private Vector2Int GetDominantAxisStep(Vector2Int fromCell, Vector2Int toCell)
+    {
+        int deltaX = toCell.x - fromCell.x;
+        int deltaZ = toCell.y - fromCell.y;
+
+        if (Mathf.Abs(deltaX) >= Mathf.Abs(deltaZ))
+        {
+            return new Vector2Int(GetStep(deltaX), 0);
+        }
+
+        return new Vector2Int(0, GetStep(deltaZ));
+    }
+
+    private bool IsCellInsideMargin(Vector2Int cell, Vector3Int roomSizeInBlocks, int wallMargin)
+    {
+        if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+        {
+            return false;
+        }
+
+        int minX = 1 + wallMargin;
+        int maxX = (roomSizeInBlocks.x - 2) - wallMargin;
+        int minZ = 1 + wallMargin;
+        int maxZ = (roomSizeInBlocks.z - 2) - wallMargin;
+
+        if (cell.x < minX)
+        {
+            return false;
+        }
+
+        if (cell.x > maxX)
+        {
+            return false;
+        }
+
+        if (cell.y < minZ)
+        {
+            return false;
+        }
+
+        if (cell.y > maxZ)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private int GetStep(int delta)
+    {
+        if (delta > 0)
+        {
+            return 1;
+        }
+
+        if (delta < 0)
+        {
+            return -1;
+        }
+
+        return 0;
     }
 
     private float[,] CreateFlatNoise(int width, int height)

@@ -189,7 +189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDroneMove
   _moveRoot: {fileID: 8438972018461338632}
   _rigidbody: {fileID: 8623145794061254304}
-  _moveSpeed: 3.25
+  _moveSpeed: 2.5
   _heightSpeed: 1.85
   _turnSpeed: 180
   _moveGainSpeed: 4.2

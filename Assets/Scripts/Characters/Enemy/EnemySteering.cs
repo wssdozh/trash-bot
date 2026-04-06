@@ -32,7 +32,7 @@ public sealed class EnemySteering
     private readonly RaycastHit[] _probeBuffer = new RaycastHit[ProbeBufferSize];
     private readonly int[] _allyIdBuffer = new int[AllyBufferSize];
     private readonly NavMeshPath _navMeshPath = new NavMeshPath();
-    private readonly NavMeshAgent _navMeshAgent;
+    private NavMeshAgent _navMeshAgent;
 
     private LayerMask _obstacleMask;
     private float _probeRadius;
@@ -94,13 +94,7 @@ public sealed class EnemySteering
         _probeAngle = probeAngle;
         _avoidWeight = avoidWeight;
 
-        if (_navMeshAgent == null)
-        {
-            return;
-        }
-
-        _navMeshAgent.radius = Mathf.Max(_probeRadius, 0.1f);
-        _navMeshAgent.height = Mathf.Max(_probeHeight * 2f, 0.5f);
+        ApplyAgentShape(_navMeshAgent);
     }
 
     public void SetSpacing(LayerMask allyMask, float separationRadius, float separationWeight)
@@ -634,6 +628,11 @@ public sealed class EnemySteering
 
         if (navMeshAgent == null)
         {
+            if (HasAnyNavMesh() == false)
+            {
+                return null;
+            }
+
             navMeshAgent = _root.gameObject.AddComponent<NavMeshAgent>();
         }
 
@@ -647,9 +646,40 @@ public sealed class EnemySteering
         navMeshAgent.speed = AgentSpeed;
         navMeshAgent.avoidancePriority = GetAvoidPriority();
         navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
+        ApplyAgentShape(navMeshAgent);
         navMeshAgent.enabled = false;
 
         return navMeshAgent;
+    }
+
+    private void ApplyAgentShape(NavMeshAgent navMeshAgent)
+    {
+        if (navMeshAgent == null)
+        {
+            return;
+        }
+
+        if (_probeRadius > 0f)
+        {
+            navMeshAgent.radius = Mathf.Max(_probeRadius, 0.1f);
+        }
+
+        if (_probeHeight > 0f)
+        {
+            navMeshAgent.height = Mathf.Max(_probeHeight * 2f, 0.5f);
+        }
+    }
+
+    private bool HasAnyNavMesh()
+    {
+        NavMeshTriangulation navMeshTriangulation = NavMesh.CalculateTriangulation();
+
+        if (navMeshTriangulation.vertices == null)
+        {
+            return false;
+        }
+
+        return navMeshTriangulation.vertices.Length > 0;
     }
 
     private int GetAvoidPriority()
@@ -671,6 +701,16 @@ public sealed class EnemySteering
 
     private bool SyncAgent(Vector3 currentPoint)
     {
+        if (_navMeshAgent == null)
+        {
+            _navMeshAgent = EnsureAgent();
+
+            if (_navMeshAgent == null)
+            {
+                return false;
+            }
+        }
+
         if (_navMeshAgent.enabled == false)
         {
             return TryActivateAgent(currentPoint);
@@ -1595,9 +1635,13 @@ public sealed class EnemySteering
 
         if (_rigidbody != null)
         {
-            Vector3 currentVelocity = _rigidbody.linearVelocity;
             _rigidbody.position = nextPosition;
-            _rigidbody.linearVelocity = new Vector3(0f, currentVelocity.y, 0f);
+
+            if (_rigidbody.isKinematic == false)
+            {
+                Vector3 currentVelocity = _rigidbody.linearVelocity;
+                _rigidbody.linearVelocity = new Vector3(0f, currentVelocity.y, 0f);
+            }
 
             return;
         }
@@ -1611,6 +1655,11 @@ public sealed class EnemySteering
         _pathStopDistance = 0f;
         _pathTime = 0f;
         _hasPathTarget = false;
+
+        if (_navMeshAgent == null)
+        {
+            return;
+        }
 
         if (_navMeshAgent.enabled == false)
         {

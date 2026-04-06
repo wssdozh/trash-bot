@@ -24,12 +24,12 @@ MonoBehaviour:
   _enemySpawnCountRange: {x: 3, y: 10}
   _enemyPrefabs:
   - _prefab: {fileID: 625229030526185096, guid: fa4493f117e180d41826086377115b5a, type: 3}
-    _weight: 3
+    _weight: 2
     _spawnHeight: 0.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 0}
   - _prefab: {fileID: 625229030526185096, guid: c41a8d9c8e2b47e5a2d90477bd463f6f, type: 3}
-    _weight: 4
+    _weight: 5
     _spawnHeight: 2.2
     _guaranteed: 0
     _weaponPrefab: {fileID: 0}
@@ -39,7 +39,7 @@ MonoBehaviour:
     _guaranteed: 0
     _weaponPrefab: {fileID: 0}
   - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
-    _weight: 2
+    _weight: 3
     _spawnHeight: 1.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
@@ -58,8 +58,13 @@ MonoBehaviour:
     _spawnHeight: 1.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 1864531296725922894, guid: ff061cd3d36838b428759a9dd5db86da, type: 3}
+  - _prefab: {fileID: 3220131145214470877, guid: 6e1d43b2102a4e2bba1ee2538f7d5acf, type: 3}
+    _weight: 1
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
   - _prefab: {fileID: 2988643586977455420, guid: 93470d33be65f054a84a4b6a491dbd4d, type: 3}
-    _weight: 2
+    _weight: 1
     _spawnHeight: 0.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 0}

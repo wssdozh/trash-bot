@@ -516,8 +516,8 @@ MonoBehaviour:
   _blockSize: 1
   _chunkSizeInCells: 4
   _includeInactive: 0
-  _disableSourceRenderers: 0
-  _disableSourceColliders: 0
+  _disableSourceRenderers: 1
+  _disableSourceColliders: 1
   _createMeshCollider: 1
   _meshColliderConvex: 0
   _meshColliderIsTrigger: 0
