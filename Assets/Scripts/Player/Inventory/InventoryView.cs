@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class InventoryView : MonoBehaviour
 {
+    private const string SlotViewPath = "Prefabs/UI/Cell";
+
     [SerializeField] private Inventory _inventory;
     [SerializeField] private InventorySlotView _slotViewPrefab;
     [SerializeField] private Transform _slotsParent;
@@ -10,13 +13,40 @@ public class InventoryView : MonoBehaviour
     private readonly List<InventorySlotView> _slotViews = new List<InventorySlotView>();
     private bool _isBuilt;
 
+    private void Awake()
+    {
+        if (_inventory == null)
+        {
+            throw new InvalidOperationException(nameof(_inventory));
+        }
+
+        if (_slotsParent == null)
+        {
+            throw new InvalidOperationException(nameof(_slotsParent));
+        }
+
+        if (_slotViewPrefab == null)
+        {
+            GameObject slotViewPrefab = Resources.Load<GameObject>(SlotViewPath);
+
+            if (slotViewPrefab == null)
+            {
+                throw new InvalidOperationException(nameof(_slotViewPrefab));
+            }
+
+            _slotViewPrefab = slotViewPrefab.GetComponent<InventorySlotView>();
+
+            if (_slotViewPrefab == null)
+            {
+                throw new InvalidOperationException(nameof(_slotViewPrefab));
+            }
+        }
+    }
+
     private void OnEnable()
     {
-        if (_inventory != null)
-        {
-            _inventory.InventoryChanged += OnInventoryChanged;
-            _inventory.ActiveIndexChanged += OnActiveIndexChanged;
-        }
+        _inventory.InventoryChanged += OnInventoryChanged;
+        _inventory.ActiveIndexChanged += OnActiveIndexChanged;
     }
 
     private void Start()
@@ -28,11 +58,8 @@ public class InventoryView : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_inventory != null)
-        {
-            _inventory.InventoryChanged -= OnInventoryChanged;
-            _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
-        }
+        _inventory.InventoryChanged -= OnInventoryChanged;
+        _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
     }
 
     private void BuildIfNeeded()

@@ -7,6 +7,8 @@ public sealed class CurrencyWallet : MonoBehaviour
 
     public int Coins => _coins;
 
+    public event Action<int> CoinsChanged;
+
     public bool CanSpend(int amount)
     {
         if (amount < 0)
@@ -30,6 +32,7 @@ public sealed class CurrencyWallet : MonoBehaviour
         }
 
         _coins -= amount;
+        InvokeCoinsChanged();
 
         return true;
     }
@@ -42,5 +45,14 @@ public sealed class CurrencyWallet : MonoBehaviour
         }
 
         _coins += amount;
+        InvokeCoinsChanged();
+    }
+
+    private void InvokeCoinsChanged()
+    {
+        if (CoinsChanged != null)
+        {
+            CoinsChanged.Invoke(_coins);
+        }
     }
 }
