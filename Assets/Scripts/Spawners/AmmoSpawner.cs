@@ -8,20 +8,21 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
 
         for (int i = 0; i < PoolSize; i++)
         {
-            Ammo bullet = Pool.Get();
-            Pool.Release(bullet);
+            Ammo ammo = Pool.Get();
+            Pool.Release(ammo);
         }
     }
 
     public Ammo Spawn(Vector3 position, Quaternion rotation, LayerMask targetLayers, Transform ignoredRoot)
     {
-        Ammo bullet = Pool.Get();
-        bullet.transform.SetPositionAndRotation(position, rotation);
-        bullet.SetLayers(targetLayers);
-        bullet.SetIgnoredRoot(ignoredRoot);
-        bullet.GetComponent<AmmoReturner>().Initialize(this);
+        Ammo ammo = Pool.Get();
+        ammo.transform.SetPositionAndRotation(position, rotation);
+        ammo.SetLayers(targetLayers);
+        ammo.SetIgnoredRoot(ignoredRoot);
+        ammo.GetComponent<AmmoReturner>().Initialize(this);
+        ammo.gameObject.SetActive(true);
 
-        return bullet;
+        return ammo;
     }
 
     public override Ammo Spawn(Vector3 position)
@@ -29,13 +30,17 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
         return Spawn(position, Quaternion.identity, default, null);
     }
 
-    public override void Despawn(Ammo bullet)
+    public override void Despawn(Ammo ammo)
     {
-        Pool.Release(bullet);
+        Pool.Release(ammo);
     }
 
-    protected override void ActionOnRelease(Ammo bullet)
+    protected override void ActionOnGet(Ammo ammo)
     {
-        bullet.gameObject.SetActive(false);
+    }
+
+    protected override void ActionOnRelease(Ammo ammo)
+    {
+        ammo.gameObject.SetActive(false);
     }
 }
