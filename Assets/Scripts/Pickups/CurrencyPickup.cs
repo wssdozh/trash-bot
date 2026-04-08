@@ -19,7 +19,17 @@ public sealed class CurrencyPickup : BaseAnimatedPickup
 
     public override bool TryCollect(GameObject player, Inventory inventory)
     {
-        _currencyWallet = player.GetComponentInParent<CurrencyWallet>();
+        _currencyWallet = player.GetComponent<CurrencyWallet>();
+
+        if (_currencyWallet == null)
+        {
+            _currencyWallet = player.GetComponentInParent<CurrencyWallet>();
+        }
+
+        if (_currencyWallet == null)
+        {
+            _currencyWallet = player.GetComponentInChildren<CurrencyWallet>();
+        }
 
         if (_currencyWallet == null)
         {

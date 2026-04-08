@@ -81,11 +81,10 @@ public sealed class CurrencyDropOnDeath : MonoBehaviour
 
         for (int i = 0; i < dropCount; i++)
         {
-            Vector3 spawnPosition = transform.TransformPoint(_spawnOffset);
+            Vector3 spawnPosition = GetSpawnPosition();
             BasePickup pickup = _pickupSpawner.Spawn(spawnPosition);
             Rigidbody rigidbody = pickup.GetComponent<Rigidbody>();
-            Vector3 impulse = GetImpulse();
-            Vector3 worldImpulse = transform.TransformDirection(impulse);
+            Vector3 worldImpulse = GetImpulse();
 
             pickup.transform.rotation = _pickupPrefab.transform.rotation;
             pickup.SetAmount(_amountPerCoin);
@@ -97,6 +96,13 @@ public sealed class CurrencyDropOnDeath : MonoBehaviour
                 rigidbody.AddForce(worldImpulse, ForceMode.Impulse);
             }
         }
+    }
+
+    private Vector3 GetSpawnPosition()
+    {
+        Vector3 horizontalOffset = new Vector3(_spawnOffset.x, 0f, _spawnOffset.z);
+
+        return transform.position + horizontalOffset + Vector3.up * _spawnOffset.y;
     }
 
     private Vector3 GetImpulse()

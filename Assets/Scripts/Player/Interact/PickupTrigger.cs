@@ -4,6 +4,7 @@ public class PickupTrigger : MonoBehaviour
 {
     [SerializeField] private Collider _triggerCollider;
     [SerializeField] private Inventory _inventory;
+    [SerializeField] private Transform _pickupTarget;
 
     private void Awake()
     {
@@ -29,6 +30,29 @@ public class PickupTrigger : MonoBehaviour
             return;
         }
 
-        itemPickup.TryCollect(gameObject, _inventory);
+        GameObject collector = GetCollector();
+
+        itemPickup.TryCollect(collector, _inventory);
+    }
+
+    private GameObject GetCollector()
+    {
+        if (_pickupTarget != null)
+
+            return _pickupTarget.gameObject;
+
+        Player player = GetComponentInParent<Player>();
+
+        if (player != null)
+        {
+            return player.gameObject;
+        }
+
+        if (_inventory != null)
+        {
+            return _inventory.transform.root.gameObject;
+        }
+
+        return transform.root.gameObject;
     }
 }

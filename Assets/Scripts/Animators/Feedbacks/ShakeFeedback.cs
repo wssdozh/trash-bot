@@ -22,16 +22,12 @@ public class ShakeFeedback : Feedback
 
     private Vector3 _initialLocalPosition;
     private Quaternion _initialLocalRotation;
+    private bool _requiresPhysicsSync;
 
     private void Awake()
     {
-        if (_shakeTransform == null)
-        {
-            return;
-        }
-
-        _initialLocalPosition = _shakeTransform.localPosition;
-        _initialLocalRotation = _shakeTransform.localRotation;
+        CacheInitialState();
+        UpdatePhysicsSyncState();
     }
 
     private void OnDisable()
@@ -44,6 +40,21 @@ public class ShakeFeedback : Feedback
         Stop();
     }
 
+    private void LateUpdate()
+    {
+        if (_requiresPhysicsSync == false)
+        {
+            return;
+        }
+
+        if (IsShakeActive() == false)
+        {
+            return;
+        }
+
+        Physics.SyncTransforms();
+    }
+
     public override void Play()
     {
         if (_shakeTransform == null)
@@ -53,8 +64,7 @@ public class ShakeFeedback : Feedback
 
         Stop();
 
-        _initialLocalPosition = _shakeTransform.localPosition;
-        _initialLocalRotation = _shakeTransform.localRotation;
+        CacheInitialState();
 
         _positionTween = _shakeTransform.DOShakePosition(
             _shakePositionDuration,
@@ -88,6 +98,8 @@ public class ShakeFeedback : Feedback
 
         _shakeTransform.localPosition = _initialLocalPosition;
         _shakeTransform.localRotation = _initialLocalRotation;
+
+        SyncPhysics();
     }
 
     public void Initialize(Transform rootTransform, Transform shakeTransform)
@@ -95,6 +107,12 @@ public class ShakeFeedback : Feedback
         _rootTransform = rootTransform;
         _shakeTransform = shakeTransform;
 
+        CacheInitialState();
+        UpdatePhysicsSyncState();
+    }
+
+    private void CacheInitialState()
+    {
         if (_shakeTransform == null)
         {
             return;
@@ -102,5 +120,53 @@ public class ShakeFeedback : Feedback
 
         _initialLocalPosition = _shakeTransform.localPosition;
         _initialLocalRotation = _shakeTransform.localRotation;
+    }
+
+    private void UpdatePhysicsSyncState()
+    {
+        Transform physicsTransform = _rootTransform;
+
+        if (physicsTransform == null)
+        {
+            physicsTransform = _shakeTransform;
+        }
+
+        _requiresPhysicsSync = false;
+
+        if (physicsTransform == null)
+        {
+            return;
+        }
+
+        Collider collider = physicsTransform.GetComponentInParent<Collider>();
+        Rigidbody rigidbody = physicsTransform.GetComponentInParent<Rigidbody>();
+
+        if (collider != null || rigidbody != null)
+        {
+            _requiresPhysicsSync = true;
+        }
+    }
+
+    private bool IsShakeActive()
+    {
+        bool hasPositionTween = _positionTween != null && _positionTween.IsActive() && _positionTween.IsPlaying();
+        bool hasRotationTween = _rotationTween != null && _rotationTween.IsActive() && _rotationTween.IsPlaying();
+
+        if (hasPositionTween)
+        {
+            return true;
+        }
+
+        return hasRotationTween;
+    }
+
+    private void SyncPhysics()
+    {
+        if (_requiresPhysicsSync == false)
+        {
+            return;
+        }
+
+        Physics.SyncTransforms();
     }
 }

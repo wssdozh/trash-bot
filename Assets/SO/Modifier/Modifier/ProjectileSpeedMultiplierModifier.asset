@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ProjectileSpeedMultiplierModifier
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileSpeedMultiplierModifier
   _allowedWeaponTypes: 01000000
-  _multiplier: 2
+  _multiplier: 1.35

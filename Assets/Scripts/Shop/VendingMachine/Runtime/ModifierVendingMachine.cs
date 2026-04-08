@@ -1,15 +1,16 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class ModifierVendingMachine : Interactable
 {
-    [Header("Пул офферов")]
+    [Header("РџСѓР» РѕС„С„РµСЂРѕРІ")]
     [SerializeField] private ModifierOfferPool _offerPool;
 
-    [Header("Карточки")]
+    [Header("РљР°СЂС‚РѕС‡РєРё")]
     [SerializeField] private int _cardCount = 3;
 
-    [Header("Одноразовый")]
+    [Header("РћРґРЅРѕСЂР°Р·РѕРІС‹Р№")]
     [SerializeField] private bool _disableColliderOnPurchase = true;
 
     private ModifierOffer[] _rolledOffers;
@@ -30,8 +31,6 @@ public sealed class ModifierVendingMachine : Interactable
         }
 
         _rolledOffers = new ModifierOffer[_cardCount];
-
-        RollOffersOnce();
     }
 
     public ModifierOffer GetOffer(int index)
@@ -61,7 +60,7 @@ public sealed class ModifierVendingMachine : Interactable
             return;
         }
 
-        RollOffersOnce();
+        RollOffersOnce(interactor);
 
         Action<ModifierVendingMachine, GameObject> interactionRequested = InteractionRequested;
 
@@ -97,7 +96,7 @@ public sealed class ModifierVendingMachine : Interactable
         enabled = false;
     }
 
-    private void RollOffersOnce()
+    private void RollOffersOnce(GameObject buyer)
     {
         if (_hasRolled)
         {
@@ -107,28 +106,89 @@ public sealed class ModifierVendingMachine : Interactable
         _hasRolled = true;
 
         ModifierOffer[] pool = _offerPool.Offers;
+        List<ModifierOffer> availableOffers = CreateAvailableOffers(pool, buyer);
 
-        if (pool.Length < _rolledOffers.Length)
+        if (availableOffers.Count < _rolledOffers.Length)
+        {
+            availableOffers = CreateAllOffers(pool);
+        }
+
+        if (availableOffers.Count < _rolledOffers.Length)
         {
             throw new InvalidOperationException(nameof(_offerPool));
         }
 
-        int[] indices = new int[pool.Length];
-
-        for (int index = 0; index < indices.Length; index++)
-        {
-            indices[index] = index;
-        }
+        ShuffleOffers(availableOffers);
 
         for (int cardIndex = 0; cardIndex < _rolledOffers.Length; cardIndex++)
         {
-            int swapIndex = UnityEngine.Random.Range(cardIndex, indices.Length);
+            _rolledOffers[cardIndex] = availableOffers[cardIndex];
+        }
+    }
 
-            int temp = indices[cardIndex];
-            indices[cardIndex] = indices[swapIndex];
-            indices[swapIndex] = temp;
+    private List<ModifierOffer> CreateAvailableOffers(ModifierOffer[] pool, GameObject buyer)
+    {
+        Inventory inventory = GetInventory(buyer);
+        List<ModifierOffer> availableOffers = new List<ModifierOffer>();
 
-            _rolledOffers[cardIndex] = pool[indices[cardIndex]];
+        for (int i = 0; i < pool.Length; i++)
+        {
+            ModifierOffer offer = pool[i];
+
+            if (offer == null)
+            {
+                continue;
+            }
+
+            if (inventory != null && offer.IsCompatible(inventory) == false)
+            {
+                continue;
+            }
+
+            availableOffers.Add(offer);
+        }
+
+        return availableOffers;
+    }
+
+    private List<ModifierOffer> CreateAllOffers(ModifierOffer[] pool)
+    {
+        List<ModifierOffer> offers = new List<ModifierOffer>();
+
+        for (int i = 0; i < pool.Length; i++)
+        {
+            ModifierOffer offer = pool[i];
+
+            if (offer == null)
+            {
+                continue;
+            }
+
+            offers.Add(offer);
+        }
+
+        return offers;
+    }
+
+    private Inventory GetInventory(GameObject buyer)
+    {
+        if (buyer == null)
+        {
+            return null;
+        }
+
+        return buyer.GetComponentInParent<Inventory>();
+    }
+
+    private void ShuffleOffers(List<ModifierOffer> offers)
+    {
+        for (int i = 0; i < offers.Count; i++)
+        {
+            int swapIndex = UnityEngine.Random.Range(i, offers.Count);
+            ModifierOffer temp = offers[i];
+
+            offers[i] = offers[swapIndex];
+            offers[swapIndex] = temp;
         }
     }
 }

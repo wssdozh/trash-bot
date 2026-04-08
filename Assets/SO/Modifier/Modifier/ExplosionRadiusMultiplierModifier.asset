@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ExplosionRadiusMultiplierModifier
   m_EditorClassIdentifier: Assembly-CSharp::ExplosionRadiusMultiplierModifier
   _allowedWeaponTypes: 
-  _multiplier: 100
+  _multiplier: 1.4

@@ -2794,6 +2794,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupTrigger
   _triggerCollider: {fileID: 1184010739464354837}
   _inventory: {fileID: 591744987671708976}
+  _pickupTarget: {fileID: 3480807702779279668}
 --- !u!1 &8076210017849464627
 GameObject:
   m_ObjectHideFlags: 0

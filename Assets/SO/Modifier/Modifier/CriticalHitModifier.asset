@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: CriticalHitModifier
   m_EditorClassIdentifier: Assembly-CSharp::CriticalHitModifier
   _allowedWeaponTypes: 010000000200000003000000
-  _chanceAdd01: 1
-  _damageMultiplier: 1000
+  _chanceAdd01: 0.18
+  _damageMultiplier: 2.5

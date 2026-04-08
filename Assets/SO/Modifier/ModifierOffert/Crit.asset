@@ -15,6 +15,8 @@ MonoBehaviour:
   _title: "\u0423\u0432\u0435\u043B\u0438\u0447\u0435\u043D\u0438\u0435 \u0448\u0430\u043D\u0441\u0430
     \u043A\u0440\u0438\u0442. \u0443\u0440\u043E\u043D\u0430"
   _icon: {fileID: 0}
-  _price: 10
+  _requiredItem: {fileID: 0}
+  _rarity: 2
+  _price: 30
   _modifiers:
   - {fileID: 11400000, guid: c73201d12e671a74ab2ec240601f6aa7, type: 2}

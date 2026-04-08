@@ -20,6 +20,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float IdleSoftTurnScale = 0.45f;
     private const float IdleWideTurnChance = 0.22f;
     private const float MinFightRadius = 0.1f;
+    private const float RangeHoldScale = 0.2f;
     private const float LookDistance = 2f;
     private const float ForwardGizmoLength = 1.1f;
     private const float MoveGizmoLength = 1.35f;
@@ -840,9 +841,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRangeRunNeeded(distance));
-        Vector3 chasePoint = GetMovePoint(targetPoint);
 
-        if (TryRangeMove(chasePoint, _fightMaxDistance, targetPoint, currentPoint))
+        if (TryRangeHold(currentPoint, targetPoint))
         {
             return;
         }
@@ -855,9 +855,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Fight;
         _enemyMove.SetRun(false);
-        Vector3 retreatPoint = GetMovePoint(GetRetreatPoint(currentPoint, targetPoint));
 
-        if (TryRangeMove(retreatPoint, _fightGapDistance, targetPoint, currentPoint))
+        if (TryRangeHold(currentPoint, targetPoint))
         {
             return;
         }
@@ -872,6 +871,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (hasFireLine)
         {
+            if (TryRangeHold(currentPoint, targetPoint))
+            {
+                return;
+            }
+
             ResetMoveStuck();
             _enemySteering.Stop();
             _enemyRotator.RotateToPoint(targetPoint);
@@ -885,6 +889,20 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _enemySteering.LookToPoint(targetPoint);
+    }
+
+    private bool TryRangeHold(Vector3 currentPoint, Vector3 targetPoint)
+    {
+        float holdDistance = GetRangeHoldDistance();
+        float holdGap = GetRangeHoldGap();
+        Vector3 holdPoint = GetRangeHoldPoint(currentPoint, targetPoint, holdDistance);
+
+        if (Vector3.Distance(currentPoint, holdPoint) <= holdGap)
+        {
+            return false;
+        }
+
+        return TryRangeMove(GetMovePoint(holdPoint), holdGap, targetPoint, currentPoint);
     }
 
     private bool TryRangeMove(Vector3 movePoint, float stopDistance, Vector3 lookPoint, Vector3 currentPoint)
@@ -1785,29 +1803,39 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return direction;
     }
 
-    private Vector3 GetRetreatPoint(Vector3 currentPoint, Vector3 targetPoint)
+    private float GetRangeHoldDistance()
     {
-        Vector3 retreatDirection = currentPoint - targetPoint;
-        retreatDirection.y = 0f;
+        return (_fightMinDistance + _fightMaxDistance) * 0.5f;
+    }
 
-        if (retreatDirection.sqrMagnitude <= ZeroThreshold)
+    private float GetRangeHoldGap()
+    {
+        float holdGap = (_fightMaxDistance - _fightMinDistance) * RangeHoldScale;
+
+        if (holdGap < _fightGapDistance)
         {
-            retreatDirection = -GetStartDirection();
+            holdGap = _fightGapDistance;
         }
 
-        retreatDirection.Normalize();
+        return holdGap;
+    }
 
-        float retreatDistance = _fightMinDistance - Vector3.Distance(currentPoint, targetPoint);
+    private Vector3 GetRangeHoldPoint(Vector3 currentPoint, Vector3 targetPoint, float holdDistance)
+    {
+        Vector3 holdDirection = currentPoint - targetPoint;
+        holdDirection.y = 0f;
 
-        if (retreatDistance < _fightGapDistance)
+        if (holdDirection.sqrMagnitude <= ZeroThreshold)
         {
-            retreatDistance = _fightGapDistance;
+            holdDirection = -GetStartDirection();
         }
 
-        Vector3 retreatPoint = currentPoint + (retreatDirection * retreatDistance);
-        retreatPoint.y = transform.position.y;
+        holdDirection.Normalize();
 
-        return retreatPoint;
+        Vector3 holdPoint = targetPoint + (holdDirection * holdDistance);
+        holdPoint.y = transform.position.y;
+
+        return holdPoint;
     }
 
     private Vector3 GetSearchDirection()

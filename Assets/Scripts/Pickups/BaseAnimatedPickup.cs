@@ -19,8 +19,9 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
-
+        {
             pickupIdle.SetIdleActive(true);
+        }
     }
 
     protected virtual void OnDisable()
@@ -28,8 +29,9 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
-
+        {
             pickupIdle.SetIdleActive(false);
+        }
     }
 
     protected override void OnPickup(GameObject player)
@@ -37,25 +39,26 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
-
+        {
             pickupIdle.SetIdleActive(false);
-
+        }
 
         if (_pickupAnimator == null)
-
+        {
             _pickupAnimator = GetComponent<PickupAnimator>();
-
+        }
 
         if (_pickupAnimator != null)
         {
             _collider.enabled = false;
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
             _rigidbody.isKinematic = true;
 
             _pickupAnimator.PlayAttraction(player.transform, () => OnConsumed(player));
 
             return;
         }
-
 
         OnConsumed(player);
     }
@@ -68,9 +71,9 @@ public abstract class BaseAnimatedPickup : BasePickup
     private PickupIdle GetPickupIdle()
     {
         if (_pickupIdle == null)
-
+        {
             _pickupIdle = GetComponentInChildren<PickupIdle>(true);
-
+        }
 
         return _pickupIdle;
     }

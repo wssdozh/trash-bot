@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: PelletBonusModifier
   m_EditorClassIdentifier: Assembly-CSharp::PelletBonusModifier
   _allowedWeaponTypes: 01000000
-  _bonus: 200
+  _bonus: 2

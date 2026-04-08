@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3570d4ae1953c8a4e94f3deb716abef9, type: 3}
   m_Name: Damage
   m_EditorClassIdentifier: Assembly-CSharp::DamageMultiplierModifier
-  _multiplier: 100
+  _multiplier: 1.18

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7eeaaf073fa521e4494abde655b42249, type: 3}
   m_Name: FireRateWeaponModifier
   m_EditorClassIdentifier: Assembly-CSharp::FireRateWeaponModifier
-  _multiplier: 20
+  _multiplier: 1.18

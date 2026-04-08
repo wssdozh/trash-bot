@@ -45,8 +45,7 @@ public class Harvestable : DamageableObject
             float forceY = Random.Range(_forceYMin, _forceYMax);
             float forceZ = Random.Range(_forceZMin, _forceZMax);
 
-            Vector3 localImpulse = new Vector3(forceX, forceY, forceZ);
-            Vector3 worldImpulse = transform.TransformDirection(localImpulse);
+            Vector3 worldImpulse = new Vector3(forceX, forceY, forceZ);
             rigidbody.AddForce(worldImpulse, ForceMode.Impulse);
         }
     }

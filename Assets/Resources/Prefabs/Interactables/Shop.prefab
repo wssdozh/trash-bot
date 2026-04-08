@@ -461,8 +461,8 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 350, y: 450}
-  m_Spacing: {x: 100, y: 100}
+  m_CellSize: {x: 300, y: 390}
+  m_Spacing: {x: 70, y: 70}
   m_Constraint: 0
   m_ConstraintCount: 2
 --- !u!225 &7180474460100522950
@@ -635,11 +635,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 350
+      value: 280
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 450
+      value: 370
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -791,11 +791,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 350
+      value: 280
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 450
+      value: 370
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -951,11 +951,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 350
+      value: 280
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 450
+      value: 370
       objectReference: {fileID: 0}
     - target: {fileID: 7595708833405862203, guid: dbf932bd4d71b87418c6cfb7913b2ecd, type: 3}
       propertyPath: m_LocalPosition.x

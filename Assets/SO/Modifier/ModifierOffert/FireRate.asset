@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
   _title: "\u0421\u043A\u043E\u0440\u043E\u0441\u0442\u0440\u0435\u043B\u044C\u043D\u043E\u0441\u0442\u044C+"
   _icon: {fileID: 1932712227, guid: 225900d2e7ac71c4fa51208966c221b2, type: 3}
-  _price: 0
+  _requiredItem: {fileID: 0}
+  _rarity: 1
+  _price: 18
   _modifiers:
   - {fileID: 11400000, guid: cbc3df470c9e13e4f8305fabae94ea8e, type: 2}

@@ -97,11 +97,11 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _moveRoot.position += (crashDirection * _forward);
         _rigidbody.position = _moveRoot.position;
         _rigidbody.rotation = _moveRoot.rotation;
-        _rigidbody.linearVelocity = Vector3.zero;
-        _rigidbody.angularVelocity = Vector3.zero;
         _rigidbody.constraints = RigidbodyConstraints.None;
         _rigidbody.isKinematic = false;
         _rigidbody.useGravity = true;
+        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.angularVelocity = Vector3.zero;
         _collider.enabled = true;
         _rigidbody.WakeUp();
         _rigidbody.AddForce(crashForceDirection * _force, ForceMode.Impulse);
@@ -124,8 +124,13 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _moveRoot.localPosition = _startLocalPosition;
         _moveRoot.localRotation = _startLocalRotation;
         _moveRoot.localScale = _startLocalScale;
-        _rigidbody.linearVelocity = Vector3.zero;
-        _rigidbody.angularVelocity = Vector3.zero;
+
+        if (_rigidbody.isKinematic == false)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+
         _rigidbody.constraints = RigidbodyConstraints.FreezeAll;
         _rigidbody.isKinematic = true;
         _rigidbody.useGravity = false;

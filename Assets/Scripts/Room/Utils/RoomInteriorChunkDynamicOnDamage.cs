@@ -9,7 +9,7 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
     private MeshCollider _rootCollider;
     private MeshCollider _staticCollider;
-    private BoxCollider _notStaticCollider;
+    private MeshCollider _notStaticCollider;
 
     private Rigidbody _staticRigidbody;
     private Rigidbody _notStaticRigidbody;
@@ -119,7 +119,7 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
         _rootCollider = GetComponent<MeshCollider>();
         _staticCollider = EnsureMeshCollider(_staticObject, false);
-        _notStaticCollider = EnsureBoxCollider(_notStaticObject);
+        _notStaticCollider = EnsureMeshCollider(_notStaticObject, false);
 
         _staticRigidbody = EnsureRigidbody(_staticObject);
         _notStaticRigidbody = EnsureRigidbody(_notStaticObject);
@@ -301,36 +301,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         meshCollider.isTrigger = false;
 
         return meshCollider;
-    }
-
-    private BoxCollider EnsureBoxCollider(GameObject targetObject)
-    {
-        BoxCollider boxCollider = targetObject.GetComponent<BoxCollider>();
-
-        if (boxCollider == null)
-        {
-            boxCollider = targetObject.AddComponent<BoxCollider>();
-        }
-
-        MeshFilter meshFilter = targetObject.GetComponent<MeshFilter>();
-
-        if (meshFilter == null)
-        {
-            throw new MissingReferenceException(nameof(meshFilter));
-        }
-
-        if (meshFilter.sharedMesh == null)
-        {
-            throw new MissingReferenceException(nameof(meshFilter.sharedMesh));
-        }
-
-        Bounds bounds = meshFilter.sharedMesh.bounds;
-
-        boxCollider.center = bounds.center;
-        boxCollider.size = bounds.size;
-        boxCollider.isTrigger = false;
-
-        return boxCollider;
     }
 
     private Rigidbody EnsureRigidbody(GameObject targetObject)

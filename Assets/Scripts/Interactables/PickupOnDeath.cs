@@ -59,7 +59,7 @@ public sealed class PickupOnDeath : MonoBehaviour
 
     private void SpawnPickup()
     {
-        Vector3 spawnPosition = _intactObject.transform.TransformPoint(_spawnOffset);
+        Vector3 spawnPosition = GetSpawnPosition();
         BasePickup pickup = _pickupSpawner.Spawn(spawnPosition);
         pickup.transform.rotation = _pickupPrefab.transform.rotation;
         pickup.SetAmount(_pickupPrefab.Amount);
@@ -69,6 +69,13 @@ public sealed class PickupOnDeath : MonoBehaviour
             rigidbody.linearVelocity = Vector3.zero;
             rigidbody.angularVelocity = Vector3.zero;
         }
+    }
+
+    private Vector3 GetSpawnPosition()
+    {
+        Vector3 horizontalOffset = new Vector3(_spawnOffset.x, 0f, _spawnOffset.z);
+
+        return _intactObject.transform.position + horizontalOffset + Vector3.up * _spawnOffset.y;
     }
 
     private void RequestNavMeshUpdate()

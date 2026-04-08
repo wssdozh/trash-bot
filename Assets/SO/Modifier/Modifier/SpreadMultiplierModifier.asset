@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: SpreadMultiplierModifier
   m_EditorClassIdentifier: Assembly-CSharp::SpreadMultiplierModifier
   _allowedWeaponTypes: 01000000
-  _multiplier: 10
+  _multiplier: 0.75
