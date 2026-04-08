@@ -26,6 +26,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float MoveGizmoLength = 1.35f;
     private const float PointGizmoSize = 0.18f;
     private const float ZeroThreshold = 0.0001f;
+    private const int RangeFight = 0;
+    private const int RangeChase = 1;
+    private const int RangeBack = -1;
 
     [Header("Dependencies")]
     [SerializeField] private Enemy _enemy;
@@ -106,6 +109,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private int _idleChain;
     private int _searchStep;
     private EnemyRoomLock _enemyRoomLock;
+    private int _rangeMode;
     private Vector3 _attackDirection;
     private bool _isAttackInProgress;
     private bool _isHitPending;
@@ -819,19 +823,29 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         bool hasFireLine = HasFireLine(targetPoint);
         fireExecutor.SetAimPoint(targetPoint);
 
-        if (distance > _fightMaxDistance)
+        if (_state != EnemyState.Chase && _state != EnemyState.Fight)
+        {
+            _rangeMode = GetInitialRangeMode(distance);
+        }
+
+        UpdateRangeMode(distance);
+
+        if (_rangeMode == RangeChase)
         {
             ProcessRangeChase(currentPoint, targetPoint, distance);
         }
 
-        else if (distance < _fightMinDistance)
-        {
-            ProcessRangeBack(currentPoint, targetPoint);
-        }
-
         else
         {
-            ProcessRangeFight(currentPoint, targetPoint, hasFireLine);
+            if (_rangeMode == RangeBack)
+            {
+                ProcessRangeBack(currentPoint, targetPoint);
+            }
+
+            else
+            {
+                ProcessRangeFight(currentPoint, targetPoint, hasFireLine);
+            }
         }
 
         TryShoot(fireExecutor, targetPoint, distance, hasFireLine);
@@ -926,6 +940,60 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         ResetMoveStuck();
 
         return false;
+    }
+
+    private int GetInitialRangeMode(float distance)
+    {
+        if (distance > _fightMaxDistance)
+        {
+            return RangeChase;
+        }
+
+        if (distance < _fightMinDistance)
+        {
+            return RangeBack;
+        }
+
+        return RangeFight;
+    }
+
+    private void UpdateRangeMode(float distance)
+    {
+        if (_rangeMode == RangeChase)
+        {
+            if (distance > GetRangeEnterMax())
+            {
+                return;
+            }
+
+            _rangeMode = RangeFight;
+
+            return;
+        }
+
+        if (_rangeMode == RangeBack)
+        {
+            if (distance < GetRangeEnterMin())
+            {
+                return;
+            }
+
+            _rangeMode = RangeFight;
+
+            return;
+        }
+
+        if (distance > GetRangeExitMax())
+        {
+            _rangeMode = RangeChase;
+
+            return;
+        }
+
+        if (distance < GetRangeExitMin())
+        {
+            _rangeMode = RangeBack;
+        }
     }
 
     private void TryShoot(FireExecutor fireExecutor, Vector3 targetPoint, float distance, bool hasFireLine)
@@ -1125,6 +1193,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void ResetState()
     {
         _state = EnemyState.Idle;
+        _rangeMode = RangeFight;
         _idleTimer = 0f;
         _hasLastSeenPoint = false;
         _hasLastSeenMovePoint = false;
@@ -1806,6 +1875,34 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private float GetRangeHoldDistance()
     {
         return (_fightMinDistance + _fightMaxDistance) * 0.5f;
+    }
+
+    private float GetRangeEnterMax()
+    {
+        float rangeEnterMax = _fightMaxDistance - _fightGapDistance;
+
+        return Mathf.Max(_fightMinDistance, rangeEnterMax);
+    }
+
+    private float GetRangeEnterMin()
+    {
+        float rangeEnterMin = _fightMinDistance + _fightGapDistance;
+
+        return Mathf.Min(_fightMaxDistance, rangeEnterMin);
+    }
+
+    private float GetRangeExitMax()
+    {
+        float rangeExitMax = _fightMaxDistance + _fightGapDistance;
+
+        return Mathf.Max(GetRangeEnterMax(), rangeExitMax);
+    }
+
+    private float GetRangeExitMin()
+    {
+        float rangeExitMin = _fightMinDistance - _fightGapDistance;
+
+        return Mathf.Max(MinFightRadius, rangeExitMin);
     }
 
     private float GetRangeHoldGap()

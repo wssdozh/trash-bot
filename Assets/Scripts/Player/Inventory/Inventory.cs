@@ -107,6 +107,7 @@ public class Inventory : MonoBehaviour
 
             if (remainingAmount <= 0)
             {
+                SelectWeaponSlot(item, i);
                 InvokeInventoryChanged();
                 return true;
             }
@@ -256,5 +257,15 @@ public class Inventory : MonoBehaviour
         {
             InventoryChanged.Invoke();
         }
+    }
+
+    private void SelectWeaponSlot(Item item, int slotIndex)
+    {
+        if (item.WeaponType == WeaponType.None)
+        {
+            return;
+        }
+
+        SetActiveIndex(slotIndex);
     }
 }

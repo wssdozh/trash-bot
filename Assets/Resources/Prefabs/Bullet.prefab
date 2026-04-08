@@ -273,10 +273,10 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
+  m_IsKinematic: 0
+  m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 3
+  m_CollisionDetection: 2
 --- !u!135 &152883573251891985
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -296,7 +296,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.8
+  m_Radius: 1.1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &4344111331149057464
 MonoBehaviour:

@@ -6,24 +6,31 @@ public class HeldMode : MonoBehaviour
     [SerializeField] private MonoBehaviour[] _componentsToDisable;
     [SerializeField] private Rigidbody[] _rigidbodies;
 
+    private bool _isHeld;
+
     private void OnEnable()
     {
-        SetHeld(false);
+        ApplyHeldState();
     }
 
     public void SetHeld(bool isHeld)
     {
+        _isHeld = isHeld;
+
+        ApplyHeldState();
+    }
+
+    private void ApplyHeldState()
+    {
         for (int i = 0; i < _colliders.Length; i++)
         {
-            _colliders[i].enabled = isHeld == false;
+            _colliders[i].enabled = _isHeld == false;
         }
-
 
         for (int i = 0; i < _componentsToDisable.Length; i++)
         {
-            _componentsToDisable[i].enabled = isHeld == false;
+            _componentsToDisable[i].enabled = _isHeld == false;
         }
-
 
         for (int i = 0; i < _rigidbodies.Length; i++)
         {
@@ -35,8 +42,8 @@ public class HeldMode : MonoBehaviour
                 rigidbody.angularVelocity = Vector3.zero;
             }
 
-            rigidbody.isKinematic = isHeld;
-            rigidbody.detectCollisions = isHeld == false;
+            rigidbody.isKinematic = _isHeld;
+            rigidbody.detectCollisions = _isHeld == false;
         }
     }
 }

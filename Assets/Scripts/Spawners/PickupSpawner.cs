@@ -18,6 +18,7 @@ public class PickupSpawner : Spawner<BasePickup>
         BasePickup pickup = Pool.Get();
         pickup.transform.position = position;
         pickup.GetComponent<PickupReturner>().SetSpawner(this);
+        pickup.gameObject.SetActive(true);
 
         return pickup;
     }
@@ -25,5 +26,9 @@ public class PickupSpawner : Spawner<BasePickup>
     public override void Despawn(BasePickup pickup)
     {
         Pool.Release(pickup);
+    }
+
+    protected override void ActionOnGet(BasePickup pickup)
+    {
     }
 }

@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class WeaponHolder : MonoBehaviour
 {
+    private const CollisionDetectionMode HeldDetection = CollisionDetectionMode.ContinuousSpeculative;
+    private const RigidbodyInterpolation HeldInterpolation = RigidbodyInterpolation.None;
+
     [SerializeField] private Transform _weaponSocket;
     [SerializeField] private Health _ownerHealth;
     [SerializeField] private LayerMask _targetLayers;
@@ -140,9 +143,14 @@ public class WeaponHolder : MonoBehaviour
         ClearInternal(false);
 
         _pickupSpawner = pickupSpawner;
-
         _pickup = _pickupSpawner.Spawn(_weaponSocket.position);
-        _pickup.transform.SetParent(_weaponSocket, true);
+
+        HeldMode heldMode = _pickup.GetComponent<HeldMode>();
+
+        if (heldMode != null)
+        {
+            heldMode.SetHeld(true);
+        }
 
         WeaponGrip weaponGrip = _pickup.GetComponentInChildren<WeaponGrip>();
 
@@ -155,21 +163,25 @@ public class WeaponHolder : MonoBehaviour
             localRotationOffsetEuler = weaponGrip.LocalRotationOffsetEuler;
         }
 
+        _pickup.transform.SetParent(_weaponSocket, false);
         _pickup.transform.localPosition = localPositionOffset;
         _pickup.transform.localRotation = Quaternion.Euler(localRotationOffsetEuler);
+
+        Rigidbody rigidbody = _pickup.GetComponent<Rigidbody>();
+
+        if (rigidbody != null)
+        {
+            rigidbody.interpolation = HeldInterpolation;
+            rigidbody.collisionDetectionMode = HeldDetection;
+            rigidbody.position = _pickup.transform.position;
+            rigidbody.rotation = _pickup.transform.rotation;
+        }
 
         PickupReturner pickupReturner = _pickup.GetComponent<PickupReturner>();
 
         if (pickupReturner != null)
         {
             pickupReturner.SetCanReturn(false);
-        }
-
-        HeldMode heldMode = _pickup.GetComponent<HeldMode>();
-
-        if (heldMode != null)
-        {
-            heldMode.SetHeld(true);
         }
 
         FireExecutor = _pickup.GetComponentInChildren<FireExecutor>();
@@ -199,6 +211,8 @@ public class WeaponHolder : MonoBehaviour
 
         if (_pickup != null)
         {
+            _pickup.transform.SetParent(null, true);
+
             HeldMode heldMode = _pickup.GetComponent<HeldMode>();
 
             if (heldMode != null)
@@ -212,8 +226,6 @@ public class WeaponHolder : MonoBehaviour
             {
                 pickupReturner.SetCanReturn(true);
             }
-
-            _pickup.transform.SetParent(null, true);
         }
 
         if (_pickup != null && _pickupSpawner != null)
