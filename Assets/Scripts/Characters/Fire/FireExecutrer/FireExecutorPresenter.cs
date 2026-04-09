@@ -10,6 +10,7 @@ public sealed class FireExecutorPresenter
     private readonly IFireRateProvider _fireRateProvider;
     private readonly IDamageCalculator _damageCalculator;
     private readonly AimRotationSolver _aimRotationSolver;
+    private readonly float _readyAngleDegrees;
 
     private Transform _ignoredRoot;
     private LayerMask _targetLayers;
@@ -33,7 +34,8 @@ public sealed class FireExecutorPresenter
         IFireRateProvider fireRateProvider,
         IDamageCalculator damageCalculator,
         LayerMask targetLayers,
-        float maxAimAngleDegrees)
+        float maxAimAngleDegrees,
+        float readyAngleDegrees)
     {
         _ownerTransform = ownerTransform;
         _ignoredRoot = ignoredRoot;
@@ -43,6 +45,7 @@ public sealed class FireExecutorPresenter
         _fireRateProvider = fireRateProvider;
         _damageCalculator = damageCalculator;
         _aimRotationSolver = new AimRotationSolver(maxAimAngleDegrees);
+        _readyAngleDegrees = readyAngleDegrees;
 
         _targetLayers = targetLayers;
     }
@@ -150,6 +153,32 @@ public sealed class FireExecutorPresenter
     public void ClearAimPoint()
     {
         _hasAimPoint = false;
+    }
+
+    public bool IsAimReady()
+    {
+        if (_hasAimPoint == false)
+        {
+            return false;
+        }
+
+        Quaternion muzzleRotation;
+
+        if (TryGetClampedMuzzleRotation(out muzzleRotation) == false)
+        {
+            return false;
+        }
+
+        Vector3 currentDirection = _muzzle.forward;
+        Vector3 targetDirection = muzzleRotation * Vector3.forward;
+        float readyAngle = Vector3.Angle(currentDirection, targetDirection);
+
+        if (readyAngle <= _readyAngleDegrees)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public bool TryStartFiring()

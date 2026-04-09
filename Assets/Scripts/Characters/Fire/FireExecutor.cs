@@ -7,6 +7,7 @@ public abstract class FireExecutor : MonoBehaviour
     [SerializeField] private float _fireRatePerSecond = 5f;
     [SerializeField] private LayerMask _targetLayers;
     [SerializeField] private float _maxAimAngleDegrees = 30f;
+    [SerializeField] private float _readyAngleDegrees = 8f;
 
     private FireExecutorPresenter _presenter;
     private bool _isPresenterEnabled;
@@ -39,6 +40,11 @@ public abstract class FireExecutor : MonoBehaviour
         if (_maxAimAngleDegrees <= 0f)
         {
             throw new InvalidOperationException(nameof(_maxAimAngleDegrees));
+        }
+
+        if (_readyAngleDegrees <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_readyAngleDegrees));
         }
 
         _modifierState = new FireModifierState();
@@ -236,6 +242,23 @@ public abstract class FireExecutor : MonoBehaviour
 
     }
 
+    public bool IsAimReady()
+    {
+
+        if (_presenter == null)
+        {
+            return false;
+        }
+
+        if (isActiveAndEnabled == false)
+        {
+            return false;
+        }
+
+        return _presenter.IsAimReady();
+
+    }
+
     public float GetFireCooldown01()
     {
 
@@ -307,7 +330,8 @@ public abstract class FireExecutor : MonoBehaviour
             _fireRateProvider,
             _damageCalculator,
             _targetLayers,
-            _maxAimAngleDegrees);
+            _maxAimAngleDegrees,
+            _readyAngleDegrees);
 
     }
 

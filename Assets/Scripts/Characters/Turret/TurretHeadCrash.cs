@@ -10,6 +10,7 @@ public sealed class TurretHeadCrash : MonoBehaviour
     [SerializeField] private Transform _moveRoot;
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private Collider _collider;
+    [SerializeField] private Collider _ignoredCollider;
 
     [Header("Settings")]
     [SerializeField] private float _force = 2.4f;
@@ -40,6 +41,11 @@ public sealed class TurretHeadCrash : MonoBehaviour
             throw new InvalidOperationException(nameof(_collider));
         }
 
+        if (_ignoredCollider == null)
+        {
+            throw new InvalidOperationException(nameof(_ignoredCollider));
+        }
+
         if (_force <= 0f)
         {
             throw new InvalidOperationException(nameof(_force));
@@ -60,6 +66,7 @@ public sealed class TurretHeadCrash : MonoBehaviour
             throw new InvalidOperationException(nameof(_spin));
         }
 
+        IgnoreSelfCollision();
         CacheStartState();
         ResetState();
     }
@@ -103,6 +110,7 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _rigidbody.linearVelocity = Vector3.zero;
         _rigidbody.angularVelocity = Vector3.zero;
         _collider.enabled = true;
+        IgnoreSelfCollision();
         _rigidbody.WakeUp();
         _rigidbody.AddForce(crashForceDirection * _force, ForceMode.Impulse);
         _rigidbody.AddTorque(GetSpinDirection(crashDirection) * _spin, ForceMode.Impulse);
@@ -115,6 +123,11 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _startLocalPosition = _moveRoot.localPosition;
         _startLocalRotation = _moveRoot.localRotation;
         _startLocalScale = _moveRoot.localScale;
+    }
+
+    private void IgnoreSelfCollision()
+    {
+        Physics.IgnoreCollision(_collider, _ignoredCollider);
     }
 
     private void ResetState()

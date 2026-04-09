@@ -5,6 +5,7 @@ using UnityEngine;
 public class TargetVision : MonoBehaviour
 {
     private const int TargetsBufferSize = 32;
+    private const float MinScanInterval = 0.02f;
 
     [Header("Зависимости")]
     [SerializeField] private Transform _origin;
@@ -17,6 +18,7 @@ public class TargetVision : MonoBehaviour
     [SerializeField] private string _targetTag = "Player";
 
     private Coroutine _scanCoroutine;
+    private WaitForSeconds _scanDelay;
     private readonly Collider[] _targetsBuffer = new Collider[TargetsBufferSize];
     private Vector3 _currentTargetPoint;
     private Transform _currentLookTarget;
@@ -30,6 +32,11 @@ public class TargetVision : MonoBehaviour
     public Vector3 CurrentTargetPoint { get { return _currentTargetPoint; } }
 
     public Transform CurrentTarget { get { return _currentTarget; } }
+
+    private void Awake()
+    {
+        _scanDelay = new WaitForSeconds(GetScanInterval());
+    }
 
     private void OnEnable()
     {
@@ -61,7 +68,7 @@ public class TargetVision : MonoBehaviour
         {
             Scan();
 
-            yield return new WaitForSeconds(_scanInterval);
+            yield return _scanDelay;
         }
     }
 
@@ -85,6 +92,10 @@ public class TargetVision : MonoBehaviour
     private void EvaluateTargets()
     {
         Vector3 originPosition = GetOriginPosition();
+        Transform bestTarget = null;
+        Transform bestLookTarget = null;
+        Vector3 bestPoint = Vector3.zero;
+        float bestDistance = float.MaxValue;
 
         int hitsCount = Physics.OverlapSphereNonAlloc(
             originPosition,
@@ -97,22 +108,43 @@ public class TargetVision : MonoBehaviour
         for (int i = 0; i < hitsCount; i++)
         {
             Collider candidate = _targetsBuffer[i];
+            Transform hitTransform;
+            Transform lookTransform;
+            Vector3 targetPoint;
+            float distance;
 
-            bool isValid = TryValidateTarget(candidate, originPosition);
-
-            if (isValid)
+            if (TryValidateTarget(candidate, originPosition, out hitTransform, out lookTransform, out targetPoint, out distance))
             {
-                return;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestTarget = hitTransform;
+                    bestLookTarget = lookTransform;
+                    bestPoint = targetPoint;
+                }
             }
         }
 
-        ResetState();
+        if (bestTarget == null)
+        {
+            ResetState();
+
+            return;
+        }
+
+        IsTargetVisible = true;
+        DistanceToTarget = bestDistance;
+        _currentTarget = bestTarget;
+        _currentTargetPoint = bestPoint;
+        _currentLookTarget = bestLookTarget;
     }
 
-    private bool TryValidateTarget(Collider candidate, Vector3 originPosition)
+    private bool TryValidateTarget(Collider candidate, Vector3 originPosition, out Transform hitTransform, out Transform lookTransform, out Vector3 targetPoint, out float distance)
     {
-        Transform hitTransform = GetHitTransform(candidate);
-        Transform lookTransform = GetLookTransform(candidate);
+        hitTransform = GetHitTransform(candidate);
+        lookTransform = GetLookTransform(candidate);
+        targetPoint = Vector3.zero;
+        distance = 0f;
 
         if (hitTransform == null)
         {
@@ -129,35 +161,17 @@ public class TargetVision : MonoBehaviour
             return false;
         }
 
-        Vector3 candidatePoint = candidate.bounds.center;
-        Vector3 directionToTarget = candidatePoint - originPosition;
-        float distance = directionToTarget.magnitude;
+        if (TryGetVisiblePoint(candidate, lookTransform, originPosition, out targetPoint) == false)
+        {
+            return false;
+        }
+
+        distance = Vector3.Distance(originPosition, lookTransform.position);
 
         if (distance <= Mathf.Epsilon)
         {
             return false;
         }
-
-        directionToTarget.Normalize();
-
-        bool hasObstacle = Physics.Raycast(
-            originPosition,
-            directionToTarget,
-            distance,
-            _obstacleLayerMask,
-            QueryTriggerInteraction.Ignore
-        );
-
-        if (hasObstacle)
-        {
-            return false;
-        }
-
-        IsTargetVisible = true;
-        DistanceToTarget = Vector3.Distance(originPosition, lookTransform.position);
-        _currentTarget = hitTransform;
-        _currentTargetPoint = lookTransform.position;
-        _currentLookTarget = lookTransform;
 
         return true;
     }
@@ -210,6 +224,76 @@ public class TargetVision : MonoBehaviour
         Vector3 originPosition = GetOriginPosition();
         DistanceToTarget = Vector3.Distance(originPosition, _currentLookTarget.position);
         _currentTargetPoint = _currentLookTarget.position;
+    }
+
+    private bool TryGetVisiblePoint(Collider candidate, Transform lookTransform, Vector3 originPosition, out Vector3 visiblePoint)
+    {
+        Vector3 lookPoint = lookTransform.position;
+
+        if (HasLineOfSight(originPosition, lookPoint))
+        {
+            visiblePoint = lookPoint;
+
+            return true;
+        }
+
+        Vector3 closestPoint = candidate.ClosestPoint(originPosition);
+
+        if (HasLineOfSight(originPosition, closestPoint))
+        {
+            visiblePoint = closestPoint;
+
+            return true;
+        }
+
+        Bounds targetBounds = candidate.bounds;
+        Vector3 centerPoint = targetBounds.center;
+
+        if (HasLineOfSight(originPosition, centerPoint))
+        {
+            visiblePoint = centerPoint;
+
+            return true;
+        }
+
+        Vector3 topPoint = new Vector3(targetBounds.center.x, targetBounds.max.y, targetBounds.center.z);
+
+        if (HasLineOfSight(originPosition, topPoint))
+        {
+            visiblePoint = topPoint;
+
+            return true;
+        }
+
+        visiblePoint = Vector3.zero;
+
+        return false;
+    }
+
+    private bool HasLineOfSight(Vector3 originPosition, Vector3 targetPoint)
+    {
+        Vector3 directionToTarget = targetPoint - originPosition;
+        float distance = directionToTarget.magnitude;
+
+        if (distance <= Mathf.Epsilon)
+        {
+            return false;
+        }
+
+        directionToTarget /= distance;
+
+        return Physics.Raycast(
+            originPosition,
+            directionToTarget,
+            distance,
+            _obstacleLayerMask,
+            QueryTriggerInteraction.Ignore
+        ) == false;
+    }
+
+    private float GetScanInterval()
+    {
+        return Mathf.Max(MinScanInterval, _scanInterval);
     }
 
     private Vector3 GetOriginPosition()

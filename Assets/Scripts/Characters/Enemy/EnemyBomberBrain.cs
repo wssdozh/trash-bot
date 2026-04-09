@@ -7,6 +7,8 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
     private const int IdlePointTryCount = 10;
     private const int HitBufferSize = 32;
+    private const float MoveStuckMin = 0.01f;
+    private const float MoveStuckTime = 0.3f;
     private const float ZeroThreshold = 0.0001f;
     private const int ObstacleMaskBits = 385;
     private const int AllyMaskBits = -1;
@@ -55,12 +57,15 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private EnemyState _state;
     private Vector3 _lastPoint;
     private Vector3 _idlePoint;
+    private Vector3 _moveLastPoint;
     private bool _hasLastPoint;
     private bool _hasIdlePoint;
+    private bool _hasMoveLastPoint;
     private bool _isExploding;
     private float _searchTimer;
     private float _idleTimer;
     private float _explodeTimer;
+    private float _moveStuckTimer;
 
     public EnemyState State => _state;
 
@@ -208,6 +213,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _targetVision.TargetCleared -= OnTargetLost;
         _enemySteering.Stop();
         _enemyMove.ForceStop();
+        ResetMoveStuck();
     }
 
     private void Update()
@@ -228,6 +234,8 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_enemySteering.ResolveOverlap())
         {
+            ResetMoveStuck();
+
             return;
         }
 
@@ -324,6 +332,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             _idleTimer -= Time.deltaTime;
             _enemySteering.Stop();
             _enemyMove.StopMove();
+            ResetMoveStuck();
 
             return;
         }
@@ -338,6 +347,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             _state = EnemyState.Idle;
             _enemySteering.Stop();
             _enemyMove.StopMove();
+            ResetMoveStuck();
 
             return;
         }
@@ -381,6 +391,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             _enemySteering.Stop();
             _enemyMove.ForceStop();
+            ResetMoveStuck();
         }
 
         if (_explodeTimer > 0f)
@@ -566,11 +577,15 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (TryMoveSafe(targetPoint))
         {
-            return true;
+            if (CanKeepMove(transform.position))
+            {
+                return true;
+            }
         }
 
         _enemySteering.Stop();
         _enemyMove.ForceStop();
+        ResetMoveStuck();
 
         return false;
     }
@@ -592,12 +607,14 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _hasLastPoint = false;
         _searchTimer = 0f;
+        ResetMoveStuck();
     }
 
     private void ClearIdle()
     {
         _hasIdlePoint = false;
         _idleTimer = 0f;
+        ResetMoveStuck();
     }
 
     private Vector3 ClampPoint(Vector3 point)
@@ -652,6 +669,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _isExploding = false;
         _searchTimer = 0f;
         _explodeTimer = 0f;
+        ResetMoveStuck();
         StartIdleWait();
     }
 
@@ -689,6 +707,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _enemySteering.Stop();
         _enemyMove.ForceStop();
+        ResetMoveStuck();
         enabled = false;
     }
 
@@ -773,5 +792,46 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         navPoint = navMeshHit.position;
 
         return true;
+    }
+
+    private bool CanKeepMove(Vector3 currentPoint)
+    {
+        if (_hasMoveLastPoint == false)
+        {
+            _moveLastPoint = currentPoint;
+            _moveStuckTimer = 0f;
+            _hasMoveLastPoint = true;
+
+            return true;
+        }
+
+        float moveDistance = GetFlatDistance(currentPoint, _moveLastPoint);
+
+        if (moveDistance >= MoveStuckMin)
+        {
+            _moveLastPoint = currentPoint;
+            _moveStuckTimer = 0f;
+
+            return true;
+        }
+
+        _moveLastPoint = currentPoint;
+        _moveStuckTimer += Time.deltaTime;
+
+        if (_moveStuckTimer < MoveStuckTime)
+        {
+            return true;
+        }
+
+        _moveStuckTimer = 0f;
+
+        return false;
+    }
+
+    private void ResetMoveStuck()
+    {
+        _hasMoveLastPoint = false;
+        _moveLastPoint = Vector3.zero;
+        _moveStuckTimer = 0f;
     }
 }

@@ -23,6 +23,8 @@ public sealed class EnemySteering
     private const int SafePointPushCount = 4;
     private const float SlotOffsetMin = 0.01f;
     private const float ProbeSkin = 0.05f;
+    private const float LowProbeHeightScale = 0.45f;
+    private const float MinProbeHeight = 0.18f;
 
     private readonly Transform _root;
     private readonly EnemyMove _enemyMove;
@@ -1222,44 +1224,10 @@ public sealed class EnemySteering
             return Vector3.zero;
         }
 
-        Vector3 origin = currentPoint + (Vector3.up * _probeHeight);
-        int hitCount = Physics.SphereCastNonAlloc(
-            origin,
-            _probeRadius,
-            probeDirection,
-            _probeBuffer,
-            probeDistance,
-            _obstacleMask,
-            QueryTriggerInteraction.Ignore);
+        float nearestDistance;
+        Vector3 nearestNormal;
 
-        float nearestDistance = float.MaxValue;
-        Vector3 nearestNormal = Vector3.zero;
-        int hitIndex = 0;
-
-        while (hitIndex < hitCount)
-        {
-            RaycastHit hit = _probeBuffer[hitIndex];
-            Collider hitCollider = hit.collider;
-
-            if (hitCollider != null)
-            {
-                if (hitCollider.transform.IsChildOf(_root) == false)
-                {
-                    if (IsEnemyCollider(hitCollider) == false)
-                    {
-                        if (hit.distance < nearestDistance)
-                        {
-                            nearestDistance = hit.distance;
-                            nearestNormal = hit.normal;
-                        }
-                    }
-                }
-            }
-
-            hitIndex += 1;
-        }
-
-        if (nearestDistance == float.MaxValue)
+        if (TryGetNearestProbeHit(currentPoint, probeDirection, probeDistance, out nearestDistance, out nearestNormal) == false)
         {
             return Vector3.zero;
         }
@@ -1283,36 +1251,12 @@ public sealed class EnemySteering
             return 0f;
         }
 
-        Vector3 origin = currentPoint + (Vector3.up * _probeHeight);
-        int hitCount = Physics.SphereCastNonAlloc(
-            origin,
-            _probeRadius,
-            probeDirection,
-            _probeBuffer,
-            probeDistance,
-            _obstacleMask,
-            QueryTriggerInteraction.Ignore);
-
         float nearestDistance = probeDistance;
-        int hitIndex = 0;
+        Vector3 nearestNormal;
 
-        while (hitIndex < hitCount)
+        if (TryGetNearestProbeHit(currentPoint, probeDirection, probeDistance, out nearestDistance, out nearestNormal) == false)
         {
-            RaycastHit hit = _probeBuffer[hitIndex];
-            Collider hitCollider = hit.collider;
-
-            if (hitCollider != null)
-            {
-                if (hitCollider.transform.IsChildOf(_root) == false)
-                {
-                    if (IsEnemyCollider(hitCollider) == false)
-                    {
-                        nearestDistance = Mathf.Min(nearestDistance, hit.distance);
-                    }
-                }
-            }
-
-            hitIndex += 1;
+            return probeDistance;
         }
 
         return nearestDistance;
@@ -1330,17 +1274,55 @@ public sealed class EnemySteering
             return Vector3.zero;
         }
 
-        Vector3 origin = currentPoint + (Vector3.up * _probeHeight);
+        float nearestDistance;
+        Vector3 nearestNormal;
+
+        if (TryGetNearestProbeHit(currentPoint, moveDirection, probeDistance, out nearestDistance, out nearestNormal) == false)
+        {
+            return Vector3.zero;
+        }
+
+        Vector3 slideDirection = Vector3.ProjectOnPlane(moveDirection, nearestNormal);
+
+        return GetFlatDirection(slideDirection);
+    }
+
+    private bool TryGetNearestProbeHit(Vector3 currentPoint, Vector3 probeDirection, float probeDistance, out float nearestDistance, out Vector3 nearestNormal)
+    {
+        nearestDistance = float.MaxValue;
+        nearestNormal = Vector3.zero;
+        float highProbeHeight = _probeHeight;
+        float lowProbeHeight = GetLowProbeHeight();
+
+        CollectNearestProbeHit(currentPoint, probeDirection, probeDistance, highProbeHeight, ref nearestDistance, ref nearestNormal);
+
+        if (Mathf.Abs(lowProbeHeight - highProbeHeight) > MinDistance)
+        {
+            CollectNearestProbeHit(currentPoint, probeDirection, probeDistance, lowProbeHeight, ref nearestDistance, ref nearestNormal);
+        }
+
+        return nearestDistance < float.MaxValue;
+    }
+
+    private void CollectNearestProbeHit(
+        Vector3 currentPoint,
+        Vector3 probeDirection,
+        float probeDistance,
+        float probeHeight,
+        ref float nearestDistance,
+        ref Vector3 nearestNormal)
+    {
+        CollectNearProbeOverlap(currentPoint, probeDirection, probeHeight, ref nearestDistance, ref nearestNormal);
+
+        Vector3 origin = GetProbeOrigin(currentPoint, probeHeight);
         int hitCount = Physics.SphereCastNonAlloc(
             origin,
             _probeRadius,
-            moveDirection,
+            probeDirection,
             _probeBuffer,
             probeDistance,
             _obstacleMask,
             QueryTriggerInteraction.Ignore);
-        float nearestDistance = float.MaxValue;
-        Vector3 nearestNormal = Vector3.zero;
         int hitIndex = 0;
 
         while (hitIndex < hitCount)
@@ -1365,20 +1347,68 @@ public sealed class EnemySteering
 
             hitIndex += 1;
         }
+    }
 
-        if (nearestDistance == float.MaxValue)
+    private void CollectNearProbeOverlap(
+        Vector3 currentPoint,
+        Vector3 probeDirection,
+        float probeHeight,
+        ref float nearestDistance,
+        ref Vector3 nearestNormal)
+    {
+        Vector3 overlapPoint = GetProbeOrigin(currentPoint, probeHeight) + (probeDirection * GetNearProbeDistance());
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            overlapPoint,
+            _probeRadius,
+            _pointBuffer,
+            _obstacleMask,
+            QueryTriggerInteraction.Ignore);
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
         {
-            return Vector3.zero;
+            Collider hitCollider = _pointBuffer[hitIndex];
+
+            if (hitCollider != null)
+            {
+                if (hitCollider.transform.IsChildOf(_root) == false)
+                {
+                    if (IsEnemyCollider(hitCollider) == false)
+                    {
+                        Vector3 obstaclePoint = hitCollider.ClosestPoint(overlapPoint);
+                        Vector3 overlapNormal = overlapPoint - obstaclePoint;
+                        overlapNormal = GetFlatDirection(overlapNormal);
+
+                        if (overlapNormal.sqrMagnitude <= MinDistance)
+                        {
+                            overlapNormal = -probeDirection;
+                        }
+
+                        nearestDistance = 0f;
+                        nearestNormal = overlapNormal;
+
+                        return;
+                    }
+                }
+            }
+
+            hitIndex += 1;
         }
-
-        Vector3 slideDirection = Vector3.ProjectOnPlane(moveDirection, nearestNormal);
-
-        return GetFlatDirection(slideDirection);
     }
 
     private float GetResolveProbeDistance()
     {
         return Mathf.Max(_probeRadius + ProbeSkin, _probeDistance * 0.85f);
+    }
+
+    private float GetNearProbeDistance()
+    {
+        return Mathf.Max(_probeRadius + ProbeSkin, _probeRadius * 1.5f);
+    }
+
+    private float GetLowProbeHeight()
+    {
+        return Mathf.Max(MinProbeHeight, _probeHeight * LowProbeHeightScale);
     }
 
     private bool IsBlocked(Vector3 currentPoint, Vector3 probeDirection, float probeDistance)
@@ -1938,6 +1968,11 @@ public sealed class EnemySteering
         point.y = _root.position.y;
 
         return point;
+    }
+
+    private Vector3 GetProbeOrigin(Vector3 currentPoint, float probeHeight)
+    {
+        return currentPoint + (Vector3.up * probeHeight);
     }
 
     private Vector3 GetFlatVector(Vector3 direction)

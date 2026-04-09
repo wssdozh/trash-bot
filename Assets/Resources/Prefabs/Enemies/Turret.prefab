@@ -546,6 +546,7 @@ MonoBehaviour:
   _moveRoot: {fileID: 170424309483600535}
   _rigidbody: {fileID: 1704243094836005358}
   _collider: {fileID: 1704243094836005357}
+  _ignoredCollider: {fileID: 3300526168344387209}
   _force: 0.8
   _up: 0.14
   _forward: 0.05

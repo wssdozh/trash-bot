@@ -117,6 +117,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
             if (currentTarget == null)
             {
+                _fireExecutor.StopFiring();
                 _fireExecutor.ClearAimPoint();
 
                 return;

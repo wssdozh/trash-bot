@@ -8,8 +8,10 @@ public sealed class RoomRuntimeState : MonoBehaviour
     private const float MinBoundsSize = 0.1f;
     private const int RandomPointTryCount = 16;
     private const int PatrolPointCount = 12;
+    private const int PatrolRingCount = 2;
     private const float PatrolInsetGap = 1.2f;
     private const float PatrolRadiusScale = 0.72f;
+    private const float PatrolInnerScale = 0.48f;
 
     private Bounds _roomBounds;
     private Bounds _moveBounds;
@@ -279,14 +281,34 @@ public sealed class RoomRuntimeState : MonoBehaviour
     private Vector3[] BuildPatrolPoints(Bounds moveBounds, float cornerGap)
     {
         Vector3[] patrolPoints = new Vector3[PatrolPointCount];
-        float radiusX = GetPatrolRadius(moveBounds.extents.x, cornerGap);
-        float radiusZ = GetPatrolRadius(moveBounds.extents.z, cornerGap);
-        float angleStep = (Mathf.PI * 2f) / PatrolPointCount;
+        float outerRadiusX = GetPatrolRadius(moveBounds.extents.x, cornerGap);
+        float outerRadiusZ = GetPatrolRadius(moveBounds.extents.z, cornerGap);
+        float innerRadiusX = GetInnerPatrolRadius(outerRadiusX);
+        float innerRadiusZ = GetInnerPatrolRadius(outerRadiusZ);
+        int ringPointCount = PatrolPointCount / PatrolRingCount;
+        float angleStep = (Mathf.PI * 2f) / ringPointCount;
         int pointIndex = 0;
 
         while (pointIndex < PatrolPointCount)
         {
-            float angle = angleStep * pointIndex;
+            bool isOuterPoint = pointIndex % PatrolRingCount == 0;
+            int ringIndex = pointIndex / PatrolRingCount;
+            float angle = angleStep * ringIndex;
+
+            if (isOuterPoint == false)
+            {
+                angle += angleStep * 0.5f;
+            }
+
+            float radiusX = outerRadiusX;
+            float radiusZ = outerRadiusZ;
+
+            if (isOuterPoint == false)
+            {
+                radiusX = innerRadiusX;
+                radiusZ = innerRadiusZ;
+            }
+
             float pointX = moveBounds.center.x + (Mathf.Cos(angle) * radiusX);
             float pointZ = moveBounds.center.z + (Mathf.Sin(angle) * radiusZ);
             Vector3 patrolPoint = new Vector3(pointX, moveBounds.center.y, pointZ);
@@ -304,6 +326,13 @@ public sealed class RoomRuntimeState : MonoBehaviour
         float scaledRadius = extent * PatrolRadiusScale;
 
         return Mathf.Max(MinBoundsSize * 0.5f, Mathf.Min(maxRadius, scaledRadius));
+    }
+
+    private float GetInnerPatrolRadius(float outerRadius)
+    {
+        float innerRadius = Mathf.Max(MinBoundsSize * 0.5f, outerRadius * PatrolInnerScale);
+
+        return Mathf.Min(outerRadius, innerRadius);
     }
 
     private float BuildCornerGap(Bounds moveBounds, float enemyBorderGap)

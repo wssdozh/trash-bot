@@ -21,6 +21,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float IdleWideTurnChance = 0.22f;
     private const float MinFightRadius = 0.1f;
     private const float RangeHoldScale = 0.2f;
+    private const float RangeModeHoldTime = 1f;
+    private const float SearchSideAngle = 55f;
+    private const float SearchBackScale = 0.75f;
     private const float LookDistance = 2f;
     private const float ForwardGizmoLength = 1.1f;
     private const float MoveGizmoLength = 1.35f;
@@ -105,6 +108,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private float _idleStuckTimer;
     private float _idleTimer;
     private float _moveStuckTimer;
+    private float _rangeModeTimer;
     private int _idleChain;
     private int _searchStep;
     private EnemyRoomLock _enemyRoomLock;
@@ -694,12 +698,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
-
-        if (TryStartPatrolWalk(currentPoint))
-        {
-            return;
-        }
-
         int attemptIndex = 0;
 
         while (attemptIndex < IdlePointTryCount)
@@ -719,6 +717,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             }
 
             attemptIndex += 1;
+        }
+
+        if (TryStartPatrolWalk(currentPoint))
+        {
+            return;
         }
 
         if (TrySetIdlePoint(currentPoint, _idleDirection, IdleFallbackDistance))
@@ -780,7 +783,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _lastSeenMovePoint = _searchTargetPoint;
         _hasLastSeenMovePoint = true;
         _hasSearchPoint = false;
-        _searchStep = 0;
+        _searchStep += 1;
         ResetMoveStuck();
     }
 
@@ -824,9 +827,10 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_state != EnemyState.Chase && _state != EnemyState.Fight)
         {
-            _rangeMode = GetInitialRangeMode(distance);
+            SetRangeMode(GetInitialRangeMode(distance));
         }
 
+        TickRangeModeTimer();
         UpdateRangeMode(distance);
 
         if (_rangeMode == RangeChase)
@@ -958,6 +962,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void UpdateRangeMode(float distance)
     {
+        if (_rangeModeTimer > 0f)
+        {
+            return;
+        }
+
         if (_rangeMode == RangeChase)
         {
             if (distance > GetRangeEnterMax())
@@ -965,7 +974,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
                 return;
             }
 
-            _rangeMode = RangeFight;
+            SetRangeMode(RangeFight);
 
             return;
         }
@@ -977,21 +986,21 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
                 return;
             }
 
-            _rangeMode = RangeFight;
+            SetRangeMode(RangeFight);
 
             return;
         }
 
         if (distance > GetRangeExitMax())
         {
-            _rangeMode = RangeChase;
+            SetRangeMode(RangeChase);
 
             return;
         }
 
         if (distance < GetRangeExitMin())
         {
-            _rangeMode = RangeBack;
+            SetRangeMode(RangeBack);
         }
     }
 
@@ -999,16 +1008,27 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         if (distance > _fireMaxDistance)
         {
+            fireExecutor.StopFiring();
+
+            return;
+        }
+
+        if (distance > GetRangeShootDistance())
+        {
+            fireExecutor.StopFiring();
+
             return;
         }
 
         if (hasFireLine == false)
         {
+            fireExecutor.StopFiring();
+
             return;
         }
 
         fireExecutor.SetAimPoint(targetPoint);
-        fireExecutor.TryFire();
+        fireExecutor.StartFiring();
     }
 
     private bool TryCombatMove(Vector3 currentPoint, Vector3 movePoint, Vector3 lookPoint)
@@ -1164,6 +1184,27 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _moveStuckTimer = 0f;
     }
 
+    private void TickRangeModeTimer()
+    {
+        if (_rangeModeTimer <= 0f)
+        {
+            return;
+        }
+
+        _rangeModeTimer -= Time.fixedDeltaTime;
+
+        if (_rangeModeTimer < 0f)
+        {
+            _rangeModeTimer = 0f;
+        }
+    }
+
+    private void SetRangeMode(int rangeMode)
+    {
+        _rangeMode = rangeMode;
+        _rangeModeTimer = RangeModeHoldTime;
+    }
+
     private void UpdateLastSeenPoint()
     {
         Transform currentTarget = GetVisibleTarget();
@@ -1193,6 +1234,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _state = EnemyState.Idle;
         _rangeMode = RangeFight;
+        _rangeModeTimer = 0f;
         _idleTimer = 0f;
         _hasLastSeenPoint = false;
         _hasLastSeenMovePoint = false;
@@ -1460,9 +1502,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private Vector3 GetSearchPoint()
     {
-        Vector3 baseDirection = GetSearchDirection();
+        Vector3 baseDirection = RotateDirection(GetSearchDirection(), GetSearchAngle());
         Vector3 startPoint = GetSearchStartPoint();
-        float searchDistance = GetSearchStride() * (_searchStep + 1);
+        float searchDistance = GetSearchDistance();
 
         return startPoint + (baseDirection * searchDistance);
     }
@@ -1617,12 +1659,39 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private Vector3 GetSearchStartPoint()
     {
-        if (_hasLastSeenMovePoint)
+        return _lastSeenPoint;
+    }
+
+    private float GetSearchAngle()
+    {
+        if (_searchStep == 1)
         {
-            return _lastSeenMovePoint;
+            return SearchSideAngle;
         }
 
-        return _lastSeenPoint;
+        if (_searchStep == 2)
+        {
+            return -SearchSideAngle;
+        }
+
+        if (_searchStep >= SearchStepsCount - 1)
+        {
+            return 180f;
+        }
+
+        return 0f;
+    }
+
+    private float GetSearchDistance()
+    {
+        float searchStride = GetSearchStride();
+
+        if (_searchStep >= SearchStepsCount - 1)
+        {
+            return searchStride * SearchBackScale;
+        }
+
+        return searchStride;
     }
 
     private Transform GetVisibleTarget()
@@ -1800,35 +1869,40 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private float GetRangeHoldDistance()
     {
-        return (_fightMinDistance + _fightMaxDistance) * 0.5f;
+        return _fightMinDistance + (_fightGapDistance * 0.5f);
     }
 
     private float GetRangeEnterMax()
     {
-        float rangeEnterMax = _fightMaxDistance - _fightGapDistance;
+        float rangeEnterMax = GetRangeHoldDistance() + GetRangeHoldGap();
 
-        return Mathf.Max(_fightMinDistance, rangeEnterMax);
+        return Mathf.Min(_fightMaxDistance, rangeEnterMax);
     }
 
     private float GetRangeEnterMin()
     {
-        float rangeEnterMin = _fightMinDistance + _fightGapDistance;
+        float rangeEnterMin = GetRangeHoldDistance() - GetRangeHoldGap();
 
-        return Mathf.Min(_fightMaxDistance, rangeEnterMin);
+        return Mathf.Max(MinFightRadius, rangeEnterMin);
     }
 
     private float GetRangeExitMax()
     {
-        float rangeExitMax = _fightMaxDistance + _fightGapDistance;
+        float rangeExitMax = GetRangeEnterMax() + _fightGapDistance;
 
-        return Mathf.Max(GetRangeEnterMax(), rangeExitMax);
+        return Mathf.Min(_fireMaxDistance, rangeExitMax);
     }
 
     private float GetRangeExitMin()
     {
-        float rangeExitMin = _fightMinDistance - _fightGapDistance;
+        float rangeExitMin = GetRangeEnterMin() - _fightGapDistance;
 
         return Mathf.Max(MinFightRadius, rangeExitMin);
+    }
+
+    private float GetRangeShootDistance()
+    {
+        return Mathf.Min(_fireMaxDistance, GetRangeEnterMax());
     }
 
     private float GetRangeHoldGap()

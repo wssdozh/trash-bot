@@ -13,6 +13,11 @@ public class TargetRotator : MonoBehaviour
 
     private void Awake()
     {
+        if (_rotationPivot == null)
+        {
+            throw new System.InvalidOperationException(nameof(_rotationPivot));
+        }
+
         _aimRotationSolver = new AimRotationSolver(_maxPitchAngle);
     }
 

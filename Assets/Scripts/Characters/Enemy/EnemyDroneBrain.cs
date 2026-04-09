@@ -303,7 +303,14 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (targetDistance <= _fireDistance)
         {
-            _fireExecutor.StartFiring();
+            if (_fireExecutor.IsAimReady())
+            {
+                _fireExecutor.StartFiring();
+            }
+            else
+            {
+                _fireExecutor.StopFiring();
+            }
         }
         else
         {
