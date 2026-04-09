@@ -10,6 +10,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float ZeroThreshold = 0.0001f;
     private const float OrbitTurnAngle = 90f;
 
+    private readonly EnemyPatrolPicker _idlePatrolPicker = new EnemyPatrolPicker();
+
     [Header("Dependencies")]
     [SerializeField] private Enemy _enemy;
     [SerializeField] private TargetVision _targetVision;
@@ -46,11 +48,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _spawnPoint;
     private Vector3 _lastSeenPoint;
     private Vector3 _idlePoint;
-    private int _idlePatrolIndex;
-    private int _idlePatrolDirection;
     private bool _hasLastSeenPoint;
     private bool _hasIdlePoint;
-    private bool _hasIdlePatrolIndex;
     private float _searchTimer;
     private float _idleTimer;
     private float _alertTimer;
@@ -222,9 +221,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _targetVision.TargetCleared += OnTargetLost;
 
         _alertTimer = 0f;
-        _idlePatrolIndex = 0;
-        _idlePatrolDirection = 1;
-        _hasIdlePatrolIndex = false;
+        _idlePatrolPicker.Clear();
         ApplyIdleMode();
         _state = EnemyState.Idle;
     }
@@ -464,50 +461,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         Vector3 currentPoint = transform.position;
         currentPoint.y = _spawnPoint.y;
-
-        if (_hasIdlePatrolIndex == false)
-        {
-            _idlePatrolIndex = enemyRoomLock.GetNearestPatrolIndex(transform.position);
-            _idlePatrolDirection = GetPatrolDirection(enemyRoomLock, currentPoint);
-            _hasIdlePatrolIndex = true;
-        }
-        Vector3 bestPoint = ClampPoint(_spawnPoint);
-        bestPoint.y = _spawnPoint.y;
-        float bestDistance = -1f;
-        int bestIndex = _idlePatrolIndex;
-        int tryIndex = 0;
-        int patrolIndex = _idlePatrolIndex;
-
-        while (tryIndex < patrolCount && tryIndex < IdlePointTryCount)
-        {
-            patrolIndex = enemyRoomLock.GetNextPatrolIndex(patrolIndex, _idlePatrolDirection);
-            Vector3 point = enemyRoomLock.GetPatrolPoint(patrolIndex, _spawnPoint.y);
-            point = ClampPoint(point);
-            point.y = _spawnPoint.y;
-            float pointDistance = GetFlatDistance(currentPoint, point);
-
-            if (pointDistance > bestDistance)
-            {
-                bestDistance = pointDistance;
-                bestPoint = point;
-                bestIndex = patrolIndex;
-            }
-
-            if (pointDistance >= _idleRadius)
-            {
-                _idlePatrolIndex = patrolIndex;
-                _idlePoint = point;
-                _hasIdlePoint = true;
-
-                return;
-            }
-
-            tryIndex += 1;
-        }
-
-        _idlePatrolIndex = bestIndex;
-        _idlePoint = bestPoint;
-        _hasIdlePoint = bestDistance > ZeroThreshold;
+        Vector3 fallbackPoint = ClampPoint(_spawnPoint);
+        fallbackPoint.y = _spawnPoint.y;
+        _hasIdlePoint = _idlePatrolPicker.TryPickPoint(enemyRoomLock, currentPoint, GetPatrolForward(), fallbackPoint, _spawnPoint.y, _idleRadius, IdlePointTryCount, GetRandomDirection, out _idlePoint);
     }
 
     private void ClearSearch()
@@ -515,7 +471,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _hasLastSeenPoint = false;
         _searchTimer = 0f;
         _hasIdlePoint = false;
-        _hasIdlePatrolIndex = false;
+        _idlePatrolPicker.Clear();
         _idleTimer = 0f;
         ResetStrafe();
     }
@@ -625,7 +581,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return 1;
     }
 
-    private int GetPatrolDirection(EnemyRoomLock enemyRoomLock, Vector3 currentPoint)
+    private Vector3 GetPatrolForward()
     {
         Vector3 forwardDirection = GetFlatDirection(_enemyMove.ForwardDirection);
 
@@ -634,39 +590,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             forwardDirection = GetFlatDirection(transform.forward);
         }
 
-        int forwardIndex = enemyRoomLock.GetNextPatrolIndex(_idlePatrolIndex, 1);
-        int backwardIndex = enemyRoomLock.GetNextPatrolIndex(_idlePatrolIndex, -1);
-        Vector3 forwardPoint = enemyRoomLock.GetPatrolPoint(forwardIndex, _spawnPoint.y);
-        Vector3 backwardPoint = enemyRoomLock.GetPatrolPoint(backwardIndex, _spawnPoint.y);
-        float forwardDot = GetPatrolDot(currentPoint, forwardDirection, forwardPoint);
-        float backwardDot = GetPatrolDot(currentPoint, forwardDirection, backwardPoint);
-
-        if (Mathf.Abs(forwardDot - backwardDot) <= ZeroThreshold)
-        {
-            return GetRandomDirection();
-        }
-
-        if (forwardDot >= backwardDot)
-        {
-            return 1;
-        }
-
-        return -1;
-    }
-
-    private float GetPatrolDot(Vector3 currentPoint, Vector3 forwardDirection, Vector3 patrolPoint)
-    {
-        Vector3 patrolDirection = patrolPoint - currentPoint;
-        patrolDirection.y = 0f;
-
-        if (patrolDirection.sqrMagnitude <= ZeroThreshold)
-        {
-            return -1f;
-        }
-
-        patrolDirection.Normalize();
-
-        return Vector3.Dot(forwardDirection, patrolDirection);
+        return forwardDirection;
     }
 
     private float GetFlatDistance(Vector3 firstPoint, Vector3 secondPoint)

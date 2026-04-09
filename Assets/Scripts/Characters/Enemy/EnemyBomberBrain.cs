@@ -5,6 +5,7 @@ using UnityEngine.AI;
 [DisallowMultipleComponent]
 public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
+    private const int IdlePointTryCount = 10;
     private const int HitBufferSize = 32;
     private const float ZeroThreshold = 0.0001f;
     private const int ObstacleMaskBits = 385;
@@ -18,6 +19,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float SeparationWeight = 2.2f;
 
     private readonly Collider[] _hitBuffer = new Collider[HitBufferSize];
+    private readonly EnemyPatrolPicker _idlePatrolPicker = new EnemyPatrolPicker();
 
     [Header("Dependencies")]
     [SerializeField] private Enemy _enemy;
@@ -33,6 +35,12 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _explodeDelay = 0.6f;
     [SerializeField] private float _stopDistance = 0.2f;
 
+    [Header("Idle")]
+    [SerializeField] private float _idleWaitMin = 0.45f;
+    [SerializeField] private float _idleWaitMax = 1.1f;
+    [SerializeField] private float _idleRadius = 1.6f;
+    [SerializeField] private float _idleReachDistance = 0.35f;
+
     [Header("Explosion")]
     [SerializeField] private LayerMask _damageMask;
     [SerializeField] private float _damage = 24f;
@@ -41,13 +49,17 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _up = 0.35f;
     [SerializeField] private float _effectLife = 5f;
 
+    private System.Random _random;
     private EnemyRoomLock _enemyRoomLock;
     private EnemySteering _enemySteering;
     private EnemyState _state;
     private Vector3 _lastPoint;
+    private Vector3 _idlePoint;
     private bool _hasLastPoint;
+    private bool _hasIdlePoint;
     private bool _isExploding;
     private float _searchTimer;
+    private float _idleTimer;
     private float _explodeTimer;
 
     public EnemyState State => _state;
@@ -69,6 +81,8 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return false;
         }
 
+        _idlePatrolPicker.Clear();
+        ClearIdle();
         _lastPoint = ClampPoint(point);
         _hasLastPoint = true;
         _searchTimer = _searchTime;
@@ -123,6 +137,26 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_stopDistance));
         }
 
+        if (_idleWaitMin < 0f)
+        {
+            throw new InvalidOperationException(nameof(_idleWaitMin));
+        }
+
+        if (_idleWaitMax < _idleWaitMin)
+        {
+            throw new InvalidOperationException(nameof(_idleWaitMax));
+        }
+
+        if (_idleRadius < 0f)
+        {
+            throw new InvalidOperationException(nameof(_idleRadius));
+        }
+
+        if (_idleReachDistance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_idleReachDistance));
+        }
+
         if (_damageMask.value == 0)
         {
             throw new InvalidOperationException(nameof(_damageMask));
@@ -153,6 +187,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_effectLife));
         }
 
+        _random = new System.Random(GetInstanceID());
         _enemySteering = new EnemySteering(transform, _enemyMove, _enemyRotator);
         _enemySteering.SetObstacle(ObstacleMaskBits, ProbeRadius, ProbeHeight, ProbeDistance, ProbeAngle, AvoidWeight);
         _enemySteering.SetSpacing(AllyMaskBits, SeparationRadius, SeparationWeight);
@@ -210,7 +245,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        ApplyIdle();
+        UpdateIdle();
     }
 
     private void UpdateChase(Vector3 targetPoint)
@@ -230,7 +265,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _state = EnemyState.Chase;
         RotateToPoint(_lastPoint);
-        MoveToPoint(_lastPoint);
+        MoveToPoint(_lastPoint, true);
     }
 
     private void UpdateSearch()
@@ -238,34 +273,93 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (_searchTimer <= 0f)
         {
             ClearLastPoint();
-            ApplyIdle();
+            StartIdleWait();
 
             return;
         }
 
         _searchTimer -= Time.deltaTime;
-
         Vector3 searchPoint = ClampPoint(_lastPoint);
         float distance = GetFlatDistance(transform.position, searchPoint);
 
-        if (distance <= _explodeDistance)
-        {
-            BeginExplode(searchPoint);
-
-            return;
-        }
-
         if (distance <= _stopDistance)
         {
-            ClearLastPoint();
-            ApplyIdle();
+            if (TryPickSearchPoint())
+            {
+                searchPoint = _lastPoint;
+            }
+            else
+            {
+                ClearLastPoint();
+                StartIdleWait();
 
-            return;
+                return;
+            }
         }
 
         _state = EnemyState.Search;
         RotateToPoint(searchPoint);
-        MoveToPoint(searchPoint);
+
+        if (MoveToPoint(searchPoint, false))
+        {
+            return;
+        }
+
+        if (TryPickSearchPoint())
+        {
+            return;
+        }
+
+        ClearLastPoint();
+        StartIdleWait();
+    }
+
+    private void UpdateIdle()
+    {
+        _enemyMove.SetRun(false);
+
+        if (_idleTimer > 0f)
+        {
+            _state = EnemyState.Idle;
+            _idleTimer -= Time.deltaTime;
+            _enemySteering.Stop();
+            _enemyMove.StopMove();
+
+            return;
+        }
+
+        if (_hasIdlePoint == false)
+        {
+            PickIdlePoint();
+        }
+
+        if (_hasIdlePoint == false)
+        {
+            _state = EnemyState.Idle;
+            _enemySteering.Stop();
+            _enemyMove.StopMove();
+
+            return;
+        }
+
+        float distance = GetFlatDistance(transform.position, _idlePoint);
+
+        if (distance <= _idleReachDistance)
+        {
+            StartIdleWait();
+
+            return;
+        }
+
+        _state = EnemyState.Patrol;
+        RotateToPoint(_idlePoint);
+
+        if (MoveToPoint(_idlePoint, false))
+        {
+            return;
+        }
+
+        StartIdleWait();
     }
 
     private void UpdateExplode()
@@ -281,7 +375,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (_hasLastPoint)
         {
             RotateToPoint(_lastPoint);
-            MoveToPoint(_lastPoint);
+            MoveToPoint(_lastPoint, true);
         }
         else
         {
@@ -424,23 +518,61 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
     }
 
-    private void ApplyIdle()
+    private void StartIdleWait()
     {
+        ClearIdle();
         _state = EnemyState.Idle;
+        _idleTimer = GetRandomValue(_idleWaitMin, _idleWaitMax);
         _enemySteering.Stop();
+        _enemyMove.ForceStop();
     }
 
-    private void MoveToPoint(Vector3 targetPoint)
+    private void PickIdlePoint()
     {
-        _enemyMove.SetRun(true);
+        EnemyRoomLock enemyRoomLock = GetRoomLock();
+        Vector3 fallbackPoint = ClampPoint(transform.position);
+        fallbackPoint.y = transform.position.y;
+
+        if (_idlePatrolPicker.TryPickPoint(enemyRoomLock, transform.position, GetPatrolForward(), fallbackPoint, transform.position.y, _idleRadius, IdlePointTryCount, GetRandomDirection, out _idlePoint) == false)
+        {
+            _hasIdlePoint = false;
+
+            return;
+        }
+
+        _hasIdlePoint = true;
+    }
+
+    private bool TryPickSearchPoint()
+    {
+        float searchDistance = Mathf.Max(_idleReachDistance, _idleRadius * 0.5f);
+        EnemyRoomLock enemyRoomLock = GetRoomLock();
+        Vector3 fallbackPoint = ClampPoint(transform.position);
+        fallbackPoint.y = transform.position.y;
+
+        if (_idlePatrolPicker.TryPickPoint(enemyRoomLock, transform.position, GetPatrolForward(), fallbackPoint, transform.position.y, searchDistance, IdlePointTryCount, GetRandomDirection, out _lastPoint) == false)
+        {
+            return false;
+        }
+
+        _hasLastPoint = true;
+
+        return true;
+    }
+
+    private bool MoveToPoint(Vector3 targetPoint, bool isRunning)
+    {
+        _enemyMove.SetRun(isRunning);
 
         if (TryMoveSafe(targetPoint))
         {
-            return;
+            return true;
         }
 
         _enemySteering.Stop();
         _enemyMove.ForceStop();
+
+        return false;
     }
 
     private void RotateToPoint(Vector3 targetPoint)
@@ -460,6 +592,12 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _hasLastPoint = false;
         _searchTimer = 0f;
+    }
+
+    private void ClearIdle()
+    {
+        _hasIdlePoint = false;
+        _idleTimer = 0f;
     }
 
     private Vector3 ClampPoint(Vector3 point)
@@ -508,13 +646,13 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void ResetState()
     {
-        _state = EnemyState.Idle;
+        _idlePatrolPicker.Clear();
+        ClearIdle();
         _hasLastPoint = false;
         _isExploding = false;
         _searchTimer = 0f;
         _explodeTimer = 0f;
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
+        StartIdleWait();
     }
 
     private void OnTargetFound()
@@ -524,6 +662,8 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
+        _idlePatrolPicker.Clear();
+        ClearIdle();
         _lastPoint = ClampPoint(_targetVision.CurrentTargetPoint);
         _hasLastPoint = true;
         _searchTimer = _searchTime;
@@ -556,6 +696,52 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         EnemyRoomLock enemyRoomLock = GetRoomLock();
         _enemySteering.SetRoomLock(enemyRoomLock);
+    }
+
+    private float GetRandomValue(float minValue, float maxValue)
+    {
+        if (Mathf.Abs(maxValue - minValue) <= ZeroThreshold)
+        {
+            return minValue;
+        }
+
+        double range = maxValue - minValue;
+        double randomValue = _random.NextDouble();
+
+        return minValue + (float)(range * randomValue);
+    }
+
+    private int GetRandomDirection()
+    {
+        int direction = _random.Next(0, 2);
+
+        if (direction == 0)
+        {
+            return -1;
+        }
+
+        return 1;
+    }
+
+    private Vector3 GetPatrolForward()
+    {
+        Vector3 forwardDirection = _enemyMove.MoveDirection;
+        forwardDirection.y = 0f;
+
+        if (forwardDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            forwardDirection = transform.forward;
+            forwardDirection.y = 0f;
+        }
+
+        if (forwardDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            return Vector3.zero;
+        }
+
+        forwardDirection.Normalize();
+
+        return forwardDirection;
     }
 
     private bool TryMoveSafe(Vector3 targetPoint)

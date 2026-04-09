@@ -30,6 +30,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const int RangeChase = 1;
     private const int RangeBack = -1;
 
+    private readonly EnemyPatrolPicker _idlePatrolPicker = new EnemyPatrolPicker();
+
     [Header("Dependencies")]
     [SerializeField] private Enemy _enemy;
     [SerializeField] private TargetVision _targetVision;
@@ -94,14 +96,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _lastSeenMovePoint;
     private Vector3 _searchTargetPoint;
     private Vector3 _moveLastPoint;
-    private int _idlePatrolIndex;
-    private int _idlePatrolDirection;
     private bool _hasLastSeenPoint;
     private bool _hasLastSeenMovePoint;
     private bool _hasSearchPoint;
     private bool _hasMoveLastPoint;
     private bool _isIdleWalking;
-    private bool _hasIdlePatrolIndex;
     private float _idleLastDistance;
     private float _idleStuckTimer;
     private float _idleTimer;
@@ -1205,10 +1204,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _idleStuckTimer = 0f;
         ResetMoveStuck();
         _idleChain = 0;
-        _idlePatrolIndex = 0;
-        _idlePatrolDirection = GetRandomPatrolDirection();
         _searchStep = 0;
-        _hasIdlePatrolIndex = false;
+        _idlePatrolPicker.Clear();
         _lastSeenDirection = GetRandomDirection();
         _idleDirection = _lastSeenDirection;
         _idleLookPoint = transform.position + (_idleDirection * LookDistance);
@@ -1253,44 +1250,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
 
-        if (enemyRoomLock == null)
-        {
-            return false;
-        }
-
-        int patrolCount = enemyRoomLock.GetPatrolCount();
-
-        if (patrolCount <= 1)
-        {
-            return false;
-        }
-
-        if (_hasIdlePatrolIndex == false)
-        {
-            _idlePatrolIndex = enemyRoomLock.GetNearestPatrolIndex(currentPoint);
-            _idlePatrolDirection = GetPatrolDirection(enemyRoomLock, currentPoint);
-            _hasIdlePatrolIndex = true;
-        }
-
-        int tryIndex = 0;
-        int patrolIndex = _idlePatrolIndex;
-
-        while (tryIndex < patrolCount)
-        {
-            patrolIndex = enemyRoomLock.GetNextPatrolIndex(patrolIndex, _idlePatrolDirection);
-            Vector3 patrolPoint = enemyRoomLock.GetPatrolPoint(patrolIndex, transform.position.y);
-
-            if (TrySetPatrolPoint(currentPoint, patrolPoint))
-            {
-                _idlePatrolIndex = patrolIndex;
-
-                return true;
-            }
-
-            tryIndex += 1;
-        }
-
-        return false;
+        return _idlePatrolPicker.TryPickNextPoint(enemyRoomLock, currentPoint, GetPatrolForward(), transform.position.y, IdlePointTryCount, GetRandomPatrolDirection, patrolPoint => TrySetPatrolPoint(currentPoint, patrolPoint));
     }
 
     private bool TrySetIdlePoint(Vector3 currentPoint, Vector3 nextDirection, float idleDistance)
@@ -1423,35 +1383,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return GetRandomRange(_idleWaitMin, _idleWaitMax) * _idleWaitScale;
     }
 
-    private int GetPatrolDirection(EnemyRoomLock enemyRoomLock, Vector3 currentPoint)
-    {
-        Vector3 forwardDirection = _idleDirection;
-
-        if (forwardDirection.sqrMagnitude <= ZeroThreshold)
-        {
-            forwardDirection = GetStartDirection();
-        }
-
-        int forwardIndex = enemyRoomLock.GetNextPatrolIndex(_idlePatrolIndex, 1);
-        int backwardIndex = enemyRoomLock.GetNextPatrolIndex(_idlePatrolIndex, -1);
-        Vector3 forwardPoint = enemyRoomLock.GetPatrolPoint(forwardIndex, transform.position.y);
-        Vector3 backwardPoint = enemyRoomLock.GetPatrolPoint(backwardIndex, transform.position.y);
-        float forwardDot = GetPatrolDot(currentPoint, forwardDirection, forwardPoint);
-        float backwardDot = GetPatrolDot(currentPoint, forwardDirection, backwardPoint);
-
-        if (Mathf.Abs(forwardDot - backwardDot) <= ZeroThreshold)
-        {
-            return GetRandomPatrolDirection();
-        }
-
-        if (forwardDot >= backwardDot)
-        {
-            return 1;
-        }
-
-        return -1;
-    }
-
     private int GetRandomPatrolDirection()
     {
         if (GetRandomBool())
@@ -1462,19 +1393,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return -1;
     }
 
-    private float GetPatrolDot(Vector3 currentPoint, Vector3 forwardDirection, Vector3 patrolPoint)
+    private Vector3 GetPatrolForward()
     {
-        Vector3 patrolDirection = patrolPoint - currentPoint;
-        patrolDirection.y = 0f;
-
-        if (patrolDirection.sqrMagnitude <= ZeroThreshold)
+        if (_idleDirection.sqrMagnitude > ZeroThreshold)
         {
-            return -1f;
+            return _idleDirection;
         }
 
-        patrolDirection.Normalize();
-
-        return Vector3.Dot(forwardDirection, patrolDirection);
+        return GetStartDirection();
     }
 
     private Vector3 GetNextIdleDirection()
@@ -1797,7 +1723,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _searchStep = 0;
-        _hasIdlePatrolIndex = false;
+        _idlePatrolPicker.Clear();
         ResetMoveStuck();
     }
 
