@@ -99,10 +99,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _idleDirection;
     private Vector3 _idleTargetPoint;
     private Vector3 _idleLookPoint;
-    private Vector3 _lastSeenMovePoint;
     private Vector3 _searchTargetPoint;
     private bool _hasLastSeenPoint;
-    private bool _hasLastSeenMovePoint;
     private bool _hasSearchPoint;
     private bool _isIdleWalking;
     private bool _isSearchIdle;
@@ -163,7 +161,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _lastSeenPoint = alertPoint;
         _hasLastSeenPoint = true;
-        _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _searchStep = 0;
         _isIdleWalking = false;
@@ -863,8 +860,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void AdvanceSearchPoint()
     {
-        _lastSeenMovePoint = _searchTargetPoint;
-        _hasLastSeenMovePoint = true;
         _hasSearchPoint = false;
         _searchStep += 1;
         ResetMoveStuck();
@@ -1274,7 +1269,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _lastSeenPoint = targetPoint;
         _hasLastSeenPoint = true;
-        _hasLastSeenMovePoint = false;
     }
 
     private void ResetState()
@@ -1284,7 +1278,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _rangeModeTimer = 0f;
         _idleTimer = 0f;
         _hasLastSeenPoint = false;
-        _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _isIdleWalking = false;
         _isSearchIdle = false;
@@ -1658,8 +1651,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         Vector3 lostPoint = GetLostChasePoint();
         float distance = Vector3.Distance(currentPoint, lostPoint);
-        _lastSeenMovePoint = lostPoint;
-        _hasLastSeenMovePoint = true;
         float stopDistance = Mathf.Max(_lostStopDistance, _searchPointDistance);
 
         if (distance <= stopDistance)
@@ -1677,7 +1668,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         if (isMoving == false)
         {
-            _hasLastSeenMovePoint = false;
             _enemySteering.ForceStop();
 
             return false;
@@ -1688,7 +1678,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
-        _hasLastSeenMovePoint = false;
         _enemySteering.ForceStop();
 
         return false;
@@ -1836,7 +1825,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void ClearSearch()
     {
         _hasLastSeenPoint = false;
-        _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _searchStep = 0;
         _isSearchIdle = false;

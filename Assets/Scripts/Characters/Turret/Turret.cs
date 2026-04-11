@@ -18,9 +18,17 @@ public class Turret : MonoBehaviour, IEnemyAlert
     [Header("РќР°СЃС‚СЂРѕР№РєРё")]
     [SerializeField] private float _fireDelaySeconds = 0.25f;
 
+    [Header("Death")]
+    [SerializeField, Min(0f)] private float _sinkDelay = 5.2f;
+    [SerializeField, Min(0.01f)] private float _sinkDuration = 6.5f;
+    [SerializeField, Min(0f)] private float _sinkDistance = 2.2f;
+
     private Vector3 _alertPoint;
+    private Collider[] _corpseColliders;
+    private Rigidbody[] _corpseRigidbodies;
     private bool _hasAlertPoint;
     private bool _isDead;
+    private bool _isSinkStarted;
     private float _alertTimer;
     private Coroutine _fireDelayCoroutine;
     private WaitForSeconds _fireDelayWait;
@@ -77,10 +85,28 @@ public class Turret : MonoBehaviour, IEnemyAlert
             throw new InvalidOperationException(nameof(_headCrash));
         }
 
+        if (_sinkDelay < 0f)
+        {
+            throw new InvalidOperationException(nameof(_sinkDelay));
+        }
+
+        if (_sinkDuration <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_sinkDuration));
+        }
+
+        if (_sinkDistance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_sinkDistance));
+        }
+
         if (_fireDelaySeconds > 0f)
         {
             _fireDelayWait = new WaitForSeconds(_fireDelaySeconds);
         }
+
+        _corpseColliders = GetComponentsInChildren<Collider>(true);
+        _corpseRigidbodies = GetComponentsInChildren<Rigidbody>(true);
     }
 
     private void OnEnable()
@@ -272,6 +298,98 @@ public class Turret : MonoBehaviour, IEnemyAlert
             died.Invoke();
         }
 
-        enabled = false;
+        _headCrash.BeginSink(_sinkDelay, _sinkDuration, _sinkDistance);
+        StartSink();
+    }
+
+    private void StartSink()
+    {
+        if (_isSinkStarted)
+        {
+            return;
+        }
+
+        _isSinkStarted = true;
+        StartCoroutine(SinkCoroutine());
+    }
+
+    private IEnumerator SinkCoroutine()
+    {
+        float delayTimer = 0f;
+
+        while (delayTimer < _sinkDelay)
+        {
+            delayTimer += Time.deltaTime;
+
+            yield return null;
+        }
+
+        DisableCorpsePhysics();
+
+        Vector3 startPoint = transform.position;
+        Vector3 endPoint = startPoint + (Vector3.down * _sinkDistance);
+        float sinkTimer = 0f;
+
+        while (sinkTimer < _sinkDuration)
+        {
+            sinkTimer += Time.deltaTime;
+            float sinkProgress = Mathf.Clamp01(sinkTimer / _sinkDuration);
+            transform.position = Vector3.Lerp(startPoint, endPoint, sinkProgress);
+
+            yield return null;
+        }
+
+        Destroy(gameObject);
+    }
+
+    private void DisableCorpsePhysics()
+    {
+        int rigidbodyIndex = 0;
+
+        while (rigidbodyIndex < _corpseRigidbodies.Length)
+        {
+            Rigidbody corpseRigidbody = _corpseRigidbodies[rigidbodyIndex];
+
+            if (corpseRigidbody != null)
+            {
+                if (IsHeadPart(corpseRigidbody.transform) == false)
+                {
+                    corpseRigidbody.linearVelocity = Vector3.zero;
+                    corpseRigidbody.angularVelocity = Vector3.zero;
+                    corpseRigidbody.useGravity = false;
+                    corpseRigidbody.isKinematic = true;
+                    corpseRigidbody.detectCollisions = false;
+                }
+            }
+
+            rigidbodyIndex += 1;
+        }
+
+        int colliderIndex = 0;
+
+        while (colliderIndex < _corpseColliders.Length)
+        {
+            Collider corpseCollider = _corpseColliders[colliderIndex];
+
+            if (corpseCollider != null)
+            {
+                if (IsHeadPart(corpseCollider.transform) == false)
+                {
+                    corpseCollider.enabled = false;
+                }
+            }
+
+            colliderIndex += 1;
+        }
+    }
+
+    private bool IsHeadPart(Transform targetTransform)
+    {
+        if (targetTransform == null)
+        {
+            return false;
+        }
+
+        return targetTransform.IsChildOf(_headCrash.transform);
     }
 }

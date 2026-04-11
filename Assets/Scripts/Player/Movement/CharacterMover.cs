@@ -47,6 +47,11 @@ public class CharacterMover : MonoBehaviour
     {
         _moveDirection = Vector3.zero;
 
+        if (_rigidbody.isKinematic)
+        {
+            return;
+        }
+
         float currentVerticalVelocity = _rigidbody.linearVelocity.y;
         _rigidbody.linearVelocity = new Vector3(0f, currentVerticalVelocity, 0f);
     }
@@ -94,6 +99,11 @@ public class CharacterMover : MonoBehaviour
 
     private void Move()
     {
+        if (_rigidbody.isKinematic)
+        {
+            return;
+        }
+
         float speed = _speed;
 
         if (_isSprinting)

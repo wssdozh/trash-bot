@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -22,6 +23,7 @@ public sealed class TurretHeadCrash : MonoBehaviour
     private Vector3 _startLocalPosition;
     private Quaternion _startLocalRotation;
     private Vector3 _startLocalScale;
+    private Coroutine _sinkCoroutine;
     private bool _isCrashed;
 
     private void Awake()
@@ -117,6 +119,21 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _isCrashed = true;
     }
 
+    public void BeginSink(float sinkDelay, float sinkDuration, float sinkDistance)
+    {
+        if (_isCrashed == false)
+        {
+            return;
+        }
+
+        if (_sinkCoroutine != null)
+        {
+            return;
+        }
+
+        _sinkCoroutine = StartCoroutine(SinkCoroutine(sinkDelay, sinkDuration, sinkDistance));
+    }
+
     private void CacheStartState()
     {
         _startParent = _moveRoot.parent;
@@ -132,6 +149,12 @@ public sealed class TurretHeadCrash : MonoBehaviour
 
     private void ResetState()
     {
+        if (_sinkCoroutine != null)
+        {
+            StopCoroutine(_sinkCoroutine);
+            _sinkCoroutine = null;
+        }
+
         _isCrashed = false;
         _moveRoot.SetParent(_startParent, false);
         _moveRoot.localPosition = _startLocalPosition;
@@ -148,6 +171,44 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _rigidbody.isKinematic = true;
         _rigidbody.useGravity = false;
         _collider.enabled = false;
+    }
+
+    private IEnumerator SinkCoroutine(float sinkDelay, float sinkDuration, float sinkDistance)
+    {
+        float delayTimer = 0f;
+
+        while (delayTimer < sinkDelay)
+        {
+            delayTimer += Time.deltaTime;
+
+            yield return null;
+        }
+
+        if (_rigidbody.isKinematic == false)
+        {
+            _rigidbody.linearVelocity = Vector3.zero;
+            _rigidbody.angularVelocity = Vector3.zero;
+        }
+
+        _rigidbody.constraints = RigidbodyConstraints.FreezeAll;
+        _rigidbody.isKinematic = true;
+        _rigidbody.useGravity = false;
+        _collider.enabled = false;
+
+        Vector3 startPoint = _moveRoot.position;
+        Vector3 endPoint = startPoint + (Vector3.down * sinkDistance);
+        float sinkTimer = 0f;
+
+        while (sinkTimer < sinkDuration)
+        {
+            sinkTimer += Time.deltaTime;
+            float sinkProgress = Mathf.Clamp01(sinkTimer / sinkDuration);
+            _moveRoot.position = Vector3.Lerp(startPoint, endPoint, sinkProgress);
+
+            yield return null;
+        }
+
+        Destroy(gameObject);
     }
 
     private Vector3 GetCrashDirection()
