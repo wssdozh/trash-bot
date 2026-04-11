@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TargetVision : MonoBehaviour
@@ -20,16 +21,35 @@ public class TargetVision : MonoBehaviour
     private Coroutine _scanCoroutine;
     private WaitForSeconds _scanDelay;
     private readonly Collider[] _targetsBuffer = new Collider[TargetsBufferSize];
+    private readonly Dictionary<Collider, Transform> _lookTargetCache = new Dictionary<Collider, Transform>(TargetsBufferSize);
     private Vector3 _currentTargetPoint;
     private Transform _currentLookTarget;
+    private float _distanceToTarget;
 
     public event Action TargetDetected;
     public event Action TargetCleared;
 
     public bool IsTargetVisible { get; private set; }
 
-    public float DistanceToTarget { get; private set; }
-    public Vector3 CurrentTargetPoint { get { return _currentTargetPoint; } }
+    public float DistanceToTarget
+    {
+        get
+        {
+            RefreshTargetPoint();
+
+            return _distanceToTarget;
+        }
+    }
+
+    public Vector3 CurrentTargetPoint
+    {
+        get
+        {
+            RefreshTargetPoint();
+
+            return _currentTargetPoint;
+        }
+    }
 
     public Transform CurrentTarget { get { return _currentTarget; } }
 
@@ -50,11 +70,6 @@ public class TargetVision : MonoBehaviour
             StopCoroutine(_scanCoroutine);
             _scanCoroutine = null;
         }
-    }
-
-    private void Update()
-    {
-        RefreshTargetPoint();
     }
 
     public void Refresh()
@@ -95,7 +110,7 @@ public class TargetVision : MonoBehaviour
         Transform bestTarget = null;
         Transform bestLookTarget = null;
         Vector3 bestPoint = Vector3.zero;
-        float bestDistance = float.MaxValue;
+        float bestDistanceSqr = float.MaxValue;
 
         int hitsCount = Physics.OverlapSphereNonAlloc(
             originPosition,
@@ -111,13 +126,13 @@ public class TargetVision : MonoBehaviour
             Transform hitTransform;
             Transform lookTransform;
             Vector3 targetPoint;
-            float distance;
+            float distanceSqr;
 
-            if (TryValidateTarget(candidate, originPosition, out hitTransform, out lookTransform, out targetPoint, out distance))
+            if (TryValidateTarget(candidate, originPosition, out hitTransform, out lookTransform, out targetPoint, out distanceSqr))
             {
-                if (distance < bestDistance)
+                if (distanceSqr < bestDistanceSqr)
                 {
-                    bestDistance = distance;
+                    bestDistanceSqr = distanceSqr;
                     bestTarget = hitTransform;
                     bestLookTarget = lookTransform;
                     bestPoint = targetPoint;
@@ -133,18 +148,18 @@ public class TargetVision : MonoBehaviour
         }
 
         IsTargetVisible = true;
-        DistanceToTarget = bestDistance;
+        _distanceToTarget = Mathf.Sqrt(bestDistanceSqr);
         _currentTarget = bestTarget;
         _currentTargetPoint = bestPoint;
         _currentLookTarget = bestLookTarget;
     }
 
-    private bool TryValidateTarget(Collider candidate, Vector3 originPosition, out Transform hitTransform, out Transform lookTransform, out Vector3 targetPoint, out float distance)
+    private bool TryValidateTarget(Collider candidate, Vector3 originPosition, out Transform hitTransform, out Transform lookTransform, out Vector3 targetPoint, out float distanceSqr)
     {
         hitTransform = GetHitTransform(candidate);
-        lookTransform = GetLookTransform(candidate);
+        lookTransform = GetLookTransform(candidate, hitTransform);
         targetPoint = Vector3.zero;
-        distance = 0f;
+        distanceSqr = 0f;
 
         if (hitTransform == null)
         {
@@ -166,9 +181,9 @@ public class TargetVision : MonoBehaviour
             return false;
         }
 
-        distance = Vector3.Distance(originPosition, lookTransform.position);
+        distanceSqr = GetDistanceSqr(originPosition, lookTransform.position);
 
-        if (distance <= Mathf.Epsilon)
+        if (distanceSqr <= Mathf.Epsilon)
         {
             return false;
         }
@@ -188,22 +203,37 @@ public class TargetVision : MonoBehaviour
         return candidate.transform;
     }
 
-    private Transform GetLookTransform(Collider candidate)
+    private Transform GetLookTransform(Collider candidate, Transform hitTransform)
     {
+        if (_lookTargetCache.TryGetValue(candidate, out Transform lookTransform))
+        {
+            if (lookTransform != null)
+            {
+                return lookTransform;
+            }
+
+            _lookTargetCache.Remove(candidate);
+        }
+
         Health targetHealth = candidate.GetComponentInParent<Health>();
 
         if (targetHealth != null)
         {
-            return targetHealth.transform;
+            lookTransform = targetHealth.transform;
+            _lookTargetCache[candidate] = lookTransform;
+
+            return lookTransform;
         }
 
-        return GetHitTransform(candidate);
+        _lookTargetCache[candidate] = hitTransform;
+
+        return hitTransform;
     }
 
     private void ResetState()
     {
         IsTargetVisible = false;
-        DistanceToTarget = 0f;
+        _distanceToTarget = 0f;
         _currentTargetPoint = Vector3.zero;
         _currentTarget = null;
         _currentLookTarget = null;
@@ -222,7 +252,7 @@ public class TargetVision : MonoBehaviour
         }
 
         Vector3 originPosition = GetOriginPosition();
-        DistanceToTarget = Vector3.Distance(originPosition, _currentLookTarget.position);
+        _distanceToTarget = Vector3.Distance(originPosition, _currentLookTarget.position);
         _currentTargetPoint = _currentLookTarget.position;
     }
 
@@ -237,7 +267,7 @@ public class TargetVision : MonoBehaviour
             return true;
         }
 
-        Vector3 closestPoint = candidate.ClosestPoint(originPosition);
+        Vector3 closestPoint = GetClosestPoint(candidate, originPosition);
 
         if (HasLineOfSight(originPosition, closestPoint))
         {
@@ -291,9 +321,35 @@ public class TargetVision : MonoBehaviour
         ) == false;
     }
 
+    private Vector3 GetClosestPoint(Collider candidate, Vector3 point)
+    {
+        if (candidate is BoxCollider
+            || candidate is SphereCollider
+            || candidate is CapsuleCollider)
+        {
+            return candidate.ClosestPoint(point);
+        }
+
+        MeshCollider meshCollider = candidate as MeshCollider;
+
+        if (meshCollider != null && meshCollider.convex)
+        {
+            return candidate.ClosestPoint(point);
+        }
+
+        return candidate.bounds.ClosestPoint(point);
+    }
+
     private float GetScanInterval()
     {
         return Mathf.Max(MinScanInterval, _scanInterval);
+    }
+
+    private float GetDistanceSqr(Vector3 firstPoint, Vector3 secondPoint)
+    {
+        Vector3 delta = firstPoint - secondPoint;
+
+        return delta.sqrMagnitude;
     }
 
     private Vector3 GetOriginPosition()

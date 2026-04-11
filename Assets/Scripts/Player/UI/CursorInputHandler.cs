@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,14 +9,16 @@ public sealed class CursorInputHandler : MonoBehaviour
     [SerializeField] private float _holdThresholdSeconds = 0.18f;
 
     private PlayerInputActions _inputs;
+    private Coroutine _holdCoroutine;
+    private WaitForSecondsRealtime _holdWait;
 
     private bool _isAttackPressed;
     private bool _isHoldConfirmed;
-    private float _attackPressedAtTime;
 
     private void Awake()
     {
         _inputs = new PlayerInputActions();
+        _holdWait = new WaitForSecondsRealtime(_holdThresholdSeconds);
     }
 
     private void OnEnable()
@@ -41,6 +44,7 @@ public sealed class CursorInputHandler : MonoBehaviour
 
         _isAttackPressed = false;
         _isHoldConfirmed = false;
+        StopHoldLoop();
 
         _cursorAnimator.ResetToBase();
     }
@@ -56,24 +60,11 @@ public sealed class CursorInputHandler : MonoBehaviour
         _inputs = null;
     }
 
-    private void Update()
-    {
-        if (_isAttackPressed && _isHoldConfirmed == false)
-        {
-            float elapsedTime = Time.unscaledTime - _attackPressedAtTime;
-            if (elapsedTime >= _holdThresholdSeconds)
-            {
-                _isHoldConfirmed = true;
-                _cursorAnimator.ConfirmHold();
-            }
-        }
-    }
-
     private void OnAttackPerformed(InputAction.CallbackContext callbackContext)
     {
         _isAttackPressed = true;
         _isHoldConfirmed = false;
-        _attackPressedAtTime = Time.unscaledTime;
+        StartHoldLoop();
 
         _cursorAnimator.BeginHoldCandidate(_holdThresholdSeconds);
     }
@@ -92,6 +83,7 @@ public sealed class CursorInputHandler : MonoBehaviour
 
         _isAttackPressed = false;
         _isHoldConfirmed = false;
+        StopHoldLoop();
     }
 
     private void OnUseItemPerformed(InputAction.CallbackContext callbackContext)
@@ -110,5 +102,43 @@ public sealed class CursorInputHandler : MonoBehaviour
         }
 
         _cursorAnimator.PlayScroll(direction);
+    }
+
+    private IEnumerator HoldLoop()
+    {
+        yield return _holdWait;
+
+        if (_isAttackPressed == false)
+        {
+            _holdCoroutine = null;
+
+            yield break;
+        }
+
+        if (_isHoldConfirmed == false)
+        {
+            _isHoldConfirmed = true;
+            _cursorAnimator.ConfirmHold();
+        }
+
+        _holdCoroutine = null;
+    }
+
+    private void StartHoldLoop()
+    {
+        StopHoldLoop();
+        _holdWait = new WaitForSecondsRealtime(_holdThresholdSeconds);
+        _holdCoroutine = StartCoroutine(HoldLoop());
+    }
+
+    private void StopHoldLoop()
+    {
+        if (_holdCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(_holdCoroutine);
+        _holdCoroutine = null;
     }
 }

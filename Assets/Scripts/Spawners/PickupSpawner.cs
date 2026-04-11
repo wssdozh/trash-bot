@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PickupSpawner : Spawner<BasePickup>
 {
+    private readonly Dictionary<int, PickupReturner> _returnersByPickupId = new Dictionary<int, PickupReturner>(16);
+
     protected override void Awake()
     {
         base.Awake();
@@ -17,7 +21,8 @@ public class PickupSpawner : Spawner<BasePickup>
     {
         BasePickup pickup = Pool.Get();
         pickup.transform.position = position;
-        pickup.GetComponent<PickupReturner>().SetSpawner(this);
+        PickupReturner pickupReturner = GetPickupReturner(pickup);
+        pickupReturner.SetSpawner(this);
         pickup.gameObject.SetActive(true);
 
         return pickup;
@@ -30,5 +35,29 @@ public class PickupSpawner : Spawner<BasePickup>
 
     protected override void ActionOnGet(BasePickup pickup)
     {
+    }
+
+    private PickupReturner GetPickupReturner(BasePickup pickup)
+    {
+        int pickupId = pickup.GetInstanceID();
+
+        if (_returnersByPickupId.TryGetValue(pickupId, out PickupReturner cachedReturner))
+        {
+            if (cachedReturner != null)
+            {
+                return cachedReturner;
+            }
+        }
+
+        PickupReturner pickupReturner = pickup.GetComponent<PickupReturner>();
+
+        if (pickupReturner == null)
+        {
+            throw new InvalidOperationException(nameof(pickupReturner));
+        }
+
+        _returnersByPickupId[pickupId] = pickupReturner;
+
+        return pickupReturner;
     }
 }

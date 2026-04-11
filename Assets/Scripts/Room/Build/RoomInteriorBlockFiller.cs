@@ -3,6 +3,9 @@ using UnityEngine;
 
 public sealed class RoomInteriorBlockFiller : MonoBehaviour
 {
+    private static readonly int[] s_neighborOffsetX = new int[4] { 1, -1, 0, 0 };
+    private static readonly int[] s_neighborOffsetZ = new int[4] { 0, 0, 1, -1 };
+
     private struct NoiseCell
     {
         public Vector2Int Cell;
@@ -39,6 +42,16 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
     [SerializeField] private bool _spawnOnlyExposedSmallCubes = true;
     [SerializeField, Min(0)] private int _minimumSolidSmallHeightInBlocks = 1;
 
+    private readonly HashSet<Vector2Int> _reservedFloorCellSetBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _baseCellsBuffer = new HashSet<Vector2Int>();
+    private readonly List<Vector2Int> _orderedBaseCellsBuffer = new List<Vector2Int>();
+    private readonly HashSet<Vector2Int> _obstacleCellsBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _largeCubeFootprintCellsBuffer = new HashSet<Vector2Int>();
+    private readonly Dictionary<Vector2Int, SmallPrefabSelection> _smallPrefabSelectionsBuffer = new Dictionary<Vector2Int, SmallPrefabSelection>();
+    private readonly List<NoiseCell> _candidateCellsBuffer = new List<NoiseCell>();
+    private readonly HashSet<Vector2Int> _reachableCellsBuffer = new HashSet<Vector2Int>();
+    private readonly Queue<Vector2Int> _reachableQueueBuffer = new Queue<Vector2Int>();
+
     public void Clear()
     {
         ClearChildren(_interiorBlocksRoot);
@@ -50,7 +63,8 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
 
         bool spawnOnlyExposedSmallCubes = _spawnOnlyExposedSmallCubes == true;
 
-        HashSet<Vector2Int> reservedFloorCellSet = new HashSet<Vector2Int>(reservedFloorCells);
+        HashSet<Vector2Int> reservedFloorCellSet = _reservedFloorCellSetBuffer;
+        FillReservedFloorCells(reservedFloorCellSet, reservedFloorCells);
 
         float[,] noiseValues = CreateFlatNoise(roomSizeInBlocks.x, roomSizeInBlocks.z);
 
@@ -59,7 +73,8 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
             noiseValues = roomTypeProfile.NoiseProfile.GenerateNoiseMap(roomSizeInBlocks.x, roomSizeInBlocks.z);
         }
 
-        List<NoiseCell> candidateCells = BuildCandidateCells(roomSizeInBlocks, reservedFloorCellSet, noiseValues);
+        List<NoiseCell> candidateCells = _candidateCellsBuffer;
+        FillCandidateCells(candidateCells, roomSizeInBlocks, reservedFloorCellSet, noiseValues);
         candidateCells.Sort(CompareNoiseCells);
 
         int targetBaseCellCount = Mathf.RoundToInt(candidateCells.Count * Mathf.Clamp01(roomTypeProfile.BlockFillPercent));
@@ -68,8 +83,10 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
             targetBaseCellCount = candidateCells.Count;
         }
 
-        HashSet<Vector2Int> baseCells = new HashSet<Vector2Int>();
-        List<Vector2Int> orderedBaseCells = new List<Vector2Int>(targetBaseCellCount);
+        HashSet<Vector2Int> baseCells = _baseCellsBuffer;
+        List<Vector2Int> orderedBaseCells = _orderedBaseCellsBuffer;
+        baseCells.Clear();
+        orderedBaseCells.Clear();
 
         for (int index = 0; index < targetBaseCellCount; index++)
         {
@@ -86,13 +103,16 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
             targetLargeCubeCount = maximumLargeCubeCount;
         }
 
-        HashSet<Vector2Int> obstacleCells = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> largeCubeFootprintCells = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> obstacleCells = _obstacleCellsBuffer;
+        HashSet<Vector2Int> largeCubeFootprintCells = _largeCubeFootprintCellsBuffer;
+        obstacleCells.Clear();
+        largeCubeFootprintCells.Clear();
 
         int[,] largeHeightMapInBlocks = new int[roomSizeInBlocks.x, roomSizeInBlocks.z];
         int[,] smallHeightMapInBlocks = new int[roomSizeInBlocks.x, roomSizeInBlocks.z];
 
-        Dictionary<Vector2Int, SmallPrefabSelection> smallPrefabSelections = new Dictionary<Vector2Int, SmallPrefabSelection>();
+        Dictionary<Vector2Int, SmallPrefabSelection> smallPrefabSelections = _smallPrefabSelectionsBuffer;
+        smallPrefabSelections.Clear();
 
         PlaceLargeCubes(
             roomSizeInBlocks,
@@ -193,9 +213,19 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
         return values;
     }
 
-    private List<NoiseCell> BuildCandidateCells(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> reservedFloorCellSet, float[,] noiseValues)
+    private void FillReservedFloorCells(HashSet<Vector2Int> targetCells, IReadOnlyCollection<Vector2Int> sourceCells)
     {
-        List<NoiseCell> candidateCells = new List<NoiseCell>();
+        targetCells.Clear();
+
+        foreach (Vector2Int sourceCell in sourceCells)
+        {
+            targetCells.Add(sourceCell);
+        }
+    }
+
+    private void FillCandidateCells(List<NoiseCell> candidateCells, Vector3Int roomSizeInBlocks, HashSet<Vector2Int> reservedFloorCellSet, float[,] noiseValues)
+    {
+        candidateCells.Clear();
 
         for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
         {
@@ -212,8 +242,6 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
                 candidateCells.Add(new NoiseCell(cell, noiseValue));
             }
         }
-
-        return candidateCells;
     }
 
     private int CompareNoiseCells(NoiseCell left, NoiseCell right)
@@ -570,8 +598,10 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
 
     private HashSet<Vector2Int> ComputeReachableCells(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> reservedFloorCells, HashSet<Vector2Int> obstacleCells)
     {
-        HashSet<Vector2Int> reachableCells = new HashSet<Vector2Int>();
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        HashSet<Vector2Int> reachableCells = _reachableCellsBuffer;
+        Queue<Vector2Int> queue = _reachableQueueBuffer;
+        reachableCells.Clear();
+        queue.Clear();
 
         foreach (Vector2Int startCell in reservedFloorCells)
         {
@@ -594,16 +624,13 @@ public sealed class RoomInteriorBlockFiller : MonoBehaviour
             queue.Enqueue(startCell);
         }
 
-        int[] neighborOffsetX = new int[4] { 1, -1, 0, 0 };
-        int[] neighborOffsetZ = new int[4] { 0, 0, 1, -1 };
-
         while (queue.Count > 0)
         {
             Vector2Int currentCell = queue.Dequeue();
 
             for (int directionIndex = 0; directionIndex < 4; directionIndex++)
             {
-                Vector2Int neighborCell = new Vector2Int(currentCell.x + neighborOffsetX[directionIndex], currentCell.y + neighborOffsetZ[directionIndex]);
+                Vector2Int neighborCell = new Vector2Int(currentCell.x + s_neighborOffsetX[directionIndex], currentCell.y + s_neighborOffsetZ[directionIndex]);
 
                 if (IsInteriorCell(neighborCell, roomSizeInBlocks) == false)
                 {

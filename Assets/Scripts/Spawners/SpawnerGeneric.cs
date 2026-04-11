@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -10,19 +10,20 @@ public abstract class Spawner<T> : Spawner where T : MonoBehaviour
     [Header("Pool Settings:")]
     [SerializeField] protected int PoolSize = 5;
 
-    protected List<T> ActiveObjects = new List<T>();
     protected ObjectPool<T> Pool;
 
     public int CountActiveObjects { get; private set; }
 
     protected virtual void Awake()
     {
-        Debug.Log("Spawner registered: " + Prefab.name);
-
-        SpawnerServiceLocator.Register(Prefab.name, this);
+        if (Prefab == null)
+        {
+            throw new InvalidOperationException(nameof(Prefab));
+        }
 
         CountActiveObjects = 0;
         InitializePool();
+        SpawnerServiceLocator.Register(Prefab.name, this);
     }
 
     private void OnDestroy()
@@ -58,14 +59,12 @@ public abstract class Spawner<T> : Spawner where T : MonoBehaviour
     {
         CountActiveObjects++;
         ActionOnGet(prefab);
-        ActiveObjects.Add(prefab);
     }
 
     private void OnRelease(T prefab)
     {
         CountActiveObjects--;
         ActionOnRelease(prefab);
-        ActiveObjects.Remove(prefab);
     }
 
     private void OnDestroyObject(T prefab)

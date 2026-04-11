@@ -76,7 +76,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_hasLastSeenPoint)
         {
-            if (GetFlatDistance(_lastSeenPoint, alertPoint) <= AlertGap)
+            float alertGapSqr = AlertGap * AlertGap;
+
+            if (GetFlatDistanceSqr(_lastSeenPoint, alertPoint) <= alertGapSqr)
             {
                 return false;
             }
@@ -276,9 +278,11 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         ApplyTrackMode();
         TickAlert(targetPoint);
 
-        float targetDistance = GetFlatDistance(transform.position, targetPoint);
+        float targetDistanceSqr = GetFlatDistanceSqr(transform.position, targetPoint);
+        float fightMinDistanceSqr = _fightMinDistance * _fightMinDistance;
+        float fightMaxDistanceSqr = _fightMaxDistance * _fightMaxDistance;
 
-        if (targetDistance > _fightMaxDistance)
+        if (targetDistanceSqr > fightMaxDistanceSqr)
         {
             _state = EnemyState.Chase;
             ResetStrafe();
@@ -286,7 +290,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
         else
         {
-            if (targetDistance < _fightMinDistance)
+            if (targetDistanceSqr < fightMinDistanceSqr)
             {
                 _state = EnemyState.Fight;
                 ResetStrafe();
@@ -301,7 +305,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _fireExecutor.SetAimPoint(targetPoint);
 
-        if (targetDistance <= _fireDistance)
+        float fireDistanceSqr = _fireDistance * _fireDistance;
+
+        if (targetDistanceSqr <= fireDistanceSqr)
         {
             if (_fireExecutor.IsAimReady())
             {
@@ -339,7 +345,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _targetRotator.SetAimPoint(searchPoint);
         _enemyMove.SetMovePoint(searchPoint);
 
-        if (GetFlatDistance(transform.position, searchPoint) <= _searchReachDistance)
+        float searchReachDistanceSqr = _searchReachDistance * _searchReachDistance;
+
+        if (GetFlatDistanceSqr(transform.position, searchPoint) <= searchReachDistanceSqr)
         {
             ClearSearch();
         }
@@ -375,7 +383,9 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _state = EnemyState.Patrol;
         _enemyMove.SetMovePoint(_idlePoint);
 
-        if (GetFlatDistance(transform.position, _idlePoint) <= _idleReachDistance)
+        float idleReachDistanceSqr = _idleReachDistance * _idleReachDistance;
+
+        if (GetFlatDistanceSqr(transform.position, _idlePoint) <= idleReachDistanceSqr)
         {
             _hasIdlePoint = false;
             _idleTimer = GetRandomValue(_idleWaitMin, _idleWaitMax);
@@ -600,12 +610,14 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return forwardDirection;
     }
 
-    private float GetFlatDistance(Vector3 firstPoint, Vector3 secondPoint)
+    private float GetFlatDistanceSqr(Vector3 firstPoint, Vector3 secondPoint)
     {
         firstPoint.y = 0f;
         secondPoint.y = 0f;
 
-        return Vector3.Distance(firstPoint, secondPoint);
+        Vector3 delta = firstPoint - secondPoint;
+
+        return delta.sqrMagnitude;
     }
 
     private Vector3 GetFlatDirection(Vector3 direction)

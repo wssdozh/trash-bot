@@ -81,6 +81,8 @@ public abstract class FireExecutor : MonoBehaviour
             _presenter.StartFiring();
         }
 
+        RefreshUpdateState();
+
     }
 
     private void OnEnable()
@@ -94,6 +96,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         EnablePresenterIfNeeded();
+        RefreshUpdateState();
 
     }
 
@@ -115,6 +118,7 @@ public abstract class FireExecutor : MonoBehaviour
 
         _presenter.OnDisable();
         _isPresenterEnabled = false;
+        RefreshUpdateState();
 
     }
 
@@ -154,6 +158,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetAimPoint(aimPoint);
+        RefreshUpdateState();
 
     }
 
@@ -168,6 +173,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.ClearAimPoint();
+        RefreshUpdateState();
 
     }
 
@@ -188,6 +194,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.StartFiring();
+        RefreshUpdateState();
 
     }
 
@@ -202,6 +209,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.StopFiring();
+        RefreshUpdateState();
 
     }
 
@@ -281,6 +289,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetTargetLayers(targetLayers);
+        RefreshUpdateState();
 
     }
 
@@ -299,6 +308,7 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetIgnoredRoot(ignoredRoot);
+        RefreshUpdateState();
     }
 
     private void EnsurePresenterCreated()
@@ -332,6 +342,8 @@ public abstract class FireExecutor : MonoBehaviour
             _targetLayers,
             _maxAimAngleDegrees,
             _readyAngleDegrees);
+
+        RefreshUpdateState();
 
     }
 
@@ -369,6 +381,19 @@ public abstract class FireExecutor : MonoBehaviour
 
         _presenter.OnEnable();
         _isPresenterEnabled = true;
+        RefreshUpdateState();
 
+    }
+
+    private void RefreshUpdateState()
+    {
+        if (_presenter == null)
+        {
+            enabled = false;
+
+            return;
+        }
+
+        enabled = _isPresenterEnabled;
     }
 }

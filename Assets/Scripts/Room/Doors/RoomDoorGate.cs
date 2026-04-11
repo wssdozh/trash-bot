@@ -46,18 +46,32 @@ public sealed class RoomDoorGate : MonoBehaviour
             _progress = _targetProgress;
             ApplyProgress();
             _boxCollider.enabled = isClosed;
+            enabled = false;
 
             return;
         }
 
         if (isClosed == false && _progress <= MinSize)
             _boxCollider.enabled = false;
+
+        if (Mathf.Abs(_progress - _targetProgress) <= MinSize)
+        {
+            enabled = false;
+
+            return;
+        }
+
+        enabled = true;
     }
 
     private void Update()
     {
         if (Mathf.Abs(_progress - _targetProgress) <= MinSize)
+        {
+            enabled = false;
+
             return;
+        }
 
         _progress = Mathf.MoveTowards(_progress, _targetProgress, _moveSpeed * Time.deltaTime);
         ApplyProgress();
@@ -66,6 +80,11 @@ public sealed class RoomDoorGate : MonoBehaviour
         {
             if (_progress <= MinSize)
                 _boxCollider.enabled = false;
+        }
+
+        if (Mathf.Abs(_progress - _targetProgress) <= MinSize)
+        {
+            enabled = false;
         }
     }
 

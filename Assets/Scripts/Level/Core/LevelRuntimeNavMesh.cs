@@ -25,6 +25,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
     private void Awake()
     {
         EnsureSurface();
+        RefreshLoopState();
     }
 
     private void LateUpdate()
@@ -55,6 +56,8 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
 
         if (_hasPendingUpdate == false)
         {
+            RefreshLoopState();
+
             return;
         }
 
@@ -71,6 +74,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
         }
 
         UpdateNow();
+        RefreshLoopState();
     }
 
     public void RequestBuild()
@@ -88,6 +92,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
         _hasPendingUpdate = false;
         _buildRequestFrame = Time.frameCount;
         _buildRequestTime = Time.unscaledTime;
+        RefreshLoopState();
     }
 
     public void BuildNow()
@@ -99,6 +104,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
         _hasPendingUpdate = false;
         _updateOperation = null;
         _navMeshSurface.BuildNavMesh();
+        RefreshLoopState();
     }
 
     public void RequestUpdate()
@@ -120,6 +126,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
 
         _updateRequestTime = Time.unscaledTime;
         _hasPendingUpdate = true;
+        RefreshLoopState();
     }
 
     public void ClearData()
@@ -135,6 +142,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
 
         _navMeshSurface.RemoveData();
         _navMeshSurface.navMeshData = null;
+        RefreshLoopState();
     }
 
     private void UpdateNow()
@@ -152,6 +160,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
         }
 
         _updateOperation = _navMeshSurface.UpdateNavMesh(_navMeshSurface.navMeshData);
+        RefreshLoopState();
     }
 
     private void EnsureSurface()
@@ -195,6 +204,23 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
         _navMeshSurface.overrideVoxelSize = true;
         _navMeshSurface.voxelSize = _voxelSize;
         _navMeshSurface.minRegionArea = _minRegionArea;
+    }
+
+    private void RefreshLoopState()
+    {
+        if (Application.isPlaying == false)
+        {
+            return;
+        }
+
+        bool isLoopNeeded = _hasPendingBuild || _hasPendingUpdate;
+
+        if (_updateOperation != null && _updateOperation.isDone == false)
+        {
+            isLoopNeeded = true;
+        }
+
+        enabled = isLoopNeeded;
     }
 
 }

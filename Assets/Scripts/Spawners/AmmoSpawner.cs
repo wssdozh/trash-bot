@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
 {
+    private readonly Dictionary<int, AmmoReturner> _returnersByAmmoId = new Dictionary<int, AmmoReturner>(32);
+
     protected override void Awake()
     {
         base.Awake();
@@ -19,7 +23,8 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
         ammo.transform.SetPositionAndRotation(position, rotation);
         ammo.SetLayers(targetLayers);
         ammo.SetIgnoredRoot(ignoredRoot);
-        ammo.GetComponent<AmmoReturner>().Initialize(this);
+        AmmoReturner ammoReturner = GetAmmoReturner(ammo);
+        ammoReturner.Initialize(this);
         ammo.gameObject.SetActive(true);
 
         return ammo;
@@ -42,5 +47,29 @@ public class AmmoSpawner : Spawner<Ammo>, IAmmoSpawner
     protected override void ActionOnRelease(Ammo ammo)
     {
         ammo.gameObject.SetActive(false);
+    }
+
+    private AmmoReturner GetAmmoReturner(Ammo ammo)
+    {
+        int ammoId = ammo.GetInstanceID();
+
+        if (_returnersByAmmoId.TryGetValue(ammoId, out AmmoReturner cachedReturner))
+        {
+            if (cachedReturner != null)
+            {
+                return cachedReturner;
+            }
+        }
+
+        AmmoReturner ammoReturner = ammo.GetComponent<AmmoReturner>();
+
+        if (ammoReturner == null)
+        {
+            throw new InvalidOperationException(nameof(ammoReturner));
+        }
+
+        _returnersByAmmoId[ammoId] = ammoReturner;
+
+        return ammoReturner;
     }
 }

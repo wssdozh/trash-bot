@@ -4,6 +4,7 @@ using UnityEngine;
 public sealed class EnemyAlertPulse : MonoBehaviour
 {
     private const float ReachDistance = 0.08f;
+    private const float ReachDistanceSqr = ReachDistance * ReachDistance;
 
     private TrailRenderer _trailRenderer;
     private Transform _target;
@@ -78,7 +79,9 @@ public sealed class EnemyAlertPulse : MonoBehaviour
             transform.forward = moveDirection.normalized;
         }
 
-        if (Vector3.Distance(transform.position, targetPoint) <= ReachDistance)
+        Vector3 reachDelta = transform.position - targetPoint;
+
+        if (reachDelta.sqrMagnitude <= ReachDistanceSqr)
         {
             StopPulse();
         }

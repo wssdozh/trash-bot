@@ -23,6 +23,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
     private bool _isDead;
     private float _alertTimer;
     private Coroutine _fireDelayCoroutine;
+    private WaitForSeconds _fireDelayWait;
 
     public event Action Died;
 
@@ -42,7 +43,10 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
         if (_hasAlertPoint)
         {
-            if (Vector3.Distance(_alertPoint, point) <= AlertGap)
+            Vector3 alertDelta = _alertPoint - point;
+            float alertGapSqr = AlertGap * AlertGap;
+
+            if (alertDelta.sqrMagnitude <= alertGapSqr)
             {
                 return false;
             }
@@ -71,6 +75,11 @@ public class Turret : MonoBehaviour, IEnemyAlert
         if (_headCrash == null)
         {
             throw new InvalidOperationException(nameof(_headCrash));
+        }
+
+        if (_fireDelaySeconds > 0f)
+        {
+            _fireDelayWait = new WaitForSeconds(_fireDelaySeconds);
         }
     }
 
@@ -221,7 +230,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
     {
         if (_fireDelaySeconds > 0f)
         {
-            yield return new WaitForSeconds(_fireDelaySeconds);
+            yield return _fireDelayWait;
         }
 
         _fireDelayCoroutine = null;

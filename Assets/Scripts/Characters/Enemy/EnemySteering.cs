@@ -147,9 +147,9 @@ public sealed class EnemySteering
         Vector3 currentPoint = GetFlatPoint(_root.position);
         Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
         float safeStopDistance = Mathf.Max(stopDistance, 0.01f);
-        float targetDistance = Vector3.Distance(currentPoint, flatTargetPoint);
+        float safeStopDistanceSqr = safeStopDistance * safeStopDistance;
 
-        if (targetDistance <= safeStopDistance)
+        if (GetFlatDistanceSqr(currentPoint, flatTargetPoint) <= safeStopDistanceSqr)
         {
             _enemyMove.StopMove();
             ClearPath();
@@ -201,9 +201,7 @@ public sealed class EnemySteering
 
     private bool TryDirectMove(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
     {
-        float targetDistance = Vector3.Distance(currentPoint, targetPoint);
-
-        if (targetDistance <= stopDistance)
+        if (GetFlatDistanceSqr(currentPoint, targetPoint) <= stopDistance * stopDistance)
         {
             _enemyMove.StopMove();
 
@@ -731,7 +729,7 @@ public sealed class EnemySteering
                 return false;
             }
 
-            if (Vector3.Distance(currentPoint, navPoint) > NavSnapGap)
+            if (GetFlatDistanceSqr(currentPoint, navPoint) > NavSnapGap * NavSnapGap)
             {
                 SnapToPoint(navPoint);
                 currentPoint = navPoint;
@@ -774,7 +772,7 @@ public sealed class EnemySteering
             return false;
         }
 
-        if (Vector3.Distance(currentPoint, navPoint) > NavSnapGap)
+        if (GetFlatDistanceSqr(currentPoint, navPoint) > NavSnapGap * NavSnapGap)
         {
             SnapToPoint(navPoint);
             currentPoint = navPoint;
@@ -911,7 +909,7 @@ public sealed class EnemySteering
             return true;
         }
 
-        if (Vector3.Distance(_pathTargetPoint, targetPoint) >= PathRefreshGap)
+        if (GetFlatDistanceSqr(_pathTargetPoint, targetPoint) >= PathRefreshGap * PathRefreshGap)
         {
             return true;
         }
@@ -1375,7 +1373,7 @@ public sealed class EnemySteering
                 {
                     if (IsEnemyCollider(hitCollider) == false)
                     {
-                        Vector3 obstaclePoint = hitCollider.ClosestPoint(overlapPoint);
+                        Vector3 obstaclePoint = GetClosestPoint(hitCollider, overlapPoint);
                         Vector3 overlapNormal = overlapPoint - obstaclePoint;
                         overlapNormal = GetFlatDirection(overlapNormal);
 
@@ -1973,6 +1971,35 @@ public sealed class EnemySteering
     private Vector3 GetProbeOrigin(Vector3 currentPoint, float probeHeight)
     {
         return currentPoint + (Vector3.up * probeHeight);
+    }
+
+    private Vector3 GetClosestPoint(Collider hitCollider, Vector3 point)
+    {
+        if (hitCollider is BoxCollider
+            || hitCollider is SphereCollider
+            || hitCollider is CapsuleCollider)
+        {
+            return hitCollider.ClosestPoint(point);
+        }
+
+        MeshCollider meshCollider = hitCollider as MeshCollider;
+
+        if (meshCollider != null && meshCollider.convex)
+        {
+            return hitCollider.ClosestPoint(point);
+        }
+
+        return hitCollider.bounds.ClosestPoint(point);
+    }
+
+    private float GetFlatDistanceSqr(Vector3 firstPoint, Vector3 secondPoint)
+    {
+        firstPoint.y = _root.position.y;
+        secondPoint.y = _root.position.y;
+
+        Vector3 delta = firstPoint - secondPoint;
+
+        return delta.sqrMagnitude;
     }
 
     private Vector3 GetFlatVector(Vector3 direction)

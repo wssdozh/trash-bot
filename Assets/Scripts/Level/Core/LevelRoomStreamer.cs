@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,10 +9,14 @@ public sealed class LevelRoomStreamer : MonoBehaviour
     [SerializeField, Min(0f)] private float _enableDistance = 35f;
     [SerializeField, Min(0f)] private float _disableDistance = 45f;
     [SerializeField, Min(0f)] private float _startDelay = 0.5f;
+    [SerializeField, Min(0.02f)] private float _updateInterval = 0.2f;
 
     private readonly List<RoomRuntimeState> _rooms = new List<RoomRuntimeState>(64);
 
     private LevelRuntimeNavMesh _levelRuntimeNavMesh;
+    private Transform _playerTrack;
+    private Coroutine _streamCoroutine;
+    private WaitForSecondsRealtime _updateDelay;
     private float _startTime;
     private bool _isStarted;
 
@@ -24,6 +29,13 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         _startTime = Time.unscaledTime;
         _isStarted = _startDelay <= 0f;
         _levelRuntimeNavMesh = GetComponent<LevelRuntimeNavMesh>();
+        _updateDelay = new WaitForSecondsRealtime(GetUpdateInterval());
+        _playerTrack = null;
+
+        if (_player != null)
+        {
+            _playerTrack = ResolvePlayerTrack(_player);
+        }
 
         _rooms.Clear();
 
@@ -41,6 +53,11 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         }
 
         enabled = _rooms.Count > 0;
+
+        if (enabled)
+        {
+            StartStreamLoop();
+        }
     }
 
     public void ClearRooms()
@@ -59,10 +76,27 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
         _rooms.Clear();
         _isStarted = false;
+        _playerTrack = null;
+        StopStreamLoop();
         enabled = false;
     }
 
-    private void LateUpdate()
+    private void OnDisable()
+    {
+        StopStreamLoop();
+    }
+
+    private IEnumerator StreamLoop()
+    {
+        while (enabled)
+        {
+            TickStream();
+
+            yield return _updateDelay;
+        }
+    }
+
+    private void TickStream()
     {
         if (_rooms.Count == 0)
         {
@@ -91,20 +125,26 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
     private Transform GetPlayer()
     {
+        if (_playerTrack != null)
+        {
+            return _playerTrack;
+        }
+
         if (_player != null)
         {
-            _player = ResolvePlayerTrack(_player);
+            _playerTrack = ResolvePlayerTrack(_player);
 
-            return _player;
+            return _playerTrack;
         }
 
         Player playerComponent = FindFirstObjectByType<Player>();
 
         if (playerComponent != null)
         {
-            _player = ResolvePlayerTrack(playerComponent.transform);
+            _player = playerComponent.transform;
+            _playerTrack = ResolvePlayerTrack(_player);
 
-            return _player;
+            return _playerTrack;
         }
 
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
@@ -118,18 +158,25 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
         if (rootPlayer != null)
         {
-            _player = ResolvePlayerTrack(rootPlayer.transform);
+            _player = rootPlayer.transform;
+            _playerTrack = ResolvePlayerTrack(_player);
 
-            return _player;
+            return _playerTrack;
         }
 
-        _player = ResolvePlayerTrack(playerObject.transform);
+        _player = playerObject.transform;
+        _playerTrack = ResolvePlayerTrack(_player);
 
-        return _player;
+        return _playerTrack;
     }
 
     private Transform ResolvePlayerTrack(Transform playerTransform)
     {
+        if (playerTransform == null)
+        {
+            return null;
+        }
+
         Rigidbody[] rigidbodyComponents = playerTransform.GetComponentsInChildren<Rigidbody>(true);
 
         for (int index = 0; index < rigidbodyComponents.Length; index++)
@@ -209,5 +256,31 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         }
 
         _levelRuntimeNavMesh.RequestUpdate();
+    }
+
+    private void StartStreamLoop()
+    {
+        if (_streamCoroutine != null)
+        {
+            StopCoroutine(_streamCoroutine);
+        }
+
+        _streamCoroutine = StartCoroutine(StreamLoop());
+    }
+
+    private void StopStreamLoop()
+    {
+        if (_streamCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(_streamCoroutine);
+        _streamCoroutine = null;
+    }
+
+    private float GetUpdateInterval()
+    {
+        return Mathf.Max(0.02f, _updateInterval);
     }
 }

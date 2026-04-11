@@ -35,40 +35,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
         SubscribeEnterTriggers();
         RefreshThreats();
-    }
-
-    private void OnDisable()
-    {
-        UnsubscribeEnterTriggers();
-        UnsubscribeThreats();
-    }
-
-    private void Update()
-    {
-        if (_roomRuntimeState == null)
-        {
-            return;
-        }
-
-        if (_isCleared)
-        {
-            return;
-        }
-
-        if (_isLocked == false)
-        {
-            if (HasAliveThreats() == false)
-            {
-                _isCleared = true;
-            }
-
-            return;
-        }
-
-        if (HasAliveThreats() == false)
-        {
-            UnlockRoom();
-        }
+        EvaluateThreatState();
     }
 
     public void Setup(RoomRuntimeState roomRuntimeState, float blockSize)
@@ -96,6 +63,13 @@ public sealed class RoomCombatLock : MonoBehaviour
         _isLocked = false;
         _isCleared = HasAliveThreats() == false;
         SetGatesClosed(false, true);
+        EvaluateThreatState();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeEnterTriggers();
+        UnsubscribeThreats();
     }
 
     private void LockRoom()
@@ -419,11 +393,33 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private void OnThreatDied()
     {
+        EvaluateThreatState();
+    }
+
+    private void EvaluateThreatState()
+    {
+        if (_roomRuntimeState == null)
+        {
+            return;
+        }
+
+        if (_isCleared)
+        {
+            return;
+        }
+
         if (HasAliveThreats())
         {
             return;
         }
 
-        UnlockRoom();
+        if (_isLocked)
+        {
+            UnlockRoom();
+
+            return;
+        }
+
+        _isCleared = true;
     }
 }

@@ -22,6 +22,11 @@ public class WeaponHolder : MonoBehaviour
 
     public event Action Changed;
 
+    private void Awake()
+    {
+        RefreshUpdateState();
+    }
+
     private void Update()
     {
         if (_hasPendingPickupSpawner == false)
@@ -60,6 +65,7 @@ public class WeaponHolder : MonoBehaviour
         if (IsHoldAllowed == false)
         {
             ClearInternal(false);
+            RefreshUpdateState();
             return;
         }
 
@@ -67,6 +73,8 @@ public class WeaponHolder : MonoBehaviour
         {
             EquipInternal(_pendingPickupSpawnerKey);
         }
+
+        RefreshUpdateState();
 
     }
 
@@ -90,6 +98,8 @@ public class WeaponHolder : MonoBehaviour
             }
         }
 
+        RefreshUpdateState();
+
     }
 
     public void Equip(BasePickup pickupPrefab)
@@ -108,21 +118,25 @@ public class WeaponHolder : MonoBehaviour
         if (IsHoldAllowed == false)
         {
             ClearInternal(false);
+            RefreshUpdateState();
             return;
         }
 
         if (IsSwitchLocked)
         {
+            RefreshUpdateState();
             return;
         }
 
         EquipInternal(pickupSpawnerKey);
+        RefreshUpdateState();
 
     }
 
     public void Clear()
     {
         ClearInternal(true);
+        RefreshUpdateState();
     }
 
     private void EquipInternal(string pickupSpawnerKey)
@@ -198,6 +212,7 @@ public class WeaponHolder : MonoBehaviour
         }
 
         Changed?.Invoke();
+        RefreshUpdateState();
 
     }
 
@@ -244,6 +259,33 @@ public class WeaponHolder : MonoBehaviour
         }
 
         Changed?.Invoke();
+        RefreshUpdateState();
 
+    }
+
+    private void RefreshUpdateState()
+    {
+        if (_hasPendingPickupSpawner == false)
+        {
+            enabled = false;
+
+            return;
+        }
+
+        if (IsHoldAllowed == false)
+        {
+            enabled = false;
+
+            return;
+        }
+
+        if (IsSwitchLocked)
+        {
+            enabled = false;
+
+            return;
+        }
+
+        enabled = _pickup == null;
     }
 }

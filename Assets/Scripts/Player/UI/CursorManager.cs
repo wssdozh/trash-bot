@@ -13,22 +13,31 @@ public class CursorManager : MonoBehaviour
     [SerializeField] private LayerMask _interactableMask;
 
     private readonly RaycastHit[] _hitBuffer = new RaycastHit[HitBufferSize];
+    private Vector2 _mouseScreenPos;
+    private Transform _playerRoot;
 
     public Vector3 MouseWorldPos { get; private set; }
     public Vector3 MouseGroundPos { get; private set; }
     public Vector3 MouseHitPos { get; private set; }
     public bool HasHit { get; private set; }
 
-    public Vector2 MouseScreenPos => Mouse.current.position.ReadValue();
+    public Vector2 MouseScreenPos => _mouseScreenPos;
 
     private void Awake()
     {
         Cursor.visible = false;
+        RefreshPlayerRoot();
     }
 
     private void Update()
     {
-        _rectTransform.position = MouseScreenPos;
+        if (Mouse.current == null)
+        {
+            return;
+        }
+
+        _mouseScreenPos = Mouse.current.position.ReadValue();
+        _rectTransform.position = _mouseScreenPos;
 
         UpdateWorldPositions();
     }
@@ -42,7 +51,12 @@ public class CursorManager : MonoBehaviour
             return false;
         }
 
-        Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
+        if (Mouse.current != null)
+        {
+            _mouseScreenPos = Mouse.current.position.ReadValue();
+        }
+
+        Ray ray = _camera.ScreenPointToRay(_mouseScreenPos);
 
         return TryGetHit(ray, out hitInfo);
     }
@@ -64,7 +78,12 @@ public class CursorManager : MonoBehaviour
             return;
         }
 
-        Ray ray = _camera.ScreenPointToRay(MouseScreenPos);
+        if (_playerRoot == null || _playerRoot != _player.root)
+        {
+            RefreshPlayerRoot();
+        }
+
+        Ray ray = _camera.ScreenPointToRay(_mouseScreenPos);
         RaycastHit hitInfo;
 
         if (TryGetHit(ray, out hitInfo))
@@ -133,21 +152,36 @@ public class CursorManager : MonoBehaviour
             return true;
         }
 
+        Transform colliderTransform = collider.transform;
+
         if (_player != null)
         {
-            if (collider.transform.IsChildOf(_player))
+            if (colliderTransform.IsChildOf(_player))
             {
                 return true;
             }
         }
 
-        Player player = collider.GetComponentInParent<Player>();
-
-        if (player != null)
+        if (_playerRoot != null)
         {
-            return true;
+            if (colliderTransform.IsChildOf(_playerRoot))
+            {
+                return true;
+            }
         }
 
         return false;
+    }
+
+    private void RefreshPlayerRoot()
+    {
+        if (_player == null)
+        {
+            _playerRoot = null;
+
+            return;
+        }
+
+        _playerRoot = _player.root;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -20,8 +21,11 @@ public sealed class EnemyAnimation : MonoBehaviour
     [SerializeField] private WeaponType _weaponType = WeaponType.None;
     [SerializeField, Min(0.1f)] private float _weaponFireRateScale = 1f;
     [SerializeField, Min(0.1f)] private float _weaponDamageScale = 1f;
+    [SerializeField, Min(0.02f)] private float _updateTick = 0.05f;
 
     private IEnemyBrain _enemyBrainState;
+    private Coroutine _stateCoroutine;
+    private WaitForSeconds _stateWait;
 
     private void Awake()
     {
@@ -71,6 +75,7 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         ResolveBrain();
+        _stateWait = new WaitForSeconds(GetUpdateTick());
     }
 
     private void OnEnable()
@@ -81,18 +86,15 @@ public sealed class EnemyAnimation : MonoBehaviour
         _enemy.Died += OnEnemyDied;
 
         ApplyState();
+        StartStateLoop();
     }
 
     private void OnDisable()
     {
         _health.Decreased -= OnHealthDecreased;
         _enemy.Died -= OnEnemyDied;
+        StopStateLoop();
         ClearWeaponView();
-    }
-
-    private void Update()
-    {
-        ApplyState();
     }
 
     public void TriggerAttack()
@@ -330,5 +332,38 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         return null;
+    }
+
+    private IEnumerator StateLoop()
+    {
+        while (enabled)
+        {
+            ApplyState();
+
+            yield return _stateWait;
+        }
+    }
+
+    private void StartStateLoop()
+    {
+        StopStateLoop();
+        _stateWait = new WaitForSeconds(GetUpdateTick());
+        _stateCoroutine = StartCoroutine(StateLoop());
+    }
+
+    private void StopStateLoop()
+    {
+        if (_stateCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(_stateCoroutine);
+        _stateCoroutine = null;
+    }
+
+    private float GetUpdateTick()
+    {
+        return Mathf.Max(0.02f, _updateTick);
     }
 }

@@ -16,6 +16,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private const float SpawnSearchStep = 0.35f;
     private const float SpawnCheckPadding = 0.25f;
     private const float ZeroThreshold = 0.0001f;
+    private static readonly int[] s_neighborOffsetX = new int[4] { 1, -1, 0, 0 };
+    private static readonly int[] s_neighborOffsetZ = new int[4] { 0, 0, 1, -1 };
 
     private struct SpawnCandidate
     {
@@ -30,6 +32,19 @@ public sealed class RoomContentSpawner : MonoBehaviour
     }
 
     private readonly Collider[] _spawnCheckBuffer = new Collider[SpawnCheckBufferSize];
+    private readonly HashSet<Vector2Int> _reservedFloorCellSetBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _resourceObstacleFloorCellSetBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _enemyObstacleFloorCellSetBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _enemyForbiddenCellSetBuffer = new HashSet<Vector2Int>();
+    private readonly HashSet<Vector2Int> _corridorStartCellsBuffer = new HashSet<Vector2Int>();
+    private readonly List<Vector2Int> _freeCellsBuffer = new List<Vector2Int>();
+    private readonly List<Vector2Int> _resourceCentersBuffer = new List<Vector2Int>();
+    private readonly HashSet<Vector2Int> _enemyCellsBuffer = new HashSet<Vector2Int>();
+    private readonly List<EnemySpawnConfig> _spawnedEnemiesBuffer = new List<EnemySpawnConfig>();
+    private readonly Queue<Vector2Int> _distanceFillQueue = new Queue<Vector2Int>();
+    private readonly HashSet<Vector2Int> _localAreaVisitedCells = new HashSet<Vector2Int>();
+    private readonly Queue<Vector2Int> _localAreaCellsQueue = new Queue<Vector2Int>();
+    private readonly Queue<int> _localAreaDistanceQueue = new Queue<int>();
 
     [SerializeField] private Transform _objectsRoot;
     [SerializeField] private Transform _enemiesRoot;
@@ -83,17 +98,21 @@ public sealed class RoomContentSpawner : MonoBehaviour
             noiseValues = roomTypeProfile.NoiseProfile.GenerateNoiseMap(roomSizeInBlocks.x, roomSizeInBlocks.z);
         }
 
-        HashSet<Vector2Int> reservedFloorCellSet = new HashSet<Vector2Int>(reservedFloorCells);
-        HashSet<Vector2Int> resourceObstacleFloorCellSet = CreateObstacleFloorCells(floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
+        HashSet<Vector2Int> reservedFloorCellSet = _reservedFloorCellSetBuffer;
+        FillReservedFloorCells(reservedFloorCellSet, reservedFloorCells);
+        HashSet<Vector2Int> resourceObstacleFloorCellSet = _resourceObstacleFloorCellSetBuffer;
+        FillObstacleFloorCells(resourceObstacleFloorCellSet, floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
 
-        HashSet<Vector2Int> enemyForbiddenCellSet = CreateExpandedCellSet(roomSizeInBlocks, reservedFloorCellSet, _enemyReservedFloorAvoidanceInCells);
+        HashSet<Vector2Int> enemyForbiddenCellSet = _enemyForbiddenCellSetBuffer;
+        FillExpandedCellSet(enemyForbiddenCellSet, roomSizeInBlocks, reservedFloorCellSet, _enemyReservedFloorAvoidanceInCells);
 
         Vector2Int entranceCell = GetReferenceEntranceCell(roomSizeInBlocks, doorPlans);
 
         int[,] distanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, resourceObstacleFloorCellSet);
         int maximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, distanceFromEntrance);
 
-        HashSet<Vector2Int> corridorStartCells = new HashSet<Vector2Int>(reservedFloorCellSet);
+        HashSet<Vector2Int> corridorStartCells = _corridorStartCellsBuffer;
+        FillCopySet(corridorStartCells, reservedFloorCellSet);
 
         if (corridorStartCells.Count == 0)
         {
@@ -102,7 +121,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         int[,] distanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, resourceObstacleFloorCellSet);
 
-        List<Vector2Int> freeCells = CreateFreeCells(roomSizeInBlocks, floorOccupancy);
+        List<Vector2Int> freeCells = _freeCellsBuffer;
+        FillFreeCells(freeCells, roomSizeInBlocks, floorOccupancy);
 
         List<Vector2Int> resourceCenters = SpawnResources(
             roomTypeProfile,
@@ -118,7 +138,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
             random
         );
 
-        HashSet<Vector2Int> enemyObstacleFloorCellSet = CreateObstacleFloorCells(floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
+        HashSet<Vector2Int> enemyObstacleFloorCellSet = _enemyObstacleFloorCellSetBuffer;
+        FillObstacleFloorCells(enemyObstacleFloorCellSet, floorOccupancy.OccupiedFloorCells, reservedFloorCellSet);
         int[,] enemyDistanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, enemyObstacleFloorCellSet);
         int enemyMaximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, enemyDistanceFromEntrance);
         int[,] enemyDistanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, enemyObstacleFloorCellSet);
@@ -293,9 +314,29 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return new Vector2Int(1, centerOffset);
     }
 
-    private HashSet<Vector2Int> CreateObstacleFloorCells(HashSet<Vector2Int> occupiedFloorCells, HashSet<Vector2Int> reservedFloorCellSet)
+    private void FillReservedFloorCells(HashSet<Vector2Int> targetCells, IReadOnlyCollection<Vector2Int> sourceCells)
     {
-        HashSet<Vector2Int> obstacleFloorCellSet = new HashSet<Vector2Int>();
+        targetCells.Clear();
+
+        foreach (Vector2Int sourceCell in sourceCells)
+        {
+            targetCells.Add(sourceCell);
+        }
+    }
+
+    private void FillCopySet(HashSet<Vector2Int> targetCells, HashSet<Vector2Int> sourceCells)
+    {
+        targetCells.Clear();
+
+        foreach (Vector2Int sourceCell in sourceCells)
+        {
+            targetCells.Add(sourceCell);
+        }
+    }
+
+    private void FillObstacleFloorCells(HashSet<Vector2Int> obstacleFloorCellSet, HashSet<Vector2Int> occupiedFloorCells, HashSet<Vector2Int> reservedFloorCellSet)
+    {
+        obstacleFloorCellSet.Clear();
 
         foreach (Vector2Int occupiedCell in occupiedFloorCells)
         {
@@ -306,13 +347,11 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             obstacleFloorCellSet.Add(occupiedCell);
         }
-
-        return obstacleFloorCellSet;
     }
 
-    private HashSet<Vector2Int> CreateExpandedCellSet(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> sourceCells, int radiusInCells)
+    private void FillExpandedCellSet(HashSet<Vector2Int> expandedCells, Vector3Int roomSizeInBlocks, HashSet<Vector2Int> sourceCells, int radiusInCells)
     {
-        HashSet<Vector2Int> expandedCells = new HashSet<Vector2Int>();
+        expandedCells.Clear();
 
         if (radiusInCells <= 0)
         {
@@ -321,7 +360,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 expandedCells.Add(sourceCell);
             }
 
-            return expandedCells;
+            return;
         }
 
         foreach (Vector2Int sourceCell in sourceCells)
@@ -348,8 +387,6 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
             }
         }
-
-        return expandedCells;
     }
 
     private bool IsTooCloseToRoomWalls(Vector2Int cell, Vector3Int roomSizeInBlocks, int wallAvoidanceInCells)
@@ -494,9 +531,9 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return 1f - Mathf.Abs(cover - preferredCover);
     }
 
-    private List<Vector2Int> CreateFreeCells(Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy)
+    private void FillFreeCells(List<Vector2Int> freeCells, Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy)
     {
-        List<Vector2Int> freeCells = new List<Vector2Int>();
+        freeCells.Clear();
 
         for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
         {
@@ -512,14 +549,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 freeCells.Add(cell);
             }
         }
-
-        return freeCells;
     }
 
     private int[,] ComputeDistanceFieldFromSingleStart(Vector3Int roomSizeInBlocks, Vector2Int startCell, HashSet<Vector2Int> obstacleCells)
     {
         int[,] distances = CreateDistanceArray(roomSizeInBlocks);
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        Queue<Vector2Int> queue = _distanceFillQueue;
+        queue.Clear();
 
         if (IsInteriorCell(startCell, roomSizeInBlocks) == true && obstacleCells.Contains(startCell) == false)
         {
@@ -534,7 +570,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private int[,] ComputeDistanceFieldFromMultipleStarts(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> startCells, HashSet<Vector2Int> obstacleCells)
     {
         int[,] distances = CreateDistanceArray(roomSizeInBlocks);
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        Queue<Vector2Int> queue = _distanceFillQueue;
+        queue.Clear();
 
         foreach (Vector2Int startCell in startCells)
         {
@@ -578,9 +615,6 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
     private void FloodFillDistances(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> obstacleCells, int[,] distances, Queue<Vector2Int> queue)
     {
-        int[] offsetX = new int[4] { 1, -1, 0, 0 };
-        int[] offsetZ = new int[4] { 0, 0, 1, -1 };
-
         while (queue.Count > 0)
         {
             Vector2Int currentCell = queue.Dequeue();
@@ -588,7 +622,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             for (int directionIndex = 0; directionIndex < 4; directionIndex++)
             {
-                Vector2Int neighborCell = new Vector2Int(currentCell.x + offsetX[directionIndex], currentCell.y + offsetZ[directionIndex]);
+                Vector2Int neighborCell = new Vector2Int(currentCell.x + s_neighborOffsetX[directionIndex], currentCell.y + s_neighborOffsetZ[directionIndex]);
 
                 if (IsInteriorCell(neighborCell, roomSizeInBlocks) == false)
                 {
@@ -797,18 +831,18 @@ public sealed class RoomContentSpawner : MonoBehaviour
             stopCount = 1;
         }
 
-        HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
-        Queue<Vector2Int> cellsToVisit = new Queue<Vector2Int>();
-        Queue<int> distanceQueue = new Queue<int>();
+        HashSet<Vector2Int> visitedCells = _localAreaVisitedCells;
+        Queue<Vector2Int> cellsToVisit = _localAreaCellsQueue;
+        Queue<int> distanceQueue = _localAreaDistanceQueue;
+        visitedCells.Clear();
+        cellsToVisit.Clear();
+        distanceQueue.Clear();
 
         visitedCells.Add(startCell);
         cellsToVisit.Enqueue(startCell);
         distanceQueue.Enqueue(0);
 
         int openArea = 0;
-        int[] offsetX = new int[4] { 1, -1, 0, 0 };
-        int[] offsetZ = new int[4] { 0, 0, 1, -1 };
-
         while (cellsToVisit.Count > 0)
         {
             Vector2Int currentCell = cellsToVisit.Dequeue();
@@ -828,7 +862,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             for (int directionIndex = 0; directionIndex < 4; directionIndex++)
             {
-                Vector2Int neighborCell = new Vector2Int(currentCell.x + offsetX[directionIndex], currentCell.y + offsetZ[directionIndex]);
+                Vector2Int neighborCell = new Vector2Int(currentCell.x + s_neighborOffsetX[directionIndex], currentCell.y + s_neighborOffsetZ[directionIndex]);
 
                 if (IsInteriorCell(neighborCell, roomSizeInBlocks) == false)
                 {
@@ -939,6 +973,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         BindEnemyRoom(instance);
+
+        if (TryFixEnemySpawn(instance, instance.transform.position) == false)
+        {
+            DestroySpawned(instance);
+
+            return false;
+        }
 
         return true;
     }
@@ -1361,7 +1402,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
         System.Random random
     )
     {
-        List<Vector2Int> resourceCenters = new List<Vector2Int>();
+        List<Vector2Int> resourceCenters = _resourceCentersBuffer;
+        resourceCenters.Clear();
 
         if (roomTypeProfile.ObjectPrefabs.Count == 0)
         {
@@ -1759,8 +1801,10 @@ public sealed class RoomContentSpawner : MonoBehaviour
             return;
         }
 
-        HashSet<Vector2Int> enemyCells = new HashSet<Vector2Int>();
-        List<EnemySpawnConfig> spawnedEnemies = new List<EnemySpawnConfig>();
+        HashSet<Vector2Int> enemyCells = _enemyCellsBuffer;
+        List<EnemySpawnConfig> spawnedEnemies = _spawnedEnemiesBuffer;
+        enemyCells.Clear();
+        spawnedEnemies.Clear();
         Vector2Int roomCenterCell = GetRoomCenterCell(roomSizeInBlocks);
 
         int guardCount = enemySpawnCount;

@@ -24,6 +24,8 @@ public sealed class EnemyRoomLock : MonoBehaviour
         {
             _enemyDroneMove = GetComponentInChildren<EnemyDroneMove>();
         }
+
+        enabled = false;
     }
 
     private void FixedUpdate()
@@ -50,6 +52,7 @@ public sealed class EnemyRoomLock : MonoBehaviour
 
         _roomRuntimeState = roomRuntimeState;
         _enemyRoomAlert = roomRuntimeState.GetComponent<EnemyRoomAlert>();
+        enabled = true;
     }
 
     public bool ContainsRoomPoint(Vector3 point)

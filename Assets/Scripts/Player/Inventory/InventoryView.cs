@@ -11,7 +11,7 @@ public class InventoryView : MonoBehaviour
     [SerializeField] private Transform _slotsParent;
 
     private readonly List<InventorySlotView> _slotViews = new List<InventorySlotView>();
-    private bool _isBuilt;
+    private int _boundSlotsCount = -1;
 
     private void Awake()
     {
@@ -51,7 +51,7 @@ public class InventoryView : MonoBehaviour
 
     private void Start()
     {
-        BuildIfNeeded();
+        EnsureSlotViews(true);
         OnInventoryChanged();
         OnActiveIndexChanged(_inventory.ActiveIndex);
     }
@@ -62,33 +62,47 @@ public class InventoryView : MonoBehaviour
         _inventory.ActiveIndexChanged -= OnActiveIndexChanged;
     }
 
-    private void BuildIfNeeded()
+    private void EnsureSlotViews(bool shouldRebindSlots)
     {
-        if (_isBuilt)
-        {
-            return;
-        }
-
-        ClearSlotViews();
-
         int slotsCount = _inventory.Slots.Count;
 
-        for (int i = 0; i < slotsCount; i++)
+        for (int index = 0; index < slotsCount; index++)
         {
-            InventorySlot slot = _inventory.Slots[i];
-            InventorySlotView slotView = Instantiate(_slotViewPrefab, _slotsParent);
-            slotView.SetSlot(slot);
-            _slotViews.Add(slotView);
+            InventorySlotView slotView;
+
+            if (index < _slotViews.Count)
+            {
+                slotView = _slotViews[index];
+            }
+            else
+            {
+                slotView = Instantiate(_slotViewPrefab, _slotsParent);
+                _slotViews.Add(slotView);
+            }
+
+            slotView.gameObject.SetActive(true);
+
+            if (shouldRebindSlots)
+            {
+                slotView.SetSlot(_inventory.Slots[index]);
+            }
         }
 
-        _isBuilt = true;
+        for (int index = slotsCount; index < _slotViews.Count; index++)
+        {
+            InventorySlotView slotView = _slotViews[index];
+            slotView.gameObject.SetActive(false);
+            slotView.SetActive(false);
+        }
+
+        _boundSlotsCount = slotsCount;
     }
 
-    private void ClearSlotViews()
+    private void OnDestroy()
     {
-        for (int i = 0; i < _slotViews.Count; i++)
+        for (int index = 0; index < _slotViews.Count; index++)
         {
-            InventorySlotView slotView = _slotViews[i];
+            InventorySlotView slotView = _slotViews[index];
 
             if (slotView == null)
             {
@@ -103,35 +117,28 @@ public class InventoryView : MonoBehaviour
 
     private void OnInventoryChanged()
     {
-        if (_isBuilt == false)
-        {
-            BuildIfNeeded();
-        }
+        bool shouldRebindSlots = _boundSlotsCount != _inventory.Slots.Count;
+        EnsureSlotViews(shouldRebindSlots);
 
-        if (_slotViews.Count != _inventory.Slots.Count)
-        {
-            _isBuilt = false;
-            BuildIfNeeded();
-        }
+        int slotsCount = _inventory.Slots.Count;
 
-        for (int i = 0; i < _slotViews.Count; i++)
+        for (int index = 0; index < slotsCount; index++)
         {
-            InventorySlotView slotView = _slotViews[i];
+            InventorySlotView slotView = _slotViews[index];
             slotView.Refresh();
         }
     }
 
     private void OnActiveIndexChanged(int activeIndex)
     {
-        if (_isBuilt == false)
-        {
-            BuildIfNeeded();
-        }
+        EnsureSlotViews(false);
 
-        for (int i = 0; i < _slotViews.Count; i++)
+        int slotsCount = _inventory.Slots.Count;
+
+        for (int index = 0; index < _slotViews.Count; index++)
         {
-            bool isActive = i == activeIndex;
-            _slotViews[i].SetActive(isActive);
+            bool isActive = index == activeIndex && index < slotsCount;
+            _slotViews[index].SetActive(isActive);
         }
     }
 }

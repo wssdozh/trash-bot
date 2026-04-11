@@ -6,6 +6,9 @@ public sealed class SpawnerServiceLocator
 {
     private static readonly Dictionary<Type, Dictionary<string, object>> _sourcesByType = new Dictionary<Type, Dictionary<string, object>>();
 
+    public static event Action<Type, string> Registered;
+    public static event Action<Type, string> Unregistered;
+
     public static void Register<T>(string key, Spawner<T> spawner) where T : MonoBehaviour
     {
         if (string.IsNullOrEmpty(key))
@@ -21,6 +24,13 @@ public sealed class SpawnerServiceLocator
         Type sourceType = typeof(T);
         Dictionary<string, object> sources = GetOrCreateSources(sourceType);
         sources[key] = spawner;
+
+        Action<Type, string> registeredAction = Registered;
+
+        if (registeredAction != null)
+        {
+            registeredAction.Invoke(sourceType, key);
+        }
     }
 
     public static Spawner<T> Get<T>(string key) where T : MonoBehaviour
@@ -91,7 +101,19 @@ public sealed class SpawnerServiceLocator
             return;
         }
 
-        sources.Remove(key);
+        bool isRemoved = sources.Remove(key);
+
+        if (isRemoved == false)
+        {
+            return;
+        }
+
+        Action<Type, string> unregisteredAction = Unregistered;
+
+        if (unregisteredAction != null)
+        {
+            unregisteredAction.Invoke(sourceType, key);
+        }
 
         if (sources.Count == 0)
         {

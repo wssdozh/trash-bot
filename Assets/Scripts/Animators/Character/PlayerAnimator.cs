@@ -23,6 +23,7 @@ public class PlayerAnimator : MonoBehaviour
     private float _targetMove;
     private bool _isMoving;
     private bool _isSprinting;
+    private bool _isFight;
 
     private Vector3 _worldMoveDirection;
 
@@ -58,6 +59,11 @@ public class PlayerAnimator : MonoBehaviour
 
     public void SetMoveState(bool isMoving)
     {
+        if (_isMoving == isMoving)
+        {
+            return;
+        }
+
         _isMoving = isMoving;
 
         if (_isMoving == false)
@@ -68,11 +74,21 @@ public class PlayerAnimator : MonoBehaviour
 
     public void SetSprintState(bool isSprinting)
     {
+        if (_isSprinting == isSprinting)
+        {
+            return;
+        }
+
         _isSprinting = isSprinting;
     }
 
     public void SetWorldMoveDirection(Vector3 worldMoveDirection)
     {
+        if ((_worldMoveDirection - worldMoveDirection).sqrMagnitude <= Mathf.Epsilon)
+        {
+            return;
+        }
+
         _worldMoveDirection = worldMoveDirection;
     }
 
@@ -130,6 +146,12 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
 
+        if (_isFight == isFight)
+        {
+            return;
+        }
+
+        _isFight = isFight;
         _animator.SetBool(_isFightHash, isFight);
     }
 
@@ -148,6 +170,7 @@ public class PlayerAnimator : MonoBehaviour
         _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
         _currentMove = 0f;
         _targetMove = 0f;
+        _isFight = false;
         _nextAttackIndex = 0;
     }
 
