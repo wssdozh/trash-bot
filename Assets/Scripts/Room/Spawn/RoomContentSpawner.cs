@@ -1004,6 +1004,14 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         enemyAnimation.SetWeapon(enemySpawn.WeaponPrefab);
+        EnemyMeleeBrain enemyMeleeBrain = enemyObject.GetComponentInChildren<EnemyMeleeBrain>(true);
+
+        if (enemyMeleeBrain == null)
+        {
+            return;
+        }
+
+        enemyMeleeBrain.ApplyRole();
     }
 
     private void BindEnemyRoom(GameObject enemyObject)
