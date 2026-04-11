@@ -105,6 +105,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private bool _hasLastSeenMovePoint;
     private bool _hasSearchPoint;
     private bool _isIdleWalking;
+    private bool _isSearchIdle;
     private float _idleLastDistance;
     private float _idleStuckTimer;
     private float _idleTimer;
@@ -166,6 +167,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _hasSearchPoint = false;
         _searchStep = 0;
         _isIdleWalking = false;
+        _isSearchIdle = false;
         _idleTimer = 0f;
         StopFire();
         ResetMoveStuck();
@@ -552,6 +554,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _isIdleWalking = false;
         _hasSearchPoint = false;
         _searchStep = 0;
+        _isSearchIdle = false;
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
         Vector3 targetPoint = GetTargetPoint(currentTarget);
@@ -606,6 +609,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _isIdleWalking = false;
+        FireExecutor fireExecutor = GetFireExecutor();
+
+        if (fireExecutor != null)
+        {
+            ProcessHiddenRange(GetFlatPoint(transform.position));
+
+            return;
+        }
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
 
@@ -620,6 +631,28 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _state = EnemyState.Search;
         _enemyMove.SetRun(false);
         ProcessSearch(currentPoint);
+    }
+
+    private void ProcessHiddenRange(Vector3 currentPoint)
+    {
+        _state = EnemyState.Search;
+        _enemyMove.SetRun(false);
+        _hasSearchPoint = false;
+        _searchStep = 0;
+        _isSearchIdle = true;
+
+        Vector3 searchPoint = GetMovePoint(_lastSeenPoint);
+        float distance = Vector3.Distance(currentPoint, searchPoint);
+
+        if (distance > _searchPointDistance)
+        {
+            if (TryRangeMove(searchPoint, _searchPointDistance, _lastSeenPoint, currentPoint))
+            {
+                return;
+            }
+        }
+
+        FinishSearch();
     }
 
     private void ProcessIdle()
@@ -699,6 +732,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void ProcessSearch(Vector3 currentPoint)
     {
         _enemyMove.SetRun(false);
+        _isSearchIdle = true;
 
         if (_hasSearchPoint == false)
         {
@@ -714,7 +748,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (distance > _searchPointDistance)
         {
-            TrySearchMove(_enemySteering.MoveToPoint(_searchTargetPoint, _searchPointDistance), currentPoint);
+            if (TrySearchMove(_enemySteering.MoveToPoint(_searchTargetPoint, _searchPointDistance), currentPoint))
+            {
+                return;
+            }
+
+            FinishSearch();
 
             return;
         }
@@ -775,7 +814,17 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         ResetMoveStuck();
         _enemyMove.SetRun(false);
         _idleTimer = GetIdleWait();
-        _idleLookPoint = transform.position + (GetIdleLookDirection() * LookDistance);
+
+        if (_isSearchIdle)
+        {
+            _idleLookPoint = transform.position + (_idleDirection * LookDistance);
+        }
+
+        else
+        {
+            _idleLookPoint = transform.position + (GetIdleLookDirection() * LookDistance);
+        }
+
         _enemySteering.Stop();
     }
 
@@ -826,6 +875,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         Vector3 searchDirection = GetSearchDirection();
 
         ClearSearch();
+        _isSearchIdle = true;
 
         _state = EnemyState.Watch;
         _idleDirection = searchDirection;
@@ -1237,6 +1287,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _isIdleWalking = false;
+        _isSearchIdle = false;
         ResetAttackState();
         StopFire();
         _idleLastDistance = -1f;
@@ -1368,6 +1419,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _idleTargetPoint = safePoint;
         _isIdleWalking = true;
+        _isSearchIdle = false;
         _idleLastDistance = -1f;
         _idleStuckTimer = 0f;
 
@@ -1787,6 +1839,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _hasLastSeenMovePoint = false;
         _hasSearchPoint = false;
         _searchStep = 0;
+        _isSearchIdle = false;
         _idlePatrolPicker.Clear();
         ResetMoveStuck();
     }

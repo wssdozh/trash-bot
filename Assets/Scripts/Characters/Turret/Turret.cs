@@ -89,7 +89,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _targetVision.TargetDetected += OnTargetFound;
         _targetVision.TargetCleared += OnTargetLost;
         _isDead = false;
-        SetIdleState();
+        SetIdleState(true);
     }
 
     private void OnDisable()
@@ -108,7 +108,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
     private void Start()
     {
-        SetIdleState();
+        SetIdleState(true);
     }
 
     private void Update()
@@ -149,7 +149,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
                 return;
             }
 
-            SetIdleState();
+            SetIdleState(false);
 
             return;
         }
@@ -174,7 +174,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
     private void OnTargetLost()
     {
-        SetIdleState();
+        SetIdleState(false);
     }
 
     private void SetTrackingState()
@@ -190,7 +190,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _fireDelayCoroutine = StartCoroutine(FireWithDelayCoroutine());
     }
 
-    private void SetIdleState()
+    private void SetIdleState(bool isResetNeeded)
     {
         StopFireDelay();
 
@@ -201,7 +201,17 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
         _targetRotator.enabled = false;
         _targetRotator.ClearAimPoint();
-        _idleRotator.ResetBaseRotation();
+
+        if (isResetNeeded)
+        {
+            _idleRotator.ResetBaseRotation();
+        }
+
+        else
+        {
+            _idleRotator.CaptureBaseRotation();
+        }
+
         _idleRotator.enabled = true;
     }
 
