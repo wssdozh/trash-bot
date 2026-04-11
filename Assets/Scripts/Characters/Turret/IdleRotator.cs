@@ -34,6 +34,13 @@ public class IdleRotator : MonoBehaviour
         _direction = 1;
     }
 
+    public void CaptureBaseRotation()
+    {
+        _baseLocalRotation = _rotationPivot.localRotation;
+        _currentAngle = 0f;
+        _direction = 1;
+    }
+
     private void Update()
     {
         float range = _idleMaxAngle - _idleMinAngle;
