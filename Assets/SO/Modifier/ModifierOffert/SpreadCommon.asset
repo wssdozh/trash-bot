@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33436edde030a8444af21812970dc1bc, type: 3}
+  m_Name: SpreadCommon
+  m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
+  _title: ""
+  _icon: {fileID: -1742835190, guid: 0f2b0968b62429748abfececa3a10741, type: 3}
+  _requiredItem: {fileID: 11400000, guid: 3544f38e12d237847afb7a1e9f75b9ae, type: 2}
+  _rarity: 0
+  _price: 25
+  _modifiers:
+  - {fileID: 11400000, guid: 379371c9095346c7b8004c45792fd6a1, type: 2}

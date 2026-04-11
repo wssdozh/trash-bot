@@ -14,9 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ModifierOfferPool
   _offers:
   - {fileID: 11400000, guid: f3c7e2eaf130e3e459dff876a6a0ab20, type: 2}
+  - {fileID: 11400000, guid: e083dacddd43442b817b430f52b69679, type: 2}
+  - {fileID: 11400000, guid: c6f029cc94a64a78802872ed75f5787c, type: 2}
   - {fileID: 11400000, guid: 0a0b00bb13455d24fb93ca3bcddec427, type: 2}
+  - {fileID: 11400000, guid: fe71bb51922343ccaf1712ed012b813b, type: 2}
+  - {fileID: 11400000, guid: 72a16d920e9742b09e226ff12c0cdc22, type: 2}
+  - {fileID: 11400000, guid: 2e002f1ccba94082a735623a194279e3, type: 2}
+  - {fileID: 11400000, guid: ec188ae3819b40f9a0e1cd3101231724, type: 2}
   - {fileID: 11400000, guid: 9f68b42dff70e3c459810b4ca90600b1, type: 2}
+  - {fileID: 11400000, guid: f3518e50765e42b69d09005716dddeb3, type: 2}
   - {fileID: 11400000, guid: 5d8624af09bd5e54b9adf201fde6f211, type: 2}
+  - {fileID: 11400000, guid: cc4f05a2ef0c4705859ffb0e02332959, type: 2}
+  - {fileID: 11400000, guid: 93946d3a7f0e4aeabb2b76344d992a5e, type: 2}
   - {fileID: 11400000, guid: e6425eafd4733c149905a6a05b344c7f, type: 2}
+  - {fileID: 11400000, guid: f8e67c9403b54a309ba9132067e92531, type: 2}
+  - {fileID: 11400000, guid: 18c300bec7384e38a97105df25cf3018, type: 2}
+  - {fileID: 11400000, guid: 8e4e843f7bed4019a66552c3a9f1985b, type: 2}
   - {fileID: 11400000, guid: 49cd9c256a9d3764f85f4765b1bb38ca, type: 2}
   - {fileID: 11400000, guid: 574a5c69d89279c418f5b0999ac66eb9, type: 2}
+  - {fileID: 11400000, guid: 6c4a144aa7ed47dcbedbd237eefc0c5f, type: 2}
+  - {fileID: 11400000, guid: 188a8f4936a3497187bc3bd146aca155, type: 2}

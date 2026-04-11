@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33436edde030a8444af21812970dc1bc, type: 3}
+  m_Name: DamageLegendary
+  m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
+  _title: ""
+  _icon: {fileID: 1532203538, guid: 1f363769744ed08448d5f6e80253ab5a, type: 3}
+  _requiredItem: {fileID: 0}
+  _rarity: 2
+  _price: 95
+  _modifiers:
+  - {fileID: 11400000, guid: 93d4f6aa33f94a4aa65c894957f13cc0, type: 2}
