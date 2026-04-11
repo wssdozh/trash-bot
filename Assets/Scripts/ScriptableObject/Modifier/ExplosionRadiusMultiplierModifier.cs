@@ -5,6 +5,8 @@ public sealed class ExplosionRadiusMultiplierModifier : WeaponTypeFilteredModifi
 {
     [SerializeField] private float _multiplier = 1.25f;
 
+    public float Multiplier => _multiplier;
+
     protected override void ApplyAllowed(ref WeaponModifierContext context)
     {
         context.ExplosionRadiusMultiplier *= _multiplier;

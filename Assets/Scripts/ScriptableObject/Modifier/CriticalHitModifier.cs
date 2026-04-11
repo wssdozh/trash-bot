@@ -6,6 +6,10 @@ public sealed class CriticalHitModifier : WeaponTypeFilteredModifier
     [SerializeField] private float _chanceAdd01 = 0.1f;
     [SerializeField] private float _damageMultiplier = 2f;
 
+    public float ChanceAdd01 => _chanceAdd01;
+
+    public float DamageMultiplier => _damageMultiplier;
+
     protected override void ApplyAllowed(ref WeaponModifierContext context)
     {
         context.CriticalChance01 += _chanceAdd01;

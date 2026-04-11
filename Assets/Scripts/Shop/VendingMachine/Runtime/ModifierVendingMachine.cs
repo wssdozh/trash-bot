@@ -10,6 +10,11 @@ public sealed class ModifierVendingMachine : Interactable
     [Header("Карточки")]
     [SerializeField] private int _cardCount = 3;
 
+    [Header("Редкость")]
+    [SerializeField] private int _commonWeight = 5;
+    [SerializeField] private int _rareWeight = 3;
+    [SerializeField] private int _legendaryWeight = 2;
+
     [Header("Одноразовый")]
     [SerializeField] private bool _disableColliderOnPurchase = true;
 
@@ -28,6 +33,21 @@ public sealed class ModifierVendingMachine : Interactable
         if (_cardCount <= 0)
         {
             throw new InvalidOperationException(nameof(_cardCount));
+        }
+
+        if (_commonWeight <= 0)
+        {
+            throw new InvalidOperationException(nameof(_commonWeight));
+        }
+
+        if (_rareWeight <= 0)
+        {
+            throw new InvalidOperationException(nameof(_rareWeight));
+        }
+
+        if (_legendaryWeight <= 0)
+        {
+            throw new InvalidOperationException(nameof(_legendaryWeight));
         }
 
         _rolledOffers = new ModifierOffer[_cardCount];
@@ -118,12 +138,7 @@ public sealed class ModifierVendingMachine : Interactable
             throw new InvalidOperationException(nameof(_offerPool));
         }
 
-        ShuffleOffers(availableOffers);
-
-        for (int cardIndex = 0; cardIndex < _rolledOffers.Length; cardIndex++)
-        {
-            _rolledOffers[cardIndex] = availableOffers[cardIndex];
-        }
+        RollOffers(availableOffers);
     }
 
     private List<ModifierOffer> CreateAvailableOffers(ModifierOffer[] pool, GameObject buyer)
@@ -180,15 +195,56 @@ public sealed class ModifierVendingMachine : Interactable
         return buyer.GetComponentInParent<Inventory>();
     }
 
-    private void ShuffleOffers(List<ModifierOffer> offers)
+    private void RollOffers(List<ModifierOffer> offers)
     {
+        List<ModifierOffer> sourceOffers = new List<ModifierOffer>(offers);
+
+        for (int cardIndex = 0; cardIndex < _rolledOffers.Length; cardIndex++)
+        {
+            int pickedIndex = GetPickedIndex(sourceOffers);
+
+            _rolledOffers[cardIndex] = sourceOffers[pickedIndex];
+            sourceOffers.RemoveAt(pickedIndex);
+        }
+    }
+
+    private int GetPickedIndex(List<ModifierOffer> offers)
+    {
+        int totalWeight = 0;
+
         for (int i = 0; i < offers.Count; i++)
         {
-            int swapIndex = UnityEngine.Random.Range(i, offers.Count);
-            ModifierOffer temp = offers[i];
-
-            offers[i] = offers[swapIndex];
-            offers[swapIndex] = temp;
+            totalWeight += GetOfferWeight(offers[i]);
         }
+
+        int rolledWeight = UnityEngine.Random.Range(0, totalWeight);
+        int currentWeight = 0;
+
+        for (int i = 0; i < offers.Count; i++)
+        {
+            currentWeight += GetOfferWeight(offers[i]);
+
+            if (rolledWeight < currentWeight)
+            {
+                return i;
+            }
+        }
+
+        return offers.Count - 1;
+    }
+
+    private int GetOfferWeight(ModifierOffer offer)
+    {
+        if (offer.Rarity == ModifierOfferRarity.Epic)
+        {
+            return _rareWeight;
+        }
+
+        if (offer.Rarity == ModifierOfferRarity.Legendary)
+        {
+            return _legendaryWeight;
+        }
+
+        return _commonWeight;
     }
 }
