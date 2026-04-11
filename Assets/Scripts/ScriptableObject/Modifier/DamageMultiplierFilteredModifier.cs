@@ -5,6 +5,8 @@ public sealed class DamageMultiplierFilteredModifier : WeaponTypeFilteredModifie
 {
     [SerializeField] private float _multiplier = 1.2f;
 
+    public float Multiplier => _multiplier;
+
     protected override void ApplyAllowed(ref WeaponModifierContext context)
     {
         context.DamageMultiplier *= _multiplier;

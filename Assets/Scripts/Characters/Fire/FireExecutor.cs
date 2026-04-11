@@ -80,14 +80,10 @@ public abstract class FireExecutor : MonoBehaviour
 
             _presenter.StartFiring();
         }
-
-        RefreshUpdateState();
-
     }
 
     private void OnEnable()
     {
-
         _shouldEnablePresenterWhenReady = true;
 
         if (_presenter == null)
@@ -96,13 +92,10 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         EnablePresenterIfNeeded();
-        RefreshUpdateState();
-
     }
 
     private void OnDisable()
     {
-
         _shouldEnablePresenterWhenReady = false;
         _shouldStartFiringWhenReady = false;
 
@@ -118,13 +111,10 @@ public abstract class FireExecutor : MonoBehaviour
 
         _presenter.OnDisable();
         _isPresenterEnabled = false;
-        RefreshUpdateState();
-
     }
 
     private void Update()
     {
-
         if (_presenter == null)
         {
             return;
@@ -158,13 +148,10 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetAimPoint(aimPoint);
-        RefreshUpdateState();
-
     }
 
     public void ClearAimPoint()
     {
-
         _hasBufferedAimPoint = false;
 
         if (_presenter == null)
@@ -173,13 +160,10 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.ClearAimPoint();
-        RefreshUpdateState();
-
     }
 
     public void StartFiring()
     {
-
         _shouldStartFiringWhenReady = true;
         _shouldEnablePresenterWhenReady = true;
 
@@ -194,13 +178,10 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.StartFiring();
-        RefreshUpdateState();
-
     }
 
     public void StopFiring()
     {
-
         _shouldStartFiringWhenReady = false;
 
         if (_presenter == null)
@@ -209,8 +190,6 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.StopFiring();
-        RefreshUpdateState();
-
     }
 
     public bool TryStartFiring()
@@ -289,8 +268,6 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetTargetLayers(targetLayers);
-        RefreshUpdateState();
-
     }
 
     public void SetIgnoredRoot(Transform ignoredRoot)
@@ -308,7 +285,6 @@ public abstract class FireExecutor : MonoBehaviour
         }
 
         _presenter.SetIgnoredRoot(ignoredRoot);
-        RefreshUpdateState();
     }
 
     private void EnsurePresenterCreated()
@@ -342,9 +318,6 @@ public abstract class FireExecutor : MonoBehaviour
             _targetLayers,
             _maxAimAngleDegrees,
             _readyAngleDegrees);
-
-        RefreshUpdateState();
-
     }
 
     private Transform GetIgnoredRoot()
@@ -381,19 +354,5 @@ public abstract class FireExecutor : MonoBehaviour
 
         _presenter.OnEnable();
         _isPresenterEnabled = true;
-        RefreshUpdateState();
-
-    }
-
-    private void RefreshUpdateState()
-    {
-        if (_presenter == null)
-        {
-            enabled = false;
-
-            return;
-        }
-
-        enabled = _isPresenterEnabled;
     }
 }

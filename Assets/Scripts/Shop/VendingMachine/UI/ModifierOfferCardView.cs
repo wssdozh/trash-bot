@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public sealed class ModifierOfferCardView : MonoBehaviour
 {
+    private const string CoinMark = "\u00A4 ";
+
     [Header("UI")]
     [SerializeField] private Image _background;
     [SerializeField] private Image _icon;
@@ -13,7 +15,7 @@ public sealed class ModifierOfferCardView : MonoBehaviour
     [SerializeField] private Button _buyButton;
     [SerializeField] private Text _buyButtonText;
 
-    [Header("\u0420\u0435\u0434\u043A\u043E\u0441\u0442\u044C")]
+    [Header("Редкость")]
     [SerializeField] private Sprite _rareCardSprite;
     [SerializeField] private Sprite _epicCardSprite;
     [SerializeField] private Sprite _legendaryCardSprite;
@@ -40,21 +42,22 @@ public sealed class ModifierOfferCardView : MonoBehaviour
     public void Render(ModifierOffer offer, bool canBuy)
     {
         _background.sprite = GetCardSprite(offer.Rarity);
+        _icon.enabled = offer.Icon != null;
         _icon.sprite = offer.Icon;
         _titleText.text = offer.Title;
-        _priceText.text = offer.Price.ToString();
-        _descriptionText.text = BuildDescription(offer);
+        _priceText.text = CoinMark + offer.Price.ToString();
+        _descriptionText.text = offer.Description;
 
         _buyButton.interactable = canBuy;
 
         if (canBuy)
         {
-            _buyButtonText.text = "\u041A\u0443\u043F\u0438\u0442\u044C";
+            _buyButtonText.text = "Купить";
+
+            return;
         }
-        else
-        {
-            _buyButtonText.text = "\u041D\u0435\u0442 \u0434\u0435\u043D\u0435\u0433";
-        }
+
+        _buyButtonText.text = "Нет денег";
     }
 
     private void OnBuyButtonClicked()
@@ -83,41 +86,4 @@ public sealed class ModifierOfferCardView : MonoBehaviour
 
         return _rareCardSprite;
     }
-
-    private string BuildDescription(ModifierOffer offer)
-    {
-        WeaponModifier[] modifiers = offer.Modifiers;
-
-        if (modifiers == null)
-        {
-            return string.Empty;
-        }
-
-        if (modifiers.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        string description = string.Empty;
-
-        for (int i = 0; i < modifiers.Length; i++)
-        {
-            WeaponModifier modifier = modifiers[i];
-
-            if (modifier == null)
-            {
-                continue;
-            }
-
-            if (description.Length > 0)
-            {
-                description += "\n";
-            }
-
-            description += modifier.name;
-        }
-
-        return description;
-    }
 }
-

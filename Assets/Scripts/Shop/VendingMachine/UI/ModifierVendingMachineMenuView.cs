@@ -4,16 +4,18 @@ using UnityEngine;
 
 public sealed class ModifierVendingMachineMenuView : MonoBehaviour
 {
+    private const string CoinMark = "\u00A4 ";
+
     [Header("UI")]
     [SerializeField] private GameObject _root;
     [SerializeField] private BlurOverlay _blurOverlay;
     [SerializeField] private TMP_Text _coinsText;
     [SerializeField] private ModifierOfferCardView[] _cardViews;
 
-    [Header("Покупка")]
+    [Header("РџРѕРєСѓРїРєР°")]
     [SerializeField] private ModifierVendingMachinePurchase _purchase;
 
-    [Header("Анимации")]
+    [Header("РђРЅРёРјР°С†РёРё")]
     [SerializeField] private ModifierVendingMachineMenuAnimator _animator;
 
     private ModifierVendingMachine _machine;
@@ -153,7 +155,7 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
 
         if (_coinsText != null)
         {
-            _coinsText.text = currencyWallet.Coins.ToString();
+            _coinsText.text = CoinMark + currencyWallet.Coins.ToString();
         }
 
         int cardCount = Mathf.Min(_cardViews.Length, _machine.OfferCount);

@@ -5,6 +5,8 @@ public sealed class FireRateWeaponModifier : WeaponModifier
 {
     [SerializeField] private float _multiplier = 2f;
 
+    public float Multiplier => _multiplier;
+
     public override void Apply(ref WeaponModifierContext context)
     {
         context.FireRateMultiplier *= _multiplier;
