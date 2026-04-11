@@ -11,8 +11,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const int IdleChainMax = 4;
     private const float IdleProgressMin = 0.02f;
     private const float IdleStuckSeconds = 0.35f;
-    private const float MoveStuckMin = 0.01f;
-    private const float MoveStuckTime = 0.3f;
     private const float IdleFrontChance = 0.3f;
     private const float IdleFallbackDistance = 1.6f;
     private const float IdleStrideMinScale = 0.35f;
@@ -57,6 +55,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _rangeRunStart = 7f;
     [SerializeField] private float _rangeRunStop = 5.5f;
 
+    [Header("Role")]
+    [SerializeField, Min(0f)] private float _meleeHealthBonus = 3f;
+    [SerializeField, Min(0.1f)] private float _meleeSpeedScale = 1.08f;
+    [SerializeField, Min(0f)] private float _rangeNearExtra = 0.35f;
+
     [Header("Idle")]
     [SerializeField] private float _idleMoveMin = 4f;
     [SerializeField] private float _idleMoveMax = 7f;
@@ -98,16 +101,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _idleLookPoint;
     private Vector3 _lastSeenMovePoint;
     private Vector3 _searchTargetPoint;
-    private Vector3 _moveLastPoint;
     private bool _hasLastSeenPoint;
     private bool _hasLastSeenMovePoint;
     private bool _hasSearchPoint;
-    private bool _hasMoveLastPoint;
     private bool _isIdleWalking;
     private float _idleLastDistance;
     private float _idleStuckTimer;
     private float _idleTimer;
-    private float _moveStuckTimer;
+    private float _baseHealthMax;
     private float _rangeModeTimer;
     private int _idleChain;
     private int _searchStep;
@@ -265,6 +266,21 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_rangeRunStart));
         }
 
+        if (_meleeHealthBonus < 0f)
+        {
+            throw new InvalidOperationException(nameof(_meleeHealthBonus));
+        }
+
+        if (_meleeSpeedScale <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_meleeSpeedScale));
+        }
+
+        if (_rangeNearExtra < 0f)
+        {
+            throw new InvalidOperationException(nameof(_rangeNearExtra));
+        }
+
         if (_idleMoveMin <= 0f)
         {
             throw new InvalidOperationException(nameof(_idleMoveMin));
@@ -369,6 +385,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering = new EnemySteering(transform, _enemyMove, _enemyRotator);
         _enemySteering.SetObstacle(_obstacleMask, _probeRadius, _probeHeight, _probeDistance, _probeAngle, _avoidWeight);
         _enemySteering.SetSpacing(_allyMask, _separationRadius, _separationWeight);
+        _baseHealthMax = _enemy.Health.MaxValue;
     }
 
     private void OnEnable()
@@ -419,6 +436,23 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         ProcessHiddenTarget();
+    }
+
+    public void ApplyRole()
+    {
+        Health health = _enemy.Health;
+        float maxHealth = _baseHealthMax;
+        float speedScale = 1f;
+
+        if (GetFireExecutor() == null)
+        {
+            maxHealth += _meleeHealthBonus;
+            speedScale = _meleeSpeedScale;
+        }
+
+        health.SetMaxValue(maxHealth);
+        health.Fill();
+        _enemyMove.SetSpeedScale(speedScale);
     }
 
     private void OnDrawGizmos()
@@ -928,8 +962,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (isMoving == false)
         {
-            _enemyMove.ForceStop();
-            ResetMoveStuck();
+            _enemySteering.ForceStop();
 
             return false;
         }
@@ -939,8 +972,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
 
         return false;
     }
@@ -1038,8 +1070,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (isMoving == false)
         {
-            _enemyMove.ForceStop();
-            ResetMoveStuck();
+            _enemySteering.ForceStop();
 
             return false;
         }
@@ -1051,8 +1082,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
 
         return false;
     }
@@ -1063,8 +1093,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             _hasSearchPoint = false;
             _searchStep += 1;
-            _enemyMove.ForceStop();
-            ResetMoveStuck();
+            _enemySteering.ForceStop();
 
             return false;
         }
@@ -1076,8 +1105,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _hasSearchPoint = false;
         _searchStep += 1;
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
 
         return false;
     }
@@ -1145,43 +1173,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private bool CanKeepMove(Vector3 currentPoint)
     {
-        if (_hasMoveLastPoint == false)
-        {
-            _moveLastPoint = currentPoint;
-            _moveStuckTimer = 0f;
-            _hasMoveLastPoint = true;
-
-            return true;
-        }
-
-        float moveDistance = Vector3.Distance(currentPoint, _moveLastPoint);
-
-        if (moveDistance >= MoveStuckMin)
-        {
-            _moveLastPoint = currentPoint;
-            _moveStuckTimer = 0f;
-
-            return true;
-        }
-
-        _moveLastPoint = currentPoint;
-        _moveStuckTimer += Time.fixedDeltaTime;
-
-        if (_moveStuckTimer < MoveStuckTime)
-        {
-            return true;
-        }
-
-        _moveStuckTimer = 0f;
-
-        return false;
+        return _enemySteering.CanKeepMove(currentPoint, Time.fixedDeltaTime);
     }
 
     private void ResetMoveStuck()
     {
-        _hasMoveLastPoint = false;
-        _moveLastPoint = Vector3.zero;
-        _moveStuckTimer = 0f;
+        _enemySteering.ResetMoveStuck();
     }
 
     private void TickRangeModeTimer()
@@ -1629,8 +1626,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (isMoving == false)
         {
             _hasLastSeenMovePoint = false;
-            _enemyMove.ForceStop();
-            ResetMoveStuck();
+            _enemySteering.ForceStop();
 
             return false;
         }
@@ -1641,8 +1637,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _hasLastSeenMovePoint = false;
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
 
         return false;
     }
@@ -1869,7 +1864,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private float GetRangeHoldDistance()
     {
-        return _fightMinDistance + (_fightGapDistance * 0.5f);
+        float holdDistance = _fightMinDistance + (_fightGapDistance * 0.5f) - _rangeNearExtra;
+
+        return Mathf.Max(MinFightRadius, holdDistance);
     }
 
     private float GetRangeEnterMax()

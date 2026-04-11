@@ -1,14 +1,11 @@
 using System;
 using UnityEngine;
-using UnityEngine.AI;
 
 [DisallowMultipleComponent]
 public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
     private const int IdlePointTryCount = 10;
     private const int HitBufferSize = 32;
-    private const float MoveStuckMin = 0.01f;
-    private const float MoveStuckTime = 0.3f;
     private const float ZeroThreshold = 0.0001f;
     private const int ObstacleMaskBits = 385;
     private const int AllyMaskBits = -1;
@@ -57,15 +54,12 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private EnemyState _state;
     private Vector3 _lastPoint;
     private Vector3 _idlePoint;
-    private Vector3 _moveLastPoint;
     private bool _hasLastPoint;
     private bool _hasIdlePoint;
-    private bool _hasMoveLastPoint;
     private bool _isExploding;
     private float _searchTimer;
     private float _idleTimer;
     private float _explodeTimer;
-    private float _moveStuckTimer;
 
     public EnemyState State => _state;
 
@@ -211,12 +205,10 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemy.Died -= OnEnemyDied;
         _targetVision.TargetDetected -= OnTargetFound;
         _targetVision.TargetCleared -= OnTargetLost;
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (_enemy.IsDead)
         {
@@ -224,6 +216,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         RefreshRoomLock();
+        _targetVision.Refresh();
 
         if (_isExploding)
         {
@@ -234,7 +227,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_enemySteering.ResolveOverlap())
         {
-            ResetMoveStuck();
+            _enemySteering.ResetMoveStuck();
 
             return;
         }
@@ -272,7 +265,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _state = EnemyState.Chase;
-        RotateToPoint(_lastPoint);
         MoveToPoint(_lastPoint, true);
     }
 
@@ -286,7 +278,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        _searchTimer -= Time.deltaTime;
+        _searchTimer -= Time.fixedDeltaTime;
         Vector3 searchPoint = ClampPoint(_lastPoint);
         float distance = GetFlatDistance(transform.position, searchPoint);
 
@@ -306,7 +298,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _state = EnemyState.Search;
-        RotateToPoint(searchPoint);
 
         if (MoveToPoint(searchPoint, false))
         {
@@ -329,10 +320,8 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (_idleTimer > 0f)
         {
             _state = EnemyState.Idle;
-            _idleTimer -= Time.deltaTime;
+            _idleTimer -= Time.fixedDeltaTime;
             _enemySteering.Stop();
-            _enemyMove.StopMove();
-            ResetMoveStuck();
 
             return;
         }
@@ -346,8 +335,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             _state = EnemyState.Idle;
             _enemySteering.Stop();
-            _enemyMove.StopMove();
-            ResetMoveStuck();
 
             return;
         }
@@ -362,7 +349,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _state = EnemyState.Patrol;
-        RotateToPoint(_idlePoint);
 
         if (MoveToPoint(_idlePoint, false))
         {
@@ -384,19 +370,16 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_hasLastPoint)
         {
-            RotateToPoint(_lastPoint);
             MoveToPoint(_lastPoint, true);
         }
         else
         {
-            _enemySteering.Stop();
-            _enemyMove.ForceStop();
-            ResetMoveStuck();
+            _enemySteering.ForceStop();
         }
 
         if (_explodeTimer > 0f)
         {
-            _explodeTimer -= Time.deltaTime;
+            _explodeTimer -= Time.fixedDeltaTime;
         }
 
         if (_explodeTimer > 0f)
@@ -534,8 +517,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         ClearIdle();
         _state = EnemyState.Idle;
         _idleTimer = GetRandomValue(_idleWaitMin, _idleWaitMax);
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
+        _enemySteering.ForceStop();
     }
 
     private void PickIdlePoint()
@@ -574,47 +556,34 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private bool MoveToPoint(Vector3 targetPoint, bool isRunning)
     {
         _enemyMove.SetRun(isRunning);
+        Vector3 currentPoint = GetFlatPoint(transform.position);
+        bool isMoving = _enemySteering.MoveToPoint(targetPoint, _stopDistance, targetPoint);
 
-        if (TryMoveSafe(targetPoint))
+        if (isMoving)
         {
-            if (CanKeepMove(transform.position))
+            if (_enemySteering.CanKeepMove(currentPoint, Time.fixedDeltaTime))
             {
                 return true;
             }
         }
 
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
 
         return false;
-    }
-
-    private void RotateToPoint(Vector3 targetPoint)
-    {
-        Vector3 direction = targetPoint - transform.position;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude <= ZeroThreshold)
-        {
-            return;
-        }
-
-        _enemyRotator.RotateToDirection(direction, Time.deltaTime);
     }
 
     private void ClearLastPoint()
     {
         _hasLastPoint = false;
         _searchTimer = 0f;
-        ResetMoveStuck();
+        _enemySteering.ResetMoveStuck();
     }
 
     private void ClearIdle()
     {
         _hasIdlePoint = false;
         _idleTimer = 0f;
-        ResetMoveStuck();
+        _enemySteering.ResetMoveStuck();
     }
 
     private Vector3 ClampPoint(Vector3 point)
@@ -649,16 +618,11 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return Vector3.Distance(firstPoint, secondPoint);
     }
 
-    private void AlertRoom(Vector3 point)
+    private Vector3 GetFlatPoint(Vector3 point)
     {
-        EnemyRoomLock enemyRoomLock = GetRoomLock();
+        point.y = 0f;
 
-        if (enemyRoomLock == null)
-        {
-            return;
-        }
-
-        enemyRoomLock.AlertPoint(point, this);
+        return point;
     }
 
     private void ResetState()
@@ -669,7 +633,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _isExploding = false;
         _searchTimer = 0f;
         _explodeTimer = 0f;
-        ResetMoveStuck();
+        _enemySteering.ResetMoveStuck();
         StartIdleWait();
     }
 
@@ -685,7 +649,6 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _lastPoint = ClampPoint(_targetVision.CurrentTargetPoint);
         _hasLastPoint = true;
         _searchTimer = _searchTime;
-        AlertRoom(_lastPoint);
     }
 
     private void OnTargetLost()
@@ -705,9 +668,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void OnEnemyDied()
     {
-        _enemySteering.Stop();
-        _enemyMove.ForceStop();
-        ResetMoveStuck();
+        _enemySteering.ForceStop();
         enabled = false;
     }
 
@@ -763,75 +724,4 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return forwardDirection;
     }
 
-    private bool TryMoveSafe(Vector3 targetPoint)
-    {
-        Vector3 targetNavPoint;
-
-        if (TryGetNavPoint(targetPoint, out targetNavPoint) == false)
-        {
-            return false;
-        }
-
-        Vector3 safePoint = _enemySteering.GetSafePoint(targetNavPoint, ProbeRadius);
-
-        return _enemySteering.MoveToPoint(safePoint, _stopDistance, targetNavPoint);
-    }
-
-    private bool TryGetNavPoint(Vector3 point, out Vector3 navPoint)
-    {
-        NavMeshHit navMeshHit;
-        bool hasNavPoint = NavMesh.SamplePosition(point, out navMeshHit, ProbeDistance * 4f, NavMesh.AllAreas);
-
-        if (hasNavPoint == false)
-        {
-            navPoint = point;
-
-            return false;
-        }
-
-        navPoint = navMeshHit.position;
-
-        return true;
-    }
-
-    private bool CanKeepMove(Vector3 currentPoint)
-    {
-        if (_hasMoveLastPoint == false)
-        {
-            _moveLastPoint = currentPoint;
-            _moveStuckTimer = 0f;
-            _hasMoveLastPoint = true;
-
-            return true;
-        }
-
-        float moveDistance = GetFlatDistance(currentPoint, _moveLastPoint);
-
-        if (moveDistance >= MoveStuckMin)
-        {
-            _moveLastPoint = currentPoint;
-            _moveStuckTimer = 0f;
-
-            return true;
-        }
-
-        _moveLastPoint = currentPoint;
-        _moveStuckTimer += Time.deltaTime;
-
-        if (_moveStuckTimer < MoveStuckTime)
-        {
-            return true;
-        }
-
-        _moveStuckTimer = 0f;
-
-        return false;
-    }
-
-    private void ResetMoveStuck()
-    {
-        _hasMoveLastPoint = false;
-        _moveLastPoint = Vector3.zero;
-        _moveStuckTimer = 0f;
-    }
 }

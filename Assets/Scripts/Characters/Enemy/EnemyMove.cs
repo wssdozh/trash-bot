@@ -25,6 +25,7 @@ public sealed class EnemyMove : MonoBehaviour
     private bool _isMoving;
     private bool _isRunRequested;
     private bool _isSprintApplied;
+    private float _speedScale = 1f;
 
     public Vector3 MoveDirection => GetWorldMoveDirection();
     public float MoveAmount => _moveInput.magnitude;
@@ -85,11 +86,11 @@ public sealed class EnemyMove : MonoBehaviour
 
         if (_isMoving)
         {
-            float moveScale = _moveScale;
+            float moveScale = Mathf.Min(_moveScale * _speedScale, 1f);
 
             if (_isRunRequested)
             {
-                moveScale = Mathf.Min(_moveScale * _runScaleFactor, 1f);
+                moveScale = Mathf.Min(_moveScale * _runScaleFactor * _speedScale, 1f);
                 targetMoveInput = GetRunInput(moveScale);
                 isSprinting = targetMoveInput.sqrMagnitude > ZeroThreshold;
             }
@@ -151,6 +152,16 @@ public sealed class EnemyMove : MonoBehaviour
     public void SetRun(bool isRunning)
     {
         _isRunRequested = isRunning;
+    }
+
+    public void SetSpeedScale(float speedScale)
+    {
+        if (speedScale <= 0f)
+        {
+            throw new InvalidOperationException(nameof(speedScale));
+        }
+
+        _speedScale = speedScale;
     }
 
     public void StopMove()

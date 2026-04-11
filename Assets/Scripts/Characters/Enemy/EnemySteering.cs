@@ -25,6 +25,8 @@ public sealed class EnemySteering
     private const float ProbeSkin = 0.05f;
     private const float LowProbeHeightScale = 0.45f;
     private const float MinProbeHeight = 0.18f;
+    private const float MoveStuckMin = 0.01f;
+    private const float MoveStuckTime = 0.3f;
 
     private readonly Transform _root;
     private readonly EnemyMove _enemyMove;
@@ -59,9 +61,12 @@ public sealed class EnemySteering
     private float _pathStopDistance;
     private float _pathTime;
     private Vector3 _lastNavPoint;
+    private Vector3 _moveLastPoint;
     private bool _hasPathTarget;
     private bool _hasLastNavPoint;
+    private bool _hasMoveLastPoint;
     private EnemyRoomLock _enemyRoomLock;
+    private float _moveStuckTimer;
 
     public EnemySteering(Transform root, EnemyMove enemyMove, EnemyRotator enemyRotator)
     {
@@ -367,6 +372,7 @@ public sealed class EnemySteering
     public void LookToPoint(Vector3 targetPoint)
     {
         _enemyMove.StopMove();
+        ResetMoveStuck();
         _enemyRotator.RotateToPoint(GetFlatPoint(targetPoint));
     }
 
@@ -374,6 +380,55 @@ public sealed class EnemySteering
     {
         ClearPath();
         _enemyMove.StopMove();
+        ResetMoveStuck();
+    }
+
+    public void ForceStop()
+    {
+        ClearPath();
+        _enemyMove.ForceStop();
+        ResetMoveStuck();
+    }
+
+    public bool CanKeepMove(Vector3 currentPoint, float deltaTime)
+    {
+        if (_hasMoveLastPoint == false)
+        {
+            _moveLastPoint = currentPoint;
+            _moveStuckTimer = 0f;
+            _hasMoveLastPoint = true;
+
+            return true;
+        }
+
+        float moveDistance = Vector3.Distance(currentPoint, _moveLastPoint);
+
+        if (moveDistance >= MoveStuckMin)
+        {
+            _moveLastPoint = currentPoint;
+            _moveStuckTimer = 0f;
+
+            return true;
+        }
+
+        _moveLastPoint = currentPoint;
+        _moveStuckTimer += deltaTime;
+
+        if (_moveStuckTimer < MoveStuckTime)
+        {
+            return true;
+        }
+
+        _moveStuckTimer = 0f;
+
+        return false;
+    }
+
+    public void ResetMoveStuck()
+    {
+        _hasMoveLastPoint = false;
+        _moveLastPoint = Vector3.zero;
+        _moveStuckTimer = 0f;
     }
 
     public bool ResolveOverlap()
@@ -389,7 +444,7 @@ public sealed class EnemySteering
         float resolveDistance = Mathf.Clamp(pushDistance, ResolveMinStep, ResolveMaxStep);
         Vector3 resolveVector = (overlapPush / pushDistance) * resolveDistance;
 
-        _enemyMove.ForceStop();
+        ForceStop();
         ApplyResolve(resolveVector);
         SyncAgent(GetFlatPoint(_root.position));
 

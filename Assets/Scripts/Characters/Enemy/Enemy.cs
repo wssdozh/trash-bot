@@ -10,6 +10,7 @@ public class Enemy : MonoBehaviour
     public event Action Died;
 
     public bool IsDead { get; private set; }
+    public Health Health => _health;
 
     private void Awake()
     {

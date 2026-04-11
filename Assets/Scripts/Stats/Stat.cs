@@ -44,4 +44,33 @@ public abstract class Stat : MonoBehaviour
     {
         _value = Mathf.Clamp(newValue, _minValue, _maxValue);
     }
+
+    public virtual void SetMaxValue(float newMaxValue)
+    {
+        if (newMaxValue < _minValue)
+        {
+            throw new InvalidOperationException(nameof(newMaxValue));
+        }
+
+        if (Mathf.Abs(_maxValue - newMaxValue) <= Mathf.Epsilon)
+        {
+            return;
+        }
+
+        _maxValue = newMaxValue;
+        _value = Mathf.Clamp(_value, _minValue, _maxValue);
+        Changed?.Invoke();
+    }
+
+    public virtual void Fill()
+    {
+        if (_value >= _maxValue)
+        {
+            return;
+        }
+
+        _value = _maxValue;
+        Increased?.Invoke();
+        Changed?.Invoke();
+    }
 }
