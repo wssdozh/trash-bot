@@ -109,7 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6695405994909000428}
   _speed: 2.2
-  _speedSprint: 3.6
+  _speedSprint: 4.1
   _isWallSlideEnabled: 0
   _wallNormalMaxY: 0.2
 --- !u!114 &6367953433166089997
@@ -125,8 +125,8 @@ MonoBehaviour:
   m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Health
   _minValue: 0
-  _maxValue: 20
-  _value: 20
+  _maxValue: 30
+  _value: 30
   _autoRegen: 0
   _regenPerSecond: 2
   _regenDelay: 3
@@ -188,14 +188,14 @@ MonoBehaviour:
   _animation: {fileID: 5741961401539005627}
   _animationEvents: {fileID: 5646352223129568357}
   _weaponHolder: {fileID: 1908533539380365251}
-  _runStartDistance: 2.6
-  _runStopDistance: 1
-  _fightMinDistance: 2.75
-  _fightMaxDistance: 5.75
+  _runStartDistance: 3.2
+  _runStopDistance: 1.35
+  _fightMinDistance: 2.4
+  _fightMaxDistance: 5.1
   _fireMaxDistance: 7.25
   _fightGapDistance: 0.45
-  _rangeRunStart: 7
-  _rangeRunStop: 5.5
+  _rangeRunStart: 5.5
+  _rangeRunStop: 5.1
   _idleMoveMin: 3
   _idleMoveMax: 5
   _idleWaitMin: 2.2
@@ -532,8 +532,8 @@ MonoBehaviour:
   _weaponHolder: {fileID: 1908533539380365251}
   _weaponPrefab: {fileID: 0}
   _weaponType: 0
-  _weaponFireRateScale: 0.45
-  _weaponDamageScale: 0.25
+  _weaponFireRateScale: 0.7
+  _weaponDamageScale: 0.55
 --- !u!1 &4856043166038054591
 GameObject:
   m_ObjectHideFlags: 0

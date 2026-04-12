@@ -333,7 +333,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AmmoEnemyAlert
   _ammo: {fileID: 4344111331149057464}
-  _alertRadius: 0.85
+  _alertRadius: 1.6
 --- !u!114 &8630705724268217545
 MonoBehaviour:
   m_ObjectHideFlags: 0

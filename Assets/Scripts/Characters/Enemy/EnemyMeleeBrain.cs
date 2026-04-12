@@ -2574,7 +2574,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private float GetRangeShootDistance()
     {
-        return Mathf.Min(_fireMaxDistance, GetRangeEnterMax());
+        return Mathf.Min(_fireMaxDistance, _fightMaxDistance);
     }
 
     private float GetRangeHoldGap()

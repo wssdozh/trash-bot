@@ -14,11 +14,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 924719609261421840, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _speed
-      value: 2.6
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 924719609261421840, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _speedSprint
-      value: 4.5
+      value: 5.1
       objectReference: {fileID: 0}
     - target: {fileID: 924719609261421840, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _isWallSlideEnabled
@@ -26,11 +26,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6367953433166089997, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _maxValue
-      value: 16
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 6367953433166089997, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _value
-      value: 16
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 2404705423201745302, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _viewDistance
@@ -92,13 +92,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySuicideAttack
   _health: {fileID: 5771000000000000004}
   _fxPrefab: {fileID: 2433282508537954060, guid: a2ddbd7a826943842a7d547df0c372bc, type: 3}
-  _startDistance: 1.25
-  _delay: 1
+  _startDistance: 1.5
+  _delay: 0.75
   _damageMask:
     serializedVersion: 2
     m_Bits: 64
-  _damage: 24
-  _radius: 2.2
+  _damage: 30
+  _radius: 2.4
   _impulse: 3.5
   _up: 0.35
   _fxLife: 5

@@ -222,7 +222,7 @@ MonoBehaviour:
   _idleRotator: {fileID: 7344053562206653070}
   _fireExecutor: {fileID: 3601055731436968810}
   _headCrash: {fileID: 1704243094836005359}
-  _fireDelaySeconds: 0.85
+  _fireDelaySeconds: 0.6
   _sinkDelay: 1
   _sinkDuration: 7
   _sinkDistance: 2.2
@@ -409,7 +409,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e012878cded1994785eaa37676815a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletFireExecutor
-  _fireRatePerSecond: 1.1
+  _fireRatePerSecond: 1.2
   _targetLayers:
     serializedVersion: 2
     m_Bits: 449
@@ -417,8 +417,8 @@ MonoBehaviour:
   _readyAngleDegrees: 8
   _muzzle: {fileID: 5363890313950826456}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
-  _minDamage: 1
-  _maxDamage: 3
+  _minDamage: 4
+  _maxDamage: 6
   _rocketRadiusMultiplier: 1
 --- !u!65 &1704243094836005357
 BoxCollider:

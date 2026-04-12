@@ -4302,10 +4302,6 @@ PrefabInstance:
       propertyPath: m_FontData.m_MinSize
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 910200000000000007, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
-      propertyPath: m_FontData.m_FontSize
-      value: 46
-      objectReference: {fileID: 0}
     - target: {fileID: 910200000000000011, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_Color.b
       value: 1
