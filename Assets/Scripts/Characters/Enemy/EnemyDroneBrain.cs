@@ -274,6 +274,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _lastSeenPoint = targetPoint;
         _hasLastSeenPoint = true;
         _searchTimer = _searchTime;
+        _enemyMove.SetTargetHeight(targetPoint.y);
 
         ApplyTrackMode();
         TickAlert(targetPoint);
@@ -327,6 +328,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void UpdateSearch()
     {
         ApplyTrackMode();
+        _enemyMove.ClearTargetHeight();
         _fireExecutor.StopFiring();
         _fireExecutor.ClearAimPoint();
 
@@ -501,6 +503,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void StopAll()
     {
+        _enemyMove.ClearTargetHeight();
         StopFire();
         ResetStrafe();
         _enemyMove.ForceStop();
@@ -552,6 +555,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void ApplyIdleMode()
     {
+        _enemyMove.ClearTargetHeight();
         _targetRotator.ClearAimPoint();
 
         if (_targetRotator.enabled)
