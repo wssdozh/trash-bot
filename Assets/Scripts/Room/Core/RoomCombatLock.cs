@@ -35,7 +35,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
         SubscribeEnterTriggers();
         RefreshThreats();
-        EvaluateThreatState();
+        EvaluateThreatState(false);
     }
 
     public void Setup(RoomRuntimeState roomRuntimeState, float blockSize)
@@ -63,7 +63,7 @@ public sealed class RoomCombatLock : MonoBehaviour
         _isLocked = false;
         _isCleared = HasAliveThreats() == false;
         SetGatesClosed(false, true);
-        EvaluateThreatState();
+        EvaluateThreatState(false);
     }
 
     private void OnDisable()
@@ -376,6 +376,39 @@ public sealed class RoomCombatLock : MonoBehaviour
         Destroy(gameObject);
     }
 
+    private void ShowClearView()
+    {
+        Player player = FindFirstObjectByType<Player>();
+
+        if (player != null)
+        {
+            Texter playerTexter = player.GetComponentInChildren<Texter>(true);
+
+            if (playerTexter != null && playerTexter.CanShowRoomClear())
+            {
+                playerTexter.ShowRoomClear();
+
+                return;
+            }
+        }
+
+        Texter[] texters = FindObjectsByType<Texter>(FindObjectsSortMode.None);
+
+        for (int texterIndex = 0; texterIndex < texters.Length; texterIndex++)
+        {
+            Texter texter = texters[texterIndex];
+
+            if (texter.CanShowRoomClear() == false)
+            {
+                continue;
+            }
+
+            texter.ShowRoomClear();
+
+            return;
+        }
+    }
+
     private void OnRoomEntered()
     {
         if (_isCleared)
@@ -393,10 +426,10 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private void OnThreatDied()
     {
-        EvaluateThreatState();
+        EvaluateThreatState(true);
     }
 
-    private void EvaluateThreatState()
+    private void EvaluateThreatState(bool isThreatDied)
     {
         if (_roomRuntimeState == null)
         {
@@ -417,9 +450,19 @@ public sealed class RoomCombatLock : MonoBehaviour
         {
             UnlockRoom();
 
+            if (isThreatDied)
+            {
+                ShowClearView();
+            }
+
             return;
         }
 
         _isCleared = true;
+
+        if (isThreatDied)
+        {
+            ShowClearView();
+        }
     }
 }

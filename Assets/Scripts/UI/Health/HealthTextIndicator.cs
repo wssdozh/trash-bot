@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class HealthTextIndicator : StatIndicatorBase<Health>
 {
@@ -11,6 +10,6 @@ public class HealthTextIndicator : StatIndicatorBase<Health>
         if (_text == null)
             return;
 
-        _text.text = _text.text = ((int)Stat.Value).ToString() + " / " + ((int)Stat.MaxValue).ToString();
+        _text.text = ((int)Stat.Value).ToString() + " / " + ((int)Stat.MaxValue).ToString();
     }
 }

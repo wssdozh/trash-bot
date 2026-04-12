@@ -78,6 +78,11 @@ public sealed class TurretHeadCrash : MonoBehaviour
         ResetState();
     }
 
+    private void Start()
+    {
+        ResetState();
+    }
+
     public void Crash()
     {
         if (_isCrashed)
@@ -160,6 +165,8 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _moveRoot.localPosition = _startLocalPosition;
         _moveRoot.localRotation = _startLocalRotation;
         _moveRoot.localScale = _startLocalScale;
+        _rigidbody.position = _moveRoot.position;
+        _rigidbody.rotation = _moveRoot.rotation;
 
         if (_rigidbody.isKinematic == false)
         {
@@ -171,6 +178,8 @@ public sealed class TurretHeadCrash : MonoBehaviour
         _rigidbody.isKinematic = true;
         _rigidbody.useGravity = false;
         _collider.enabled = false;
+        Physics.SyncTransforms();
+        _rigidbody.Sleep();
     }
 
     private IEnumerator SinkCoroutine(float sinkDelay, float sinkDuration, float sinkDistance)

@@ -367,7 +367,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3d0e1536d47b8b4b8ebe518a5e4dc00, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HighlightAnimator
   _highlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _blinkTime: 0.7
@@ -381,13 +381,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d2233729ddaac4408fbf4c36bc54c2e, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierVendingMachine
   _interactionName: "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0430\u0433\u0430\u0437\u0438\u043D"
   _interactionPoint: {fileID: 100359662}
   _highlightBase: {fileID: 100359656}
   _offerPool: {fileID: 11400000, guid: 0250e62a8ff9cb647b9663eb9b1cc312, type: 2}
   _cardCount: 3
+  _commonWeight: 10
+  _rareWeight: 3
+  _legendaryWeight: 1
   _disableColliderOnPurchase: 1
 --- !u!114 &100359658
 MonoBehaviour:
@@ -793,6 +796,7 @@ MonoBehaviour:
   _autoRegen: 1
   _regenPerSecond: 2
   _regenDelay: 3
+  _regenTick: 0.1
 --- !u!136 &176192957
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2211,7 +2215,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 341b012c10a57a648825367d9cd68a34, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawner
   Prefab: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}
   PoolSize: 100
@@ -2257,7 +2261,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 341b012c10a57a648825367d9cd68a34, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PickupSpawner
   Prefab: {fileID: 1864531296725922894, guid: c2a6d4f5e8b54755a0e34bd1f9c2a441, type: 3}
   PoolSize: 100
@@ -2366,6 +2370,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 449
   _maxAimAngleDegrees: 30
+  _readyAngleDegrees: 8
   _muzzle: {fileID: 630241527}
   _pelletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
   _minPelletsPerShot: 6
@@ -4196,6 +4201,7 @@ Transform:
   - {fileID: 1049120432}
   - {fileID: 515442997}
   - {fileID: 1249146609}
+  - {fileID: 577173277}
   m_Father: {fileID: 883789542}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1200270696
@@ -4287,6 +4293,30 @@ PrefabInstance:
     - target: {fileID: 591744987671708976, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _capacity
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000003, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_Alpha
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000007, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_FontData.m_MinSize
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000007, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_FontData.m_FontSize
+      value: 46
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000011, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000011, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 910200000000000011, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 924725540843438586, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: '_componentsToDisable.Array.data[6]'
@@ -4455,6 +4485,10 @@ PrefabInstance:
     - target: {fileID: 6944983852052773198, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: _positionOffset.z
       value: -4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7030170445308898577, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4289389818
       objectReference: {fileID: 0}
     - target: {fileID: 7052495058418967132, guid: 49d458e9a6702ca4b9f226a4f1a14218, type: 3}
       propertyPath: m_AnchorMax.x
@@ -7222,6 +7256,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   _health: {fileID: 176192956}
   _characterDied: {fileID: 199509356}
+  _sinkDelay: 5.2
+  _sinkDuration: 6.5
+  _sinkDistance: 2.2
 --- !u!4 &1939739491 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 740280986944895310, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
