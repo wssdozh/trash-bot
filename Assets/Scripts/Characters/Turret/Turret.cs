@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Turret : MonoBehaviour, IEnemyAlert
 {
@@ -26,6 +27,8 @@ public class Turret : MonoBehaviour, IEnemyAlert
     private Vector3 _alertPoint;
     private Collider[] _corpseColliders;
     private Rigidbody[] _corpseRigidbodies;
+    private BoxCollider _bodyCollider;
+    private NavMeshObstacle _navMeshObstacle;
     private bool _hasAlertPoint;
     private bool _isDead;
     private bool _isSinkStarted;
@@ -85,6 +88,13 @@ public class Turret : MonoBehaviour, IEnemyAlert
             throw new InvalidOperationException(nameof(_headCrash));
         }
 
+        _bodyCollider = GetComponent<BoxCollider>();
+
+        if (_bodyCollider == null)
+        {
+            throw new InvalidOperationException(nameof(_bodyCollider));
+        }
+
         if (_sinkDelay < 0f)
         {
             throw new InvalidOperationException(nameof(_sinkDelay));
@@ -105,6 +115,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
             _fireDelayWait = new WaitForSeconds(_fireDelaySeconds);
         }
 
+        EnsureNavMeshObstacle();
         _corpseColliders = GetComponentsInChildren<Collider>(true);
         _corpseRigidbodies = GetComponentsInChildren<Rigidbody>(true);
     }
@@ -115,6 +126,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _targetVision.TargetDetected += OnTargetFound;
         _targetVision.TargetCleared += OnTargetLost;
         _isDead = false;
+        ApplyNavMeshObstacle();
         SetIdleState(true);
     }
 
@@ -344,6 +356,8 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
     private void DisableCorpsePhysics()
     {
+        _navMeshObstacle.enabled = false;
+
         int rigidbodyIndex = 0;
 
         while (rigidbodyIndex < _corpseRigidbodies.Length)
@@ -391,5 +405,27 @@ public class Turret : MonoBehaviour, IEnemyAlert
         }
 
         return targetTransform.IsChildOf(_headCrash.transform);
+    }
+
+    private void EnsureNavMeshObstacle()
+    {
+        _navMeshObstacle = GetComponent<NavMeshObstacle>();
+
+        if (_navMeshObstacle == null)
+        {
+            _navMeshObstacle = gameObject.AddComponent<NavMeshObstacle>();
+        }
+
+        ApplyNavMeshObstacle();
+    }
+
+    private void ApplyNavMeshObstacle()
+    {
+        _navMeshObstacle.shape = NavMeshObstacleShape.Box;
+        _navMeshObstacle.center = _bodyCollider.center;
+        _navMeshObstacle.size = _bodyCollider.size;
+        _navMeshObstacle.carving = true;
+        _navMeshObstacle.carveOnlyStationary = true;
+        _navMeshObstacle.enabled = true;
     }
 }

@@ -8,6 +8,7 @@ public sealed class EnemySteering
     private const int AllyBufferSize = 24;
     private const int PointBufferSize = 24;
     private const int ProbeBufferSize = 24;
+    private const string EnemyLayerName = "Enemies";
     private const float MinDistance = 0.0001f;
     private const float NavSampleGap = 2f;
     private const float PathRefreshGap = 0.3f;
@@ -95,7 +96,7 @@ public sealed class EnemySteering
 
     public void SetObstacle(LayerMask obstacleMask, float probeRadius, float probeHeight, float probeDistance, float probeAngle, float avoidWeight)
     {
-        _obstacleMask = obstacleMask;
+        _obstacleMask = GetObstacleMask(obstacleMask);
         _probeRadius = probeRadius;
         _probeHeight = probeHeight;
         _probeDistance = probeDistance;
@@ -103,6 +104,21 @@ public sealed class EnemySteering
         _avoidWeight = avoidWeight;
 
         ApplyAgentShape(_navMeshAgent);
+    }
+
+    private LayerMask GetObstacleMask(LayerMask obstacleMask)
+    {
+        int enemyLayer = LayerMask.NameToLayer(EnemyLayerName);
+
+        if (enemyLayer < 0)
+        {
+            return obstacleMask;
+        }
+
+        int obstacleMaskBits = obstacleMask.value | (1 << enemyLayer);
+        LayerMask nextObstacleMask = obstacleMaskBits;
+
+        return nextObstacleMask;
     }
 
     public void SetSpacing(LayerMask allyMask, float separationRadius, float separationWeight)
