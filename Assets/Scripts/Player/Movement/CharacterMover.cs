@@ -23,6 +23,10 @@ public class CharacterMover : MonoBehaviour
     private bool _isSprinting;
     private int _wallNormalCount;
 
+    public float Speed => _speed;
+
+    public float SprintSpeed => _speedSprint;
+
     private void FixedUpdate()
     {
         Move();
@@ -55,6 +59,12 @@ public class CharacterMover : MonoBehaviour
 
         float currentVerticalVelocity = _rigidbody.linearVelocity.y;
         _rigidbody.linearVelocity = new Vector3(0f, currentVerticalVelocity, 0f);
+    }
+
+    public void ApplySpeed(float speed, float sprintSpeed)
+    {
+        _speed = Mathf.Max(0f, speed);
+        _speedSprint = Mathf.Max(_speed, sprintSpeed);
     }
 
     private void OnCollisionStay(Collision collision)

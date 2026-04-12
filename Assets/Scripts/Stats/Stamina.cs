@@ -12,6 +12,12 @@ public class Stamina : Stat
     private WaitForSecondsRealtime _regenWait;
     private float _sinceLastSpend;
 
+    public bool AutoRegen => _autoRegen;
+
+    public float RegenPerSecond => _regenPerSecond;
+
+    public float RegenDelay => _regenDelay;
+
     private void Awake()
     {
         _regenWait = new WaitForSecondsRealtime(GetRegenTick());
@@ -34,6 +40,36 @@ public class Stamina : Stat
         base.Decrease(amount);
         _sinceLastSpend = 0f;
         RefreshRegenState();
+    }
+
+    public void SetAutoRegen(bool autoRegen)
+    {
+        _autoRegen = autoRegen;
+        RefreshRegenState();
+    }
+
+    public void SetRegenPerSecond(float regenPerSecond)
+    {
+        _regenPerSecond = Mathf.Max(0f, regenPerSecond);
+        RestartRegenLoop();
+    }
+
+    public void SetRegenDelay(float regenDelay)
+    {
+        _regenDelay = Mathf.Max(0f, regenDelay);
+        RestartRegenLoop();
+    }
+
+    public void ApplyModifier(float maxValue, bool autoRegen, float regenPerSecond, float regenDelay)
+    {
+        SetMaxValue(maxValue);
+
+        _autoRegen = autoRegen;
+        _regenPerSecond = Mathf.Max(0f, regenPerSecond);
+        _regenDelay = Mathf.Max(0f, regenDelay);
+
+        RefreshRegenState();
+        RestartRegenLoop();
     }
 
     private void RefreshRegenState()
@@ -101,5 +137,17 @@ public class Stamina : Stat
     private float GetRegenTick()
     {
         return Mathf.Max(0.02f, _regenTick);
+    }
+
+    private void RestartRegenLoop()
+    {
+        StopRegenLoop();
+
+        if (enabled == false)
+        {
+            return;
+        }
+
+        StartRegenLoop();
     }
 }

@@ -28,6 +28,10 @@ public class PlayerMovement : MonoBehaviour
 
     public bool IsSprinting => _sprint.IsSprinting;
 
+    public float JumpStaminaCost => _jumpStaminaCost;
+
+    public float SprintStaminaCostPerSecond => _sprintStaminaCostPerSecond;
+
     private void Awake()
     {
         _moveApplier = new PlayerMoveApplier(_movement, _animator);
@@ -114,6 +118,22 @@ public class PlayerMovement : MonoBehaviour
     public void StopSprinting()
     {
         _sprint.Stop();
+    }
+
+    public void ApplyModifier(float jumpStaminaCost, float sprintStaminaCostPerSecond)
+    {
+        _jumpStaminaCost = Mathf.Max(0f, jumpStaminaCost);
+        _sprintStaminaCostPerSecond = Mathf.Max(0f, sprintStaminaCostPerSecond);
+
+        if (_jumpAction != null)
+        {
+            _jumpAction.SetCost(_jumpStaminaCost);
+        }
+
+        if (_sprint != null)
+        {
+            _sprint.SetCostPerSecond(_sprintStaminaCostPerSecond);
+        }
     }
 
     public void TickFixed(bool isInBattle)

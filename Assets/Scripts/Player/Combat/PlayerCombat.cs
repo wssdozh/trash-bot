@@ -27,6 +27,8 @@ public class PlayerCombat : MonoBehaviour
     private bool _isAttackStartPending;
     private float _attackStartDelayTimerSeconds;
 
+    public float AttackStaminaCost => _attackStaminaCost;
+
     public bool IsInBattle
     {
         get
@@ -141,6 +143,18 @@ public class PlayerCombat : MonoBehaviour
         _combatCore.ExitBattle();
     }
 
+    public void ApplyModifier(float attackStaminaCost)
+    {
+        _attackStaminaCost = Mathf.Max(0f, attackStaminaCost);
+
+        if (_isInitialized == false)
+        {
+            return;
+        }
+
+        _combatCore.ApplyAttackStaminaCost(_attackStaminaCost);
+    }
+
     private void OnInventoryChanged()
     {
         _combatCore.OnInventoryChanged();
@@ -228,6 +242,8 @@ public class PlayerCombat : MonoBehaviour
             activeWeaponType,
             meleeAttack,
             rangedFire);
+
+        _combatCore.ApplyAttackStaminaCost(_attackStaminaCost);
 
         _isInitialized = true;
     }

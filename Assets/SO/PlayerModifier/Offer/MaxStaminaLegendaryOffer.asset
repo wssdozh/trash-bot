@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd1ef06247f94dc3ba0927c6f628d75d, type: 3}
+  m_Name: MaxStaminaLegendaryOffer
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerModifierOffer
+  _title: "\u0421\u0442\u0430\u043C\u0438\u043D\u0430"
+  _description: +45%
+  _icon: {fileID: 0}
+  _rarity: 2
+  _price: 95
+  _modifiers:
+  - {fileID: 11400000, guid: 8435002da6e9461d905dbedf9e9b415e, type: 2}

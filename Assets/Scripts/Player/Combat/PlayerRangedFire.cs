@@ -5,9 +5,11 @@ public sealed class PlayerRangedFire
     private readonly WeaponHolder _weaponHolder;
     private readonly Stamina _stamina;
     private readonly PlayerBattleState _battleState;
-    private readonly float _attackStaminaCost;
+    private float _attackStaminaCost;
 
     public bool IsFiring { get; private set; }
+
+    public float AttackStaminaCost => _attackStaminaCost;
 
     public PlayerRangedFire(
         WeaponHolder weaponHolder,
@@ -19,6 +21,11 @@ public sealed class PlayerRangedFire
         _stamina = stamina;
         _battleState = battleState;
         _attackStaminaCost = attackStaminaCost;
+    }
+
+    public void SetAttackStaminaCost(float attackStaminaCost)
+    {
+        _attackStaminaCost = Mathf.Max(0f, attackStaminaCost);
     }
 
     public void Tick()

@@ -57,4 +57,16 @@ MonoBehaviour:
     _sameTypeNeighborRadiusInCells: 15
     _maximumSameTypeWithinNeighborRadius: 1
     _scatterRadiusInCells: 0
+  - _prefab: {fileID: 4886392652990026178, guid: 609a9e08e3e44b4b95ed05958bc77680, type: 3}
+    _weight: 1
+    _guaranteed: 1
+    _countRange: {x: 1, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
   _nookMinimumAreaInCells: 4

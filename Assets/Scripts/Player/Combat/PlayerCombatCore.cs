@@ -98,4 +98,10 @@ public sealed class PlayerCombatCore
     {
         _battleState.SyncWeaponAnimatorIfNeeded();
     }
+
+    public void ApplyAttackStaminaCost(float attackStaminaCost)
+    {
+        _meleeAttack.SetAttackStaminaCost(attackStaminaCost);
+        _rangedFire.SetAttackStaminaCost(attackStaminaCost);
+    }
 }

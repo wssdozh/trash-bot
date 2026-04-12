@@ -1527,7 +1527,7 @@ MonoBehaviour:
   _minValue: 0
   _maxValue: 100
   _value: 100
-  _autoRegen: 1
+  _autoRegen: 0
   _regenPerSecond: 3
   _regenDelay: 2.5
 --- !u!114 &4172915879953034101
@@ -2575,6 +2575,7 @@ MonoBehaviour:
   _cursor: {fileID: 8146462238665572604}
   _combat: {fileID: 1509442326114603394}
   _modifierVendingMachineMenuView: {fileID: 0}
+  _playerModifierMenuView: {fileID: 0}
   _hoverTickSeconds: 0.15
 --- !u!1 &6692241948726916204
 GameObject:
@@ -2636,6 +2637,8 @@ GameObject:
   - component: {fileID: 2302136596952475683}
   - component: {fileID: 1983186870403417296}
   - component: {fileID: 30512881858575402}
+  - component: {fileID: 6083419805603412345}
+  - component: {fileID: 6083419805603412346}
   m_Layer: 6
   m_Name: Player 2
   m_TagString: Player
@@ -2725,6 +2728,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponModifierStack
   _modifiers: []
+--- !u!114 &6083419805603412345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7602520182483155227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07accf5bf0bf4793a3dcdfff27c654e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerModifierStack
+  _modifiers: []
+--- !u!114 &6083419805603412346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7602520182483155227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4773d62c63cf4612bed5bfa5abf6b520, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerModifierApplier
+  _health: {fileID: 4803709847974141177}
+  _stamina: {fileID: 2302136596952475683}
+  _characterMover: {fileID: 2902837690505717258}
+  _playerMovement: {fileID: 3268437074613135805}
+  _playerCombat: {fileID: 1509442326114603394}
+  _playerModifierStack: {fileID: 6083419805603412345}
 --- !u!1 &7854238819709204048
 GameObject:
   m_ObjectHideFlags: 0

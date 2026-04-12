@@ -12,6 +12,12 @@ public class Health : Stat
     private WaitForSecondsRealtime _regenWait;
     private float _sinceLastDamage;
 
+    public bool AutoRegen => _autoRegen;
+
+    public float RegenPerSecond => _regenPerSecond;
+
+    public float RegenDelay => _regenDelay;
+
     private void Awake()
     {
         _regenWait = new WaitForSecondsRealtime(GetRegenTick());
@@ -40,6 +46,30 @@ public class Health : Stat
     {
         _autoRegen = isRegen;
         RefreshRegenState();
+    }
+
+    public void SetRegenPerSecond(float regenPerSecond)
+    {
+        _regenPerSecond = Mathf.Max(0f, regenPerSecond);
+        RestartRegenLoop();
+    }
+
+    public void SetRegenDelay(float regenDelay)
+    {
+        _regenDelay = Mathf.Max(0f, regenDelay);
+        RestartRegenLoop();
+    }
+
+    public void ApplyModifier(float maxValue, bool autoRegen, float regenPerSecond, float regenDelay)
+    {
+        SetMaxValue(maxValue);
+
+        _autoRegen = autoRegen;
+        _regenPerSecond = Mathf.Max(0f, regenPerSecond);
+        _regenDelay = Mathf.Max(0f, regenDelay);
+
+        RefreshRegenState();
+        RestartRegenLoop();
     }
 
     private void RefreshRegenState()
@@ -107,5 +137,17 @@ public class Health : Stat
     private float GetRegenTick()
     {
         return Mathf.Max(0.02f, _regenTick);
+    }
+
+    private void RestartRegenLoop()
+    {
+        StopRegenLoop();
+
+        if (enabled == false)
+        {
+            return;
+        }
+
+        StartRegenLoop();
     }
 }

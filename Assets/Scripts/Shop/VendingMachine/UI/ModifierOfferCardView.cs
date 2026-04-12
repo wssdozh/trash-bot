@@ -39,7 +39,7 @@ public sealed class ModifierOfferCardView : MonoBehaviour
         _index = index;
     }
 
-    public void Render(ModifierOffer offer, bool canBuy)
+    public void Render(IShopOffer offer, bool canBuy)
     {
         _background.sprite = GetCardSprite(offer.Rarity);
         _icon.enabled = offer.Icon != null;

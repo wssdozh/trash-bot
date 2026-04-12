@@ -5,9 +5,11 @@ public sealed class PlayerSprint
     private readonly CharacterMover _movement;
     private readonly PlayerAnimator _animator;
     private readonly Stamina _stamina;
-    private readonly float _sprintStaminaCostPerSecond;
+    private float _sprintStaminaCostPerSecond;
 
     public bool IsSprinting { get; private set; }
+
+    public float StaminaCostPerSecond => _sprintStaminaCostPerSecond;
 
     public PlayerSprint(
         CharacterMover movement,
@@ -21,6 +23,11 @@ public sealed class PlayerSprint
         _sprintStaminaCostPerSecond = sprintStaminaCostPerSecond;
 
         IsSprinting = false;
+    }
+
+    public void SetCostPerSecond(float sprintStaminaCostPerSecond)
+    {
+        _sprintStaminaCostPerSecond = Mathf.Max(0f, sprintStaminaCostPerSecond);
     }
 
     public bool TryStart()

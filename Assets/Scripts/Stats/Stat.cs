@@ -57,8 +57,10 @@ public abstract class Stat : MonoBehaviour
             return;
         }
 
+        float normalized = Normalized;
+
         _maxValue = newMaxValue;
-        _value = Mathf.Clamp(_value, _minValue, _maxValue);
+        _value = Mathf.Lerp(_minValue, _maxValue, normalized);
         Changed?.Invoke();
     }
 

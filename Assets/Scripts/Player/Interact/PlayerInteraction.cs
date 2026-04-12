@@ -9,6 +9,7 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private CursorManager _cursor;
     [SerializeField] private PlayerCombat _combat;
     [SerializeField] private ModifierVendingMachineMenuView _modifierVendingMachineMenuView;
+    [SerializeField] private PlayerModifierMenuView _playerModifierMenuView;
 
     [Header("Настройки")]
     [SerializeField] private float _hoverTickSeconds = 0.15f;
@@ -38,6 +39,14 @@ public class PlayerInteraction : MonoBehaviour
 
     public void Interact()
     {
+        if (_playerModifierMenuView != null)
+        {
+            if (_playerModifierMenuView.TryClose())
+            {
+                return;
+            }
+        }
+
         if (_modifierVendingMachineMenuView != null)
         {
             if (_modifierVendingMachineMenuView.TryClose())

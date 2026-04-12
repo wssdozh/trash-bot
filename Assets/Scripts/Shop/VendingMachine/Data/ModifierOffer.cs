@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ModifierOffer", menuName = "Shop/Modifier Offer")]
-public sealed class ModifierOffer : ScriptableObject
+public sealed class ModifierOffer : ScriptableObject, IShopOffer
 {
     private const int CommonPrice = 25;
     private const int RarePrice = 55;

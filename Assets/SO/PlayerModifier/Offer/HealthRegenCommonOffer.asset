@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd1ef06247f94dc3ba0927c6f628d75d, type: 3}
+  m_Name: HealthRegenCommonOffer
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerModifierOffer
+  _title: "\u0420\u0435\u0433\u0435\u043D \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u044F"
+  _description: "\u0412\u043A\u043B. \u0440\u0435\u0433\u0435\u043D, +50%, -10%"
+  _icon: {fileID: 0}
+  _rarity: 0
+  _price: 25
+  _modifiers:
+  - {fileID: 11400000, guid: 0c01a2e30135499cbb4f15eacbecb49d, type: 2}
+  - {fileID: 11400000, guid: 6acc7289f2c54246b4ea5cece6490b76, type: 2}
+  - {fileID: 11400000, guid: 5171b59e2dfe49c4a1c8a0ebab64906a, type: 2}

@@ -6,7 +6,7 @@ public sealed class PlayerMeleeAttack
     private readonly PlayerAnimationEvents _animationEvents;
     private readonly PlayerMovementGate _movementGate;
     private readonly PlayerBattleState _battleState;
-    private readonly float _attackStaminaCost;
+    private float _attackStaminaCost;
 
     private bool _isAttackInProgress;
     private bool _isHitPending;
@@ -27,6 +27,13 @@ public sealed class PlayerMeleeAttack
         _animationEvents = animationEvents;
         _movementGate = movementGate;
         _battleState = battleState;
+        _attackStaminaCost = attackStaminaCost;
+    }
+
+    public float AttackStaminaCost => _attackStaminaCost;
+
+    public void SetAttackStaminaCost(float attackStaminaCost)
+    {
         _attackStaminaCost = attackStaminaCost;
     }
 
