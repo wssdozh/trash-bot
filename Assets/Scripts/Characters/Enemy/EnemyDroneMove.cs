@@ -49,6 +49,8 @@ public sealed class EnemyDroneMove : MonoBehaviour
     private float _currentLiftHeight;
     private float _hoverTime;
     private float _verticalVelocity;
+    private float _targetHeight;
+    private bool _hasTargetHeight;
 
     public Vector3 MoveVelocity => _moveDirection * _currentMoveSpeed;
     public Vector3 ForwardDirection => GetForwardDirection();
@@ -184,6 +186,7 @@ public sealed class EnemyDroneMove : MonoBehaviour
     {
         ApplyFlightBody();
         _anchorPoint = _rigidbody.position;
+        _hasTargetHeight = false;
         UpdateAnchorHeight(_anchorPoint.y);
         _rigidbody.position = new Vector3(_rigidbody.position.x, _anchorPoint.y, _rigidbody.position.z);
         _moveDirection = Vector3.zero;
@@ -198,6 +201,17 @@ public sealed class EnemyDroneMove : MonoBehaviour
     public Vector3 GetAnchorPoint()
     {
         return _anchorPoint;
+    }
+
+    public void SetTargetHeight(float targetHeight)
+    {
+        _targetHeight = targetHeight;
+        _hasTargetHeight = true;
+    }
+
+    public void ClearTargetHeight()
+    {
+        _hasTargetHeight = false;
     }
 
     public void SetMovePoint(Vector3 movePoint)
@@ -426,6 +440,11 @@ public sealed class EnemyDroneMove : MonoBehaviour
 
         if (enemyRoomLock == null)
         {
+            if (_hasTargetHeight)
+            {
+                return Mathf.Max(_targetHeight, _floorGap);
+            }
+
             return Mathf.Max(fallbackHeight, _floorGap);
         }
 
@@ -443,6 +462,11 @@ public sealed class EnemyDroneMove : MonoBehaviour
         if (maxHeight < minHeight)
         {
             return Mathf.Max(fallbackHeight, minHeight);
+        }
+
+        if (_hasTargetHeight)
+        {
+            return Mathf.Clamp(_targetHeight, minHeight, maxHeight);
         }
 
         return maxHeight;
