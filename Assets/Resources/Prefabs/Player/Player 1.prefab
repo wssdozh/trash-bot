@@ -1276,6 +1276,7 @@ MonoBehaviour:
   _rigidbody: {fileID: 6655802807853044318}
   _speed: 2.2
   _speedSprint: 4.7
+  _isWallSlideEnabled: 1
 --- !u!114 &331562004979835452
 MonoBehaviour:
   m_ObjectHideFlags: 0

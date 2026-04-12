@@ -8,6 +8,10 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private const int CombatBaseMax = 7;
     private const int CombatAddMin = 3;
     private const int CombatAddMax = 5;
+    private const int GroundPatrolCount = 8;
+    private const int GroundPatrolMin = 2;
+    private const int GroundPatrolGap = 2;
+    private const int NotWalkableArea = 1;
     private const int SpawnFixTryCount = 8;
     private const int SpawnSearchDirections = 8;
     private const int SpawnCheckBufferSize = 32;
@@ -15,6 +19,9 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private const float SpawnMaxShift = 1.35f;
     private const float SpawnSearchStep = 0.35f;
     private const float SpawnCheckPadding = 0.25f;
+    private const float GroundPatrolRadius = 0.58f;
+    private const float NavBlockCenterY = 1f;
+    private const float NavBlockHeight = 2.5f;
     private const float ZeroThreshold = 0.0001f;
     private static readonly int[] s_neighborOffsetX = new int[4] { 1, -1, 0, 0 };
     private static readonly int[] s_neighborOffsetZ = new int[4] { 0, 0, 1, -1 };
@@ -38,6 +45,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private readonly HashSet<Vector2Int> _enemyForbiddenCellSetBuffer = new HashSet<Vector2Int>();
     private readonly HashSet<Vector2Int> _corridorStartCellsBuffer = new HashSet<Vector2Int>();
     private readonly List<Vector2Int> _freeCellsBuffer = new List<Vector2Int>();
+    private readonly List<Vector2Int> _groundPatrolCellsBuffer = new List<Vector2Int>();
+    private readonly List<Vector3> _groundPatrolPointsBuffer = new List<Vector3>();
     private readonly List<Vector2Int> _resourceCentersBuffer = new List<Vector2Int>();
     private readonly HashSet<Vector2Int> _enemyCellsBuffer = new HashSet<Vector2Int>();
     private readonly List<EnemySpawnConfig> _spawnedEnemiesBuffer = new List<EnemySpawnConfig>();
@@ -74,6 +83,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     [SerializeField, Min(1)] private int _enemyMinSpanInCells = 3;
 
     private RoomRuntimeState _roomRuntimeState;
+    private Transform _navMeshBlocksRoot;
 
     public void Spawn(
         RoomTypeProfile roomTypeProfile,
@@ -143,6 +153,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int[,] enemyDistanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, enemyObstacleFloorCellSet);
         int enemyMaximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, enemyDistanceFromEntrance);
         int[,] enemyDistanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, enemyObstacleFloorCellSet);
+        BuildNavMeshBlocks(roomSizeInBlocks, enemyObstacleFloorCellSet);
+        BuildGroundPatrol(roomSizeInBlocks, floorOccupancy, enemyObstacleFloorCellSet, enemyDistanceFromCorridor, resourceCenters);
 
         SpawnEnemies(
             roomTypeProfile,
@@ -200,6 +212,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     {
         ClearChildren(_objectsRoot);
         ClearChildren(_enemiesRoot);
+        ClearNavMeshBlocks();
     }
 
     private void EnsureEnemyNavMeshIgnore()
@@ -1778,6 +1791,321 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         chosenCell = Vector2Int.zero;
         return false;
+    }
+
+    private void BuildNavMeshBlocks(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> obstacleFloorCellSet)
+    {
+        Transform navMeshBlocksRoot = EnsureNavMeshBlocksRoot();
+        ClearChildren(navMeshBlocksRoot);
+
+        for (int cellZ = 1; cellZ <= roomSizeInBlocks.z - 2; cellZ++)
+        {
+            int cellX = 1;
+
+            while (cellX <= roomSizeInBlocks.x - 2)
+            {
+                Vector2Int startCell = new Vector2Int(cellX, cellZ);
+
+                if (obstacleFloorCellSet.Contains(startCell) == false)
+                {
+                    cellX += 1;
+
+                    continue;
+                }
+
+                int runStartX = cellX;
+                int runEndX = cellX;
+
+                while (runEndX + 1 <= roomSizeInBlocks.x - 2)
+                {
+                    Vector2Int nextCell = new Vector2Int(runEndX + 1, cellZ);
+
+                    if (obstacleFloorCellSet.Contains(nextCell) == false)
+                    {
+                        break;
+                    }
+
+                    runEndX += 1;
+                }
+
+                CreateNavMeshBlock(navMeshBlocksRoot, runStartX, runEndX, cellZ);
+                cellX = runEndX + 1;
+            }
+        }
+    }
+
+    private Transform EnsureNavMeshBlocksRoot()
+    {
+        if (_navMeshBlocksRoot != null)
+        {
+            return _navMeshBlocksRoot;
+        }
+
+        Transform existingRoot = transform.Find("__NavMeshBlocks");
+
+        if (existingRoot != null)
+        {
+            _navMeshBlocksRoot = existingRoot;
+
+            return _navMeshBlocksRoot;
+        }
+
+        GameObject navMeshBlocksObject = new GameObject("__NavMeshBlocks");
+        navMeshBlocksObject.transform.SetParent(transform, false);
+        _navMeshBlocksRoot = navMeshBlocksObject.transform;
+
+        return _navMeshBlocksRoot;
+    }
+
+    private void ClearNavMeshBlocks()
+    {
+        if (_navMeshBlocksRoot == null)
+        {
+            return;
+        }
+
+        ClearChildren(_navMeshBlocksRoot);
+    }
+
+    private void CreateNavMeshBlock(Transform navMeshBlocksRoot, int startCellX, int endCellX, int cellZ)
+    {
+        int cellCount = (endCellX - startCellX) + 1;
+        float centerCellX = startCellX + ((cellCount - 1) * 0.5f);
+        GameObject navMeshBlockObject = new GameObject("NavBlock");
+        navMeshBlockObject.transform.SetParent(navMeshBlocksRoot, false);
+
+        float localPositionX = (centerCellX + 0.5f) * _blockSize;
+        float localPositionZ = (cellZ + 0.5f) * _blockSize;
+        navMeshBlockObject.transform.localPosition = new Vector3(localPositionX, 0f, localPositionZ);
+
+        NavMeshModifierVolume navMeshModifierVolume = navMeshBlockObject.AddComponent<NavMeshModifierVolume>();
+        navMeshModifierVolume.area = NotWalkableArea;
+        navMeshModifierVolume.center = new Vector3(0f, NavBlockCenterY * _blockSize, 0f);
+        navMeshModifierVolume.size = new Vector3(cellCount * _blockSize, NavBlockHeight * _blockSize, _blockSize);
+    }
+
+    private void BuildGroundPatrol(
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        HashSet<Vector2Int> obstacleFloorCellSet,
+        int[,] distanceFromCorridor,
+        List<Vector2Int> resourceCenters
+    )
+    {
+        if (_roomRuntimeState == null)
+        {
+            return;
+        }
+
+        List<Vector2Int> patrolCells = _groundPatrolCellsBuffer;
+        patrolCells.Clear();
+        Vector2Int roomCenterCell = GetRoomCenterCell(roomSizeInBlocks);
+        int maximumCenterDistance = GetMaximumCenterDistance(roomCenterCell, roomSizeInBlocks);
+        int preferredDistance = Mathf.Max(2, Mathf.RoundToInt(maximumCenterDistance * GroundPatrolRadius));
+        int wallAvoidanceInCells = Mathf.Max(1, _enemyWallAvoidanceInCells / 2);
+
+        while (patrolCells.Count < GroundPatrolCount)
+        {
+            Vector2Int patrolCell;
+
+            if (TryPickGroundPatrolCell(
+                roomSizeInBlocks,
+                floorOccupancy,
+                obstacleFloorCellSet,
+                distanceFromCorridor,
+                resourceCenters,
+                roomCenterCell,
+                preferredDistance,
+                wallAvoidanceInCells,
+                patrolCells,
+                out patrolCell
+            ) == false)
+            {
+                break;
+            }
+
+            patrolCells.Add(patrolCell);
+        }
+
+        if (patrolCells.Count < GroundPatrolMin)
+        {
+            _roomRuntimeState.ClearGroundPatrolPoints();
+
+            return;
+        }
+
+        SortGroundPatrolCells(patrolCells, roomCenterCell);
+
+        List<Vector3> patrolPoints = _groundPatrolPointsBuffer;
+        patrolPoints.Clear();
+
+        for (int pointIndex = 0; pointIndex < patrolCells.Count; pointIndex++)
+        {
+            Vector3 patrolPoint = GetWorldPosition(_enemiesRoot, patrolCells[pointIndex], 0f);
+            patrolPoints.Add(patrolPoint);
+        }
+
+        _roomRuntimeState.SetGroundPatrolPoints(patrolPoints);
+    }
+
+    private bool TryPickGroundPatrolCell(
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        HashSet<Vector2Int> obstacleFloorCellSet,
+        int[,] distanceFromCorridor,
+        List<Vector2Int> resourceCenters,
+        Vector2Int roomCenterCell,
+        int preferredDistance,
+        int wallAvoidanceInCells,
+        List<Vector2Int> patrolCells,
+        out Vector2Int patrolCell
+    )
+    {
+        bool found = false;
+        float bestScore = -1f;
+        Vector2Int bestCell = Vector2Int.zero;
+
+        for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
+        {
+            for (int cellZ = 1; cellZ <= roomSizeInBlocks.z - 2; cellZ++)
+            {
+                Vector2Int cell = new Vector2Int(cellX, cellZ);
+
+                if (floorOccupancy.IsFree(cell) == false)
+                {
+                    continue;
+                }
+
+                int corridorDistance = distanceFromCorridor[cell.x, cell.y];
+
+                if (corridorDistance <= 0)
+                {
+                    continue;
+                }
+
+                if (IsTooCloseToRoomWalls(cell, roomSizeInBlocks, wallAvoidanceInCells))
+                {
+                    continue;
+                }
+
+                if (patrolCells.Count > 0)
+                {
+                    int nearestDistance = GetMinimumManhattanDistance(patrolCells, cell);
+
+                    if (nearestDistance < GroundPatrolGap)
+                    {
+                        continue;
+                    }
+                }
+
+                float arenaScore;
+
+                if (TryGetEnemyArenaScore(cell, roomSizeInBlocks, floorOccupancy, true, out arenaScore) == false)
+                {
+                    continue;
+                }
+
+                float score = ComputeGroundPatrolScore(
+                    cell,
+                    roomSizeInBlocks,
+                    obstacleFloorCellSet,
+                    resourceCenters,
+                    roomCenterCell,
+                    preferredDistance,
+                    patrolCells,
+                    arenaScore
+                );
+
+                if (found == false || score > bestScore)
+                {
+                    found = true;
+                    bestScore = score;
+                    bestCell = cell;
+                }
+            }
+        }
+
+        patrolCell = bestCell;
+
+        return found;
+    }
+
+    private float ComputeGroundPatrolScore(
+        Vector2Int cell,
+        Vector3Int roomSizeInBlocks,
+        HashSet<Vector2Int> obstacleFloorCellSet,
+        List<Vector2Int> resourceCenters,
+        Vector2Int roomCenterCell,
+        int preferredDistance,
+        List<Vector2Int> patrolCells,
+        float arenaScore
+    )
+    {
+        int centerDistance = GetCellDistance(roomCenterCell, cell);
+        float ringScore = 1f - Mathf.Clamp01(Mathf.Abs((float)centerDistance - preferredDistance) / Mathf.Max(1, preferredDistance));
+        float wallDistanceScore = ComputeWallDistanceScore(cell, roomSizeInBlocks, _enemyPreferredWallDistanceInCells);
+        float cornerScore = 1f - ComputeCornerPenalty(cell, roomSizeInBlocks, _cornerAvoidanceInCells);
+        float cover = (float)CountObstacleNeighbors(cell, obstacleFloorCellSet) / 4f;
+        float coverScore = ComputeCoverPreferenceScore(cover);
+        float resourceScore = ComputeResourcePatrolScore(cell, resourceCenters);
+        float spreadScore = 1f;
+
+        if (patrolCells.Count > 0)
+        {
+            int nearestDistance = GetMinimumManhattanDistance(patrolCells, cell);
+            spreadScore = Mathf.Clamp01((float)nearestDistance / Mathf.Max(1, GroundPatrolGap * 3));
+        }
+
+        return (arenaScore * 0.34f) + (ringScore * 0.22f) + (spreadScore * 0.18f) + (wallDistanceScore * 0.12f) + (cornerScore * 0.08f) + (resourceScore * 0.04f) + (coverScore * 0.02f);
+    }
+
+    private float ComputeResourcePatrolScore(Vector2Int cell, List<Vector2Int> resourceCenters)
+    {
+        if (resourceCenters.Count == 0)
+        {
+            return 0.5f;
+        }
+
+        int nearestDistance = GetMinimumManhattanDistance(resourceCenters, cell);
+        int preferredDistance = Mathf.Max(1, _enemyGuardRadiusInCells);
+
+        return 1f - Mathf.Clamp01(Mathf.Abs((float)nearestDistance - preferredDistance) / Mathf.Max(1, preferredDistance));
+    }
+
+    private void SortGroundPatrolCells(List<Vector2Int> patrolCells, Vector2Int roomCenterCell)
+    {
+        int pointIndex = 1;
+
+        while (pointIndex < patrolCells.Count)
+        {
+            Vector2Int currentCell = patrolCells[pointIndex];
+            float currentAngle = GetPatrolAngle(roomCenterCell, currentCell);
+            int sortIndex = pointIndex - 1;
+
+            while (sortIndex >= 0)
+            {
+                float sortAngle = GetPatrolAngle(roomCenterCell, patrolCells[sortIndex]);
+
+                if (sortAngle <= currentAngle)
+                {
+                    break;
+                }
+
+                patrolCells[sortIndex + 1] = patrolCells[sortIndex];
+                sortIndex -= 1;
+            }
+
+            patrolCells[sortIndex + 1] = currentCell;
+            pointIndex += 1;
+        }
+    }
+
+    private float GetPatrolAngle(Vector2Int roomCenterCell, Vector2Int patrolCell)
+    {
+        float offsetX = patrolCell.x - roomCenterCell.x;
+        float offsetZ = patrolCell.y - roomCenterCell.y;
+
+        return Mathf.Atan2(offsetZ, offsetX);
     }
 
     private void SpawnEnemies(

@@ -20,6 +20,10 @@ PrefabInstance:
       propertyPath: _speedSprint
       value: 4.5
       objectReference: {fileID: 0}
+    - target: {fileID: 924719609261421840, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+      propertyPath: _isWallSlideEnabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6367953433166089997, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _maxValue
       value: 16

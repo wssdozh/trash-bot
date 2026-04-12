@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -17,6 +18,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
     private Bounds _moveBounds;
     private float _cornerGap;
     private Vector3[] _patrolPoints = Array.Empty<Vector3>();
+    private Vector3[] _groundPatrolPoints = Array.Empty<Vector3>();
     private bool _isReady;
 
     public void Setup(Bounds roomBounds, float enemyBorderGap)
@@ -25,6 +27,7 @@ public sealed class RoomRuntimeState : MonoBehaviour
         _moveBounds = BuildMoveBounds(_roomBounds, enemyBorderGap);
         _cornerGap = BuildCornerGap(_moveBounds, enemyBorderGap);
         _patrolPoints = BuildPatrolPoints(_moveBounds, _cornerGap);
+        _groundPatrolPoints = _patrolPoints;
         _isReady = true;
     }
 
@@ -120,6 +123,38 @@ public sealed class RoomRuntimeState : MonoBehaviour
         return patrolPoint;
     }
 
+    public int GetGroundPatrolCount()
+    {
+        if (_isReady == false)
+        {
+            return 0;
+        }
+
+        return _groundPatrolPoints.Length;
+    }
+
+    public Vector3 GetGroundPatrolPoint(int patrolIndex, float height)
+    {
+        if (_isReady == false)
+        {
+            return new Vector3(0f, height, 0f);
+        }
+
+        if (_groundPatrolPoints.Length == 0)
+        {
+            Vector3 centerPoint = _moveBounds.center;
+            centerPoint.y = height;
+
+            return centerPoint;
+        }
+
+        int loopIndex = GetLoopIndex(patrolIndex, _groundPatrolPoints.Length);
+        Vector3 patrolPoint = _groundPatrolPoints[loopIndex];
+        patrolPoint.y = height;
+
+        return patrolPoint;
+    }
+
     public int GetNearestPatrolIndex(Vector3 point)
     {
         if (_isReady == false)
@@ -140,6 +175,40 @@ public sealed class RoomRuntimeState : MonoBehaviour
         while (pointIndex < _patrolPoints.Length)
         {
             Vector3 patrolPoint = _patrolPoints[pointIndex];
+            float pointDistance = (patrolPoint - flatPoint).sqrMagnitude;
+
+            if (pointDistance < nearestDistance)
+            {
+                nearestDistance = pointDistance;
+                nearestIndex = pointIndex;
+            }
+
+            pointIndex += 1;
+        }
+
+        return nearestIndex;
+    }
+
+    public int GetNearestGroundPatrolIndex(Vector3 point)
+    {
+        if (_isReady == false)
+        {
+            return 0;
+        }
+
+        if (_groundPatrolPoints.Length == 0)
+        {
+            return 0;
+        }
+
+        Vector3 flatPoint = ClampRoundedPoint(_moveBounds, _cornerGap, point);
+        int nearestIndex = 0;
+        float nearestDistance = float.MaxValue;
+        int pointIndex = 0;
+
+        while (pointIndex < _groundPatrolPoints.Length)
+        {
+            Vector3 patrolPoint = _groundPatrolPoints[pointIndex];
             float pointDistance = (patrolPoint - flatPoint).sqrMagnitude;
 
             if (pointDistance < nearestDistance)
@@ -191,6 +260,36 @@ public sealed class RoomRuntimeState : MonoBehaviour
         Vector3 fallbackPoint = new Vector3(fallbackX, height, fallbackZ);
 
         return ClampRoundedPoint(_moveBounds, _cornerGap, fallbackPoint);
+    }
+
+    public void SetPatrolPoints(IReadOnlyList<Vector3> patrolPoints)
+    {
+        if (_isReady == false)
+        {
+            return;
+        }
+
+        _patrolPoints = BuildCustomPatrolPoints(patrolPoints);
+    }
+
+    public void SetGroundPatrolPoints(IReadOnlyList<Vector3> patrolPoints)
+    {
+        if (_isReady == false)
+        {
+            return;
+        }
+
+        _groundPatrolPoints = BuildCustomPatrolPoints(patrolPoints);
+    }
+
+    public void ClearGroundPatrolPoints()
+    {
+        if (_isReady == false)
+        {
+            return;
+        }
+
+        _groundPatrolPoints = Array.Empty<Vector3>();
     }
 
     public float GetDistanceSqr(Vector3 point)
@@ -276,6 +375,32 @@ public sealed class RoomRuntimeState : MonoBehaviour
         moveBounds.size = size;
 
         return moveBounds;
+    }
+
+    private Vector3[] BuildCustomPatrolPoints(IReadOnlyList<Vector3> patrolPoints)
+    {
+        if (patrolPoints == null)
+        {
+            return BuildPatrolPoints(_moveBounds, _cornerGap);
+        }
+
+        if (patrolPoints.Count == 0)
+        {
+            return BuildPatrolPoints(_moveBounds, _cornerGap);
+        }
+
+        Vector3[] nextPatrolPoints = new Vector3[patrolPoints.Count];
+        int pointIndex = 0;
+
+        while (pointIndex < patrolPoints.Count)
+        {
+            Vector3 patrolPoint = ClampRoundedPoint(_moveBounds, _cornerGap, patrolPoints[pointIndex]);
+            patrolPoint.y = _moveBounds.center.y;
+            nextPatrolPoints[pointIndex] = patrolPoint;
+            pointIndex += 1;
+        }
+
+        return nextPatrolPoints;
     }
 
     private Vector3[] BuildPatrolPoints(Bounds moveBounds, float cornerGap)

@@ -16,6 +16,7 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private const float AvoidWeight = 1.05f;
     private const float SeparationRadius = 1.35f;
     private const float SeparationWeight = 2.2f;
+    private const float IdleWallGap = 0.6f;
 
     private readonly Collider[] _hitBuffer = new Collider[HitBufferSize];
     private readonly EnemyPatrolPicker _idlePatrolPicker = new EnemyPatrolPicker();
@@ -355,6 +356,13 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
+        PickIdlePoint();
+
+        if (_hasIdlePoint)
+        {
+            return;
+        }
+
         StartIdleWait();
     }
 
@@ -522,18 +530,107 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private void PickIdlePoint()
     {
-        EnemyRoomLock enemyRoomLock = GetRoomLock();
-        Vector3 fallbackPoint = ClampPoint(transform.position);
-        fallbackPoint.y = transform.position.y;
+        Vector3 currentPoint = GetFlatPoint(transform.position);
 
-        if (_idlePatrolPicker.TryPickPoint(enemyRoomLock, transform.position, GetPatrolForward(), fallbackPoint, transform.position.y, _idleRadius, IdlePointTryCount, GetRandomDirection, out _idlePoint) == false)
+        if (TryPickGuardIdlePoint(currentPoint))
         {
-            _hasIdlePoint = false;
-
             return;
         }
 
+        if (TryPickNavIdlePoint(currentPoint))
+        {
+            return;
+        }
+
+        _hasIdlePoint = false;
+    }
+
+    private bool TryPickGuardIdlePoint(Vector3 currentPoint)
+    {
+        EnemyRoomLock enemyRoomLock = GetRoomLock();
+
+        if (enemyRoomLock == null)
+        {
+            return false;
+        }
+
+        if (enemyRoomLock.GetPatrolCount() <= 0)
+        {
+            return false;
+        }
+
+        Vector3 fallbackPoint = ClampPoint(currentPoint);
+        fallbackPoint.y = transform.position.y;
+        Vector3 patrolPoint;
+        float idleMinDistance = GetIdleMinDistance();
+
+        if (_idlePatrolPicker.TryPickPoint(enemyRoomLock, currentPoint, GetPatrolForward(), fallbackPoint, transform.position.y, idleMinDistance, IdlePointTryCount, GetRandomDirection, out patrolPoint) == false)
+        {
+            return false;
+        }
+
+        return TrySetIdlePoint(currentPoint, patrolPoint, IdleWallGap);
+    }
+
+    private bool TryPickNavIdlePoint(Vector3 currentPoint)
+    {
+        float idleMinDistance = GetIdleMinDistance();
+        float idleMaxDistance = Mathf.Max(idleMinDistance, _idleRadius);
+        Vector3 navPoint;
+
+        if (_enemySteering.TryPickNavPoint(currentPoint, GetPatrolForward(), idleMinDistance, idleMaxDistance, IdleWallGap, IdlePointTryCount, Next01, out navPoint))
+        {
+            return TrySetIdlePoint(currentPoint, navPoint, IdleWallGap);
+        }
+
+        if (_enemySteering.TryPickNavPoint(currentPoint, GetPatrolForward(), idleMinDistance, idleMaxDistance, ProbeRadius, IdlePointTryCount, Next01, out navPoint))
+        {
+            return TrySetIdlePoint(currentPoint, navPoint, ProbeRadius);
+        }
+
+        return false;
+    }
+
+    private bool TrySetIdlePoint(Vector3 currentPoint, Vector3 targetPoint, float wallGap)
+    {
+        Vector3 safePoint = _enemySteering.GetSafePoint(targetPoint, wallGap);
+
+        if (GetFlatDistance(currentPoint, safePoint) < _idleReachDistance)
+        {
+            return false;
+        }
+
+        if (_enemySteering.HasPointClearance(safePoint) == false)
+        {
+            return false;
+        }
+
+        if (_enemySteering.HasWallGap(safePoint, wallGap) == false)
+        {
+            return false;
+        }
+
+        _idlePoint = safePoint;
+        _idlePoint.y = transform.position.y;
         _hasIdlePoint = true;
+        _enemySteering.ResetMoveStuck();
+
+        return true;
+    }
+
+    private float GetIdleMinDistance()
+    {
+        return Mathf.Max(ProbeDistance, _idleReachDistance * 2f);
+    }
+
+    private float Next01()
+    {
+        if (_random == null)
+        {
+            return 0.5f;
+        }
+
+        return (float)_random.NextDouble();
     }
 
     private bool TryPickSearchPoint()
@@ -589,13 +686,16 @@ public sealed class EnemyBomberBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 ClampPoint(Vector3 point)
     {
         EnemyRoomLock enemyRoomLock = GetRoomLock();
+        float wallGap = Mathf.Max(IdleWallGap, ProbeRadius);
 
         if (enemyRoomLock == null)
         {
-            return point;
+            return _enemySteering.GetSafePoint(point, wallGap);
         }
 
-        return enemyRoomLock.ClampMovePoint(point);
+        Vector3 clampedPoint = enemyRoomLock.ClampMovePoint(point);
+
+        return _enemySteering.GetSafePoint(clampedPoint, wallGap);
     }
 
     private EnemyRoomLock GetRoomLock()

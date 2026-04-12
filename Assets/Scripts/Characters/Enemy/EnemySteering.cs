@@ -11,7 +11,6 @@ public sealed class EnemySteering
     private const float MinDistance = 0.0001f;
     private const float NavSampleGap = 2f;
     private const float PathRefreshGap = 0.3f;
-    private const float PathRefreshTime = 0.2f;
     private const float ResolveMinStep = 0.03f;
     private const float ResolveMaxStep = 0.18f;
     private const float AgentSpeed = 3.5f;
@@ -27,6 +26,7 @@ public sealed class EnemySteering
     private const float MinProbeHeight = 0.18f;
     private const float MoveStuckMin = 0.01f;
     private const float MoveStuckTime = 0.3f;
+    private const float NavPickAngle = 180f;
 
     private readonly Transform _root;
     private readonly EnemyMove _enemyMove;
@@ -59,7 +59,6 @@ public sealed class EnemySteering
     private float _recoverSide;
     private Vector3 _pathTargetPoint;
     private float _pathStopDistance;
-    private float _pathTime;
     private Vector3 _lastNavPoint;
     private Vector3 _moveLastPoint;
     private bool _hasPathTarget;
@@ -166,12 +165,22 @@ public sealed class EnemySteering
         {
             ClearPath();
 
+            if (_navMeshAgent != null)
+            {
+                return FailMove(lookBlend, lookPoint);
+            }
+
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
 
         if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
         {
             ClearPath();
+
+            if (_navMeshAgent != null)
+            {
+                return FailMove(lookBlend, lookPoint);
+            }
 
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
@@ -202,6 +211,18 @@ public sealed class EnemySteering
         _enemyMove.SetDirection(steerDirection);
 
         return true;
+    }
+
+    private bool FailMove(float lookBlend, Vector3 lookPoint)
+    {
+        _enemyMove.StopMove();
+
+        if (lookBlend > 0f)
+        {
+            _enemyRotator.RotateToPoint(GetFlatPoint(lookPoint));
+        }
+
+        return false;
     }
 
     private bool TryDirectMove(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
@@ -597,6 +618,97 @@ public sealed class EnemySteering
         return ClampMovePoint(safePoint);
     }
 
+    public bool TryPickNavPoint(Vector3 currentPoint, Vector3 forwardDirection, float minDistance, float maxDistance, float wallGap, int tryCount, Func<float> getProgress, out Vector3 navPoint)
+    {
+        if (getProgress == null)
+        {
+            throw new InvalidOperationException(nameof(getProgress));
+        }
+
+        navPoint = ClampMovePoint(currentPoint);
+
+        if (tryCount <= 0)
+        {
+            return false;
+        }
+
+        if (minDistance <= 0f)
+        {
+            throw new InvalidOperationException(nameof(minDistance));
+        }
+
+        if (maxDistance < minDistance)
+        {
+            throw new InvalidOperationException(nameof(maxDistance));
+        }
+
+        Vector3 flatCurrentPoint = GetFlatPoint(currentPoint);
+        Vector3 baseDirection = GetFlatDirection(forwardDirection);
+
+        if (baseDirection.sqrMagnitude <= MinDistance)
+        {
+            baseDirection = _enemyRotator.ForwardDirection;
+        }
+
+        float sampleGap = Mathf.Max(GetNavSampleGap(), maxDistance);
+        int tryIndex = 0;
+
+        while (tryIndex < tryCount)
+        {
+            float distance = Mathf.Lerp(minDistance, maxDistance, getProgress());
+            float angle = Mathf.Lerp(-NavPickAngle, NavPickAngle, getProgress());
+            Vector3 pickDirection = RotateDirection(baseDirection, angle);
+
+            if (pickDirection.sqrMagnitude <= MinDistance)
+            {
+                tryIndex += 1;
+
+                continue;
+            }
+
+            Vector3 candidatePoint = flatCurrentPoint + (pickDirection * distance);
+            candidatePoint = ClampMovePoint(candidatePoint);
+            Vector3 samplePoint;
+
+            if (TryGetNavPoint(candidatePoint, sampleGap, out samplePoint) == false)
+            {
+                tryIndex += 1;
+
+                continue;
+            }
+
+            Vector3 safePoint = GetSafePoint(samplePoint, wallGap);
+            float reachDistance = Vector3.Distance(flatCurrentPoint, safePoint);
+
+            if (reachDistance < minDistance)
+            {
+                tryIndex += 1;
+
+                continue;
+            }
+
+            if (HasWallGap(safePoint, wallGap) == false)
+            {
+                tryIndex += 1;
+
+                continue;
+            }
+
+            if (HasPointClearance(safePoint) == false)
+            {
+                tryIndex += 1;
+
+                continue;
+            }
+
+            navPoint = safePoint;
+
+            return true;
+        }
+
+        return false;
+    }
+
     public Vector3 GetReachPoint(Vector3 targetPoint, float wallGap)
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
@@ -918,19 +1030,24 @@ public sealed class EnemySteering
 
     private bool TryRefreshPath(Vector3 targetPoint, float stopDistance)
     {
-        if (NeedPathRefresh(targetPoint, stopDistance))
+        Vector3 navTargetPoint;
+
+        if (TryGetNavPoint(targetPoint, NavRecoverGap, out navTargetPoint) == false)
+        {
+            return false;
+        }
+
+        if (NeedPathRefresh(navTargetPoint, stopDistance))
         {
             _navMeshAgent.stoppingDistance = stopDistance;
-            bool isSet = _navMeshAgent.SetDestination(targetPoint);
 
-            if (isSet == false)
+            if (TrySetPath(navTargetPoint) == false)
             {
                 return false;
             }
 
-            _pathTargetPoint = targetPoint;
+            _pathTargetPoint = navTargetPoint;
             _pathStopDistance = stopDistance;
-            _pathTime = Time.time;
             _hasPathTarget = true;
         }
 
@@ -949,6 +1066,11 @@ public sealed class EnemySteering
             return false;
         }
 
+        if (_navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial)
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -959,7 +1081,12 @@ public sealed class EnemySteering
             return true;
         }
 
-        if (Time.time - _pathTime >= PathRefreshTime)
+        if (_navMeshAgent.pathPending)
+        {
+            return false;
+        }
+
+        if (_navMeshAgent.hasPath == false)
         {
             return true;
         }
@@ -979,12 +1106,46 @@ public sealed class EnemySteering
             return true;
         }
 
+        if (_navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial)
+        {
+            return true;
+        }
+
         if (_navMeshAgent.isPathStale)
         {
             return true;
         }
 
         return false;
+    }
+
+    private bool TrySetPath(Vector3 targetPoint)
+    {
+        bool hasPath = _navMeshAgent.CalculatePath(targetPoint, _navMeshPath);
+
+        if (hasPath == false)
+        {
+            return false;
+        }
+
+        if (_navMeshPath.status != NavMeshPathStatus.PathComplete)
+        {
+            return false;
+        }
+
+        Vector3[] pathCorners = _navMeshPath.corners;
+
+        if (pathCorners == null)
+        {
+            return false;
+        }
+
+        if (pathCorners.Length == 0)
+        {
+            return false;
+        }
+
+        return _navMeshAgent.SetPath(_navMeshPath);
     }
 
     private Vector3 GetMoveDirection(Vector3 currentPoint)
@@ -1238,7 +1399,7 @@ public sealed class EnemySteering
             return slideDirection;
         }
 
-        return baseDirection;
+        return Vector3.zero;
     }
 
     private void EvaluateDirectionCandidate(
@@ -1257,6 +1418,12 @@ public sealed class EnemySteering
         }
 
         float clearDistance = GetClearDistance(currentPoint, candidateDirection, probeDistance);
+
+        if (clearDistance < probeDistance - ProbeSkin)
+        {
+            return;
+        }
+
         float distanceScore = clearDistance / probeDistance;
         float directionScore = Vector3.Dot(desiredDirection, candidateDirection);
         float candidateScore = (distanceScore * 1.5f) + directionScore;
@@ -1935,7 +2102,6 @@ public sealed class EnemySteering
     {
         _pathTargetPoint = Vector3.zero;
         _pathStopDistance = 0f;
-        _pathTime = 0f;
         _hasPathTarget = false;
 
         if (_navMeshAgent == null)

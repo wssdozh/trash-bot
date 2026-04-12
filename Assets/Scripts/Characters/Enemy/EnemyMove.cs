@@ -7,6 +7,8 @@ public sealed class EnemyMove : MonoBehaviour
     private const float ZeroThreshold = 0.0001f;
     private const float RunDotMin = 0.25f;
     private const float RunDotMax = 0.9f;
+    private const float TurnSnapDot = 0.45f;
+    private const float InputSnapDot = 0.35f;
 
     [Header("Dependencies")]
     [SerializeField] private CharacterMover _characterMover;
@@ -86,26 +88,36 @@ public sealed class EnemyMove : MonoBehaviour
 
         if (_isMoving)
         {
-            float moveScale = Mathf.Min(_moveScale * _speedScale, 1f);
+            float walkScale = Mathf.Min(_moveScale * _speedScale, 1f);
+            targetMoveInput = GetMoveInput(_moveDirection, walkScale);
 
             if (_isRunRequested)
             {
-                moveScale = Mathf.Min(_moveScale * _runScaleFactor * _speedScale, 1f);
-                targetMoveInput = GetRunInput(moveScale);
-                isSprinting = targetMoveInput.sqrMagnitude > ZeroThreshold;
-            }
+                float runScale = Mathf.Min(_moveScale * _runScaleFactor * _speedScale, 1f);
+                Vector2 runMoveInput = GetRunInput(runScale);
 
-            else
-            {
-                targetMoveInput = GetMoveInput(_moveDirection, moveScale);
+                if (runMoveInput.sqrMagnitude > ZeroThreshold)
+                {
+                    targetMoveInput = runMoveInput;
+                    isSprinting = true;
+                }
             }
         }
 
-        float inputSpeed = GetInputSpeed(targetMoveInput);
-        _moveInput = Vector2.MoveTowards(
-            _moveInput,
-            targetMoveInput,
-            inputSpeed * Time.fixedDeltaTime);
+        if (ShouldSnapInput(targetMoveInput))
+        {
+            _moveInput = targetMoveInput;
+        }
+
+        else
+        {
+            float inputSpeed = GetInputSpeed(targetMoveInput);
+            _moveInput = Vector2.MoveTowards(
+                _moveInput,
+                targetMoveInput,
+                inputSpeed * Time.fixedDeltaTime);
+        }
+
         _isSprintApplied = isSprinting;
 
         if (_moveInput.sqrMagnitude <= ZeroThreshold)
@@ -208,6 +220,15 @@ public sealed class EnemyMove : MonoBehaviour
             return;
         }
 
+        float directionDot = Vector3.Dot(_moveDirection, _targetDirection);
+
+        if (directionDot <= TurnSnapDot)
+        {
+            _moveDirection = _targetDirection;
+
+            return;
+        }
+
         float maxRadiansDelta = _steerSpeed * Mathf.Deg2Rad * Time.fixedDeltaTime;
         Vector3 nextDirection = Vector3.RotateTowards(_moveDirection, _targetDirection, maxRadiansDelta, 0f);
         nextDirection.y = 0f;
@@ -234,6 +255,28 @@ public sealed class EnemyMove : MonoBehaviour
         float speedScale = Mathf.SmoothStep(0f, 1f, dotScale);
 
         return GetMoveInput(forwardDirection, moveScale * speedScale);
+    }
+
+    private bool ShouldSnapInput(Vector2 targetMoveInput)
+    {
+        if (_moveInput.sqrMagnitude <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        if (targetMoveInput.sqrMagnitude <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        float inputDot = Vector2.Dot(_moveInput.normalized, targetMoveInput.normalized);
+
+        if (inputDot <= InputSnapDot)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private float GetInputSpeed(Vector2 targetMoveInput)

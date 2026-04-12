@@ -16,6 +16,7 @@ public class CharacterMover : MonoBehaviour
     [SerializeField] private float _speedSprint = 6f;
 
     [Header("Стена")]
+    [SerializeField] private bool _isWallSlideEnabled = true;
     [SerializeField] private float _wallNormalMaxY = 0.2f;
 
     private Vector3 _moveDirection;
@@ -58,6 +59,11 @@ public class CharacterMover : MonoBehaviour
 
     private void OnCollisionStay(Collision collision)
     {
+        if (_isWallSlideEnabled == false)
+        {
+            return;
+        }
+
         if (ShouldTrackWall(collision) == false)
         {
             return;
@@ -115,7 +121,7 @@ public class CharacterMover : MonoBehaviour
         Vector3 targetVelocity = clampedMoveDirection * speed;
         Vector3 adjustedVelocity = targetVelocity;
 
-        if (_wallNormalCount > 0)
+        if (_isWallSlideEnabled && _wallNormalCount > 0)
         {
             adjustedVelocity = GetSlideVelocity(targetVelocity);
         }

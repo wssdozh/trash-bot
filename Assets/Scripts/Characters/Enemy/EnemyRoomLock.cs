@@ -8,6 +8,7 @@ public sealed class EnemyRoomLock : MonoBehaviour
     private EnemyDroneMove _enemyDroneMove;
     private EnemyRoomAlert _enemyRoomAlert;
     private RoomRuntimeState _roomRuntimeState;
+    private bool _useGroundPatrol;
 
     private void Awake()
     {
@@ -25,6 +26,7 @@ public sealed class EnemyRoomLock : MonoBehaviour
             _enemyDroneMove = GetComponentInChildren<EnemyDroneMove>();
         }
 
+        _useGroundPatrol = _enemyDroneMove == null;
         enabled = false;
     }
 
@@ -112,6 +114,11 @@ public sealed class EnemyRoomLock : MonoBehaviour
             return 0;
         }
 
+        if (_useGroundPatrol)
+        {
+            return _roomRuntimeState.GetGroundPatrolCount();
+        }
+
         return _roomRuntimeState.GetPatrolCount();
     }
 
@@ -120,6 +127,11 @@ public sealed class EnemyRoomLock : MonoBehaviour
         if (_roomRuntimeState == null)
         {
             return 0;
+        }
+
+        if (_useGroundPatrol)
+        {
+            return _roomRuntimeState.GetNearestGroundPatrolIndex(point);
         }
 
         return _roomRuntimeState.GetNearestPatrolIndex(point);
@@ -155,6 +167,11 @@ public sealed class EnemyRoomLock : MonoBehaviour
         if (_roomRuntimeState == null)
         {
             return new Vector3(transform.position.x, height, transform.position.z);
+        }
+
+        if (_useGroundPatrol)
+        {
+            return _roomRuntimeState.GetGroundPatrolPoint(patrolIndex, height);
         }
 
         return _roomRuntimeState.GetPatrolPoint(patrolIndex, height);

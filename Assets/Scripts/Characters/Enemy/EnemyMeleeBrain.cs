@@ -687,9 +687,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (distance > stopDistance)
         {
-            if (_enemySteering.MoveToPoint(_idleTargetPoint, stopDistance))
+            bool isMoving = _enemySteering.MoveToPoint(_idleTargetPoint, stopDistance);
+
+            if (isMoving)
             {
-                return;
+                if (_enemySteering.CanKeepMove(currentPoint, Time.fixedDeltaTime))
+                {
+                    return;
+                }
             }
 
             StartIdleWalk();
@@ -768,35 +773,49 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         Vector3 currentPoint = GetFlatPoint(transform.position);
-        int attemptIndex = 0;
 
-        while (attemptIndex < IdlePointTryCount)
+        if (TryStartWallWalk(currentPoint))
         {
-            Vector3 nextDirection = _idleDirection;
+            return;
+        }
 
-            if (attemptIndex > 0 || isNewChain == false)
+        if (TryStartGuardWalk(currentPoint))
+        {
+            return;
+        }
+
+        if (TryStartNavWalk(currentPoint))
+        {
+            return;
+        }
+
+        if (HasPatrolRoute() == false)
+        {
+            int attemptIndex = 0;
+
+            while (attemptIndex < IdlePointTryCount)
             {
-                nextDirection = GetNextIdleDirection();
+                Vector3 nextDirection = _idleDirection;
+
+                if (attemptIndex > 0 || isNewChain == false)
+                {
+                    nextDirection = GetNextIdleDirection();
+                }
+
+                float idleDistance = GetIdleDistance();
+
+                if (TrySetIdlePoint(currentPoint, nextDirection, idleDistance))
+                {
+                    return;
+                }
+
+                attemptIndex += 1;
             }
 
-            float idleDistance = GetIdleDistance();
-
-            if (TrySetIdlePoint(currentPoint, nextDirection, idleDistance))
+            if (TrySetIdlePoint(currentPoint, _idleDirection, IdleFallbackDistance))
             {
                 return;
             }
-
-            attemptIndex += 1;
-        }
-
-        if (TryStartPatrolWalk(currentPoint))
-        {
-            return;
-        }
-
-        if (TrySetIdlePoint(currentPoint, _idleDirection, IdleFallbackDistance))
-        {
-            return;
         }
 
         StartIdleLook();
@@ -1329,13 +1348,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return _idleReachDistance;
     }
 
-    private bool TryStartPatrolWalk(Vector3 currentPoint)
-    {
-        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
-
-        return _idlePatrolPicker.TryPickNextPoint(enemyRoomLock, currentPoint, GetPatrolForward(), transform.position.y, IdlePointTryCount, GetRandomPatrolDirection, patrolPoint => TrySetPatrolPoint(currentPoint, patrolPoint));
-    }
-
     private bool TrySetIdlePoint(Vector3 currentPoint, Vector3 nextDirection, float idleDistance)
     {
         if (TryApplyIdlePoint(currentPoint, nextDirection, idleDistance, _idleWallGap))
@@ -1415,6 +1427,101 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _isSearchIdle = false;
         _idleLastDistance = -1f;
         _idleStuckTimer = 0f;
+        _enemySteering.ResetMoveStuck();
+
+        return true;
+    }
+
+    private bool TryStartWallWalk(Vector3 currentPoint)
+    {
+        if (_enemySteering.HasWallGap(currentPoint, _idleWallGap))
+        {
+            return false;
+        }
+
+        if (TrySetIdleTarget(currentPoint, currentPoint, _idleWallGap))
+        {
+            return true;
+        }
+
+        if (_idleWallGap <= _probeRadius)
+        {
+            return false;
+        }
+
+        return TrySetIdleTarget(currentPoint, currentPoint, _probeRadius);
+    }
+
+    private bool TryStartGuardWalk(Vector3 currentPoint)
+    {
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+
+        if (enemyRoomLock == null)
+        {
+            return false;
+        }
+
+        if (enemyRoomLock.GetPatrolCount() <= 0)
+        {
+            return false;
+        }
+
+        Vector3 patrolPoint;
+        float minDistance = Mathf.Max(_probeDistance, GetIdleDistance());
+        Vector3 fallbackPoint = currentPoint;
+        fallbackPoint.y = transform.position.y;
+
+        if (_idlePatrolPicker.TryPickPoint(enemyRoomLock, currentPoint, GetPatrolForward(), fallbackPoint, transform.position.y, minDistance, IdlePointTryCount, GetRandomPatrolDirection, out patrolPoint) == false)
+        {
+            return false;
+        }
+
+        return TrySetPatrolPoint(currentPoint, patrolPoint);
+    }
+
+    private bool TryStartNavWalk(Vector3 currentPoint)
+    {
+        float minDistance = Mathf.Max(_probeDistance, _idleReachDistance * 2f);
+        float maxDistance = GetIdleDistance();
+
+        if (maxDistance < minDistance)
+        {
+            maxDistance = minDistance;
+        }
+
+        Vector3 navPoint;
+
+        if (_enemySteering.TryPickNavPoint(currentPoint, GetPatrolForward(), minDistance, maxDistance, _idleWallGap, IdlePointTryCount, Next01, out navPoint))
+        {
+            return TrySetIdleTarget(currentPoint, navPoint, _idleWallGap);
+        }
+
+        if (_idleWallGap <= _probeRadius)
+        {
+            return false;
+        }
+
+        if (_enemySteering.TryPickNavPoint(currentPoint, GetPatrolForward(), minDistance, maxDistance, _probeRadius, IdlePointTryCount, Next01, out navPoint))
+        {
+            return TrySetIdleTarget(currentPoint, navPoint, _probeRadius);
+        }
+
+        return false;
+    }
+
+    private bool HasPatrolRoute()
+    {
+        EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
+
+        if (enemyRoomLock == null)
+        {
+            return false;
+        }
+
+        if (enemyRoomLock.GetPatrolCount() <= 0)
+        {
+            return false;
+        }
 
         return true;
     }
