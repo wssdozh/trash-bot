@@ -25,6 +25,7 @@ public sealed class ModifierVendingMachine : Interactable
     public event Action<ModifierVendingMachine, GameObject> InteractionRequested;
 
     public int OfferCount => _rolledOffers.Length;
+    public bool IsPurchased => _isPurchased;
 
     protected override void Awake()
     {

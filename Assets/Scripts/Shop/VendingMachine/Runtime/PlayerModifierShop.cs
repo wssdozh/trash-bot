@@ -25,6 +25,7 @@ public sealed class PlayerModifierShop : Interactable
     public event Action<PlayerModifierShop, GameObject> InteractionRequested;
 
     public int OfferCount => _rolledOffers.Length;
+    public bool IsPurchased => _isPurchased;
 
     protected override void Awake()
     {

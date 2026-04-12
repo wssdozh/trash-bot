@@ -20,6 +20,7 @@ public sealed class PlayerModifierMenuView : MonoBehaviour
 
     private PlayerModifierShop _shop;
     private GameObject _buyer;
+    private bool _isBuyPending;
 
     public bool IsOpen => _root.activeSelf;
 
@@ -68,6 +69,7 @@ public sealed class PlayerModifierMenuView : MonoBehaviour
 
         _shop = shop;
         _buyer = buyer;
+        _isBuyPending = false;
 
         if (_blurOverlay != null)
         {
@@ -132,6 +134,7 @@ public sealed class PlayerModifierMenuView : MonoBehaviour
 
         _shop = null;
         _buyer = null;
+        _isBuyPending = false;
     }
 
     private void Refresh()
@@ -187,10 +190,18 @@ public sealed class PlayerModifierMenuView : MonoBehaviour
             return;
         }
 
+        if (_isBuyPending)
+        {
+            return;
+        }
+
+        _isBuyPending = true;
+
         bool purchased = _purchase.TryPurchase(index, _buyer);
 
         if (purchased == false)
         {
+            _isBuyPending = false;
             Refresh();
 
             return;

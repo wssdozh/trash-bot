@@ -51,8 +51,8 @@ public sealed class Rocket : Ammo
     private float GetDamageMultiplier(Vector3 explosionPosition, Collider collider)
     {
         float radius = _radiusImpulse * _radiusMultiplier;
-
-        float distance = Vector3.Distance(explosionPosition, collider.transform.position);
+        Vector3 closestPoint = collider.ClosestPoint(explosionPosition);
+        float distance = Vector3.Distance(explosionPosition, closestPoint);
         float normalizedDistance = Mathf.Clamp01(distance / radius);
 
         return 1f - normalizedDistance;

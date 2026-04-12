@@ -12,6 +12,11 @@ public sealed class PlayerModifierPurchase : MonoBehaviour
             throw new InvalidOperationException(nameof(buyer));
         }
 
+        if (_shop.IsPurchased)
+        {
+            return false;
+        }
+
         PlayerModifierOffer offer = _shop.GetOffer(offerIndex);
 
         if (offer == null)

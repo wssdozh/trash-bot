@@ -12,6 +12,11 @@ public sealed class ModifierVendingMachinePurchase : MonoBehaviour
             throw new InvalidOperationException(nameof(buyer));
         }
 
+        if (_vendingMachine.IsPurchased)
+        {
+            return false;
+        }
+
         ModifierOffer offer = _vendingMachine.GetOffer(offerIndex);
 
         if (offer == null)
