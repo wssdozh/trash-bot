@@ -24,17 +24,33 @@ public class Attacker : MonoBehaviour
 
     public bool PerformAttack()
     {
-        return PerformAttack(transform.forward);
+        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
+        weaponModifierContext.SetDefaults();
+
+        return PerformAttack(transform.forward, weaponModifierContext);
+    }
+
+    public bool PerformAttack(WeaponModifierContext weaponModifierContext)
+    {
+        return PerformAttack(transform.forward, weaponModifierContext);
     }
 
     public bool PerformAttack(Vector3 attackDirection)
+    {
+        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
+        weaponModifierContext.SetDefaults();
+
+        return PerformAttack(attackDirection, weaponModifierContext);
+    }
+
+    public bool PerformAttack(Vector3 attackDirection, WeaponModifierContext weaponModifierContext)
     {
         if (_isOnCooldown)
         {
             return false;
         }
 
-        int damage = _attackData.GetDamage();
+        float damage = GetDamageValue(weaponModifierContext);
         int hitCount = FillTargets(attackDirection);
 
         if (hitCount == 0)
@@ -253,5 +269,18 @@ public class Attacker : MonoBehaviour
         attackDirection.Normalize();
 
         return attackDirection;
+    }
+
+    private float GetDamageValue(WeaponModifierContext weaponModifierContext)
+    {
+        float damage = _attackData.GetDamage();
+        damage *= weaponModifierContext.DamageMultiplier;
+
+        if (Random.value <= weaponModifierContext.CriticalChance01)
+        {
+            damage *= weaponModifierContext.CriticalDamageMultiplier;
+        }
+
+        return damage;
     }
 }

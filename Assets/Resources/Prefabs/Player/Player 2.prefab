@@ -3499,6 +3499,7 @@ MonoBehaviour:
   _attacker: {fileID: 5079344321574236948}
   _stamina: {fileID: 2302136596952475683}
   _weaponHolder: {fileID: 1908533539380365251}
+  _weaponModifierApplier: {fileID: 542880292028219957}
   _animator: {fileID: 7390188348284092011}
   _animatorSwitcher: {fileID: 1707185457463400390}
   _inventory: {fileID: 591744987671708976}

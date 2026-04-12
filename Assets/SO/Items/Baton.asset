@@ -19,5 +19,7 @@ MonoBehaviour:
   _maxStack: 1
   _weaponType: 3
   _effects: []
+  _weaponModifiers:
+  - {fileID: 11400000, guid: 9cbce3e217f54e3cb9d8d0ca10a58412, type: 2}
   _audioProfile: {fileID: 11400000, guid: 47df3c647be82ad40acb5e6ad9ac8175, type: 2}
   _prefab: {fileID: 1864531296725922894, guid: 63964cb5d2bc33540b1943393b2507b7, type: 3}
