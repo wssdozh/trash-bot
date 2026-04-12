@@ -102,7 +102,7 @@ NavMeshSettings:
   m_BuildSettings:
     serializedVersion: 3
     agentTypeID: 0
-    agentRadius: 0.22
+    agentRadius: 0.2
     agentHeight: 2
     agentSlope: 45
     agentClimb: 0.4
@@ -8585,7 +8585,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelRuntimeNavMesh
   _agentTypeId: 0
   _tileSize: 64
-  _voxelSize: 0.05
+  _voxelSize: 0.04
   _minRegionArea: 0
   _buildDelay: 0.15
   _updateDelay: 0.05

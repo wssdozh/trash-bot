@@ -53,6 +53,13 @@ public class TargetVision : MonoBehaviour
 
     public Transform CurrentTarget { get { return _currentTarget; } }
 
+    public bool IsPointVisible(Vector3 targetPoint)
+    {
+        Vector3 originPosition = GetOriginPosition();
+
+        return HasLineOfSight(originPosition, targetPoint);
+    }
+
     private void Awake()
     {
         _scanDelay = new WaitForSeconds(GetScanInterval());
