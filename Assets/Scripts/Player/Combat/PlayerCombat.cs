@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
@@ -5,6 +6,7 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] private Attacker _attacker;
     [SerializeField] private Stamina _stamina;
     [SerializeField] private WeaponHolder _weaponHolder;
+    [SerializeField] private WeaponModifierApplier _weaponModifierApplier;
     [SerializeField] private PlayerAnimator _animator;
     [SerializeField] private AnimatorSwitcher _animatorSwitcher;
     [SerializeField] private Inventory _inventory;
@@ -210,6 +212,11 @@ public class PlayerCombat : MonoBehaviour
             return;
         }
 
+        if (_weaponModifierApplier == null)
+        {
+            throw new InvalidOperationException(nameof(_weaponModifierApplier));
+        }
+
         PlayerActiveWeaponType activeWeaponType = new PlayerActiveWeaponType(_inventory);
         _activeWeaponType = activeWeaponType;
 
@@ -231,6 +238,7 @@ public class PlayerCombat : MonoBehaviour
         PlayerMeleeAttack meleeAttack = new PlayerMeleeAttack(
             _attacker,
             _stamina,
+            _weaponModifierApplier,
             _animator,
             _animationEvents,
             _movementGate,

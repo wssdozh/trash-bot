@@ -1609,7 +1609,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         StopAttackMove();
         _isHitPending = false;
-        _attacker.PerformAttack(_attackDirection);
+        WeaponModifierContext weaponModifierContext = _animation.BuildAttackContext();
+        _attacker.PerformAttack(_attackDirection, weaponModifierContext);
     }
 
     private void OnAttackEnded()

@@ -11,6 +11,7 @@ public class Item : ScriptableObject
     [SerializeField] private int _maxStack = 1;
     [SerializeField] private WeaponType _weaponType = WeaponType.None;
     [SerializeField] private List<ItemEffect> _effects;
+    [SerializeField] private List<WeaponModifier> _weaponModifiers = new List<WeaponModifier>();
     [SerializeField] private ItemAudioProfile _audioProfile;
     [SerializeField] private BasePickup _prefab;
 
@@ -21,6 +22,17 @@ public class Item : ScriptableObject
     public int MaxStack => _maxStack;
     public WeaponType WeaponType => _weaponType;
     public IReadOnlyList<ItemEffect> Effects => _effects;
+    public IReadOnlyList<WeaponModifier> WeaponModifiers => GetWeaponModifiers();
     public ItemAudioProfile AudioProfile => _audioProfile;
     public BasePickup Prefab => _prefab;
+
+    private IReadOnlyList<WeaponModifier> GetWeaponModifiers()
+    {
+        if (_weaponModifiers == null)
+        {
+            _weaponModifiers = new List<WeaponModifier>();
+        }
+
+        return _weaponModifiers;
+    }
 }

@@ -2,6 +2,7 @@ public sealed class PlayerMeleeAttack
 {
     private readonly Attacker _attacker;
     private readonly Stamina _stamina;
+    private readonly WeaponModifierApplier _weaponModifierApplier;
     private readonly PlayerAnimator _animator;
     private readonly PlayerAnimationEvents _animationEvents;
     private readonly PlayerMovementGate _movementGate;
@@ -15,6 +16,7 @@ public sealed class PlayerMeleeAttack
     public PlayerMeleeAttack(
         Attacker attacker,
         Stamina stamina,
+        WeaponModifierApplier weaponModifierApplier,
         PlayerAnimator animator,
         PlayerAnimationEvents animationEvents,
         PlayerMovementGate movementGate,
@@ -23,6 +25,7 @@ public sealed class PlayerMeleeAttack
     {
         _attacker = attacker;
         _stamina = stamina;
+        _weaponModifierApplier = weaponModifierApplier;
         _animator = animator;
         _animationEvents = animationEvents;
         _movementGate = movementGate;
@@ -102,12 +105,14 @@ public sealed class PlayerMeleeAttack
 
         _isHitPending = false;
 
+        WeaponModifierContext weaponModifierContext = _weaponModifierApplier.BuildCurrentContext();
+
         if (_stamina.Value <= 0f)
         {
             return;
         }
 
-        if (_attacker.PerformAttack())
+        if (_attacker.PerformAttack(weaponModifierContext))
         {
             _stamina.Decrease(_attackStaminaCost);
         }

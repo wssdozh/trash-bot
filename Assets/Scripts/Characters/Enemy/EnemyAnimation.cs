@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -133,6 +134,22 @@ public sealed class EnemyAnimation : MonoBehaviour
         ApplyState();
     }
 
+    public WeaponModifierContext BuildAttackContext()
+    {
+        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
+        weaponModifierContext.SetDefaults();
+        weaponModifierContext.WeaponType = GetWeaponType();
+
+        Item item = GetWeaponItem();
+
+        if (item != null)
+        {
+            ApplyModifiers(item.WeaponModifiers, ref weaponModifierContext);
+        }
+
+        return weaponModifierContext;
+    }
+
     private void OnHealthDecreased()
     {
         if (_enemy.IsDead)
@@ -249,11 +266,7 @@ public sealed class EnemyAnimation : MonoBehaviour
             return;
         }
 
-        WeaponModifierContext weaponModifierContext = new WeaponModifierContext();
-        weaponModifierContext.SetDefaults();
-        weaponModifierContext.WeaponType = GetWeaponType();
-        weaponModifierContext.FireRateMultiplier = _weaponFireRateScale;
-        weaponModifierContext.DamageMultiplier = _weaponDamageScale;
+        WeaponModifierContext weaponModifierContext = BuildFireContext();
 
         fireExecutor.ApplyModifierContext(weaponModifierContext);
     }
@@ -271,6 +284,45 @@ public sealed class EnemyAnimation : MonoBehaviour
         }
 
         return _weaponPrefab.Item.WeaponType;
+    }
+
+    private WeaponModifierContext BuildFireContext()
+    {
+        WeaponModifierContext weaponModifierContext = BuildAttackContext();
+        weaponModifierContext.FireRateMultiplier *= _weaponFireRateScale;
+        weaponModifierContext.DamageMultiplier *= _weaponDamageScale;
+
+        return weaponModifierContext;
+    }
+
+    private Item GetWeaponItem()
+    {
+        if (_weaponPrefab == null)
+        {
+            return null;
+        }
+
+        return _weaponPrefab.Item;
+    }
+
+    private void ApplyModifiers(IReadOnlyList<WeaponModifier> modifiers, ref WeaponModifierContext weaponModifierContext)
+    {
+        if (modifiers == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < modifiers.Count; i++)
+        {
+            WeaponModifier modifier = modifiers[i];
+
+            if (modifier == null)
+            {
+                continue;
+            }
+
+            modifier.Apply(ref weaponModifierContext);
+        }
     }
 
     private void ResolveBrain()
