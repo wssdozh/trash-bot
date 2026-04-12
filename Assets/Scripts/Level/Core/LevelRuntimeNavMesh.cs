@@ -7,7 +7,7 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
 {
     [SerializeField] private int _agentTypeId;
     [SerializeField, Min(16)] private int _tileSize = 64;
-    [SerializeField, Min(0.01f)] private float _voxelSize = 0.05f;
+    [SerializeField, Min(0.01f)] private float _voxelSize = 0.04f;
     [SerializeField, Min(0f)] private float _minRegionArea;
     [SerializeField, Min(0f)] private float _buildDelay = 0.15f;
     [SerializeField, Min(0f)] private float _updateDelay = 0.05f;

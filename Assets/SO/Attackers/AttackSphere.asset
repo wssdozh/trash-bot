@@ -18,5 +18,5 @@ MonoBehaviour:
   _attackCooldown: 0
   _hitLayers:
     serializedVersion: 2
-    m_Bits: 896
+    m_Bits: 897
   _attackShape: {fileID: 11400000, guid: 46c6ad68caaf50f439e0361ca0bcb8f1, type: 2}

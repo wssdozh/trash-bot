@@ -117,4 +117,40 @@ MonoBehaviour:
     _sameTypeNeighborRadiusInCells: 15
     _maximumSameTypeWithinNeighborRadius: 1
     _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 0, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: 6f93e87cb1d2480db3e829fd7b989716, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 0, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: 2b66865ab6bd42d28938ec7673370ab6, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 0, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
   _nookMinimumAreaInCells: 4

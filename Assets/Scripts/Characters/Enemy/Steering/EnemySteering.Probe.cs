@@ -101,6 +101,16 @@ public sealed partial class EnemySteering
             return flatDesiredDirection;
         }
 
+        Vector3 flatBaseDirection = GetFlatDirection(baseDirection);
+
+        if (flatBaseDirection.sqrMagnitude > MinDistance)
+        {
+            if (IsBlocked(currentPoint, flatBaseDirection, probeDistance) == false)
+            {
+                return flatBaseDirection;
+            }
+        }
+
         Vector3 bestDirection = Vector3.zero;
         float bestScore = float.MinValue;
         int directionIndex = 1;
@@ -159,13 +169,16 @@ public sealed partial class EnemySteering
         }
 
         float clearDistance = GetClearDistance(currentPoint, candidateDirection, probeDistance);
+        float minClearDistance = GetNearProbeDistance();
 
-        if (clearDistance < probeDistance - ProbeSkin)
+        if (clearDistance < minClearDistance)
         {
             return;
         }
 
-        float distanceScore = clearDistance / probeDistance;
+        float safeProbeDistance = Mathf.Max(probeDistance - minClearDistance, ProbeSkin);
+        float distanceScore = (clearDistance - minClearDistance) / safeProbeDistance;
+        distanceScore = Mathf.Clamp01(distanceScore);
         float directionScore = Vector3.Dot(desiredDirection, candidateDirection);
         float candidateScore = (distanceScore * 1.5f) + directionScore;
 

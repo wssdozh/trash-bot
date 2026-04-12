@@ -49,8 +49,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _runStopDistance = 3.1f;
     [SerializeField, Range(0f, 1f)] private float _chaseLookBlend = 0.7f;
     [SerializeField, Min(0f)] private float _attackWindupTime = 0.22f;
-    [SerializeField, Min(0f)] private float _attackStartExtraDistance = 0.35f;
-    [SerializeField, Min(0f)] private float _attackKeepExtraDistance = 0.55f;
+    [SerializeField, Min(0f)] private float _attackStartExtraScale = 0.12f;
+    [SerializeField, Min(0f)] private float _attackKeepExtraScale = 0.22f;
     [SerializeField, Range(-1f, 1f)] private float _attackMinDot = -0.15f;
 
     [Header("Range")]
@@ -96,7 +96,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [Header("Steering")]
     [SerializeField] private LayerMask _obstacleMask;
     [SerializeField] private LayerMask _allyMask = ~0;
-    [SerializeField] private float _probeRadius = 0.22f;
+    [SerializeField] private float _probeRadius = 0.2f;
     [SerializeField] private float _probeHeight = 0.6f;
     [SerializeField] private float _probeDistance = 0.9f;
     [SerializeField] private float _probeAngle = 25f;
@@ -264,14 +264,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_attackWindupTime));
         }
 
-        if (_attackStartExtraDistance < 0f)
+        if (_attackStartExtraScale < 0f)
         {
-            throw new InvalidOperationException(nameof(_attackStartExtraDistance));
+            throw new InvalidOperationException(nameof(_attackStartExtraScale));
         }
 
-        if (_attackKeepExtraDistance < 0f)
+        if (_attackKeepExtraScale < 0f)
         {
-            throw new InvalidOperationException(nameof(_attackKeepExtraDistance));
+            throw new InvalidOperationException(nameof(_attackKeepExtraScale));
         }
 
         if (_attackMinDot < -1f || _attackMinDot > 1f)
@@ -874,6 +874,15 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (_idleStuckTimer >= IdleStuckSeconds)
         {
+            if (_enemySteering.ResolveOverlap())
+            {
+                _idleLastDistance = -1f;
+                _idleStuckTimer = 0f;
+                ResetMoveStuck();
+
+                return;
+            }
+
             StartIdleWalk();
 
             return;
@@ -1754,9 +1763,19 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
+        if (TrySetEscapeTarget(currentPoint, _idleWallGap))
+        {
+            return true;
+        }
+
         if (_idleWallGap <= _probeRadius)
         {
             return false;
+        }
+
+        if (TrySetEscapeTarget(currentPoint, _probeRadius))
+        {
+            return true;
         }
 
         return TrySetIdleTarget(currentPoint, currentPoint, _probeRadius);
@@ -1864,6 +1883,27 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         _idleStuckTimer += Time.fixedDeltaTime;
         _idleLastDistance = distance;
+    }
+
+    private bool TrySetEscapeTarget(Vector3 currentPoint, float wallGap)
+    {
+        Vector3 safePoint = _enemySteering.GetSafePoint(currentPoint, wallGap);
+        Vector3 escapeDirection = safePoint - currentPoint;
+        escapeDirection.y = 0f;
+        float escapeDistance = escapeDirection.magnitude;
+
+        if (escapeDistance <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        escapeDirection /= escapeDistance;
+        float minEscapeDistance = _idleReachDistance + _probeRadius;
+        float targetDistance = Mathf.Max(escapeDistance, minEscapeDistance);
+        Vector3 targetPoint = currentPoint + (escapeDirection * targetDistance);
+        targetPoint.y = transform.position.y;
+
+        return TrySetIdleTarget(currentPoint, targetPoint, wallGap);
     }
 
     private float GetIdleDistance()
@@ -2149,7 +2189,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
-        return CanReachAttack(currentTarget, attackDirection, _attackStartExtraDistance);
+        return CanReachAttack(currentTarget, attackDirection, GetAttackExtraDistance(_attackStartExtraScale));
     }
 
     private bool CanKeepAttack(Transform currentTarget, Vector3 attackDirection)
@@ -2159,7 +2199,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
-        return CanReachAttack(currentTarget, attackDirection, _attackKeepExtraDistance);
+        return CanReachAttack(currentTarget, attackDirection, GetAttackExtraDistance(_attackKeepExtraScale));
     }
 
     private bool CanReachAttack(Transform currentTarget, Vector3 attackDirection, float extraDistance)
@@ -2195,6 +2235,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         return true;
+    }
+
+    private float GetAttackExtraDistance(float extraScale)
+    {
+        return _attacker.AttackData.AttackRange * extraScale;
     }
 
     private Vector3 GetSearchStartPoint()
@@ -2313,12 +2358,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private bool HasFireLine(Vector3 targetPoint)
     {
-        if (_enemySteering.IsLineBlocked(targetPoint))
+        if (_targetVision != null)
         {
-            return false;
+            return _targetVision.IsPointVisible(targetPoint);
         }
 
-        return true;
+        return _enemySteering.IsLineBlocked(targetPoint) == false;
     }
 
     private float GetSearchStride()

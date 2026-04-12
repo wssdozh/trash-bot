@@ -215,13 +215,13 @@ MonoBehaviour:
   _allyMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _probeRadius: 0.22
+  _probeRadius: 0.2
   _probeHeight: 0.6
   _probeDistance: 0.9
   _probeAngle: 25
   _avoidWeight: 1.05
-  _separationRadius: 1.35
-  _separationWeight: 2.2
+  _separationRadius: 1.6
+  _separationWeight: 2.8
   _isAttackZoneVisible: 1
   _isMoveGizmoVisible: 1
 --- !u!1 &5740948638895162100

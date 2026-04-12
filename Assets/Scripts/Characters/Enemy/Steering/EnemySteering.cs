@@ -243,22 +243,12 @@ public sealed partial class EnemySteering
         {
             ClearPath();
 
-            if (_navMeshAgent != null)
-            {
-                return FailMove(lookBlend, lookPoint);
-            }
-
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
 
         if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
         {
             ClearPath();
-
-            if (_navMeshAgent != null)
-            {
-                return FailMove(lookBlend, lookPoint);
-            }
 
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
         }
@@ -289,18 +279,6 @@ public sealed partial class EnemySteering
         _enemyMove.SetDirection(steerDirection);
 
         return true;
-    }
-
-    private bool FailMove(float lookBlend, Vector3 lookPoint)
-    {
-        _enemyMove.StopMove();
-
-        if (lookBlend > 0f)
-        {
-            _enemyRotator.RotateToPoint(GetFlatPoint(lookPoint));
-        }
-
-        return false;
     }
 
     private bool TryDirectMove(Vector3 currentPoint, Vector3 targetPoint, float stopDistance, float lookBlend, Vector3 lookPoint)
