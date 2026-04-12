@@ -73,7 +73,7 @@ public sealed partial class EnemySteering
 
         Vector3 movePoint = currentPoint + (desiredDirection * Mathf.Max(_probeDistance, 0.6f));
 
-        return MoveToPoint(movePoint, 0.05f);
+        return MoveToPoint(movePoint, 0.05f, targetPoint);
     }
 
     public bool RecoverTarget(Transform target, bool isClockwise)
@@ -108,7 +108,7 @@ public sealed partial class EnemySteering
 
         Vector3 movePoint = currentPoint + (desiredDirection * Mathf.Max(_probeDistance, 0.6f));
 
-        return MoveToPoint(movePoint, 0.05f);
+        return MoveToPoint(movePoint, 0.05f, targetPoint);
     }
 
     private Vector3 GetSeparationDirection(Vector3 currentPoint, Vector3 moveDirection)
@@ -273,6 +273,12 @@ public sealed partial class EnemySteering
             return chasePoint;
         }
 
+        if (_slotWeight <= MinDistance)
+        {
+            return chasePoint;
+        }
+
+        slotOffset *= _slotWeight;
         float chaseDistance = GetChaseDistance(targetDistance, ringDistance);
 
         return GetSlotPoint(currentPoint, targetPoint, targetDirection, chaseDistance, slotOffset);

@@ -112,7 +112,7 @@ GameObject:
   - component: {fileID: 740280986944895310}
   - component: {fileID: 131899963276513756}
   m_Layer: 7
-  m_Name: Start Shotgun Tank
+  m_Name: Start Baton Tank
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,7 +149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupOnDeath
   _health: {fileID: 9018567847222104301}
   _intactObject: {fileID: 735951979241723704}
-  _pickupPrefab: {fileID: 1864531296725922894, guid: b63d71782bd7cc94c99fbd43145c7038, type: 3}
+  _pickupPrefab: {fileID: 1864531296725922894, guid: 63964cb5d2bc33540b1943393b2507b7, type: 3}
   _spawnOffset: {x: 0, y: 0.9, z: 0}
 --- !u!1001 &865311916851755090
 PrefabInstance:
