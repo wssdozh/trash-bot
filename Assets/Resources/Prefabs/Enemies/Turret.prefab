@@ -195,7 +195,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TargetVision
   _origin: {fileID: 170424309483600535}
   _currentTarget: {fileID: 0}
-  _viewDistance: 5
+  _viewDistance: 6.75
   _scanInterval: 0.5
   _targetLayerMask:
     serializedVersion: 2

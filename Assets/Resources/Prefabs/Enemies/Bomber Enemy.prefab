@@ -34,7 +34,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2404705423201745302, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _viewDistance
-      value: 6
+      value: 8.1
       objectReference: {fileID: 0}
     - target: {fileID: 3911330252427202063, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
       propertyPath: _suicideAttack

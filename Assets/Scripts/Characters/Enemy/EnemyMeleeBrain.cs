@@ -92,6 +92,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField] private float _lostChaseDistance = 1.15f;
     [SerializeField] private float _lostStopDistance = 0.05f;
     [SerializeField] private float _searchPointDistance = 0.35f;
+    [SerializeField, Min(0.1f)] private float _safeMoveSpeed = 3.5f;
 
     [Header("Steering")]
     [SerializeField] private LayerMask _obstacleMask;
@@ -118,6 +119,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _searchTargetPoint;
     private bool _hasLastSeenPoint;
     private bool _hasSearchPoint;
+    private bool _isSafeMove;
     private bool _isIdleWalking;
     private bool _isSearchIdle;
     private float _idleLastDistance;
@@ -434,6 +436,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_searchPointDistance));
         }
 
+        if (_safeMoveSpeed <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_safeMoveSpeed));
+        }
+
         if (_probeRadius <= 0f)
         {
             throw new InvalidOperationException(nameof(_probeRadius));
@@ -648,6 +655,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _isIdleWalking = false;
         _hasSearchPoint = false;
+        _isSafeMove = false;
         _searchStep = 0;
         _isSearchIdle = false;
 
@@ -829,6 +837,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _state = EnemyState.Search;
         _enemyMove.SetRun(false);
         _hasSearchPoint = false;
+        _isSafeMove = false;
         _searchStep = 0;
         _isSearchIdle = true;
 
@@ -953,7 +962,24 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (distance > _searchPointDistance)
         {
-            if (TrySearchMove(_enemySteering.MoveToPoint(_searchTargetPoint, _searchPointDistance), currentPoint))
+            bool isMoving = false;
+
+            if (_isSafeMove)
+            {
+                isMoving = _enemySteering.MoveDirect(_searchTargetPoint, _searchPointDistance, _safeMoveSpeed, _searchTargetPoint);
+            }
+
+            else
+            {
+                isMoving = _enemySteering.MoveToPoint(_searchTargetPoint, _searchPointDistance);
+            }
+
+            if (TrySearchMove(isMoving, currentPoint))
+            {
+                return;
+            }
+
+            if (_searchStep < SearchStepsCount)
             {
                 return;
             }
@@ -1052,6 +1078,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         Vector3 currentPoint = GetFlatPoint(transform.position);
         float wallGap = GetMoveWallGap();
 
+        if (TryEscapeSearchPoint(currentPoint, wallGap))
+        {
+            return true;
+        }
+
         while (_searchStep < SearchStepsCount)
         {
             Vector3 candidatePoint = _enemySteering.GetSafePoint(GetFlatPoint(GetSearchPoint()), wallGap);
@@ -1073,6 +1104,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
             _searchTargetPoint = candidatePoint;
             _hasSearchPoint = true;
+            _isSafeMove = false;
 
             return true;
         }
@@ -1083,6 +1115,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void AdvanceSearchPoint()
     {
         _hasSearchPoint = false;
+        _isSafeMove = false;
         _searchStep += 1;
         ResetMoveStuck();
     }
@@ -1297,6 +1330,54 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.ForceStop();
 
         return false;
+    }
+
+    private bool TryEscapeSearchPoint(Vector3 currentPoint, float wallGap)
+    {
+        if (_enemySteering.HasWallGap(currentPoint, wallGap))
+        {
+            return false;
+        }
+
+        Vector3 safePoint = _enemySteering.GetSafePoint(currentPoint, wallGap);
+        Vector3 escapeDirection = safePoint - currentPoint;
+        escapeDirection.y = 0f;
+        float escapeDistance = escapeDirection.magnitude;
+
+        if (escapeDistance <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        escapeDirection /= escapeDistance;
+        float minEscapeDistance = _idleReachDistance + _probeRadius;
+        float targetDistance = Mathf.Max(escapeDistance, minEscapeDistance);
+        Vector3 escapePoint = currentPoint + (escapeDirection * targetDistance);
+        escapePoint.y = transform.position.y;
+        escapePoint = _enemySteering.GetSafePoint(escapePoint, wallGap);
+
+        float reachDistance = Vector3.Distance(currentPoint, escapePoint);
+
+        if (reachDistance <= _searchPointDistance)
+        {
+            return false;
+        }
+
+        if (_enemySteering.HasPointClearance(escapePoint) == false)
+        {
+            return false;
+        }
+
+        if (_enemySteering.HasWallGap(escapePoint, wallGap) == false)
+        {
+            return false;
+        }
+
+        _searchTargetPoint = escapePoint;
+        _hasSearchPoint = true;
+        _isSafeMove = true;
+
+        return true;
     }
 
     private bool TryRangeMove(Vector3 movePoint, float stopDistance, Vector3 lookPoint, Vector3 currentPoint)
@@ -1604,6 +1685,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _idleTimer = 0f;
         _hasLastSeenPoint = false;
         _hasSearchPoint = false;
+        _isSafeMove = false;
         _isIdleWalking = false;
         _isSearchIdle = false;
         ResetAttackState();
@@ -2010,8 +2092,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private Vector3 GetLostChasePoint()
     {
+        Vector3 startPoint = GetSearchStartPoint();
         Vector3 chaseDirection = GetSearchDirection();
-        Vector3 chasePoint = _lastSeenPoint + (chaseDirection * _lostChaseDistance);
+        Vector3 chasePoint = startPoint + (chaseDirection * _lostChaseDistance);
 
         EnemyRoomLock enemyRoomLock = GetEnemyRoomLock();
 
@@ -2244,7 +2327,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private Vector3 GetSearchStartPoint()
     {
-        return _lastSeenPoint;
+        return GetMovePoint(_lastSeenPoint);
     }
 
     private float GetSearchAngle()
@@ -2375,6 +2458,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     {
         _hasLastSeenPoint = false;
         _hasSearchPoint = false;
+        _isSafeMove = false;
         _searchStep = 0;
         _isSearchIdle = false;
         _idlePatrolPicker.Clear();

@@ -147,6 +147,63 @@ public sealed partial class EnemySteering
         return MoveToPoint(targetPoint, stopDistance, 1f, lookPoint);
     }
 
+    public bool MoveDirect(Vector3 targetPoint, float stopDistance, float moveSpeed, Vector3 lookPoint)
+    {
+        Vector3 currentPoint = GetFlatPoint(_root.position);
+        Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
+        float safeStopDistance = Mathf.Max(stopDistance, 0.01f);
+        float safeMoveSpeed = Mathf.Max(moveSpeed, 0.01f);
+        float targetDistanceSqr = GetFlatDistanceSqr(currentPoint, flatTargetPoint);
+        float safeStopDistanceSqr = safeStopDistance * safeStopDistance;
+
+        if (targetDistanceSqr <= safeStopDistanceSqr)
+        {
+            _enemyMove.StopMove();
+            SyncAgent(currentPoint);
+
+            return false;
+        }
+
+        Vector3 moveDirection = GetFlatDirection(flatTargetPoint - currentPoint);
+
+        if (moveDirection.sqrMagnitude <= MinDistance)
+        {
+            _enemyMove.StopMove();
+            SyncAgent(currentPoint);
+
+            return false;
+        }
+
+        float targetDistance = Mathf.Sqrt(targetDistanceSqr);
+        float maxStepDistance = targetDistance - safeStopDistance;
+        float stepDistance = safeMoveSpeed * Time.fixedDeltaTime;
+
+        if (stepDistance > maxStepDistance)
+        {
+            stepDistance = maxStepDistance;
+        }
+
+        if (stepDistance <= MinDistance)
+        {
+            _enemyMove.StopMove();
+            SyncAgent(currentPoint);
+
+            return false;
+        }
+
+        Vector3 nextPoint = currentPoint + (moveDirection * stepDistance);
+        nextPoint = ClampMovePoint(nextPoint);
+        Vector3 lookDirection = GetLookDirection(currentPoint, moveDirection, lookPoint, 1f);
+
+        ClearPath();
+        _enemyMove.ForceStop();
+        SnapToPoint(nextPoint);
+        SyncAgent(nextPoint);
+        _enemyRotator.RotateToDirection(lookDirection);
+
+        return true;
+    }
+
     public void LookToPoint(Vector3 targetPoint)
     {
         _enemyMove.StopMove();
