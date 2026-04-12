@@ -47,6 +47,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [Header("Combat")]
     [SerializeField] private float _runStartDistance = 4.4f;
     [SerializeField] private float _runStopDistance = 3.1f;
+    [SerializeField, Range(0f, 1f)] private float _chaseLookBlend = 0.7f;
+    [SerializeField, Min(0f)] private float _attackWindupTime = 0.22f;
+    [SerializeField, Min(0f)] private float _attackStartExtraDistance = 0.35f;
+    [SerializeField, Min(0f)] private float _attackKeepExtraDistance = 0.55f;
+    [SerializeField, Range(-1f, 1f)] private float _attackMinDot = -0.15f;
 
     [Header("Range")]
     [SerializeField] private float _fightMinDistance = 2.75f;
@@ -60,6 +65,16 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     [SerializeField, Min(0f)] private float _meleeHealthBonus = 3f;
     [SerializeField, Min(0.1f)] private float _meleeSpeedScale = 1.08f;
     [SerializeField, Min(0f)] private float _rangeNearExtra = 0.35f;
+
+    [Header("Combat Steering")]
+    [SerializeField] private float _orbitWeight = 1.15f;
+    [SerializeField] private float _ringWeight = 0.9f;
+    [SerializeField] private float _slotWeight = 1f;
+    [SerializeField] private float _slotAngle = 24f;
+    [SerializeField] private float _slotRadius = 1.4f;
+    [SerializeField] private int _slotCount = 3;
+    [SerializeField] private float _recoverBack = 1.2f;
+    [SerializeField] private float _recoverSide = 0.8f;
 
     [Header("Idle")]
     [SerializeField] private float _idleMoveMin = 4f;
@@ -117,6 +132,9 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private Vector3 _attackDirection;
     private bool _isAttackInProgress;
     private bool _isHitPending;
+    private bool _isCombatClockwise;
+    private bool _isAttackWindup;
+    private float _attackWindupTimer;
 
     public EnemyState State => _state;
 
@@ -236,6 +254,31 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_runStartDistance));
         }
 
+        if (_chaseLookBlend < 0f || _chaseLookBlend > 1f)
+        {
+            throw new InvalidOperationException(nameof(_chaseLookBlend));
+        }
+
+        if (_attackWindupTime < 0f)
+        {
+            throw new InvalidOperationException(nameof(_attackWindupTime));
+        }
+
+        if (_attackStartExtraDistance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_attackStartExtraDistance));
+        }
+
+        if (_attackKeepExtraDistance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_attackKeepExtraDistance));
+        }
+
+        if (_attackMinDot < -1f || _attackMinDot > 1f)
+        {
+            throw new InvalidOperationException(nameof(_attackMinDot));
+        }
+
         if (_fightMinDistance <= 0f)
         {
             throw new InvalidOperationException(nameof(_fightMinDistance));
@@ -284,6 +327,46 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         if (_rangeNearExtra < 0f)
         {
             throw new InvalidOperationException(nameof(_rangeNearExtra));
+        }
+
+        if (_orbitWeight < 0f)
+        {
+            throw new InvalidOperationException(nameof(_orbitWeight));
+        }
+
+        if (_ringWeight < 0f)
+        {
+            throw new InvalidOperationException(nameof(_ringWeight));
+        }
+
+        if (_slotWeight < 0f)
+        {
+            throw new InvalidOperationException(nameof(_slotWeight));
+        }
+
+        if (_slotAngle < 0f)
+        {
+            throw new InvalidOperationException(nameof(_slotAngle));
+        }
+
+        if (_slotRadius <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_slotRadius));
+        }
+
+        if (_slotCount <= 0)
+        {
+            throw new InvalidOperationException(nameof(_slotCount));
+        }
+
+        if (_recoverBack < 0f)
+        {
+            throw new InvalidOperationException(nameof(_recoverBack));
+        }
+
+        if (_recoverSide < 0f)
+        {
+            throw new InvalidOperationException(nameof(_recoverSide));
         }
 
         if (_idleMoveMin <= 0f)
@@ -390,6 +473,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering = new EnemySteering(transform, _enemyMove, _enemyRotator);
         _enemySteering.SetObstacle(_obstacleMask, _probeRadius, _probeHeight, _probeDistance, _probeAngle, _avoidWeight);
         _enemySteering.SetSpacing(_allyMask, _separationRadius, _separationWeight);
+        _enemySteering.SetCombat(_orbitWeight, _ringWeight, _slotWeight, _slotAngle, _slotRadius, _slotCount, _recoverBack, _recoverSide);
         _baseHealthMax = _enemy.Health.MaxValue;
     }
 
@@ -572,6 +656,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         float distance = Vector3.Distance(currentPoint, targetPoint);
         FireExecutor fireExecutor = GetFireExecutor();
 
+        if (_isAttackWindup)
+        {
+            if (ProcessAttackWindup(currentTarget, targetPoint))
+            {
+                return;
+            }
+        }
+
         if (_isAttackInProgress)
         {
             _state = EnemyState.Fight;
@@ -590,7 +682,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         if (fireExecutor != null)
         {
-            ProcessRangeTarget(currentPoint, targetPoint, distance, fireExecutor);
+            ProcessRangeTarget(currentTarget, currentPoint, targetPoint, distance, fireExecutor);
 
             return;
         }
@@ -603,12 +695,17 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        ProcessCombatMove(currentPoint, targetPoint, distance);
+        ProcessCombatMove(currentTarget, currentPoint, targetPoint, distance);
     }
 
     private void ProcessHiddenTarget()
     {
         StopFire();
+
+        if (_isAttackWindup)
+        {
+            ResetAttackState();
+        }
 
         if (_isAttackInProgress)
         {
@@ -999,13 +1096,19 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.Stop();
     }
 
-    private void ProcessCombatMove(Vector3 currentPoint, Vector3 targetPoint, float distance)
+    private void ProcessCombatMove(Transform currentTarget, Vector3 currentPoint, Vector3 targetPoint, float distance)
     {
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRunNeeded(distance));
-        Vector3 chasePoint = GetMovePoint(targetPoint);
 
-        if (TryCombatMove(currentPoint, chasePoint, targetPoint))
+        if (TryCombatOrbit(currentTarget, currentPoint, distance))
+        {
+            _state = EnemyState.Fight;
+
+            return;
+        }
+
+        if (TryCombatChase(currentPoint, targetPoint))
         {
             return;
         }
@@ -1015,7 +1118,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.LookToPoint(targetPoint);
     }
 
-    private void ProcessRangeTarget(Vector3 currentPoint, Vector3 targetPoint, float distance, FireExecutor fireExecutor)
+    private void ProcessRangeTarget(Transform currentTarget, Vector3 currentPoint, Vector3 targetPoint, float distance, FireExecutor fireExecutor)
     {
         bool hasFireLine = HasFireLine(targetPoint);
         fireExecutor.SetAimPoint(targetPoint);
@@ -1037,12 +1140,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         {
             if (_rangeMode == RangeBack)
             {
-                ProcessRangeBack(currentPoint, targetPoint);
+                ProcessRangeBack(currentTarget, currentPoint, targetPoint);
             }
 
             else
             {
-                ProcessRangeFight(currentPoint, targetPoint, hasFireLine);
+                ProcessRangeFight(currentTarget, currentPoint, targetPoint, hasFireLine);
             }
         }
 
@@ -1054,7 +1157,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRangeRunNeeded(distance));
 
-        if (TryRangeHold(currentPoint, targetPoint))
+        if (TryRangeChase(currentPoint, targetPoint))
         {
             return;
         }
@@ -1063,12 +1166,12 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.LookToPoint(targetPoint);
     }
 
-    private void ProcessRangeBack(Vector3 currentPoint, Vector3 targetPoint)
+    private void ProcessRangeBack(Transform currentTarget, Vector3 currentPoint, Vector3 targetPoint)
     {
         _state = EnemyState.Fight;
         _enemyMove.SetRun(false);
 
-        if (TryRangeHold(currentPoint, targetPoint))
+        if (TryRangeRecover(currentTarget, currentPoint))
         {
             return;
         }
@@ -1076,14 +1179,14 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.LookToPoint(targetPoint);
     }
 
-    private void ProcessRangeFight(Vector3 currentPoint, Vector3 targetPoint, bool hasFireLine)
+    private void ProcessRangeFight(Transform currentTarget, Vector3 currentPoint, Vector3 targetPoint, bool hasFireLine)
     {
         _state = EnemyState.Fight;
         _enemyMove.SetRun(false);
 
         if (hasFireLine)
         {
-            if (TryRangeHold(currentPoint, targetPoint))
+            if (TryRangeOrbit(currentTarget, currentPoint))
             {
                 return;
             }
@@ -1095,7 +1198,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        if (TryRangeMove(GetMovePoint(targetPoint), _fightMinDistance, targetPoint, currentPoint))
+        if (TryRangeChase(currentPoint, targetPoint))
         {
             return;
         }
@@ -1103,26 +1206,70 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemySteering.LookToPoint(targetPoint);
     }
 
-    private bool TryRangeHold(Vector3 currentPoint, Vector3 targetPoint)
+    private bool TryCombatOrbit(Transform currentTarget, Vector3 currentPoint, float distance)
     {
-        float holdDistance = GetRangeHoldDistance();
-        float holdGap = GetRangeHoldGap();
-        Vector3 holdPoint = GetRangeHoldPoint(currentPoint, targetPoint, holdDistance);
-
-        if (Vector3.Distance(currentPoint, holdPoint) <= holdGap)
+        if (currentTarget == null)
         {
             return false;
         }
 
-        return TryRangeMove(GetMovePoint(holdPoint), holdGap, targetPoint, currentPoint);
+        if (distance > GetCombatOrbitStart())
+        {
+            return false;
+        }
+
+        bool isMoving = _enemySteering.OrbitTarget(currentTarget, GetCombatOrbitDistance(), GetCombatOrbitGap(), _isCombatClockwise);
+
+        return TrySteeringMove(isMoving, currentPoint, true);
     }
 
-    private bool TryRangeMove(Vector3 movePoint, float stopDistance, Vector3 lookPoint, Vector3 currentPoint)
+    private bool TryCombatChase(Vector3 currentPoint, Vector3 targetPoint)
     {
-        bool isMoving = _enemySteering.MoveToPoint(movePoint, stopDistance, lookPoint);
+        bool isMoving = _enemySteering.ChaseTarget(targetPoint, GetCombatOrbitDistance(), GetCombatStopDistance(), _chaseLookBlend);
 
+        return TrySteeringMove(isMoving, currentPoint, false);
+    }
+
+    private bool TryRangeChase(Vector3 currentPoint, Vector3 targetPoint)
+    {
+        bool isMoving = _enemySteering.ChaseTarget(targetPoint, GetRangeHoldDistance(), GetRangeHoldGap(), 1f);
+
+        return TrySteeringMove(isMoving, currentPoint, false);
+    }
+
+    private bool TryRangeRecover(Transform currentTarget, Vector3 currentPoint)
+    {
+        if (currentTarget == null)
+        {
+            return false;
+        }
+
+        bool isMoving = _enemySteering.RecoverTarget(currentTarget, _isCombatClockwise);
+
+        return TrySteeringMove(isMoving, currentPoint, true);
+    }
+
+    private bool TryRangeOrbit(Transform currentTarget, Vector3 currentPoint)
+    {
+        if (currentTarget == null)
+        {
+            return false;
+        }
+
+        bool isMoving = _enemySteering.OrbitTarget(currentTarget, GetRangeHoldDistance(), GetRangeHoldGap(), _isCombatClockwise);
+
+        return TrySteeringMove(isMoving, currentPoint, true);
+    }
+
+    private bool TrySteeringMove(bool isMoving, Vector3 currentPoint, bool isSideMove)
+    {
         if (isMoving == false)
         {
+            if (isSideMove)
+            {
+                FlipCombatDirection();
+            }
+
             _enemySteering.ForceStop();
 
             return false;
@@ -1133,9 +1280,21 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return true;
         }
 
+        if (isSideMove)
+        {
+            FlipCombatDirection();
+        }
+
         _enemySteering.ForceStop();
 
         return false;
+    }
+
+    private bool TryRangeMove(Vector3 movePoint, float stopDistance, Vector3 lookPoint, Vector3 currentPoint)
+    {
+        bool isMoving = _enemySteering.MoveToPoint(movePoint, stopDistance, lookPoint);
+
+        return TrySteeringMove(isMoving, currentPoint, false);
     }
 
     private int GetInitialRangeMode(float distance)
@@ -1224,30 +1383,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         fireExecutor.StartFiring();
     }
 
-    private bool TryCombatMove(Vector3 currentPoint, Vector3 movePoint, Vector3 lookPoint)
-    {
-        float stopDistance = GetCombatStopDistance();
-        bool isMoving = _enemySteering.MoveToPoint(movePoint, stopDistance, lookPoint);
-
-        if (isMoving == false)
-        {
-            _enemySteering.ForceStop();
-
-            return false;
-        }
-
-        if (CanKeepMove(currentPoint))
-        {
-            _state = EnemyState.Chase;
-
-            return true;
-        }
-
-        _enemySteering.ForceStop();
-
-        return false;
-    }
-
     private bool TrySearchMove(bool isMoving, Vector3 currentPoint)
     {
         if (isMoving == false)
@@ -1273,6 +1408,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
     private bool TryAttack(Transform currentTarget, Vector3 targetPoint)
     {
+        if (_isAttackWindup)
+        {
+            return true;
+        }
+
         if (_isAttackInProgress)
         {
             StopAttackMove();
@@ -1284,13 +1424,13 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         Vector3 currentPoint = GetFlatPoint(transform.position);
         Vector3 attackDirection = targetPoint - currentPoint;
 
-        if (CanHitTarget(currentTarget, attackDirection) == false)
+        if (CanStartAttack(currentTarget, attackDirection) == false)
         {
             return false;
         }
 
         StopAttackMove();
-        _enemyRotator.SnapToDirection(attackDirection);
+        _enemySteering.LookToPoint(targetPoint);
 
         if (_attacker.CanStartAttack() == false)
         {
@@ -1298,11 +1438,71 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         _attackDirection = attackDirection;
-        _isAttackInProgress = true;
-        _isHitPending = true;
-        _animation.TriggerAttack();
+        StartAttackWindup();
 
         return true;
+    }
+
+    private bool ProcessAttackWindup(Transform currentTarget, Vector3 targetPoint)
+    {
+        if (currentTarget == null)
+        {
+            ResetAttackState();
+
+            return false;
+        }
+
+        Vector3 currentPoint = GetFlatPoint(transform.position);
+        Vector3 attackDirection = targetPoint - currentPoint;
+
+        if (CanKeepAttack(currentTarget, attackDirection) == false)
+        {
+            ResetAttackState();
+
+            return false;
+        }
+
+        _state = EnemyState.Fight;
+        StopAttackMove();
+        _enemySteering.LookToPoint(targetPoint);
+        _attackDirection = attackDirection;
+
+        if (_attackWindupTimer > 0f)
+        {
+            _attackWindupTimer -= Time.fixedDeltaTime;
+        }
+
+        if (_attackWindupTimer > 0f)
+        {
+            return true;
+        }
+
+        CommitAttack();
+
+        return true;
+    }
+
+    private void StartAttackWindup()
+    {
+        if (_attackWindupTime <= 0f)
+        {
+            CommitAttack();
+
+            return;
+        }
+
+        _isAttackWindup = true;
+        _attackWindupTimer = _attackWindupTime;
+    }
+
+    private void CommitAttack()
+    {
+        _isAttackWindup = false;
+        _attackWindupTimer = 0f;
+        _isAttackInProgress = true;
+        _isHitPending = true;
+        _enemyRotator.SnapToDirection(_attackDirection);
+        _animation.TriggerAttack();
     }
 
     private void OnAttackingFrame()
@@ -1406,6 +1606,7 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _searchStep = 0;
         _idlePatrolPicker.Clear();
         _lastSeenDirection = GetRandomDirection();
+        _isCombatClockwise = GetRandomBool();
         _idleDirection = _lastSeenDirection;
         _idleLookPoint = transform.position + (_idleDirection * LookDistance);
         _enemyMove.SetRun(false);
@@ -1787,6 +1988,21 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         return Mathf.Max(MinFightRadius, _fightGapDistance * 0.5f);
     }
 
+    private float GetCombatOrbitDistance()
+    {
+        return Mathf.Max(GetCombatStopDistance(), _probeRadius * 2f);
+    }
+
+    private float GetCombatOrbitGap()
+    {
+        return Mathf.Max(_fightGapDistance, GetCombatStopDistance());
+    }
+
+    private float GetCombatOrbitStart()
+    {
+        return Mathf.Max(_slotRadius + _fightGapDistance, _probeDistance * 2f);
+    }
+
     private float GetMoveWallGap()
     {
         return Mathf.Max(_idleWallGap, _probeRadius * 2f);
@@ -1800,6 +2016,8 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private void ResetAttackState()
     {
         _attackDirection = Vector3.zero;
+        _isAttackWindup = false;
+        _attackWindupTimer = 0f;
         _isAttackInProgress = false;
         _isHitPending = false;
     }
@@ -1821,6 +2039,11 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 
         fireExecutor.StopFiring();
         fireExecutor.ClearAimPoint();
+    }
+
+    private void FlipCombatDirection()
+    {
+        _isCombatClockwise = _isCombatClockwise == false;
     }
 
     private bool IsSuicideActive()
@@ -1917,6 +2140,61 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         return _attacker.CanHitTarget(currentTarget, attackDirection);
+    }
+
+    private bool CanStartAttack(Transform currentTarget, Vector3 attackDirection)
+    {
+        if (CanHitTarget(currentTarget, attackDirection))
+        {
+            return true;
+        }
+
+        return CanReachAttack(currentTarget, attackDirection, _attackStartExtraDistance);
+    }
+
+    private bool CanKeepAttack(Transform currentTarget, Vector3 attackDirection)
+    {
+        if (CanHitTarget(currentTarget, attackDirection))
+        {
+            return true;
+        }
+
+        return CanReachAttack(currentTarget, attackDirection, _attackKeepExtraDistance);
+    }
+
+    private bool CanReachAttack(Transform currentTarget, Vector3 attackDirection, float extraDistance)
+    {
+        if (currentTarget == null)
+        {
+            return false;
+        }
+
+        Vector3 flatAttackDirection = attackDirection;
+        flatAttackDirection.y = 0f;
+
+        if (flatAttackDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        float attackDistance = flatAttackDirection.magnitude;
+        float maxDistance = _attacker.AttackData.AttackRange + extraDistance;
+
+        if (attackDistance > maxDistance)
+        {
+            return false;
+        }
+
+        flatAttackDirection /= attackDistance;
+        Vector3 forwardDirection = GetStartDirection();
+        float attackDot = Vector3.Dot(forwardDirection, flatAttackDirection);
+
+        if (attackDot < _attackMinDot)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private Vector3 GetSearchStartPoint()
@@ -2179,24 +2457,6 @@ public sealed class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         }
 
         return holdGap;
-    }
-
-    private Vector3 GetRangeHoldPoint(Vector3 currentPoint, Vector3 targetPoint, float holdDistance)
-    {
-        Vector3 holdDirection = currentPoint - targetPoint;
-        holdDirection.y = 0f;
-
-        if (holdDirection.sqrMagnitude <= ZeroThreshold)
-        {
-            holdDirection = -GetStartDirection();
-        }
-
-        holdDirection.Normalize();
-
-        Vector3 holdPoint = targetPoint + (holdDirection * holdDistance);
-        holdPoint.y = transform.position.y;
-
-        return holdPoint;
     }
 
     private Vector3 GetSearchDirection()

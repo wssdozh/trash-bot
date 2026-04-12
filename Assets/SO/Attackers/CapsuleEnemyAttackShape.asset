@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85bb4f9f40315fa4cb7ffca3eca76b8c, type: 3}
   m_Name: CapsuleEnemyAttackShape
   m_EditorClassIdentifier: Assembly-CSharp::SphereForwardAttackShape
-  _hitRadiusFactor: 0.5
-  _forwardOffsetFactor: 0.35
+  _hitRadiusFactor: 0.65
+  _forwardOffsetFactor: 0.4
