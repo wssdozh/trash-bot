@@ -1000,7 +1000,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         SetupEnemy(instance, enemySpawn);
 
-        if (TrySnapGroundEnemy(instance) == false)
+        if (TrySnapGroundEnemy(instance, spawnHeight) == false)
         {
             DestroySpawned(instance);
 
@@ -1143,7 +1143,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return instance;
     }
 
-    private bool TrySnapGroundEnemy(GameObject enemyObject)
+    private bool TrySnapGroundEnemy(GameObject enemyObject, float spawnHeight)
     {
         if (enemyObject == null)
         {
@@ -1152,6 +1152,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         if (IsAirEnemy(enemyObject) == true)
         {
+            return true;
+        }
+
+        if (IsTurretEnemy(enemyObject) == true)
+        {
+            SetEnemyHeight(enemyObject.transform, spawnHeight);
+
             return true;
         }
 
@@ -1175,6 +1182,18 @@ public sealed class RoomContentSpawner : MonoBehaviour
         EnemyDroneMove enemyDroneMove = enemyObject.GetComponentInChildren<EnemyDroneMove>(true);
 
         if (enemyDroneMove != null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsTurretEnemy(GameObject enemyObject)
+    {
+        Turret turret = enemyObject.GetComponentInChildren<Turret>(true);
+
+        if (turret != null)
         {
             return true;
         }
@@ -1531,6 +1550,21 @@ public sealed class RoomContentSpawner : MonoBehaviour
         Vector3 floorPoint = rootTransform.TransformPoint(new Vector3(0f, FloorTopY * _blockSize, 0f));
 
         return floorPoint.y;
+    }
+
+    private void SetEnemyHeight(Transform enemyTransform, float spawnHeight)
+    {
+        Vector3 enemyPosition = enemyTransform.position;
+        enemyPosition.y = GetSpawnY(_enemiesRoot, spawnHeight);
+        enemyTransform.position = enemyPosition;
+    }
+
+    private float GetSpawnY(Transform rootTransform, float spawnHeight)
+    {
+        Vector3 localPosition = new Vector3(0f, spawnHeight * _blockSize, 0f);
+        Vector3 worldPosition = rootTransform.TransformPoint(localPosition);
+
+        return worldPosition.y;
     }
 
     private List<Vector2Int> SpawnResources(
