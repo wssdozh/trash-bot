@@ -14,6 +14,7 @@ public class Attacker : MonoBehaviour
 
     private bool _isOnCooldown = false;
     private readonly Collider[] _targetBuffer = new Collider[TargetBufferSize];
+    private readonly int[] _processedIdBuffer = new int[TargetBufferSize];
 
     public AttackData AttackData => _attackData;
 
@@ -60,6 +61,51 @@ public class Attacker : MonoBehaviour
             return true;
         }
 
+        if (_attackData.IsMultiHit)
+        {
+            PerformMultiAttack(hitCount, damage);
+        }
+
+        else
+        {
+            PerformSingleAttack(hitCount, damage);
+        }
+
+        StartCoroutine(StartCooldown());
+
+        return true;
+    }
+
+    public bool CanHitTarget(Transform targetTransform, Vector3 attackDirection)
+    {
+        if (targetTransform == null)
+        {
+            return false;
+        }
+
+        int hitCount = FillTargets(attackDirection);
+        int hitIndex = 0;
+
+        while (hitIndex < hitCount)
+        {
+            Collider hit = _targetBuffer[hitIndex];
+
+            if (hit != null)
+            {
+                if (IsTargetMatch(targetTransform, hit.transform))
+                {
+                    return true;
+                }
+            }
+
+            hitIndex += 1;
+        }
+
+        return false;
+    }
+
+    private void PerformSingleAttack(int hitCount, float damage)
+    {
         Transform nearestHealthTransform = null;
         Rigidbody nearestHealthRigidbody = null;
         Health nearestHealth = null;
@@ -129,53 +175,57 @@ public class Attacker : MonoBehaviour
 
         if (targetTransform == null)
         {
-            StartCoroutine(StartCooldown());
-
-            return true;
+            return;
         }
 
-        if (targetRigidbody != null)
-        {
-            Vector3 direction = (targetTransform.position - transform.position).normalized;
-            targetRigidbody.AddForce(direction * _hitForce, _hitForceMode);
-        }
-
-        if (targetHealth != null)
-        {
-            targetHealth.Decrease(damage);
-        }
-
-        StartCoroutine(StartCooldown());
-
-        return true;
+        ApplyHit(targetTransform.position, targetRigidbody, targetHealth, damage);
     }
 
-    public bool CanHitTarget(Transform targetTransform, Vector3 attackDirection)
+    private void PerformMultiAttack(int hitCount, float damage)
     {
-        if (targetTransform == null)
-        {
-            return false;
-        }
-
-        int hitCount = FillTargets(attackDirection);
+        int processedCount = 0;
         int hitIndex = 0;
 
         while (hitIndex < hitCount)
         {
             Collider hit = _targetBuffer[hitIndex];
 
-            if (hit != null)
+            if (hit == null)
             {
-                if (IsTargetMatch(targetTransform, hit.transform))
-                {
-                    return true;
-                }
+                hitIndex += 1;
+
+                continue;
             }
 
+            if (hit.transform.IsChildOf(transform))
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            Health hitHealth = hit.GetComponentInParent<Health>();
+            Rigidbody hitRigidbody = hit.attachedRigidbody;
+            int targetId = GetTargetId(hitHealth, hitRigidbody);
+
+            if (targetId == 0)
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            if (ContainsProcessedId(targetId, processedCount))
+            {
+                hitIndex += 1;
+
+                continue;
+            }
+
+            processedCount = AddProcessedId(targetId, processedCount);
+            ApplyHit(hit.transform.position, hitRigidbody, hitHealth, damage);
             hitIndex += 1;
         }
-
-        return false;
     }
 
     private IEnumerator StartCooldown()
@@ -245,6 +295,64 @@ public class Attacker : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ApplyHit(Vector3 targetPoint, Rigidbody targetRigidbody, Health targetHealth, float damage)
+    {
+        if (targetRigidbody != null)
+        {
+            Vector3 direction = (targetPoint - transform.position).normalized;
+            targetRigidbody.AddForce(direction * _hitForce, _hitForceMode);
+        }
+
+        if (targetHealth != null)
+        {
+            targetHealth.Decrease(damage);
+        }
+    }
+
+    private int GetTargetId(Health targetHealth, Rigidbody targetRigidbody)
+    {
+        if (targetHealth != null)
+        {
+            return targetHealth.gameObject.GetInstanceID();
+        }
+
+        if (targetRigidbody != null)
+        {
+            return targetRigidbody.gameObject.GetInstanceID();
+        }
+
+        return 0;
+    }
+
+    private bool ContainsProcessedId(int targetId, int processedCount)
+    {
+        int processedIndex = 0;
+
+        while (processedIndex < processedCount)
+        {
+            if (_processedIdBuffer[processedIndex] == targetId)
+            {
+                return true;
+            }
+
+            processedIndex += 1;
+        }
+
+        return false;
+    }
+
+    private int AddProcessedId(int targetId, int processedCount)
+    {
+        if (processedCount >= _processedIdBuffer.Length)
+        {
+            return processedCount;
+        }
+
+        _processedIdBuffer[processedCount] = targetId;
+
+        return processedCount + 1;
     }
 
     private Vector3 GetAttackDirection(Vector3 attackDirection)

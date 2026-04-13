@@ -125,6 +125,13 @@ public sealed partial class EnemyMeleeBrain
         return Mathf.Max(MinFightRadius, _fightGapDistance * 0.5f);
     }
 
+    private float GetCombatChaseDistance()
+    {
+        float chaseDistance = GetAttackNearDistance(_attackStartNearScale) - GetCombatStopDistance();
+
+        return Mathf.Max(MinFightRadius, chaseDistance);
+    }
+
     private float GetCombatOrbitDistance()
     {
         return Mathf.Max(GetCombatStopDistance(), _probeRadius * 2f);

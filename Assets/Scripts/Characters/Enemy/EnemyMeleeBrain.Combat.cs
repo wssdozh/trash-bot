@@ -197,15 +197,15 @@ public sealed partial class EnemyMeleeBrain
         _state = EnemyState.Chase;
         _enemyMove.SetRun(IsRunNeeded(distance));
 
+        if (TryCombatChase(currentPoint, targetPoint))
+        {
+            return;
+        }
+
         if (TryCombatOrbit(currentTarget, currentPoint, distance))
         {
             _state = EnemyState.Fight;
 
-            return;
-        }
-
-        if (TryCombatChase(currentPoint, targetPoint))
-        {
             return;
         }
 
@@ -321,7 +321,7 @@ public sealed partial class EnemyMeleeBrain
 
     private bool TryCombatChase(Vector3 currentPoint, Vector3 targetPoint)
     {
-        bool isMoving = _enemySteering.ChaseTarget(targetPoint, GetCombatOrbitDistance(), GetCombatStopDistance(), _chaseLookBlend);
+        bool isMoving = _enemySteering.ChaseTarget(targetPoint, GetCombatChaseDistance(), GetCombatStopDistance(), _chaseLookBlend);
 
         return TrySteeringMove(isMoving, currentPoint, false);
     }
@@ -643,25 +643,59 @@ public sealed partial class EnemyMeleeBrain
 
     private bool CanStartAttack(Transform currentTarget, Vector3 attackDirection)
     {
+        float maxDistance = GetAttackNearDistance(_attackStartNearScale) + GetAttackExtraDistance(_attackStartExtraScale);
+
+        if (IsAttackNear(attackDirection, maxDistance) == false)
+        {
+            return false;
+        }
+
         if (CanHitTarget(currentTarget, attackDirection))
         {
             return true;
         }
 
-        return CanReachAttack(currentTarget, attackDirection, GetAttackExtraDistance(_attackStartExtraScale));
+        return CanReachAttack(currentTarget, attackDirection, maxDistance);
     }
 
     private bool CanKeepAttack(Transform currentTarget, Vector3 attackDirection)
     {
+        float maxDistance = GetAttackNearDistance(_attackKeepNearScale) + GetAttackExtraDistance(_attackKeepExtraScale);
+
+        if (IsAttackNear(attackDirection, maxDistance) == false)
+        {
+            return false;
+        }
+
         if (CanHitTarget(currentTarget, attackDirection))
         {
             return true;
         }
 
-        return CanReachAttack(currentTarget, attackDirection, GetAttackExtraDistance(_attackKeepExtraScale));
+        return CanReachAttack(currentTarget, attackDirection, maxDistance);
     }
 
-    private bool CanReachAttack(Transform currentTarget, Vector3 attackDirection, float extraDistance)
+    private bool IsAttackNear(Vector3 attackDirection, float maxDistance)
+    {
+        Vector3 flatAttackDirection = attackDirection;
+        flatAttackDirection.y = 0f;
+
+        if (flatAttackDirection.sqrMagnitude <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        float attackDistance = flatAttackDirection.magnitude;
+
+        if (attackDistance > maxDistance)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool CanReachAttack(Transform currentTarget, Vector3 attackDirection, float maxDistance)
     {
         if (currentTarget == null)
         {
@@ -677,7 +711,6 @@ public sealed partial class EnemyMeleeBrain
         }
 
         float attackDistance = flatAttackDirection.magnitude;
-        float maxDistance = _attacker.AttackData.AttackRange + extraDistance;
 
         if (attackDistance > maxDistance)
         {
@@ -699,6 +732,11 @@ public sealed partial class EnemyMeleeBrain
     private float GetAttackExtraDistance(float extraScale)
     {
         return _attacker.AttackData.AttackRange * extraScale;
+    }
+
+    private float GetAttackNearDistance(float nearScale)
+    {
+        return _attacker.AttackData.AttackRange * nearScale;
     }
 
     private bool HasFireLine(Vector3 targetPoint)

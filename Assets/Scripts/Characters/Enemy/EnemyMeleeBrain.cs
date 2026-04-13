@@ -49,6 +49,8 @@ public sealed partial class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemy
     [SerializeField] private float _runStopDistance = 3.1f;
     [SerializeField, Range(0f, 1f)] private float _chaseLookBlend = 0.7f;
     [SerializeField, Min(0f)] private float _attackWindupTime = 0.22f;
+    [SerializeField, Range(0.1f, 1f)] private float _attackStartNearScale = 0.5f;
+    [SerializeField, Range(0.1f, 1f)] private float _attackKeepNearScale = 0.6f;
     [SerializeField, Min(0f)] private float _attackStartExtraScale = 0.12f;
     [SerializeField, Min(0f)] private float _attackKeepExtraScale = 0.22f;
     [SerializeField, Range(-1f, 1f)] private float _attackMinDot = -0.15f;
@@ -355,6 +357,16 @@ public sealed partial class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemy
         if (_attackWindupTime < 0f)
         {
             throw new InvalidOperationException(nameof(_attackWindupTime));
+        }
+
+        if (_attackStartNearScale <= 0f || _attackStartNearScale > 1f)
+        {
+            throw new InvalidOperationException(nameof(_attackStartNearScale));
+        }
+
+        if (_attackKeepNearScale < _attackStartNearScale || _attackKeepNearScale > 1f)
+        {
+            throw new InvalidOperationException(nameof(_attackKeepNearScale));
         }
 
         if (_attackStartExtraScale < 0f)
