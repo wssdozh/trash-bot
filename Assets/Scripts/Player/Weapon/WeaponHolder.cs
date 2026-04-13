@@ -80,7 +80,6 @@ public class WeaponHolder : MonoBehaviour
 
     public void SetSwitchLocked(bool isSwitchLocked)
     {
-
         if (IsSwitchLocked == isSwitchLocked)
         {
             return;
@@ -90,16 +89,10 @@ public class WeaponHolder : MonoBehaviour
 
         if (IsSwitchLocked == false && IsHoldAllowed && _hasPendingPickupSpawner)
         {
-            Spawner<BasePickup> pendingPickupSpawner = SpawnerServiceLocator.Get<BasePickup>(_pendingPickupSpawnerKey);
-
-            if (_pickupSpawner != pendingPickupSpawner || _pickup == null)
-            {
-                EquipInternal(_pendingPickupSpawnerKey);
-            }
+            EquipInternal(_pendingPickupSpawnerKey);
         }
 
         RefreshUpdateState();
-
     }
 
     public void Equip(BasePickup pickupPrefab)

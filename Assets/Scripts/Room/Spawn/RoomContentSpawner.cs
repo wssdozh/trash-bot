@@ -20,8 +20,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private const float SpawnSearchStep = 0.35f;
     private const float SpawnCheckPadding = 0.25f;
     private const float GroundPatrolRadius = 0.58f;
-    private const float NavBlockCenterY = 1f;
-    private const float NavBlockHeight = 2.5f;
+    private const float FloorTopY = 1f;
     private const float ZeroThreshold = 0.0001f;
     private static readonly int[] s_neighborOffsetX = new int[4] { 1, -1, 0, 0 };
     private static readonly int[] s_neighborOffsetZ = new int[4] { 0, 0, 1, -1 };
@@ -83,7 +82,6 @@ public sealed class RoomContentSpawner : MonoBehaviour
     [SerializeField, Min(1)] private int _enemyMinSpanInCells = 3;
 
     private RoomRuntimeState _roomRuntimeState;
-    private Transform _navMeshBlocksRoot;
 
     public void Spawn(
         RoomTypeProfile roomTypeProfile,
@@ -97,6 +95,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     {
         _roomRuntimeState = GetComponentInParent<RoomRuntimeState>();
         EnsureEnemyNavMeshIgnore();
+        ClearOldBlocks();
 
         ClearChildren(_objectsRoot);
         ClearChildren(_enemiesRoot);
@@ -153,7 +152,6 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int[,] enemyDistanceFromEntrance = ComputeDistanceFieldFromSingleStart(roomSizeInBlocks, entranceCell, enemyObstacleFloorCellSet);
         int enemyMaximumEntranceDistance = GetMaximumDistance(roomSizeInBlocks, enemyDistanceFromEntrance);
         int[,] enemyDistanceFromCorridor = ComputeDistanceFieldFromMultipleStarts(roomSizeInBlocks, corridorStartCells, enemyObstacleFloorCellSet);
-        BuildNavMeshBlocks(roomSizeInBlocks, enemyObstacleFloorCellSet);
         BuildGroundPatrol(roomSizeInBlocks, floorOccupancy, enemyObstacleFloorCellSet, enemyDistanceFromCorridor, resourceCenters);
 
         SpawnEnemies(
@@ -210,9 +208,9 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
     public void Clear()
     {
+        ClearOldBlocks();
         ClearChildren(_objectsRoot);
         ClearChildren(_enemiesRoot);
-        ClearNavMeshBlocks();
     }
 
     private void EnsureEnemyNavMeshIgnore()
@@ -226,6 +224,25 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         navMeshModifier.ignoreFromBuild = true;
         navMeshModifier.applyToChildren = true;
+    }
+
+    private void ClearOldBlocks()
+    {
+        Transform oldBlocks = transform.Find("__NavMeshBlocks");
+
+        if (oldBlocks == null)
+        {
+            return;
+        }
+
+        if (Application.isPlaying == false)
+        {
+            DestroyImmediate(oldBlocks.gameObject);
+
+            return;
+        }
+
+        Destroy(oldBlocks.gameObject);
     }
 
     private Vector2Int GetReferenceEntranceCell(Vector3Int roomSizeInBlocks, IReadOnlyList<RoomDoorPlan> doorPlans)
@@ -955,7 +972,14 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
     private void InstantiateObjectOnCell(GameObject prefab, Vector2Int floorCell)
     {
-        InstantiateOnCell(prefab, _objectsRoot, floorCell, _objectSpawnHeight);
+        GameObject instance = InstantiateOnCell(prefab, _objectsRoot, floorCell, _objectSpawnHeight);
+
+        if (instance == null)
+        {
+            return;
+        }
+
+        AddNavModifier(instance);
     }
 
     private bool TryInstantiateEnemyOnCell(RoomTypeProfile roomTypeProfile, EnemySpawnConfig enemySpawn, Vector2Int floorCell)
@@ -975,6 +999,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         SetupEnemy(instance, enemySpawn);
+
+        if (TrySnapGroundEnemy(instance) == false)
+        {
+            DestroySpawned(instance);
+
+            return false;
+        }
 
         Vector3 spawnPoint = instance.transform.position;
 
@@ -1081,6 +1112,21 @@ public sealed class RoomContentSpawner : MonoBehaviour
         roomCombatLock.Setup(_roomRuntimeState, _blockSize);
     }
 
+    private void AddNavModifier(GameObject targetObject)
+    {
+        NavMeshModifier navMeshModifier = targetObject.GetComponent<NavMeshModifier>();
+
+        if (navMeshModifier == null)
+        {
+            navMeshModifier = targetObject.AddComponent<NavMeshModifier>();
+        }
+
+        navMeshModifier.overrideArea = true;
+        navMeshModifier.area = NotWalkableArea;
+        navMeshModifier.ignoreFromBuild = false;
+        navMeshModifier.applyToChildren = true;
+    }
+
     private GameObject InstantiateOnCell(GameObject prefab, Transform rootTransform, Vector2Int floorCell, float spawnHeight)
     {
         if (prefab == null)
@@ -1095,6 +1141,45 @@ public sealed class RoomContentSpawner : MonoBehaviour
         instance.transform.SetParent(rootTransform, true);
 
         return instance;
+    }
+
+    private bool TrySnapGroundEnemy(GameObject enemyObject)
+    {
+        if (enemyObject == null)
+        {
+            return false;
+        }
+
+        if (IsAirEnemy(enemyObject) == true)
+        {
+            return true;
+        }
+
+        Collider[] bodyColliders = enemyObject.GetComponentsInChildren<Collider>();
+
+        if (bodyColliders.Length == 0)
+        {
+            return true;
+        }
+
+        float bottomOffset = GetBottomOffset(enemyObject.transform, bodyColliders);
+        Vector3 enemyPosition = enemyObject.transform.position;
+        enemyPosition.y = GetFloorY(_enemiesRoot) + bottomOffset;
+        enemyObject.transform.position = enemyPosition;
+
+        return true;
+    }
+
+    private bool IsAirEnemy(GameObject enemyObject)
+    {
+        EnemyDroneMove enemyDroneMove = enemyObject.GetComponentInChildren<EnemyDroneMove>(true);
+
+        if (enemyDroneMove != null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool TryFixEnemySpawn(GameObject enemyObject, Vector3 spawnPoint)
@@ -1348,6 +1433,38 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return true;
     }
 
+    private float GetBottomOffset(Transform enemyTransform, Collider[] bodyColliders)
+    {
+        float lowestY = enemyTransform.position.y;
+        bool hasCollider = false;
+        int colliderIndex = 0;
+
+        while (colliderIndex < bodyColliders.Length)
+        {
+            Collider bodyCollider = bodyColliders[colliderIndex];
+
+            if (CanUseSpawnCollider(bodyCollider))
+            {
+                float colliderBottomY = bodyCollider.bounds.min.y;
+
+                if (hasCollider == false || colliderBottomY < lowestY)
+                {
+                    lowestY = colliderBottomY;
+                    hasCollider = true;
+                }
+            }
+
+            colliderIndex += 1;
+        }
+
+        if (hasCollider == false)
+        {
+            return 0f;
+        }
+
+        return enemyTransform.position.y - lowestY;
+    }
+
     private Vector3 GetSpawnSearchDirection(int directionIndex)
     {
         if (directionIndex == 0)
@@ -1407,6 +1524,13 @@ public sealed class RoomContentSpawner : MonoBehaviour
         Vector3 localPosition = GetLocalPosition(floorCell, spawnHeight);
 
         return rootTransform.TransformPoint(localPosition);
+    }
+
+    private float GetFloorY(Transform rootTransform)
+    {
+        Vector3 floorPoint = rootTransform.TransformPoint(new Vector3(0f, FloorTopY * _blockSize, 0f));
+
+        return floorPoint.y;
     }
 
     private List<Vector2Int> SpawnResources(
@@ -1791,97 +1915,6 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         chosenCell = Vector2Int.zero;
         return false;
-    }
-
-    private void BuildNavMeshBlocks(Vector3Int roomSizeInBlocks, HashSet<Vector2Int> obstacleFloorCellSet)
-    {
-        Transform navMeshBlocksRoot = EnsureNavMeshBlocksRoot();
-        ClearChildren(navMeshBlocksRoot);
-
-        for (int cellZ = 1; cellZ <= roomSizeInBlocks.z - 2; cellZ++)
-        {
-            int cellX = 1;
-
-            while (cellX <= roomSizeInBlocks.x - 2)
-            {
-                Vector2Int startCell = new Vector2Int(cellX, cellZ);
-
-                if (obstacleFloorCellSet.Contains(startCell) == false)
-                {
-                    cellX += 1;
-
-                    continue;
-                }
-
-                int runStartX = cellX;
-                int runEndX = cellX;
-
-                while (runEndX + 1 <= roomSizeInBlocks.x - 2)
-                {
-                    Vector2Int nextCell = new Vector2Int(runEndX + 1, cellZ);
-
-                    if (obstacleFloorCellSet.Contains(nextCell) == false)
-                    {
-                        break;
-                    }
-
-                    runEndX += 1;
-                }
-
-                CreateNavMeshBlock(navMeshBlocksRoot, runStartX, runEndX, cellZ);
-                cellX = runEndX + 1;
-            }
-        }
-    }
-
-    private Transform EnsureNavMeshBlocksRoot()
-    {
-        if (_navMeshBlocksRoot != null)
-        {
-            return _navMeshBlocksRoot;
-        }
-
-        Transform existingRoot = transform.Find("__NavMeshBlocks");
-
-        if (existingRoot != null)
-        {
-            _navMeshBlocksRoot = existingRoot;
-
-            return _navMeshBlocksRoot;
-        }
-
-        GameObject navMeshBlocksObject = new GameObject("__NavMeshBlocks");
-        navMeshBlocksObject.transform.SetParent(transform, false);
-        _navMeshBlocksRoot = navMeshBlocksObject.transform;
-
-        return _navMeshBlocksRoot;
-    }
-
-    private void ClearNavMeshBlocks()
-    {
-        if (_navMeshBlocksRoot == null)
-        {
-            return;
-        }
-
-        ClearChildren(_navMeshBlocksRoot);
-    }
-
-    private void CreateNavMeshBlock(Transform navMeshBlocksRoot, int startCellX, int endCellX, int cellZ)
-    {
-        int cellCount = (endCellX - startCellX) + 1;
-        float centerCellX = startCellX + ((cellCount - 1) * 0.5f);
-        GameObject navMeshBlockObject = new GameObject("NavBlock");
-        navMeshBlockObject.transform.SetParent(navMeshBlocksRoot, false);
-
-        float localPositionX = (centerCellX + 0.5f) * _blockSize;
-        float localPositionZ = (cellZ + 0.5f) * _blockSize;
-        navMeshBlockObject.transform.localPosition = new Vector3(localPositionX, 0f, localPositionZ);
-
-        NavMeshModifierVolume navMeshModifierVolume = navMeshBlockObject.AddComponent<NavMeshModifierVolume>();
-        navMeshModifierVolume.area = NotWalkableArea;
-        navMeshModifierVolume.center = new Vector3(0f, NavBlockCenterY * _blockSize, 0f);
-        navMeshModifierVolume.size = new Vector3(cellCount * _blockSize, NavBlockHeight * _blockSize, _blockSize);
     }
 
     private void BuildGroundPatrol(

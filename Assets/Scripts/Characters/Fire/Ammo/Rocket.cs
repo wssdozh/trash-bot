@@ -51,11 +51,30 @@ public sealed class Rocket : Ammo
     private float GetDamageMultiplier(Vector3 explosionPosition, Collider collider)
     {
         float radius = _radiusImpulse * _radiusMultiplier;
-        Vector3 closestPoint = collider.ClosestPoint(explosionPosition);
+        Vector3 closestPoint = GetClosestPoint(collider, explosionPosition);
         float distance = Vector3.Distance(explosionPosition, closestPoint);
         float normalizedDistance = Mathf.Clamp01(distance / radius);
 
         return 1f - normalizedDistance;
+    }
+
+    private Vector3 GetClosestPoint(Collider collider, Vector3 point)
+    {
+        if (collider is BoxCollider
+            || collider is SphereCollider
+            || collider is CapsuleCollider)
+        {
+            return collider.ClosestPoint(point);
+        }
+
+        MeshCollider meshCollider = collider as MeshCollider;
+
+        if (meshCollider != null && meshCollider.convex)
+        {
+            return collider.ClosestPoint(point);
+        }
+
+        return collider.bounds.ClosestPoint(point);
     }
 
     private void TryDealDamage(Collider collider, float damageMultiplier)

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public sealed class RoomNookSpawner : MonoBehaviour
 {
+    private const int NotWalkableArea = 1;
+
     private struct NookComponent
     {
         public Vector2Int BestCell;
@@ -141,6 +144,7 @@ public sealed class RoomNookSpawner : MonoBehaviour
             instance.transform.localPosition = GetLocalPosition(chosenCell);
             instance.transform.localRotation = Quaternion.identity;
             ApplyOriginalWorldScale(instance.transform);
+            AddNavModifier(instance);
 
             MarkFootprintOccupied(chosenCell, config.FootprintRadiusInCells, roomSizeInBlocks, floorOccupancy);
             placed.Add(new PlacedNook(configIndex, chosenCell));
@@ -176,6 +180,21 @@ public sealed class RoomNookSpawner : MonoBehaviour
                 Object.Destroy(childTransform.gameObject);
             }
         }
+    }
+
+    private void AddNavModifier(GameObject targetObject)
+    {
+        NavMeshModifier navMeshModifier = targetObject.GetComponent<NavMeshModifier>();
+
+        if (navMeshModifier == null)
+        {
+            navMeshModifier = targetObject.AddComponent<NavMeshModifier>();
+        }
+
+        navMeshModifier.overrideArea = true;
+        navMeshModifier.area = NotWalkableArea;
+        navMeshModifier.ignoreFromBuild = false;
+        navMeshModifier.applyToChildren = true;
     }
 
     private List<int> BuildSpawnOrder(RoomTypeProfile roomTypeProfile, System.Random random)

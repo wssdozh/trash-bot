@@ -172,7 +172,7 @@ public sealed class EnemySuicideAttack : MonoBehaviour
 
     private void ApplyExplosion(Collider hitCollider, Vector3 explosionPoint)
     {
-        Vector3 hitPoint = hitCollider.ClosestPoint(explosionPoint);
+        Vector3 hitPoint = GetClosestPoint(hitCollider, explosionPoint);
         float distance = Vector3.Distance(explosionPoint, hitPoint);
         float distance01 = Mathf.Clamp01(distance / _radius);
         float damage01 = 1f - distance01;
@@ -200,6 +200,25 @@ public sealed class EnemySuicideAttack : MonoBehaviour
         }
 
         targetRigidbody.AddExplosionForce(_impulse, explosionPoint, _radius, _up, ForceMode.Impulse);
+    }
+
+    private Vector3 GetClosestPoint(Collider hitCollider, Vector3 point)
+    {
+        if (hitCollider is BoxCollider
+            || hitCollider is SphereCollider
+            || hitCollider is CapsuleCollider)
+        {
+            return hitCollider.ClosestPoint(point);
+        }
+
+        MeshCollider meshCollider = hitCollider as MeshCollider;
+
+        if (meshCollider != null && meshCollider.convex)
+        {
+            return hitCollider.ClosestPoint(point);
+        }
+
+        return hitCollider.bounds.ClosestPoint(point);
     }
 
     private bool CanHit(Collider hitCollider)
