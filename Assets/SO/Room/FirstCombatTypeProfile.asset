@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d351900b38e1b0b40a4370e2183d3bf7, type: 3}
+  m_Name: FirstCombatTypeProfile
+  m_EditorClassIdentifier: Assembly-CSharp::RoomTypeProfile
+  _roomType: 1
+  _noiseProfile: {fileID: 11400000, guid: e570205b16e869d46af52668fb5e08b4, type: 2}
+  _blockFillPercent: 0.43
+  _largeCubeAreaPercent: 0.45
+  _minimumStackHeightInBlocks: 1
+  _maximumStackHeightInBlocks: 7
+  _heightExponent: 1.49
+  _largeCubeStackHeightRange: {x: 1, y: 7}
+  _randomYawRotation: 1
+  _enemySpawnCountRange: {x: 6, y: 16}
+  _enemyPrefabs:
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 4
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 0}
+  - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+    _weight: 2
+    _spawnHeight: 1.8
+    _guaranteed: 0
+    _weaponPrefab: {fileID: 1864531296725922894, guid: 63964cb5d2bc33540b1943393b2507b7, type: 3}
+  _enemySpawnHeights: []
+  _objectSpawnCountRange: {x: 3, y: 10}
+  _objectPrefabs:
+  - _prefab: {fileID: 9099302578165322558, guid: a5dce081a04d9194890a00c14c0b1fc7, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  _nookPrefabs:
+  - _prefab: {fileID: 4886392652990026178, guid: 5ea691f870f2399428249cd4b0746cc3, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 2, y: 3}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 4886392652990026178, guid: 609a9e08e3e44b4b95ed05958bc77680, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 1, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+    _weight: 10
+    _guaranteed: 1
+    _countRange: {x: 1, y: 1}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
+    _weight: 32
+    _guaranteed: 0
+    _countRange: {x: 1, y: 2}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: 6f93e87cb1d2480db3e829fd7b989716, type: 3}
+    _weight: 3
+    _guaranteed: 0
+    _countRange: {x: 0, y: 0}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  - _prefab: {fileID: 7892580720158080282, guid: 2b66865ab6bd42d28938ec7673370ab6, type: 3}
+    _weight: 1
+    _guaranteed: 0
+    _countRange: {x: 0, y: 0}
+    _minimumDistanceFromCorridorInCells: 10
+    _wallMarginInCells: 2
+    _footprintRadiusInCells: 1
+    _minimumDistanceToAnyNookInCells: 7
+    _minimumDistanceToSameTypeInCells: 7
+    _sameTypeNeighborRadiusInCells: 15
+    _maximumSameTypeWithinNeighborRadius: 1
+    _scatterRadiusInCells: 0
+  _nookMinimumAreaInCells: 4

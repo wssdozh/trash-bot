@@ -36,6 +36,7 @@ public sealed class RoomGenerator : MonoBehaviour
     private bool _hasGeneratedShell = false;
     private int _cachedSeed = 1;
     private int _runtimeCombatRoomIndex = 0;
+    private RoomTypeProfile _runtimeProfile;
 
     public IReadOnlyList<RoomDoorMarker> DoorMarkers => _doorMarkers;
     public bool HasGeneratedShell => _hasGeneratedShell;
@@ -81,6 +82,16 @@ public sealed class RoomGenerator : MonoBehaviour
         _runtimeCombatRoomIndex = combatRoomIndex;
     }
 
+    public void SetRuntimeProfile(RoomTypeProfile roomTypeProfile)
+    {
+        _runtimeProfile = roomTypeProfile;
+    }
+
+    public void ClearRuntimeProfile()
+    {
+        _runtimeProfile = null;
+    }
+
     [ContextMenu("Generate (Full)")]
     public void Generate()
     {
@@ -91,7 +102,9 @@ public sealed class RoomGenerator : MonoBehaviour
     [ContextMenu("Generate (Shell Only)")]
     public void GenerateShellOnly()
     {
-        if (_roomTypeProfile == null)
+        RoomTypeProfile roomTypeProfile = GetActiveProfile();
+
+        if (roomTypeProfile == null)
         {
             return;
         }
@@ -103,7 +116,7 @@ public sealed class RoomGenerator : MonoBehaviour
 
         Clear();
 
-        RoomNoiseProfile noiseProfile = _roomTypeProfile.NoiseProfile;
+        RoomNoiseProfile noiseProfile = roomTypeProfile.NoiseProfile;
 
         if (noiseProfile != null)
         {
@@ -116,7 +129,7 @@ public sealed class RoomGenerator : MonoBehaviour
         {
             doorPlans = _roomDoorPlanner.CreateDoorPlans(
                 _roomSizeInBlocks,
-                _roomTypeProfile,
+                roomTypeProfile,
                 _entranceDoorEnabled,
                 _exitDoorEnabled,
                 _runtimeMinimumDoorCount,
@@ -128,7 +141,7 @@ public sealed class RoomGenerator : MonoBehaviour
         {
             doorPlans = _roomDoorPlanner.CreateDoorPlans(
                 _roomSizeInBlocks,
-                _roomTypeProfile,
+                roomTypeProfile,
                 _entranceDoorEnabled,
                 _exitDoorEnabled,
                 random
@@ -156,7 +169,9 @@ public sealed class RoomGenerator : MonoBehaviour
     [ContextMenu("Generate (Interior From Shell)")]
     public void GenerateInteriorFromShell()
     {
-        if (_roomTypeProfile == null)
+        RoomTypeProfile roomTypeProfile = GetActiveProfile();
+
+        if (roomTypeProfile == null)
         {
             return;
         }
@@ -171,7 +186,7 @@ public sealed class RoomGenerator : MonoBehaviour
             }
         }
 
-        RoomNoiseProfile noiseProfile = _roomTypeProfile.NoiseProfile;
+        RoomNoiseProfile noiseProfile = roomTypeProfile.NoiseProfile;
 
         if (noiseProfile != null)
         {
@@ -182,7 +197,7 @@ public sealed class RoomGenerator : MonoBehaviour
 
         SyncDecorationScale();
 
-        HashSet<Vector2Int> reservedFloorCells = _roomPassagePlanner.CreateReservedFloorCells(_roomSizeInBlocks, _cachedDoorPlans, _roomTypeProfile);
+        HashSet<Vector2Int> reservedFloorCells = _roomPassagePlanner.CreateReservedFloorCells(_roomSizeInBlocks, _cachedDoorPlans, roomTypeProfile);
         HashSet<Vector2Int> fillerReservedFloorCells = new HashSet<Vector2Int>(reservedFloorCells);
 
         foreach (Vector2Int noFillCell in _roomPassagePlanner.AdditionalNoFillCells)
@@ -190,7 +205,7 @@ public sealed class RoomGenerator : MonoBehaviour
             fillerReservedFloorCells.Add(noFillCell);
         }
 
-        RoomFloorOccupancy floorOccupancy = _roomInteriorBlockFiller.Fill(_roomSizeInBlocks, fillerReservedFloorCells, _roomTypeProfile, random);
+        RoomFloorOccupancy floorOccupancy = _roomInteriorBlockFiller.Fill(_roomSizeInBlocks, fillerReservedFloorCells, roomTypeProfile, random);
 
         foreach (Vector2Int noFillCell in _roomPassagePlanner.AdditionalNoFillCells)
         {
@@ -206,7 +221,7 @@ public sealed class RoomGenerator : MonoBehaviour
         bool hasGuaranteed = _roomPassagePlanner.TryGetGuaranteedNookCell(out Vector2Int guaranteedCell);
 
         _roomNookSpawner.Spawn(
-            _roomTypeProfile,
+            roomTypeProfile,
             _roomSizeInBlocks,
             floorOccupancy,
             reservedFloorCells,
@@ -215,7 +230,7 @@ public sealed class RoomGenerator : MonoBehaviour
             random
         );
 
-        _roomContentSpawner.Spawn(_roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, _runtimeCombatRoomIndex, random);
+        _roomContentSpawner.Spawn(roomTypeProfile, _roomSizeInBlocks, floorOccupancy, reservedFloorCells, _cachedDoorPlans, _runtimeCombatRoomIndex, random);
 
         if (noiseProfile != null)
         {
@@ -287,5 +302,15 @@ public sealed class RoomGenerator : MonoBehaviour
 
         _roomContentSpawner.SetBlockSize(blockSize);
         _roomNookSpawner.SetBlockSize(blockSize);
+    }
+
+    private RoomTypeProfile GetActiveProfile()
+    {
+        if (_runtimeProfile != null)
+        {
+            return _runtimeProfile;
+        }
+
+        return _roomTypeProfile;
     }
 }

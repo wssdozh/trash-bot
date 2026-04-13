@@ -158,8 +158,17 @@ public sealed class LevelGenerator : MonoBehaviour
 
         LevelNode root = _planBuilder.BuildPlan(_generationContext, random, _levelSequenceProfile, treasureRatio);
 
-        if (_roomShellInstantiator.InstantiateRoomsShellOnly(_generationContext, random, _roomsRoot, _roomPrefabLibrary, _maximumRoomRegenerateAttempts) == false)
+        if (_roomShellInstantiator.InstantiateRoomsShellOnly(
+            _generationContext,
+            random,
+            _roomsRoot,
+            _roomPrefabLibrary,
+            _levelSequenceProfile,
+            _maximumRoomRegenerateAttempts
+        ) == false)
+        {
             return false;
+        }
 
         LevelPlacementSettings placementSettings = new LevelPlacementSettings(
             randomizeRootRotation: _randomizeRootRotation,

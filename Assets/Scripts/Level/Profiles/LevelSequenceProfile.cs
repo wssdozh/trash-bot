@@ -3,6 +3,9 @@
 [CreateAssetMenu(menuName = "Levels/Level Sequence Profile", fileName = "LevelSequenceProfile")]
 public sealed class LevelSequenceProfile : ScriptableObject
 {
+    [Header("Профили комнат")]
+    [SerializeField] private RoomTypeProfile _firstCombatProfile;
+
     [Header("Основной путь")]
     [Tooltip("Сколько Combat-комнат будет на основном пути между Start и Boss.\nX — минимум, Y — максимум.")]
     [SerializeField] private Vector2Int _mainCombatCountRange = new Vector2Int(2, 6);
@@ -51,6 +54,8 @@ public sealed class LevelSequenceProfile : ScriptableObject
     [Header("Ограничения дверей")]
     [Tooltip("Максимум исходящих соединений из одной комнаты.\nДолжно укладываться в лимит дверей комнаты (обычно до 4).")]
     [SerializeField, Range(1, 3)] private int _maximumChildrenPerRoom = 2;
+
+    public RoomTypeProfile FirstCombatProfile => _firstCombatProfile;
 
     public Vector2Int MainCombatCountRange => _mainCombatCountRange;
 
