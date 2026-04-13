@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c45456fc3515b44d84d4a6fe92ca3b7, type: 3}
   m_Name: LevelSequenceProfile
   m_EditorClassIdentifier: Assembly-CSharp::LevelSequenceProfile
+  _firstCombatProfile: {fileID: 11400000, guid: 3c9bc8d1f3f8413fb6c52916a49c2fe1, type: 2}
   _mainCombatCountRange: {x: 2, y: 3}
   _allowTreasureOnMainPath: 1
   _mainTreasurePerCombatRatio: 0.5

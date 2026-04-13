@@ -2158,7 +2158,9 @@ public sealed class RoomContentSpawner : MonoBehaviour
         System.Random random
     )
     {
-        if (roomTypeProfile.EnemyPrefabs.Count == 0)
+        IReadOnlyList<EnemySpawnConfig> enemyPrefabs = roomTypeProfile.EnemyPrefabs;
+
+        if (enemyPrefabs.Count == 0)
         {
             return;
         }
@@ -2349,7 +2351,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
             }
 
-            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(roomTypeProfile.EnemyPrefabs, spawnedEnemies, random);
+            EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(enemyPrefabs, spawnedEnemies, random);
             bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, bestCell);
 
             if (isSpawned)
