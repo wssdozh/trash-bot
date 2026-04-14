@@ -6,6 +6,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
 {
     private const float AlertDelay = 3f;
     private const float AlertGap = 2.25f;
+    private const int AlertEnemyMin = 1;
+    private const int AlertEnemyMax = 3;
     private const int IdlePointTryCount = 10;
     private const float ZeroThreshold = 0.0001f;
     private const float OrbitTurnAngle = 90f;
@@ -537,7 +539,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             return;
         }
 
-        enemyRoomLock.AlertPoint(point, this);
+        int alertCount = _random.Next(AlertEnemyMin, AlertEnemyMax + 1);
+        enemyRoomLock.AlertPoint(point, this, alertCount, _random);
     }
 
     private void ApplyTrackMode()

@@ -189,6 +189,18 @@ public sealed class EnemyRoomLock : MonoBehaviour
         enemyRoomAlert.AlertPoint(point, sender);
     }
 
+    public void AlertPoint(Vector3 point, MonoBehaviour sender, int maxCount, System.Random random)
+    {
+        EnemyRoomAlert enemyRoomAlert = GetRoomAlert();
+
+        if (enemyRoomAlert == null)
+        {
+            return;
+        }
+
+        enemyRoomAlert.AlertPoint(point, sender, maxCount, random);
+    }
+
     public void SnapInside()
     {
         if (_roomRuntimeState == null)
