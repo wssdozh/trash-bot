@@ -17,6 +17,7 @@ public sealed class ExcavatorBossProjectile : MonoBehaviour
     private float _hitRadius;
     private float _spinSpeed;
     private MaterialPropertyBlock _propertyBlock;
+    private string _targetTag;
 
     public void Setup(
         Transform ownerRoot,
@@ -25,7 +26,8 @@ public sealed class ExcavatorBossProjectile : MonoBehaviour
         float damage,
         float lifeTime,
         float hitRadius,
-        float spinSpeed
+        float spinSpeed,
+        string targetTag
     )
     {
         _ownerRoot = ownerRoot;
@@ -46,6 +48,7 @@ public sealed class ExcavatorBossProjectile : MonoBehaviour
         _lifeTime = lifeTime;
         _hitRadius = hitRadius;
         _spinSpeed = spinSpeed;
+        _targetTag = targetTag;
         _spinAxis = new Vector3(0.8f, 1f, 0.35f).normalized;
     }
 
@@ -133,18 +136,24 @@ public sealed class ExcavatorBossProjectile : MonoBehaviour
 
     private void ApplyHit(Collider hitCollider)
     {
-        Player player = hitCollider.GetComponentInParent<Player>();
-
-        if (player == null)
-        {
-            return;
-        }
-
         Health targetHealth = hitCollider.GetComponentInParent<Health>();
 
         if (targetHealth == null)
         {
             return;
+        }
+
+        Transform healthTransform = targetHealth.transform;
+
+        if (string.IsNullOrWhiteSpace(_targetTag) == false)
+        {
+            if (healthTransform.CompareTag(_targetTag) == false)
+            {
+                if (healthTransform.root.CompareTag(_targetTag) == false)
+                {
+                    return;
+                }
+            }
         }
 
         targetHealth.Decrease(_damage);

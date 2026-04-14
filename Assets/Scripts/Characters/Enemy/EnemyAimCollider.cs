@@ -9,6 +9,8 @@ public sealed class EnemyAimCollider : MonoBehaviour
     [SerializeField] private Enemy _enemy;
     [SerializeField] private Turret _turret;
 
+    public Vector3 AimPoint => _collider.bounds.center;
+
     private void Awake()
     {
         if (_collider == null)

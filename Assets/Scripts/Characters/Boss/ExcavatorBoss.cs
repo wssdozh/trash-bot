@@ -23,12 +23,16 @@ public sealed class ExcavatorBoss : MonoBehaviour
     [Header("Stats")]
     [SerializeField, Min(1f)] private float _maxHealth = 320f;
     [SerializeField, Min(0f)] private float _viewDistance = 18f;
+    [SerializeField] private string _targetTag = "Player";
+    [SerializeField] private bool _startActive;
 
     [Header("Move")]
     [SerializeField, Min(0f)] private float _moveSpeed = 1.6f;
     [SerializeField, Min(0f)] private float _turnSpeed = 110f;
     [SerializeField, Min(0f)] private float _cabinTurnSpeed = 210f;
     [SerializeField, Min(0f)] private float _moveRadius = 2.4f;
+    [SerializeField, Min(0f)] private float _standDistance = 8f;
+    [SerializeField, Min(0f)] private float _anchorRadius = 8f;
     [SerializeField, Min(0f)] private float _moveDelay = 2.6f;
     [SerializeField, Min(0f)] private float _moveReachDistance = 0.12f;
 
@@ -67,12 +71,14 @@ public sealed class ExcavatorBoss : MonoBehaviour
     [SerializeField, Min(0.01f)] private float _sinkDuration = 4.5f;
     [SerializeField, Min(0f)] private float _sinkDistance = 2.5f;
 
-    private Player _player;
+    private Transform _targetTransform;
+    private Health _targetHealth;
     private Vector3 _anchorPoint;
     private Vector3 _movePoint;
     private bool _hasMovePoint;
     private bool _isPhaseTwo;
     private bool _isDead;
+    private bool _isCombatActive;
     private int _moveSide = 1;
     private int _state;
     private float _moveTimer;
@@ -83,6 +89,7 @@ public sealed class ExcavatorBoss : MonoBehaviour
     private float _currentArmAngle;
     private float _currentForearmAngle;
     private float _currentBucketAngle;
+    private int _attackStep;
 
     public event Action Died;
 
@@ -130,18 +137,25 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return;
         }
 
-        ResolvePlayer();
-        TickTimers();
-        UpdatePhase();
-
-        if (_player == null)
+        if (_isCombatActive == false)
         {
             UpdateIdlePose();
 
             return;
         }
 
-        Vector3 targetPoint = _player.transform.position;
+        ResolveTarget();
+        TickTimers();
+        UpdatePhase();
+
+        if (_targetTransform == null)
+        {
+            UpdateIdlePose();
+
+            return;
+        }
+
+        Vector3 targetPoint = _targetTransform.position;
 
         if (GetFlatDistanceSqr(transform.position, targetPoint) > _viewDistance * _viewDistance)
         {
@@ -150,7 +164,6 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return;
         }
 
-        RotateBody(targetPoint);
         RotateCabin(targetPoint);
 
         if (_state == StateSlamWindup)
@@ -181,17 +194,8 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return;
         }
 
-        if (CanStartSlam(targetPoint))
+        if (TryStartAttack(targetPoint))
         {
-            BeginSlam();
-
-            return;
-        }
-
-        if (CanStartThrow(targetPoint))
-        {
-            BeginThrow();
-
             return;
         }
 
@@ -228,6 +232,11 @@ public sealed class ExcavatorBoss : MonoBehaviour
         {
             throw new InvalidOperationException(nameof(_viewDistance));
         }
+
+        if (string.IsNullOrWhiteSpace(_targetTag))
+        {
+            throw new InvalidOperationException(nameof(_targetTag));
+        }
     }
 
     private void ValidateMove()
@@ -250,6 +259,16 @@ public sealed class ExcavatorBoss : MonoBehaviour
         if (_moveRadius < 0f)
         {
             throw new InvalidOperationException(nameof(_moveRadius));
+        }
+
+        if (_standDistance < 0f)
+        {
+            throw new InvalidOperationException(nameof(_standDistance));
+        }
+
+        if (_anchorRadius < 0f)
+        {
+            throw new InvalidOperationException(nameof(_anchorRadius));
         }
 
         if (_moveDelay < 0f)
@@ -432,18 +451,81 @@ public sealed class ExcavatorBoss : MonoBehaviour
         _currentArmAngle = 14f;
         _currentForearmAngle = -18f;
         _currentBucketAngle = 26f;
+        _attackStep = 0;
+        _targetTransform = null;
+        _targetHealth = null;
+        _isCombatActive = _startActive;
         _visual.SetCabinYaw(_currentCabinYaw);
         _visual.SetArmAngles(_currentArmAngle, _currentForearmAngle, _currentBucketAngle);
     }
 
-    private void ResolvePlayer()
+    public void SetCombatActive(bool isCombatActive)
     {
-        if (_player != null)
+        if (_isDead)
         {
             return;
         }
 
-        _player = FindFirstObjectByType<Player>();
+        _isCombatActive = isCombatActive;
+
+        if (_isCombatActive)
+        {
+            _targetTransform = null;
+            _targetHealth = null;
+            _hasMovePoint = false;
+            _moveTimer = 0f;
+            _state = StateIdle;
+            _stateTimer = 0f;
+
+            return;
+        }
+
+        StopCombat();
+    }
+
+    private void ResolveTarget()
+    {
+        if (_targetTransform != null)
+        {
+            if (_targetTransform.gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            _targetTransform = null;
+            _targetHealth = null;
+        }
+
+        GameObject targetObject = GameObject.FindGameObjectWithTag(_targetTag);
+
+        if (targetObject == null)
+        {
+            return;
+        }
+
+        _targetTransform = targetObject.transform;
+        _targetHealth = targetObject.GetComponent<Health>();
+
+        if (_targetHealth != null)
+        {
+            return;
+        }
+
+        _targetHealth = targetObject.GetComponentInParent<Health>();
+
+        if (_targetHealth != null)
+        {
+            _targetTransform = _targetHealth.transform;
+
+            return;
+        }
+
+        _targetHealth = targetObject.GetComponentInChildren<Health>();
+
+        if (_targetHealth != null)
+        {
+            _targetTransform = _targetHealth.transform;
+        }
     }
 
     private void TickTimers()
@@ -491,6 +573,62 @@ public sealed class ExcavatorBoss : MonoBehaviour
         _visual.SetCabinYaw(_currentCabinYaw);
     }
 
+    private void StopCombat()
+    {
+        _targetTransform = null;
+        _targetHealth = null;
+        _state = StateIdle;
+        _moveTimer = 0f;
+        _slamTimer = 0f;
+        _throwTimer = 0f;
+        _stateTimer = 0f;
+        _hasMovePoint = false;
+        _currentCabinYaw = 0f;
+        _currentArmAngle = 14f;
+        _currentForearmAngle = -18f;
+        _currentBucketAngle = 26f;
+        _attackStep = 0;
+        _visual.SetCabinYaw(_currentCabinYaw);
+        _visual.SetArmAngles(_currentArmAngle, _currentForearmAngle, _currentBucketAngle);
+    }
+
+    private bool TryStartAttack(Vector3 targetPoint)
+    {
+        bool canStartSlam = CanStartSlam(targetPoint);
+        bool canStartThrow = CanStartThrow(targetPoint);
+
+        if (canStartSlam == false && canStartThrow == false)
+        {
+            return false;
+        }
+
+        if (canStartSlam && canStartThrow)
+        {
+            if (_attackStep % 2 == 0)
+            {
+                BeginSlam();
+            }
+
+            else
+            {
+                BeginThrow();
+            }
+
+            return true;
+        }
+
+        if (canStartSlam)
+        {
+            BeginSlam();
+
+            return true;
+        }
+
+        BeginThrow();
+
+        return true;
+    }
+
     private bool CanStartSlam(Vector3 targetPoint)
     {
         if (_slamTimer > 0f)
@@ -498,7 +636,9 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return false;
         }
 
-        if (GetFlatDistanceSqr(transform.position, targetPoint) > _slamStartDistance * _slamStartDistance)
+        float targetDistanceSqr = GetFlatDistanceSqr(transform.position, targetPoint);
+
+        if (targetDistanceSqr > _slamStartDistance * _slamStartDistance)
         {
             return false;
         }
@@ -513,7 +653,9 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return false;
         }
 
-        if (GetFlatDistanceSqr(transform.position, targetPoint) > _throwStartDistance * _throwStartDistance)
+        float targetDistanceSqr = GetFlatDistanceSqr(transform.position, targetPoint);
+
+        if (targetDistanceSqr > _throwStartDistance * _throwStartDistance)
         {
             return false;
         }
@@ -527,6 +669,7 @@ public sealed class ExcavatorBoss : MonoBehaviour
         _stateTimer = _slamWindup;
         _slamTimer = GetScaledCooldown(_slamCooldown);
         _hasMovePoint = false;
+        _attackStep += 1;
     }
 
     private void UpdateSlamWindup()
@@ -557,13 +700,15 @@ public sealed class ExcavatorBoss : MonoBehaviour
 
     private void PerformSlam()
     {
-        Vector3 attackCenter = _visual.AttackPoint.position + (transform.forward * (_slamRange * 0.35f));
+        Vector3 slamDirection = GetSlamDirection();
+        Vector3 attackCenter = _visual.AttackPoint.position + (slamDirection * (_slamRange * 0.35f));
         Vector3 halfExtents = new Vector3(_slamWidth * 0.5f, 1.2f, _slamRange * 0.5f);
+        Quaternion attackRotation = Quaternion.LookRotation(slamDirection, Vector3.up);
         int hitCount = Physics.OverlapBoxNonAlloc(
             attackCenter,
             halfExtents,
             _hitBuffer,
-            transform.rotation,
+            attackRotation,
             ~0,
             QueryTriggerInteraction.Ignore
         );
@@ -589,11 +734,11 @@ public sealed class ExcavatorBoss : MonoBehaviour
         _stateTimer = _throwWindup;
         _throwTimer = GetScaledCooldown(_throwCooldown);
         _hasMovePoint = false;
+        _attackStep += 1;
     }
 
     private void UpdateThrowWindup(Vector3 targetPoint)
     {
-        RotateBody(targetPoint);
         RotateCabin(targetPoint);
         MoveArmTo(34f, -8f, 22f, 170f);
 
@@ -675,13 +820,19 @@ public sealed class ExcavatorBoss : MonoBehaviour
             _throwDamage,
             _throwLifeTime,
             _throwHitRadius,
-            _throwSpinSpeed
+            _throwSpinSpeed,
+            _targetTag
         );
         projectile.SetVisual(Vector3.one * _throwScale, _throwColor);
     }
 
     private void UpdateMove(Vector3 targetPoint)
     {
+        if (_moveTimer > 0f && _hasMovePoint == false)
+        {
+            return;
+        }
+
         if (_hasMovePoint == false)
         {
             PickMovePoint(targetPoint);
@@ -708,6 +859,13 @@ public sealed class ExcavatorBoss : MonoBehaviour
         }
 
         Vector3 currentPoint = transform.position;
+        Vector3 moveDirection = GetFlatDirection(_movePoint - currentPoint);
+
+        if (moveDirection.sqrMagnitude > DirectionThreshold)
+        {
+            RotateBody(moveDirection);
+        }
+
         Vector3 nextPoint = Vector3.MoveTowards(currentPoint, _movePoint, moveSpeed * Time.deltaTime);
         transform.position = nextPoint;
 
@@ -719,26 +877,50 @@ public sealed class ExcavatorBoss : MonoBehaviour
 
     private void PickMovePoint(Vector3 targetPoint)
     {
-        Vector3 directionFromAnchor = GetFlatDirection(targetPoint - _anchorPoint);
+        Vector3 directionToTarget = GetFlatDirection(targetPoint - transform.position);
 
-        if (directionFromAnchor.sqrMagnitude <= DirectionThreshold)
+        if (directionToTarget.sqrMagnitude <= DirectionThreshold)
         {
-            directionFromAnchor = GetFlatDirection(transform.forward);
+            directionToTarget = GetFlatDirection(transform.forward);
         }
 
         Quaternion sideRotation = Quaternion.Euler(0f, 90f * _moveSide, 0f);
-        Vector3 sideDirection = sideRotation * directionFromAnchor;
-        Vector3 offset = (sideDirection * _moveRadius) - (directionFromAnchor * (_moveRadius * 0.35f));
+        Vector3 sideDirection = sideRotation * directionToTarget;
+        Vector3 standPoint = targetPoint - (directionToTarget * _standDistance);
+        Vector3 movePoint = standPoint + (sideDirection * _moveRadius);
+        float targetDistanceSqr = GetFlatDistanceSqr(transform.position, targetPoint);
+
+        if (targetDistanceSqr < _slamStartDistance * _slamStartDistance)
+        {
+            movePoint = targetPoint - (directionToTarget * (_standDistance + _moveRadius));
+        }
+
+        movePoint = ClampMovePoint(movePoint);
         _moveSide *= -1;
-        _movePoint = _anchorPoint + offset;
-        _movePoint.y = transform.position.y;
+        _movePoint = movePoint;
         _moveTimer = _moveDelay;
         _hasMovePoint = true;
     }
 
-    private void RotateBody(Vector3 targetPoint)
+    private Vector3 ClampMovePoint(Vector3 movePoint)
     {
-        Vector3 lookDirection = GetFlatDirection(targetPoint - transform.position);
+        Vector3 flatDelta = movePoint - _anchorPoint;
+        flatDelta.y = 0f;
+
+        if (flatDelta.sqrMagnitude > _anchorRadius * _anchorRadius)
+        {
+            flatDelta.Normalize();
+            movePoint = _anchorPoint + (flatDelta * _anchorRadius);
+        }
+
+        movePoint.y = transform.position.y;
+
+        return movePoint;
+    }
+
+    private void RotateBody(Vector3 lookDirection)
+    {
+        lookDirection = GetFlatDirection(lookDirection);
 
         if (lookDirection.sqrMagnitude <= DirectionThreshold)
         {
@@ -785,13 +967,6 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return false;
         }
 
-        Player player = hitCollider.GetComponentInParent<Player>();
-
-        if (player == null)
-        {
-            return false;
-        }
-
         Health targetHealth = hitCollider.GetComponentInParent<Health>();
 
         if (targetHealth == null)
@@ -799,9 +974,58 @@ public sealed class ExcavatorBoss : MonoBehaviour
             return false;
         }
 
+        if (IsTargetHealth(targetHealth) == false)
+        {
+            return false;
+        }
+
         targetHealth.Decrease(damage);
 
         return true;
+    }
+
+    private bool IsTargetHealth(Health targetHealth)
+    {
+        if (targetHealth == null)
+        {
+            return false;
+        }
+
+        if (_targetHealth == targetHealth)
+        {
+            return true;
+        }
+
+        Transform healthTransform = targetHealth.transform;
+
+        if (healthTransform.CompareTag(_targetTag))
+        {
+            return true;
+        }
+
+        if (healthTransform.root.CompareTag(_targetTag))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Vector3 GetSlamDirection()
+    {
+        Vector3 slamDirection = GetFlatDirection(_visual.AttackPoint.position - transform.position);
+
+        if (slamDirection.sqrMagnitude <= DirectionThreshold)
+        {
+            slamDirection = GetFlatDirection(_visual.AttackPoint.forward);
+        }
+
+        if (slamDirection.sqrMagnitude <= DirectionThreshold)
+        {
+            slamDirection = GetFlatDirection(transform.forward);
+        }
+
+        return slamDirection;
     }
 
     private float GetScaledCooldown(float baseCooldown)
