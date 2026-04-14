@@ -13,6 +13,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private readonly List<Enemy> _enemies = new List<Enemy>(16);
     private readonly List<Turret> _turrets = new List<Turret>(8);
+    private readonly List<ExcavatorBoss> _bosses = new List<ExcavatorBoss>(2);
     private readonly List<RoomDoorGate> _doorGates = new List<RoomDoorGate>(4);
     private readonly List<RoomEnterTrigger> _roomEnterTriggers = new List<RoomEnterTrigger>(4);
 
@@ -201,6 +202,7 @@ public sealed class RoomCombatLock : MonoBehaviour
         UnsubscribeThreats();
         _enemies.Clear();
         _turrets.Clear();
+        _bosses.Clear();
 
         Enemy[] roomEnemies = GetComponentsInChildren<Enemy>(true);
 
@@ -231,6 +233,21 @@ public sealed class RoomCombatLock : MonoBehaviour
             _turrets.Add(turret);
             turret.Died += OnThreatDied;
         }
+
+        ExcavatorBoss[] roomBosses = GetComponentsInChildren<ExcavatorBoss>(true);
+
+        for (int bossIndex = 0; bossIndex < roomBosses.Length; bossIndex++)
+        {
+            ExcavatorBoss excavatorBoss = roomBosses[bossIndex];
+
+            if (excavatorBoss == null)
+            {
+                continue;
+            }
+
+            _bosses.Add(excavatorBoss);
+            excavatorBoss.Died += OnThreatDied;
+        }
     }
 
     private void UnsubscribeThreats()
@@ -257,6 +274,18 @@ public sealed class RoomCombatLock : MonoBehaviour
             }
 
             turret.Died -= OnThreatDied;
+        }
+
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            ExcavatorBoss excavatorBoss = _bosses[bossIndex];
+
+            if (excavatorBoss == null)
+            {
+                continue;
+            }
+
+            excavatorBoss.Died -= OnThreatDied;
         }
     }
 
@@ -287,6 +316,21 @@ public sealed class RoomCombatLock : MonoBehaviour
             }
 
             if (turret.IsDead == false)
+            {
+                return true;
+            }
+        }
+
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            ExcavatorBoss excavatorBoss = _bosses[bossIndex];
+
+            if (excavatorBoss == null)
+            {
+                continue;
+            }
+
+            if (excavatorBoss.IsDead == false)
             {
                 return true;
             }

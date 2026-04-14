@@ -2192,6 +2192,14 @@ public sealed class RoomContentSpawner : MonoBehaviour
         System.Random random
     )
     {
+        if (roomTypeProfile.RoomType == RoomType.Boss)
+        {
+            if (TrySpawnBossEnemy(roomTypeProfile, roomSizeInBlocks, floorOccupancy, freeCells, random))
+            {
+                return;
+            }
+        }
+
         IReadOnlyList<EnemySpawnConfig> enemyPrefabs = roomTypeProfile.EnemyPrefabs;
 
         if (enemyPrefabs.Count == 0)
@@ -2403,6 +2411,81 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
             spawnTryCount += 1;
         }
+    }
+
+    private bool TrySpawnBossEnemy(
+        RoomTypeProfile roomTypeProfile,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        List<Vector2Int> freeCells,
+        System.Random random
+    )
+    {
+        IReadOnlyList<EnemySpawnConfig> enemyPrefabs = roomTypeProfile.EnemyPrefabs;
+
+        if (enemyPrefabs.Count == 0)
+        {
+            return false;
+        }
+
+        _spawnedEnemiesBuffer.Clear();
+        EnemySpawnConfig enemySpawn = EnemySpawnPicker.PickSpawn(enemyPrefabs, _spawnedEnemiesBuffer, random);
+        Vector2Int roomCenterCell = GetRoomCenterCell(roomSizeInBlocks);
+        Vector2Int bestCell = roomCenterCell;
+        float bestScore = -1f;
+        bool hasCandidate = false;
+        int wallAvoidanceInCells = Mathf.Max(1, _enemyWallAvoidanceInCells - 1);
+
+        for (int cellIndex = 0; cellIndex < freeCells.Count; cellIndex++)
+        {
+            Vector2Int cell = freeCells[cellIndex];
+
+            if (floorOccupancy.IsFree(cell) == false)
+            {
+                continue;
+            }
+
+            if (IsTooCloseToRoomWalls(cell, roomSizeInBlocks, wallAvoidanceInCells))
+            {
+                continue;
+            }
+
+            float arenaScore;
+
+            if (TryGetEnemyArenaScore(cell, roomSizeInBlocks, floorOccupancy, true, out arenaScore) == false)
+            {
+                continue;
+            }
+
+            float centerScore = ComputeRoomCenterScore(cell, roomCenterCell, roomSizeInBlocks);
+            float score = (centerScore * 0.72f) + (arenaScore * 0.28f);
+
+            if (hasCandidate == false || score > bestScore)
+            {
+                hasCandidate = true;
+                bestScore = score;
+                bestCell = cell;
+            }
+        }
+
+        if (hasCandidate == false)
+        {
+            if (floorOccupancy.IsFree(roomCenterCell) == false)
+            {
+                return false;
+            }
+        }
+
+        bool isSpawned = TryInstantiateEnemyOnCell(roomTypeProfile, enemySpawn, bestCell);
+
+        if (isSpawned == false)
+        {
+            return false;
+        }
+
+        floorOccupancy.OccupiedFloorCells.Add(bestCell);
+
+        return true;
     }
 
     private int SpawnGuardsNearResource(

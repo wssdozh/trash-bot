@@ -1,0 +1,143 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1000000000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4000000000000000001}
+  - component: {fileID: 6500000000000000001}
+  - component: {fileID: 1140000000000000001}
+  - component: {fileID: 1140000000000000002}
+  - component: {fileID: 1140000000000000003}
+  m_Layer: 9
+  m_Name: Excavator Boss
+  m_TagString: Enemy
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4000000000000000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6500000000000000001
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.7, y: 2.1, z: 5}
+  m_Center: {x: 0, y: 0.92, z: 0}
+--- !u!114 &1140000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  _minValue: 0
+  _maxValue: 320
+  _value: 320
+  _autoRegen: 0
+  _regenPerSecond: 2
+  _regenDelay: 3
+  _regenTick: 0.1
+--- !u!114 &1140000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1e6a1a2d0c4f0a9ae8d6f3bb807001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExcavatorBoss
+  _health: {fileID: 1140000000000000001}
+  _visual: {fileID: 1140000000000000003}
+  _bodyCollider: {fileID: 6500000000000000001}
+  _maxHealth: 320
+  _viewDistance: 18
+  _moveSpeed: 1.6
+  _turnSpeed: 110
+  _cabinTurnSpeed: 210
+  _moveRadius: 2.4
+  _moveDelay: 2.6
+  _moveReachDistance: 0.12
+  _slamDamage: 22
+  _slamStartDistance: 4.5
+  _slamRange: 3.3
+  _slamWidth: 2.6
+  _slamWindup: 0.85
+  _slamRecover: 1
+  _slamCooldown: 3.8
+  _throwDamage: 10
+  _throwCount: 5
+  _throwStartDistance: 12
+  _throwSpeed: 8
+  _throwLifeTime: 2.5
+  _throwHitRadius: 0.28
+  _throwScale: 0.42
+  _throwSpinSpeed: 300
+  _throwSpread: 34
+  _throwWindup: 0.72
+  _throwRecover: 0.55
+  _throwCooldown: 3.2
+  _throwColor: {r: 0.46, g: 0.34, b: 0.24, a: 1}
+  _phaseHealth01: 0.5
+  _phaseMoveScale: 1.2
+  _phaseCooldownScale: 0.8
+  _phaseExtraThrowCount: 2
+  _sinkDelay: 2.4
+  _sinkDuration: 4.5
+  _sinkDistance: 2.5
+--- !u!114 &1140000000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f1e6a1a2d0c4f0a9ae8d6f3bb807002, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ExcavatorBossVisual
+  _bodyColor: {r: 0.58, g: 0.46, b: 0.18, a: 1}
+  _trackColor: {r: 0.15, g: 0.15, b: 0.17, a: 1}
+  _metalColor: {r: 0.36, g: 0.34, b: 0.31, a: 1}
+  _warningColor: {r: 0.86, g: 0.33, b: 0.15, a: 1}

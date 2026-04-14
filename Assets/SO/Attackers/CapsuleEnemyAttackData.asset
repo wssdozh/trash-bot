@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 839527ccbce4fdd4c85e89bb018c7006, type: 3}
   m_Name: CapsuleEnemyAttackData
   m_EditorClassIdentifier: Assembly-CSharp::AttackData
-  _attackRange: 0.8
+  _attackRange: 0.7
   _minDamage: 6
   _maxDamage: 10
   _attackCooldown: 0.8
+  _isMultiHit: 0
   _hitLayers:
     serializedVersion: 2
     m_Bits: 64
