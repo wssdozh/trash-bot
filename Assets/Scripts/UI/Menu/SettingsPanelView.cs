@@ -24,6 +24,10 @@ public sealed class SettingsPanelView : MonoBehaviour
     [SerializeField] private Button _lowQualityButton;
     [SerializeField] private Button _mediumQualityButton;
     [SerializeField] private Button _highQualityButton;
+    [SerializeField] private Button _healthOffButton;
+    [SerializeField] private Button _healthOnButton;
+    [SerializeField] private Button _damageOffButton;
+    [SerializeField] private Button _damageOnButton;
     [SerializeField] private Button _resetButton;
 
     private readonly int[] _qualityLevels = new int[3];
@@ -35,6 +39,10 @@ public sealed class SettingsPanelView : MonoBehaviour
     private Image _lowQualityImage;
     private Image _mediumQualityImage;
     private Image _highQualityImage;
+    private Image _healthOffImage;
+    private Image _healthOnImage;
+    private Image _damageOffImage;
+    private Image _damageOnImage;
     private Image _resetImage;
 
     private TMP_Text _windowText;
@@ -42,6 +50,10 @@ public sealed class SettingsPanelView : MonoBehaviour
     private TMP_Text _lowQualityText;
     private TMP_Text _mediumQualityText;
     private TMP_Text _highQualityText;
+    private TMP_Text _healthOffText;
+    private TMP_Text _healthOnText;
+    private TMP_Text _damageOffText;
+    private TMP_Text _damageOnText;
     private TMP_Text _resetText;
 
     private Color _buttonTextColor;
@@ -56,6 +68,8 @@ public sealed class SettingsPanelView : MonoBehaviour
     public event Action<float> EffectsChanged;
     public event Action<bool> FullScreenChanged;
     public event Action<int> QualityChanged;
+    public event Action<bool> InfiniteHealthChanged;
+    public event Action<bool> InfiniteDamageChanged;
     public event Action ResetClicked;
 
     private void Awake()
@@ -97,6 +111,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
         UpdateFullScreenState(settingsData.IsFullScreen);
         UpdateQualityState(settingsData.QualityLevel);
+        UpdateHealthState(settingsData.IsInfiniteHealth);
+        UpdateDamageState(settingsData.IsInfiniteDamage);
 
         _isSyncing = false;
     }
@@ -115,6 +131,10 @@ public sealed class SettingsPanelView : MonoBehaviour
         ValidateReference(_lowQualityButton, nameof(_lowQualityButton));
         ValidateReference(_mediumQualityButton, nameof(_mediumQualityButton));
         ValidateReference(_highQualityButton, nameof(_highQualityButton));
+        ValidateReference(_healthOffButton, nameof(_healthOffButton));
+        ValidateReference(_healthOnButton, nameof(_healthOnButton));
+        ValidateReference(_damageOffButton, nameof(_damageOffButton));
+        ValidateReference(_damageOnButton, nameof(_damageOnButton));
         ValidateReference(_resetButton, nameof(_resetButton));
     }
 
@@ -131,6 +151,10 @@ public sealed class SettingsPanelView : MonoBehaviour
         _lowQualityImage = GetButtonImage(_lowQualityButton);
         _mediumQualityImage = GetButtonImage(_mediumQualityButton);
         _highQualityImage = GetButtonImage(_highQualityButton);
+        _healthOffImage = GetButtonImage(_healthOffButton);
+        _healthOnImage = GetButtonImage(_healthOnButton);
+        _damageOffImage = GetButtonImage(_damageOffButton);
+        _damageOnImage = GetButtonImage(_damageOnButton);
         _resetImage = GetButtonImage(_resetButton);
 
         _windowText = GetButtonText(_windowButton);
@@ -138,6 +162,10 @@ public sealed class SettingsPanelView : MonoBehaviour
         _lowQualityText = GetButtonText(_lowQualityButton);
         _mediumQualityText = GetButtonText(_mediumQualityButton);
         _highQualityText = GetButtonText(_highQualityButton);
+        _healthOffText = GetButtonText(_healthOffButton);
+        _healthOnText = GetButtonText(_healthOnButton);
+        _damageOffText = GetButtonText(_damageOffButton);
+        _damageOnText = GetButtonText(_damageOnButton);
         _resetText = GetButtonText(_resetButton);
 
         _buttonTextColor = _windowText.color;
@@ -175,6 +203,10 @@ public sealed class SettingsPanelView : MonoBehaviour
         _lowQualityButton.onClick.AddListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.AddListener(OnMediumQualityClicked);
         _highQualityButton.onClick.AddListener(OnHighQualityClicked);
+        _healthOffButton.onClick.AddListener(OnHealthOffClicked);
+        _healthOnButton.onClick.AddListener(OnHealthOnClicked);
+        _damageOffButton.onClick.AddListener(OnDamageOffClicked);
+        _damageOnButton.onClick.AddListener(OnDamageOnClicked);
         _resetButton.onClick.AddListener(OnResetClicked);
     }
 
@@ -189,6 +221,10 @@ public sealed class SettingsPanelView : MonoBehaviour
         _lowQualityButton.onClick.RemoveListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.RemoveListener(OnMediumQualityClicked);
         _highQualityButton.onClick.RemoveListener(OnHighQualityClicked);
+        _healthOffButton.onClick.RemoveListener(OnHealthOffClicked);
+        _healthOnButton.onClick.RemoveListener(OnHealthOnClicked);
+        _damageOffButton.onClick.RemoveListener(OnDamageOffClicked);
+        _damageOnButton.onClick.RemoveListener(OnDamageOnClicked);
         _resetButton.onClick.RemoveListener(OnResetClicked);
     }
 
@@ -211,6 +247,18 @@ public sealed class SettingsPanelView : MonoBehaviour
         UpdateButtonState(_mediumQualityImage, _mediumQualityText, qualityLevel == _qualityLevels[MediumQualityIndex]);
         UpdateButtonState(_highQualityImage, _highQualityText, qualityLevel == _qualityLevels[HighQualityIndex]);
         UpdateButtonState(_resetImage, _resetText, false);
+    }
+
+    private void UpdateHealthState(bool isEnabled)
+    {
+        UpdateButtonState(_healthOffImage, _healthOffText, isEnabled == false);
+        UpdateButtonState(_healthOnImage, _healthOnText, isEnabled);
+    }
+
+    private void UpdateDamageState(bool isEnabled)
+    {
+        UpdateButtonState(_damageOffImage, _damageOffText, isEnabled == false);
+        UpdateButtonState(_damageOnImage, _damageOnText, isEnabled);
     }
 
     private void UpdateButtonState(Image buttonImage, TMP_Text buttonText, bool isActive)
@@ -271,6 +319,30 @@ public sealed class SettingsPanelView : MonoBehaviour
     {
         if (_isSyncing == false)
             QualityChanged?.Invoke(_qualityLevels[HighQualityIndex]);
+    }
+
+    private void OnHealthOffClicked()
+    {
+        if (_isSyncing == false)
+            InfiniteHealthChanged?.Invoke(false);
+    }
+
+    private void OnHealthOnClicked()
+    {
+        if (_isSyncing == false)
+            InfiniteHealthChanged?.Invoke(true);
+    }
+
+    private void OnDamageOffClicked()
+    {
+        if (_isSyncing == false)
+            InfiniteDamageChanged?.Invoke(false);
+    }
+
+    private void OnDamageOnClicked()
+    {
+        if (_isSyncing == false)
+            InfiniteDamageChanged?.Invoke(true);
     }
 
     private void OnResetClicked()

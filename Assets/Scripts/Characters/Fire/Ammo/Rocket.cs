@@ -3,6 +3,8 @@ using UnityEngine;
 
 public sealed class Rocket : Ammo
 {
+    private readonly DeveloperCheatSave _developerCheatSave = new DeveloperCheatSave();
+
     [Header("Настройки")]
     [SerializeField] private float _impulseStrength = 3f;
     [SerializeField] private float _radiusImpulse = 3f;
@@ -91,6 +93,11 @@ public sealed class Rocket : Ammo
         if (finalDamage <= 0f)
         {
             return;
+        }
+
+        if (IsPlayerOwned() && _developerCheatSave.LoadInfiniteDamage())
+        {
+            finalDamage = health.MaxValue;
         }
 
         health.Decrease(finalDamage);

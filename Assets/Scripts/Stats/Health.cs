@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class Health : Stat
 {
+    private readonly DeveloperCheatSave _developerCheatSave = new DeveloperCheatSave();
+
     [SerializeField] private bool _autoRegen = true;
     [SerializeField] private float _regenPerSecond = 2f;
     [SerializeField] private float _regenDelay = 3f;
@@ -11,6 +13,7 @@ public class Health : Stat
     private Coroutine _regenCoroutine;
     private WaitForSecondsRealtime _regenWait;
     private float _sinceLastDamage;
+    private Player _player;
 
     public bool AutoRegen => _autoRegen;
 
@@ -20,6 +23,7 @@ public class Health : Stat
 
     private void Awake()
     {
+        _player = GetComponentInParent<Player>();
         _regenWait = new WaitForSecondsRealtime(GetRegenTick());
         RefreshRegenState();
     }
@@ -37,6 +41,11 @@ public class Health : Stat
 
     public override void Decrease(float amount)
     {
+        if (CanIgnoreDamage())
+        {
+            return;
+        }
+
         base.Decrease(amount);
         _sinceLastDamage = 0f;
         RefreshRegenState();
@@ -149,5 +158,15 @@ public class Health : Stat
         }
 
         StartRegenLoop();
+    }
+
+    private bool CanIgnoreDamage()
+    {
+        if (_player == null)
+        {
+            return false;
+        }
+
+        return _developerCheatSave.LoadInfiniteHealth();
     }
 }

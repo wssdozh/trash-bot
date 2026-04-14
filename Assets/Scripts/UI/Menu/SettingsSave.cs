@@ -8,6 +8,8 @@ internal sealed class SettingsSave
     private const string FullScreenKey = "settings.fullscreen";
     private const string QualityKey = "settings.quality";
 
+    private readonly DeveloperCheatSave _developerCheatSave = new DeveloperCheatSave();
+
     public SettingsData Load(int defaultQualityLevel, bool defaultFullScreen)
     {
         float masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 1.0f);
@@ -15,8 +17,10 @@ internal sealed class SettingsSave
         float effectsVolume = PlayerPrefs.GetFloat(EffectsVolumeKey, 1.0f);
         bool isFullScreen = PlayerPrefs.GetInt(FullScreenKey, defaultFullScreen ? 1 : 0) == 1;
         int qualityLevel = PlayerPrefs.GetInt(QualityKey, defaultQualityLevel);
+        bool isInfiniteHealth = _developerCheatSave.LoadInfiniteHealth();
+        bool isInfiniteDamage = _developerCheatSave.LoadInfiniteDamage();
 
-        return new SettingsData(masterVolume, musicVolume, effectsVolume, isFullScreen, qualityLevel);
+        return new SettingsData(masterVolume, musicVolume, effectsVolume, isFullScreen, qualityLevel, isInfiniteHealth, isInfiniteDamage);
     }
 
     public void Save(SettingsData settingsData)
@@ -26,6 +30,8 @@ internal sealed class SettingsSave
         PlayerPrefs.SetFloat(EffectsVolumeKey, settingsData.EffectsVolume);
         PlayerPrefs.SetInt(FullScreenKey, settingsData.IsFullScreen ? 1 : 0);
         PlayerPrefs.SetInt(QualityKey, settingsData.QualityLevel);
+        _developerCheatSave.SaveInfiniteHealth(settingsData.IsInfiniteHealth);
+        _developerCheatSave.SaveInfiniteDamage(settingsData.IsInfiniteDamage);
         PlayerPrefs.Save();
     }
 }

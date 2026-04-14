@@ -160,6 +160,18 @@ public abstract class Ammo : MonoBehaviour
     {
     }
 
+    protected bool IsPlayerOwned()
+    {
+        if (_ignoredRoot == null)
+        {
+            return false;
+        }
+
+        Player player = _ignoredRoot.GetComponentInParent<Player>();
+
+        return player != null;
+    }
+
     protected void EndLife()
     {
         if (_isLifeEnded)

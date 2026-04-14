@@ -6,6 +6,8 @@ public class Attacker : MonoBehaviour
     private const int TargetBufferSize = 16;
     private const float DirectionThreshold = 0.0001f;
 
+    private readonly DeveloperCheatSave _developerCheatSave = new DeveloperCheatSave();
+
     [SerializeField] private AttackData _attackData;
     [SerializeField] private WeaponHolder _weaponHolder;
     [SerializeField] private float _hitForce = 6f;
@@ -16,8 +18,14 @@ public class Attacker : MonoBehaviour
     private bool _isOnCooldown = false;
     private readonly Collider[] _targetBuffer = new Collider[TargetBufferSize];
     private readonly int[] _processedIdBuffer = new int[TargetBufferSize];
+    private Player _player;
 
     public AttackData AttackData => _attackData;
+
+    private void Awake()
+    {
+        _player = GetComponentInParent<Player>();
+    }
 
     public bool CanStartAttack()
     {
@@ -308,6 +316,11 @@ public class Attacker : MonoBehaviour
 
         if (targetHealth != null)
         {
+            if (_player != null && _developerCheatSave.LoadInfiniteDamage())
+            {
+                damage = targetHealth.MaxValue;
+            }
+
             targetHealth.Decrease(damage);
         }
     }

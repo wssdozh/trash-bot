@@ -46,6 +46,8 @@ internal sealed class SettingsPresenter
         _view.EffectsChanged += OnEffectsChanged;
         _view.FullScreenChanged += OnFullScreenChanged;
         _view.QualityChanged += OnQualityChanged;
+        _view.InfiniteHealthChanged += OnInfiniteHealthChanged;
+        _view.InfiniteDamageChanged += OnInfiniteDamageChanged;
         _view.ResetClicked += OnResetClicked;
 
         _view.SetQualityLevels(_lowQualityLevel, _mediumQualityLevel, _highQualityLevel);
@@ -64,6 +66,8 @@ internal sealed class SettingsPresenter
         _view.EffectsChanged -= OnEffectsChanged;
         _view.FullScreenChanged -= OnFullScreenChanged;
         _view.QualityChanged -= OnQualityChanged;
+        _view.InfiniteHealthChanged -= OnInfiniteHealthChanged;
+        _view.InfiniteDamageChanged -= OnInfiniteDamageChanged;
         _view.ResetClicked -= OnResetClicked;
     }
 
@@ -104,6 +108,20 @@ internal sealed class SettingsPresenter
         _settingsData.QualityLevel = NormalizeQualityLevel(qualityLevel);
 
         ApplyQuality(_settingsData.QualityLevel);
+        SaveAndRefresh();
+    }
+
+    private void OnInfiniteHealthChanged(bool isEnabled)
+    {
+        _settingsData.IsInfiniteHealth = isEnabled;
+
+        SaveAndRefresh();
+    }
+
+    private void OnInfiniteDamageChanged(bool isEnabled)
+    {
+        _settingsData.IsInfiniteDamage = isEnabled;
+
         SaveAndRefresh();
     }
 
@@ -164,7 +182,7 @@ internal sealed class SettingsPresenter
 
     private SettingsData CreateDefaultData()
     {
-        return new SettingsData(1.0f, 1.0f, 1.0f, _defaultFullScreen, _highQualityLevel);
+        return new SettingsData(1.0f, 1.0f, 1.0f, _defaultFullScreen, _highQualityLevel, false, false);
     }
 
     private int NormalizeQualityLevel(int qualityLevel)

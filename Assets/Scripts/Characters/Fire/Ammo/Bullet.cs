@@ -2,7 +2,9 @@ using UnityEngine;
 
 public sealed class Bullet : Ammo
 {
-    [Header("Настройки")]
+    private readonly DeveloperCheatSave _developerCheatSave = new DeveloperCheatSave();
+
+    [Header("РќР°СЃС‚СЂРѕР№РєРё")]
     [SerializeField] private float _impulseStrength = 3f;
 
     protected override void OnHitTarget(Collider other)
@@ -11,7 +13,14 @@ public sealed class Bullet : Ammo
 
         if (health != null)
         {
-            health.Decrease(Damage);
+            float damage = Damage;
+
+            if (IsPlayerOwned() && _developerCheatSave.LoadInfiniteDamage())
+            {
+                damage = health.MaxValue;
+            }
+
+            health.Decrease(damage);
         }
 
         Rigidbody rigidbody = other.attachedRigidbody;
