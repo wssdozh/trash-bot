@@ -36,6 +36,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
         SubscribeEnterTriggers();
         RefreshThreats();
+        SetBossesActive(_isLocked);
         EvaluateThreatState(false);
     }
 
@@ -63,6 +64,7 @@ public sealed class RoomCombatLock : MonoBehaviour
         RefreshThreats();
         _isLocked = false;
         _isCleared = HasAliveThreats() == false;
+        SetBossesActive(false);
         SetGatesClosed(false, true);
         EvaluateThreatState(false);
     }
@@ -70,6 +72,7 @@ public sealed class RoomCombatLock : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeEnterTriggers();
+        SetBossesActive(false);
         UnsubscribeThreats();
     }
 
@@ -289,6 +292,21 @@ public sealed class RoomCombatLock : MonoBehaviour
         }
     }
 
+    private void SetBossesActive(bool isActive)
+    {
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            ExcavatorBoss excavatorBoss = _bosses[bossIndex];
+
+            if (excavatorBoss == null)
+            {
+                continue;
+            }
+
+            excavatorBoss.SetCombatActive(isActive);
+        }
+    }
+
     private bool HasAliveThreats()
     {
         for (int enemyIndex = 0; enemyIndex < _enemies.Count; enemyIndex++)
@@ -465,6 +483,7 @@ public sealed class RoomCombatLock : MonoBehaviour
             return;
         }
 
+        SetBossesActive(true);
         LockRoom();
     }
 

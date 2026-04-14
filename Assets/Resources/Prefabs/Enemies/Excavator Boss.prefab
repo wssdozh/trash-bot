@@ -91,37 +91,40 @@ MonoBehaviour:
   _visual: {fileID: 1140000000000000003}
   _bodyCollider: {fileID: 6500000000000000001}
   _maxHealth: 320
-  _viewDistance: 18
-  _moveSpeed: 1.6
-  _turnSpeed: 110
-  _cabinTurnSpeed: 210
-  _moveRadius: 2.4
-  _moveDelay: 2.6
+  _viewDistance: 60
+  _targetTag: Player
+  _moveSpeed: 3.8
+  _turnSpeed: 180
+  _cabinTurnSpeed: 320
+  _moveRadius: 4.5
+  _standDistance: 10
+  _anchorRadius: 9
+  _moveDelay: 0.65
   _moveReachDistance: 0.12
   _slamDamage: 22
-  _slamStartDistance: 4.5
+  _slamStartDistance: 6.5
   _slamRange: 3.3
   _slamWidth: 2.6
-  _slamWindup: 0.85
-  _slamRecover: 1
-  _slamCooldown: 3.8
+  _slamWindup: 0.65
+  _slamRecover: 0.85
+  _slamCooldown: 2.4
   _throwDamage: 10
   _throwCount: 5
-  _throwStartDistance: 12
-  _throwSpeed: 8
+  _throwStartDistance: 24
+  _throwSpeed: 14
   _throwLifeTime: 2.5
   _throwHitRadius: 0.28
-  _throwScale: 0.42
-  _throwSpinSpeed: 300
-  _throwSpread: 34
-  _throwWindup: 0.72
-  _throwRecover: 0.55
-  _throwCooldown: 3.2
+  _throwScale: 0.7
+  _throwSpinSpeed: 420
+  _throwSpread: 24
+  _throwWindup: 0.45
+  _throwRecover: 0.3
+  _throwCooldown: 1.6
   _throwColor: {r: 0.46, g: 0.34, b: 0.24, a: 1}
   _phaseHealth01: 0.5
-  _phaseMoveScale: 1.2
-  _phaseCooldownScale: 0.8
-  _phaseExtraThrowCount: 2
+  _phaseMoveScale: 1.35
+  _phaseCooldownScale: 0.7
+  _phaseExtraThrowCount: 3
   _sinkDelay: 2.4
   _sinkDuration: 4.5
   _sinkDistance: 2.5

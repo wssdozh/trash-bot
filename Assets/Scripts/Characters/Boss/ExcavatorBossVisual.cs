@@ -8,6 +8,7 @@ using UnityEditor;
 [DisallowMultipleComponent]
 public sealed class ExcavatorBossVisual : MonoBehaviour
 {
+    private const float ModelOffsetY = -0.22f;
     private const string ModelName = "Model";
     private const string BodyName = "Body";
     private const string LeftTrackName = "Left Track";
@@ -49,6 +50,11 @@ public sealed class ExcavatorBossVisual : MonoBehaviour
     {
         get
         {
+            if (CanBuildVisual() == false)
+            {
+                return _attackPoint;
+            }
+
             EnsureVisual();
 
             return _attackPoint;
@@ -57,12 +63,22 @@ public sealed class ExcavatorBossVisual : MonoBehaviour
 
     private void Reset()
     {
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         EnsureVisual();
         ApplyDefaultPose();
     }
 
     private void Awake()
     {
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         EnsureVisual();
         ApplyDefaultPose();
     }
@@ -74,12 +90,22 @@ public sealed class ExcavatorBossVisual : MonoBehaviour
 
     public void SetCabinYaw(float angle)
     {
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         EnsureVisual();
         _cabinPivot.localRotation = Quaternion.Euler(0f, angle, 0f);
     }
 
     public void SetArmAngles(float armAngle, float forearmAngle, float bucketAngle)
     {
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         EnsureVisual();
         _armPivot.localRotation = Quaternion.Euler(armAngle, 0f, 0f);
         _forearmPivot.localRotation = Quaternion.Euler(forearmAngle, 0f, 0f);
@@ -94,6 +120,11 @@ public sealed class ExcavatorBossVisual : MonoBehaviour
 
     private void QueueRefresh()
     {
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         if (Application.isPlaying)
         {
             EnsureVisual();
@@ -124,14 +155,44 @@ public sealed class ExcavatorBossVisual : MonoBehaviour
             return;
         }
 
+        if (CanBuildVisual() == false)
+        {
+            return;
+        }
+
         EnsureVisual();
         ApplyDefaultPose();
     }
 #endif
 
+    private bool CanBuildVisual()
+    {
+        if (Application.isPlaying)
+        {
+            return true;
+        }
+
+        if (gameObject.scene.IsValid() == false)
+        {
+            return false;
+        }
+
+#if UNITY_EDITOR
+        if (PrefabUtility.IsPartOfPrefabAsset(gameObject))
+        {
+            return false;
+        }
+#endif
+
+        return true;
+    }
+
     private void EnsureVisual()
     {
         _modelRoot = GetOrCreateEmpty(transform, ModelName);
+        _modelRoot.localPosition = new Vector3(0f, ModelOffsetY, 0f);
+        _modelRoot.localRotation = Quaternion.identity;
+        _modelRoot.localScale = Vector3.one;
         Transform body = GetOrCreatePrimitive(_modelRoot, BodyName, PrimitiveType.Cube);
         Transform leftTrack = GetOrCreatePrimitive(_modelRoot, LeftTrackName, PrimitiveType.Cube);
         Transform rightTrack = GetOrCreatePrimitive(_modelRoot, RightTrackName, PrimitiveType.Cube);

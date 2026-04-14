@@ -113,36 +113,98 @@ public class CursorManager : MonoBehaviour
 
     private bool TryGetHit(Ray ray, out RaycastHit hitInfo)
     {
-        int hitCount = Physics.RaycastNonAlloc(ray, _hitBuffer, HitDistance, _interactableMask, QueryTriggerInteraction.Ignore);
+        int hitCount = Physics.RaycastNonAlloc(ray, _hitBuffer, HitDistance, _interactableMask, QueryTriggerInteraction.Collide);
+        RaycastHit nearestAimHit = default;
+        RaycastHit nearestHit = default;
+        Vector3 nearestAimPoint = Vector3.zero;
+        float nearestAimDistance = float.MaxValue;
         float nearestDistance = float.MaxValue;
-        int nearestHitIndex = -1;
+        bool hasAimHit = false;
+        bool hasHit = false;
 
         for (int hitIndex = 0; hitIndex < hitCount; hitIndex++)
         {
             RaycastHit currentHit = _hitBuffer[hitIndex];
+            Collider currentCollider = currentHit.collider;
 
-            if (IsIgnoredCollider(currentHit.collider))
+            if (IsIgnoredCollider(currentCollider))
             {
+                continue;
+            }
+
+            bool isAimHit = IsAimHit(currentCollider);
+
+            if (currentCollider.isTrigger)
+            {
+                if (isAimHit == false)
+                {
+                    continue;
+                }
+            }
+
+            if (isAimHit)
+            {
+                if (currentHit.distance < nearestAimDistance)
+                {
+                    nearestAimDistance = currentHit.distance;
+                    nearestAimHit = currentHit;
+                    nearestAimPoint = GetAimPoint(currentCollider, currentHit);
+                    hasAimHit = true;
+                }
+
                 continue;
             }
 
             if (currentHit.distance < nearestDistance)
             {
                 nearestDistance = currentHit.distance;
-                nearestHitIndex = hitIndex;
+                nearestHit = currentHit;
+                hasHit = true;
             }
         }
 
-        if (nearestHitIndex < 0)
+        if (hasAimHit)
+        {
+            hitInfo = nearestAimHit;
+            hitInfo.point = nearestAimPoint;
+
+            return true;
+        }
+
+        if (hasHit == false)
         {
             hitInfo = default;
 
             return false;
         }
 
-        hitInfo = _hitBuffer[nearestHitIndex];
+        hitInfo = nearestHit;
 
         return true;
+    }
+
+    private Vector3 GetAimPoint(Collider collider, RaycastHit hitInfo)
+    {
+        EnemyAimCollider enemyAimCollider = collider.GetComponent<EnemyAimCollider>();
+
+        if (enemyAimCollider != null)
+        {
+            return enemyAimCollider.AimPoint;
+        }
+
+        return hitInfo.point;
+    }
+
+    private bool IsAimHit(Collider collider)
+    {
+        EnemyAimCollider enemyAimCollider = collider.GetComponent<EnemyAimCollider>();
+
+        if (enemyAimCollider != null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool IsIgnoredCollider(Collider collider)
