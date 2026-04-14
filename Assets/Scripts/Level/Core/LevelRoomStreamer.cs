@@ -6,25 +6,28 @@ using UnityEngine;
 public sealed class LevelRoomStreamer : MonoBehaviour
 {
     [SerializeField] private Transform _player;
-    [SerializeField, Min(0f)] private float _enableDistance = 35f;
-    [SerializeField, Min(0f)] private float _disableDistance = 45f;
+    [SerializeField, Min(0)] private int _enableDepth = 1;
+    [SerializeField, Min(0)] private int _disableDepth = 1;
     [SerializeField, Min(0f)] private float _startDelay = 0.5f;
     [SerializeField, Min(0.02f)] private float _updateInterval = 0.2f;
 
     private readonly List<RoomRuntimeState> _rooms = new List<RoomRuntimeState>(64);
+    private readonly List<RoomLink> _links = new List<RoomLink>(128);
+    private readonly Queue<int> _roomQueue = new Queue<int>(64);
 
     private LevelRuntimeNavMesh _levelRuntimeNavMesh;
     private Transform _playerTrack;
     private Coroutine _streamCoroutine;
     private WaitForSecondsRealtime _updateDelay;
+    private int[] _roomDepths = new int[0];
     private float _startTime;
     private bool _isStarted;
 
-    public void Setup(Transform player, float enableDistance, float disableDistance, float startDelay, IReadOnlyList<RoomRuntimeState> rooms)
+    internal void Setup(Transform player, int enableDepth, int disableDepth, float startDelay, IReadOnlyList<RoomRuntimeState> rooms, IReadOnlyList<LevelRoomStreamLink> roomStreamLinks)
     {
         _player = player;
-        _enableDistance = Mathf.Max(0f, enableDistance);
-        _disableDistance = Mathf.Max(_enableDistance, disableDistance);
+        _enableDepth = Mathf.Max(0, enableDepth);
+        _disableDepth = Mathf.Max(_enableDepth, disableDepth);
         _startDelay = Mathf.Max(0f, startDelay);
         _startTime = Time.unscaledTime;
         _isStarted = _startDelay <= 0f;
@@ -38,6 +41,10 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         }
 
         _rooms.Clear();
+        _links.Clear();
+        _roomQueue.Clear();
+
+        Dictionary<RoomRuntimeState, int> roomIndices = new Dictionary<RoomRuntimeState, int>(rooms.Count);
 
         for (int index = 0; index < rooms.Count; index++)
         {
@@ -48,10 +55,18 @@ public sealed class LevelRoomStreamer : MonoBehaviour
                 continue;
             }
 
+            if (roomIndices.ContainsKey(roomRuntimeState))
+            {
+                continue;
+            }
+
             roomRuntimeState.SetRoomActive(true);
+            roomIndices.Add(roomRuntimeState, _rooms.Count);
             _rooms.Add(roomRuntimeState);
         }
 
+        CacheLinks(roomStreamLinks, roomIndices);
+        EnsureBuffers();
         enabled = _rooms.Count > 0;
 
         if (enabled)
@@ -75,6 +90,8 @@ public sealed class LevelRoomStreamer : MonoBehaviour
         }
 
         _rooms.Clear();
+        _links.Clear();
+        _roomQueue.Clear();
         _isStarted = false;
         _playerTrack = null;
         StopStreamLoop();
@@ -201,27 +218,32 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
     private void UpdateRooms(Vector3 playerPoint)
     {
-        float enableDistanceSqr = _enableDistance * _enableDistance;
-        float disableDistanceSqr = _disableDistance * _disableDistance;
+        int playerRoomIndex = FindPlayerRoomIndex(playerPoint);
+
+        if (playerRoomIndex < 0)
+        {
+            return;
+        }
+
+        UpdateRoomDepths(playerRoomIndex);
         bool hasRoomStateChanged = false;
 
-        for (int index = _rooms.Count - 1; index >= 0; index--)
+        for (int index = 0; index < _rooms.Count; index++)
         {
             RoomRuntimeState roomRuntimeState = _rooms[index];
 
             if (roomRuntimeState == null)
             {
-                _rooms.RemoveAt(index);
-
                 continue;
             }
 
-            float distanceSqr = roomRuntimeState.GetDistanceSqr(playerPoint);
+            int roomDepth = _roomDepths[index];
+            bool isReachable = roomDepth >= 0;
             bool isRoomActive = roomRuntimeState.gameObject.activeSelf;
 
             if (isRoomActive)
             {
-                if (distanceSqr > disableDistanceSqr)
+                if (isReachable == false || roomDepth > _disableDepth)
                 {
                     roomRuntimeState.SetRoomActive(false);
                     hasRoomStateChanged = true;
@@ -230,7 +252,7 @@ public sealed class LevelRoomStreamer : MonoBehaviour
                 continue;
             }
 
-            if (distanceSqr <= enableDistanceSqr)
+            if (isReachable && roomDepth <= _enableDepth)
             {
                 roomRuntimeState.SetRoomActive(true);
                 hasRoomStateChanged = true;
@@ -282,5 +304,193 @@ public sealed class LevelRoomStreamer : MonoBehaviour
     private float GetUpdateInterval()
     {
         return Mathf.Max(0.02f, _updateInterval);
+    }
+
+    private void CacheLinks(IReadOnlyList<LevelRoomStreamLink> roomStreamLinks, Dictionary<RoomRuntimeState, int> roomIndices)
+    {
+        if (roomStreamLinks == null)
+        {
+            return;
+        }
+
+        for (int linkIndex = 0; linkIndex < roomStreamLinks.Count; linkIndex++)
+        {
+            LevelRoomStreamLink roomStreamLink = roomStreamLinks[linkIndex];
+
+            if (roomStreamLink.FirstRoom == null)
+            {
+                continue;
+            }
+
+            if (roomStreamLink.SecondRoom == null)
+            {
+                continue;
+            }
+
+            if (roomIndices.ContainsKey(roomStreamLink.FirstRoom) == false)
+            {
+                continue;
+            }
+
+            if (roomIndices.ContainsKey(roomStreamLink.SecondRoom) == false)
+            {
+                continue;
+            }
+
+            int firstRoomIndex = roomIndices[roomStreamLink.FirstRoom];
+            int secondRoomIndex = roomIndices[roomStreamLink.SecondRoom];
+
+            if (firstRoomIndex == secondRoomIndex)
+            {
+                continue;
+            }
+
+            RoomLink roomLink = new RoomLink(firstRoomIndex, secondRoomIndex);
+            _links.Add(roomLink);
+        }
+    }
+
+    private void EnsureBuffers()
+    {
+        if (_roomDepths.Length != _rooms.Count)
+        {
+            _roomDepths = new int[_rooms.Count];
+        }
+    }
+
+    private int FindPlayerRoomIndex(Vector3 playerPoint)
+    {
+        int containingRoomIndex = -1;
+        float containingRoomDistanceSqr = float.MaxValue;
+        int nearestRoomIndex = -1;
+        float nearestRoomDistanceSqr = float.MaxValue;
+
+        for (int index = 0; index < _rooms.Count; index++)
+        {
+            RoomRuntimeState roomRuntimeState = _rooms[index];
+
+            if (roomRuntimeState == null)
+            {
+                continue;
+            }
+
+            float distanceSqr = roomRuntimeState.GetDistanceSqr(playerPoint);
+
+            if (distanceSqr < nearestRoomDistanceSqr)
+            {
+                nearestRoomDistanceSqr = distanceSqr;
+                nearestRoomIndex = index;
+            }
+
+            if (roomRuntimeState.ContainsRoomPoint(playerPoint) == false)
+            {
+                continue;
+            }
+
+            if (distanceSqr < containingRoomDistanceSqr)
+            {
+                containingRoomDistanceSqr = distanceSqr;
+                containingRoomIndex = index;
+            }
+        }
+
+        if (containingRoomIndex >= 0)
+        {
+            return containingRoomIndex;
+        }
+
+        return nearestRoomIndex;
+    }
+
+    private void UpdateRoomDepths(int playerRoomIndex)
+    {
+        EnsureBuffers();
+
+        for (int index = 0; index < _roomDepths.Length; index++)
+        {
+            _roomDepths[index] = -1;
+        }
+
+        _roomQueue.Clear();
+
+        if (playerRoomIndex < 0)
+        {
+            return;
+        }
+
+        if (playerRoomIndex >= _rooms.Count)
+        {
+            return;
+        }
+
+        if (_rooms[playerRoomIndex] == null)
+        {
+            return;
+        }
+
+        _roomDepths[playerRoomIndex] = 0;
+        _roomQueue.Enqueue(playerRoomIndex);
+
+        while (_roomQueue.Count > 0)
+        {
+            int currentRoomIndex = _roomQueue.Dequeue();
+            int nextRoomDepth = _roomDepths[currentRoomIndex] + 1;
+
+            for (int linkIndex = 0; linkIndex < _links.Count; linkIndex++)
+            {
+                RoomLink roomLink = _links[linkIndex];
+                int neighborRoomIndex = GetNeighborRoomIndex(currentRoomIndex, roomLink);
+
+                if (neighborRoomIndex < 0)
+                {
+                    continue;
+                }
+
+                if (neighborRoomIndex >= _rooms.Count)
+                {
+                    continue;
+                }
+
+                if (_rooms[neighborRoomIndex] == null)
+                {
+                    continue;
+                }
+
+                if (_roomDepths[neighborRoomIndex] >= 0)
+                {
+                    continue;
+                }
+
+                _roomDepths[neighborRoomIndex] = nextRoomDepth;
+                _roomQueue.Enqueue(neighborRoomIndex);
+            }
+        }
+    }
+
+    private int GetNeighborRoomIndex(int currentRoomIndex, RoomLink roomLink)
+    {
+        if (roomLink.FirstRoomIndex == currentRoomIndex)
+        {
+            return roomLink.SecondRoomIndex;
+        }
+
+        if (roomLink.SecondRoomIndex == currentRoomIndex)
+        {
+            return roomLink.FirstRoomIndex;
+        }
+
+        return -1;
+    }
+
+    private readonly struct RoomLink
+    {
+        public readonly int FirstRoomIndex;
+        public readonly int SecondRoomIndex;
+
+        public RoomLink(int firstRoomIndex, int secondRoomIndex)
+        {
+            FirstRoomIndex = firstRoomIndex;
+            SecondRoomIndex = secondRoomIndex;
+        }
     }
 }

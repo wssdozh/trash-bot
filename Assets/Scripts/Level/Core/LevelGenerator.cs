@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -30,8 +31,8 @@ public sealed class LevelGenerator : MonoBehaviour
     [SerializeField] private bool _streamRooms = true;
     [SerializeField] private Transform _player;
     [SerializeField, Min(0f)] private float _enemyBorderGap = 0.35f;
-    [SerializeField, Min(0f)] private float _roomEnableDistance = 35f;
-    [SerializeField, Min(0f)] private float _roomDisableDistance = 45f;
+    [SerializeField, Min(0)] private int _roomEnableDepth = 1;
+    [SerializeField, Min(0)] private int _roomDisableDepth = 1;
     [SerializeField, Min(0f)] private float _roomStreamDelay = 0.5f;
 
     [Header("Attempts")]
@@ -270,7 +271,8 @@ public sealed class LevelGenerator : MonoBehaviour
             levelRoomStreamer = gameObject.AddComponent<LevelRoomStreamer>();
         }
 
-        levelRoomStreamer.Setup(_player, _roomEnableDistance, _roomDisableDistance, _roomStreamDelay, roomRuntimeStates);
+        LevelRoomStreamLink[] roomStreamLinks = CollectRoomStreamLinks();
+        levelRoomStreamer.Setup(_player, _roomEnableDepth, _roomDisableDepth, _roomStreamDelay, roomRuntimeStates, roomStreamLinks);
     }
 
     private void ClearRuntimeNavMesh()
@@ -360,6 +362,96 @@ public sealed class LevelGenerator : MonoBehaviour
         return compactStates;
     }
 
+    private LevelRoomStreamLink[] CollectRoomStreamLinks()
+    {
+        if (_generationContext.Edges.Count == 0)
+        {
+            return Array.Empty<LevelRoomStreamLink>();
+        }
+
+        Dictionary<LevelNode, RoomRuntimeState> roomStatesByNode = new Dictionary<LevelNode, RoomRuntimeState>(_generationContext.PlacedRooms.Count);
+
+        for (int placedRoomIndex = 0; placedRoomIndex < _generationContext.PlacedRooms.Count; placedRoomIndex++)
+        {
+            PlacedRoomInfo placedRoomInfo = _generationContext.PlacedRooms[placedRoomIndex];
+
+            if (placedRoomInfo == null)
+            {
+                continue;
+            }
+
+            if (placedRoomInfo.Node == null)
+            {
+                continue;
+            }
+
+            if (placedRoomInfo.Node.RoomInstance == null)
+            {
+                continue;
+            }
+
+            RoomRuntimeState roomRuntimeState = placedRoomInfo.Node.RoomInstance.GetComponent<RoomRuntimeState>();
+
+            if (roomRuntimeState == null)
+            {
+                continue;
+            }
+
+            if (roomStatesByNode.ContainsKey(placedRoomInfo.Node))
+            {
+                continue;
+            }
+
+            roomStatesByNode.Add(placedRoomInfo.Node, roomRuntimeState);
+        }
+
+        LevelRoomStreamLink[] roomStreamLinks = new LevelRoomStreamLink[_generationContext.Edges.Count];
+        int count = 0;
+
+        for (int edgeIndex = 0; edgeIndex < _generationContext.Edges.Count; edgeIndex++)
+        {
+            LevelEdge levelEdge = _generationContext.Edges[edgeIndex];
+
+            if (levelEdge.Parent == null)
+            {
+                continue;
+            }
+
+            if (levelEdge.Child == null)
+            {
+                continue;
+            }
+
+            if (roomStatesByNode.ContainsKey(levelEdge.Parent) == false)
+            {
+                continue;
+            }
+
+            if (roomStatesByNode.ContainsKey(levelEdge.Child) == false)
+            {
+                continue;
+            }
+
+            RoomRuntimeState parentRoom = roomStatesByNode[levelEdge.Parent];
+            RoomRuntimeState childRoom = roomStatesByNode[levelEdge.Child];
+            roomStreamLinks[count] = new LevelRoomStreamLink(parentRoom, childRoom);
+            count += 1;
+        }
+
+        if (count == roomStreamLinks.Length)
+        {
+            return roomStreamLinks;
+        }
+
+        LevelRoomStreamLink[] compactLinks = new LevelRoomStreamLink[count];
+
+        for (int index = 0; index < count; index++)
+        {
+            compactLinks[index] = roomStreamLinks[index];
+        }
+
+        return compactLinks;
+    }
     private int GetRandomSeed()
     {
         int minSeed = Mathf.Max(_seedMin, 0);

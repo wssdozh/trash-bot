@@ -94,3 +94,15 @@ internal struct LevelEdge
     public RoomDoorMarker ToDoor;
     public int CorridorWidthInBlocks;
 }
+
+internal readonly struct LevelRoomStreamLink
+{
+    public readonly RoomRuntimeState FirstRoom;
+    public readonly RoomRuntimeState SecondRoom;
+
+    public LevelRoomStreamLink(RoomRuntimeState firstRoom, RoomRuntimeState secondRoom)
+    {
+        FirstRoom = firstRoom;
+        SecondRoom = secondRoom;
+    }
+}
