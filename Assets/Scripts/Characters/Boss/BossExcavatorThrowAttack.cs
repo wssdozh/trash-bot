@@ -1,20 +1,17 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace JunkyardBoss
 {
     public sealed class BossExcavatorThrowAttack
     {
         private const float MinDirectionSqr = 0.0001f;
-        private const string ProjectileResourcePath = "Prefabs/Bullet";
+        private const string ScrapCubeSpawnerKey = "BossScrapCubeProjectile";
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
-        private readonly GameObject _projectilePrefab;
-        private readonly List<Bullet> _projectiles;
 
+        private BossScrapCubeSpawner _scrapCubeSpawner;
         private float _grabTimer;
         private float _throwTimer;
         private float _recoverTimer;
@@ -37,14 +34,6 @@ namespace JunkyardBoss
 
             _boss = boss;
             _config = config;
-            _projectilePrefab = Resources.Load<GameObject>(ProjectileResourcePath);
-
-            if (_projectilePrefab == null)
-            {
-                throw new InvalidOperationException(nameof(_projectilePrefab));
-            }
-
-            _projectiles = new List<Bullet>(8);
             Reset();
         }
 
@@ -176,17 +165,15 @@ namespace JunkyardBoss
             while (projectileIndex < projectileCount)
             {
                 float angleOffset = GetProjectileAngleOffset(projectileIndex, projectileCount);
-                Quaternion projectileRotation = Quaternion.LookRotation(
-                    RotateDirection(launchForward, angleOffset),
-                    Vector3.up);
-                Bullet projectile = GetProjectile();
+                Vector3 projectileDirection = RotateDirection(launchForward, angleOffset);
 
-                projectile.transform.SetPositionAndRotation(spawnPosition, projectileRotation);
-                projectile.gameObject.SetActive(true);
-                projectile.SetIgnoredRoot(_boss.transform);
-                projectile.SetLayers(_config.ThrowHitMask);
-                projectile.SetDamage(_config.ThrowProjectileDamage);
-                projectile.SetSpeedMultiplier(_config.ThrowProjectileSpeedMult);
+                _scrapCubeSpawner.Spawn(
+                    spawnPosition,
+                    projectileDirection,
+                    _config.ThrowProjectileDamage,
+                    _config.ThrowProjectileSpeedMult,
+                    _config.ThrowHitMask,
+                    _boss.transform);
 
                 projectileIndex += 1;
             }
@@ -206,39 +193,6 @@ namespace JunkyardBoss
             return minAngle + step * projectileIndex;
         }
 
-        private Bullet GetProjectile()
-        {
-            int projectileIndex = 0;
-
-            while (projectileIndex < _projectiles.Count)
-            {
-                Bullet projectile = _projectiles[projectileIndex];
-
-                if (projectile != null)
-                {
-                    if (projectile.gameObject.activeSelf == false)
-                    {
-                        return projectile;
-                    }
-                }
-
-                projectileIndex += 1;
-            }
-
-            GameObject createdObject = Object.Instantiate(_projectilePrefab);
-            Bullet createdProjectile = createdObject.GetComponent<Bullet>();
-
-            if (createdProjectile == null)
-            {
-                throw new InvalidOperationException(nameof(createdProjectile));
-            }
-
-            createdProjectile.gameObject.SetActive(false);
-            _projectiles.Add(createdProjectile);
-
-            return createdProjectile;
-        }
-
         private Vector3 ResolveLaunchForward()
         {
             Transform bucket = _boss.Bucket;
@@ -246,23 +200,23 @@ namespace JunkyardBoss
 
             if (bucket != null && target != null)
             {
-                Vector3 targetPoint = target.position + Vector3.up * _config.ThrowAimHeight;
-                Vector3 targetDirection = targetPoint - bucket.position;
+                Vector3 targetDirection = target.position - bucket.position;
+                targetDirection.y = 0f;
 
                 if (targetDirection.sqrMagnitude > MinDirectionSqr)
                 {
-                    return BuildLaunchDirection(targetDirection);
+                    return targetDirection.normalized;
                 }
             }
 
             if (bucket != null)
             {
                 Vector3 bucketForward = bucket.forward;
-                bucketForward.y = Mathf.Max(0f, bucketForward.y);
+                bucketForward.y = 0f;
 
                 if (bucketForward.sqrMagnitude > MinDirectionSqr)
                 {
-                    return BuildLaunchDirection(bucketForward);
+                    return bucketForward.normalized;
                 }
             }
 
@@ -271,11 +225,11 @@ namespace JunkyardBoss
             if (cabin != null)
             {
                 Vector3 cabinForward = cabin.forward;
-                cabinForward.y = Mathf.Max(0f, cabinForward.y);
+                cabinForward.y = 0f;
 
                 if (cabinForward.sqrMagnitude > MinDirectionSqr)
                 {
-                    return BuildLaunchDirection(cabinForward);
+                    return cabinForward.normalized;
                 }
             }
 
@@ -288,29 +242,11 @@ namespace JunkyardBoss
 
                 if (baseForward.sqrMagnitude > MinDirectionSqr)
                 {
-                    return BuildLaunchDirection(baseForward);
+                    return baseForward.normalized;
                 }
             }
 
-            return BuildLaunchDirection(Vector3.forward);
-        }
-
-        private Vector3 BuildLaunchDirection(Vector3 direction)
-        {
-            if (direction.sqrMagnitude <= MinDirectionSqr)
-            {
-                return Vector3.forward;
-            }
-
-            Vector3 launchDirection = direction.normalized;
-            launchDirection += Vector3.up * _config.ThrowUpwardBias;
-
-            if (launchDirection.sqrMagnitude <= MinDirectionSqr)
-            {
-                return Vector3.forward;
-            }
-
-            return launchDirection.normalized;
+            return Vector3.forward;
         }
 
         private Vector3 RotateDirection(Vector3 direction, float angle)
@@ -340,6 +276,16 @@ namespace JunkyardBoss
             if (_boss.Stick == null)
             {
                 throw new InvalidOperationException(nameof(_boss.Stick));
+            }
+
+            if (_scrapCubeSpawner == null)
+            {
+                _scrapCubeSpawner = SpawnerServiceLocator.Find<BossScrapCubeProjectile>(ScrapCubeSpawnerKey) as BossScrapCubeSpawner;
+            }
+
+            if (_scrapCubeSpawner == null)
+            {
+                throw new InvalidOperationException(nameof(_scrapCubeSpawner));
             }
         }
     }

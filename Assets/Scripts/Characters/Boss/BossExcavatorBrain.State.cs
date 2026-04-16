@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace JunkyardBoss
 {
     public sealed partial class BossExcavatorBrain
@@ -31,6 +33,11 @@ namespace JunkyardBoss
             if (ShouldReposition(targetDistance, baseAngle))
             {
                 return BossExcavatorState.Reposition;
+            }
+
+            if (_forcedChaseTimer > 0f)
+            {
+                return BossExcavatorState.Chase;
             }
 
             if (_postAttackTimer > 0f)
@@ -92,6 +99,11 @@ namespace JunkyardBoss
                 return true;
             }
 
+            if (ShouldRecoverAttackAngle(targetDistance, baseAngle))
+            {
+                return true;
+            }
+
             if (baseAngle > _boss.Config.RepositionBaseAngle)
             {
                 if (targetDistance < _boss.Move.AttackChaseDistance)
@@ -115,12 +127,47 @@ namespace JunkyardBoss
                 return true;
             }
 
+            if (ShouldRecoverAttackAngle(targetDistance, baseAngle))
+            {
+                return true;
+            }
+
             if (baseAngle > _boss.Config.RepositionBaseAngle)
             {
                 if (targetDistance < _boss.Move.AttackChaseDistance)
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private bool ShouldRecoverAttackAngle(float targetDistance, float baseAngle)
+        {
+            float recoverDistance = _boss.Config.BucketMaxDistance + _boss.Config.DistanceTolerance;
+
+            if (targetDistance > recoverDistance)
+            {
+                return false;
+            }
+
+            if (targetDistance < _boss.Move.MinMoveDistance)
+            {
+                return false;
+            }
+
+            float recoverAngle = _boss.Config.BucketBaseAngle + 24f;
+            float minRecoverAngle = _boss.Config.RepositionBaseAngle * 0.72f;
+
+            if (recoverAngle < minRecoverAngle)
+            {
+                recoverAngle = minRecoverAngle;
+            }
+
+            if (baseAngle > recoverAngle)
+            {
+                return true;
             }
 
             return false;
@@ -149,11 +196,6 @@ namespace JunkyardBoss
 
         private bool IsRepositionTargetPoint(BossExcavatorTargetPoint targetPoint)
         {
-            if (targetPoint == BossExcavatorTargetPoint.PlayerBack)
-            {
-                return true;
-            }
-
             if (targetPoint == BossExcavatorTargetPoint.WallEscape)
             {
                 return true;

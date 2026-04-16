@@ -55,14 +55,16 @@ namespace JunkyardBoss
 
         private bool ShouldUseRetreat(float targetDistance)
         {
-            if (targetDistance < GetMinMoveDistance())
+            float retreatTriggerDistance = GetRetreatTriggerDistance();
+
+            if (targetDistance < retreatTriggerDistance)
             {
                 return true;
             }
 
             if (_targetPoint == BossExcavatorTargetPoint.PlayerBack)
             {
-                if (targetDistance < GetMediumDistance())
+                if (targetDistance < retreatTriggerDistance + GetDistanceHysteresis())
                 {
                     return true;
                 }
@@ -80,7 +82,7 @@ namespace JunkyardBoss
 
             if (_targetPoint == BossExcavatorTargetPoint.PlayerCenter)
             {
-                if (targetDistance > GetMediumDistance() - GetDistanceHysteresis())
+                if (targetDistance > GetCenterHoldDistance())
                 {
                     return true;
                 }
@@ -290,7 +292,7 @@ namespace JunkyardBoss
 
             if (targetPointType == BossExcavatorTargetPoint.PlayerLeft || targetPointType == BossExcavatorTargetPoint.PlayerRight)
             {
-                Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+                Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetCenterDistance(currentPoint, targetPoint));
 
                 if (TryResolvePoint(currentPoint, centerPoint, out resolvedPoint))
                 {
@@ -298,11 +300,29 @@ namespace JunkyardBoss
                 }
             }
 
-            if (targetPointType != BossExcavatorTargetPoint.PlayerBack)
+            if (targetPointType == BossExcavatorTargetPoint.PlayerBack)
             {
-                Vector3 backPoint = BuildCenterPoint(currentPoint, targetPoint, GetRetreatDistance());
+                int oppositeRecoverSign = -GetRecoverSideSign(currentPoint, targetPoint);
+                Vector3 oppositeRecoverPoint = BuildRecoverPoint(currentPoint, targetPoint, oppositeRecoverSign);
 
-                if (TryResolvePoint(currentPoint, backPoint, out resolvedPoint))
+                if (TryResolvePoint(currentPoint, oppositeRecoverPoint, out resolvedPoint))
+                {
+                    return resolvedPoint;
+                }
+
+                Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetCenterDistance(currentPoint, targetPoint));
+
+                if (TryResolvePoint(currentPoint, centerPoint, out resolvedPoint))
+                {
+                    return resolvedPoint;
+                }
+            }
+
+            else
+            {
+                Vector3 chasePoint = BuildCenterPoint(currentPoint, targetPoint, GetAttackChaseDistance());
+
+                if (TryResolvePoint(currentPoint, chasePoint, out resolvedPoint))
                 {
                     return resolvedPoint;
                 }
@@ -320,7 +340,7 @@ namespace JunkyardBoss
         {
             if (targetPointType == BossExcavatorTargetPoint.PlayerCenter)
             {
-                return BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+                return BuildCenterPoint(currentPoint, targetPoint, GetCenterDistance(currentPoint, targetPoint));
             }
 
             if (targetPointType == BossExcavatorTargetPoint.PlayerLeft)
@@ -335,7 +355,7 @@ namespace JunkyardBoss
 
             if (targetPointType == BossExcavatorTargetPoint.PlayerBack)
             {
-                return BuildCenterPoint(currentPoint, targetPoint, GetRetreatDistance());
+                return BuildRecoverPoint(currentPoint, targetPoint, GetRecoverSideSign(currentPoint, targetPoint));
             }
 
             if (targetPointType == BossExcavatorTargetPoint.WallEscape)
@@ -381,18 +401,27 @@ namespace JunkyardBoss
             Vector3 tangentDirection = GetOrbitDirection(targetDirection, sideSign);
             float targetDistance = Vector3.Distance(currentPoint, targetPoint);
             Vector3 ringDirection = Vector3.zero;
+            float ringWeight = 0f;
 
             if (targetDistance > GetMediumDistance() + GetDistanceHysteresis())
             {
                 ringDirection = targetDirection;
+                ringWeight = 0.75f;
             }
 
-            else if (targetDistance < GetMediumDistance() - GetDistanceHysteresis())
+            else if (targetDistance < GetCloseRetreatDistance())
             {
                 ringDirection = -targetDirection;
+                ringWeight = 0.75f;
             }
 
-            Vector3 desiredDirection = tangentDirection + (ringDirection * 0.75f);
+            else if (targetDistance <= GetClosePressureDistance())
+            {
+                ringDirection = targetDirection;
+                ringWeight = 0.45f;
+            }
+
+            Vector3 desiredDirection = tangentDirection + (ringDirection * ringWeight);
             desiredDirection = GetPlanarDirection(desiredDirection);
 
             if (desiredDirection.sqrMagnitude <= MinSqrMagnitude)
@@ -401,6 +430,55 @@ namespace JunkyardBoss
             }
 
             return currentPoint + desiredDirection * GetOrbitStepDistance();
+        }
+
+        private Vector3 BuildRecoverPoint(Vector3 currentPoint, Vector3 targetPoint, int recoverSideSign)
+        {
+            Vector3 toTarget = targetPoint - currentPoint;
+            Vector3 targetDirection = GetPlanarDirection(toTarget);
+
+            if (targetDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                targetDirection = GetPlanarForward(_target.forward);
+            }
+
+            Vector3 sideDirection = GetOrbitDirection(targetDirection, recoverSideSign);
+            Vector3 recoverDirection = (-targetDirection * 1.1f) + (sideDirection * 0.9f);
+            recoverDirection = GetPlanarDirection(recoverDirection);
+
+            if (recoverDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                recoverDirection = -targetDirection;
+            }
+
+            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+            float recoverStepDistance = GetRecoverStepDistance(targetDistance);
+
+            return currentPoint + recoverDirection * recoverStepDistance;
+        }
+
+        private int GetRecoverSideSign(Vector3 currentPoint, Vector3 targetPoint)
+        {
+            int preferredSign = _flankSign;
+
+            if (preferredSign == 0)
+            {
+                preferredSign = 1;
+            }
+
+            Vector3 preferredPoint = BuildRecoverPoint(currentPoint, targetPoint, preferredSign);
+            Vector3 alternativePoint = BuildRecoverPoint(currentPoint, targetPoint, -preferredSign);
+            float preferredScore = GetPointScore(currentPoint, preferredPoint);
+            float alternativeScore = GetPointScore(currentPoint, alternativePoint);
+
+            if (preferredScore <= alternativeScore + _config.FlankSwitchThreshold)
+            {
+                return preferredSign;
+            }
+
+            SetFlankSign(-preferredSign);
+
+            return -preferredSign;
         }
 
         private Vector3 BuildEscapePoint(Vector3 currentPoint, Vector3 arenaCenterPoint, float escapeDistance)
@@ -455,6 +533,13 @@ namespace JunkyardBoss
                 return TryGetReachPoint(currentPoint, resolvedPoint, out resolvedPoint);
             }
 
+            if (Vector3.Distance(currentPoint, resolvedPoint) <= _config.StopDistance + _config.DesiredPointDeadZone)
+            {
+                resolvedPoint = currentPoint;
+
+                return false;
+            }
+
             return true;
         }
 
@@ -490,6 +575,54 @@ namespace JunkyardBoss
         private float GetStopDistance(BossExcavatorTargetPoint targetPoint)
         {
             return _config.StopDistance;
+        }
+
+        private float GetRetreatTriggerDistance()
+        {
+            float closeDistance = _config.StopDistance + 1.25f;
+            float sweepDistance = _config.SweepMaxDistance - 0.55f;
+
+            return Mathf.Max(closeDistance, sweepDistance);
+        }
+
+        private float GetCenterHoldDistance()
+        {
+            return GetAttackChaseDistance() - GetDistanceHysteresis();
+        }
+
+        private float GetCenterDistance(Vector3 currentPoint, Vector3 targetPoint)
+        {
+            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+
+            if (targetDistance > GetCenterHoldDistance())
+            {
+                return GetAttackChaseDistance();
+            }
+
+            return GetMediumDistance();
+        }
+
+        private float GetClosePressureDistance()
+        {
+            return _config.BucketMaxDistance + (GetDistanceTolerance() * 0.35f);
+        }
+
+        private float GetCloseRetreatDistance()
+        {
+            float sweepDistance = _config.SweepMaxDistance - (GetDistanceTolerance() * 0.5f);
+            float stopDistance = _config.StopDistance + 1f;
+
+            return Mathf.Max(stopDistance, sweepDistance);
+        }
+
+        private float GetRecoverStepDistance(float targetDistance)
+        {
+            float distanceGap = GetRetreatDistance() - targetDistance;
+            float minStepDistance = GetOrbitStepDistance() * 0.85f;
+            float maxStepDistance = GetOrbitStepDistance() * 1.35f;
+            float desiredStepDistance = distanceGap + GetDistanceTolerance();
+
+            return Mathf.Clamp(desiredStepDistance, minStepDistance, maxStepDistance);
         }
     }
 }

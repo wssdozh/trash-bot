@@ -312,6 +312,13 @@ namespace JunkyardBoss
 
             if (_state == BossExcavatorState.Attack)
             {
+                if (CurrentAttack == BossExcavatorAttack.ThrowScrap)
+                {
+                    _move.FixedTick();
+
+                    return;
+                }
+
                 _move.Stop();
             }
         }
