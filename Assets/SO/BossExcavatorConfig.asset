@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2dd3307af0debb4409591fc6d8657b17, type: 3}
+  m_Name: BossExcavatorConfig
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorConfig
+  _maxHealth: 300
+  _phaseTwoRatio: 0.5
+  _startState: 2
+  _baseMoveSpeed: 1.35
+  _baseTurnSpeed: 62
+  _moveStartAngle: 8
+  _moveStopAngle: 15
+  _stopDistance: 0.9
+  _mediumDistance: 9
+  _distanceTolerance: 1.4
+  _distanceHysteresis: 0.6
+  _retreatDistance: 11.5
+  _flankAngle: 26
+  _flankSwitchThreshold: 2
+  _flankSwitchCooldown: 1.8
+  _targetSwitchCooldown: 1.1
+  _desiredPointDeadZone: 1.2
+  _wallProbeDistance: 2.8
+  _probeRadius: 1
+  _probeHeight: 0.8
+  _forwardProbeDistance: 2.6
+  _wallEscapeDistance: 5.2
+  _cornerEscapeDistance: 7.2
+  _escapeCenterWeight: 0.5
+  _arenaReturnDistance: 14
+  _chargeAlignDistance: 12
+  _wallPenalty: 4.5
+  _cornerPenalty: 8
+  _blockedPenalty: 6
+  _cabinTurnSpeed: 52
+  _cabinPhaseTwoMult: 1.35

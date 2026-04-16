@@ -7,8 +7,10 @@ namespace JunkyardBoss
     {
         [SerializeField] private BossExcavatorConfig _config;
         [SerializeField] private BossExcavatorMove _move;
+        [SerializeField] private BossExcavatorAim _aim;
         [SerializeField] private Transform _target;
         [SerializeField] private Transform _base;
+        [SerializeField] private Rigidbody _baseRigidbody;
         [SerializeField] private Transform _cabin;
         [SerializeField] private Transform _boom;
         [SerializeField] private Transform _stick;
@@ -24,35 +26,33 @@ namespace JunkyardBoss
         public event Action Died;
 
         public BossExcavatorConfig Config => _config;
-
         public BossExcavatorMove Move => _move;
-
+        public BossExcavatorAim Aim => _aim;
         public Transform Target => _target;
-
         public Transform Base => _base;
-
+        public Rigidbody BaseRigidbody => _baseRigidbody;
         public Transform Cabin => _cabin;
-
         public Transform Boom => _boom;
-
         public Transform Stick => _stick;
-
         public Transform Bucket => _bucket;
-
         public float CurrentHealth => _currentHealth;
-
         public BossExcavatorPhase Phase => _phase;
-
         public BossExcavatorState State => _state;
-
-        internal bool IsDead => _currentHealth <= 0f;
+        public bool IsDead => _currentHealth <= 0f;
 
         private void Awake()
         {
             ValidateDependencies();
 
+            if (IsTargetSelf(_target))
+            {
+                _target = null;
+            }
+
             _stateMachine = new BossExcavatorStateMachine(this);
-            _move.Setup(_config, _base, _target);
+            _move.Setup(_config, _base, _baseRigidbody, _target);
+            _aim.Setup(this, _config, _cabin, _target);
+            TryResolveTarget();
 
             ResetBoss();
         }
@@ -60,6 +60,20 @@ namespace JunkyardBoss
         private void Update()
         {
             _stateMachine.Tick();
+        }
+
+        private void LateUpdate()
+        {
+            _aim.Tick();
+        }
+
+        private void FixedUpdate()
+        {
+            if (CanUseTarget() == false)
+            {
+                TryResolveTarget();
+            }
+
             UpdateMove();
         }
 
@@ -71,6 +85,7 @@ namespace JunkyardBoss
             _stateMachine.Reset();
             ApplyState(_config.StartState);
             _move.SetChargeAlign(false);
+            _aim.SetLocked(false);
         }
 
         public void RequestState(BossExcavatorState state)
@@ -92,13 +107,24 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(target));
             }
 
+            if (IsTargetSelf(target))
+            {
+                throw new InvalidOperationException(nameof(target));
+            }
+
             _target = target;
             _move.SetTarget(target);
+            _aim.SetTarget(target);
         }
 
         public void SetChargeAlign(bool isChargeAlign)
         {
             _move.SetChargeAlign(isChargeAlign);
+        }
+
+        public void SetAimLocked(bool isLocked)
+        {
+            _aim.SetLocked(isLocked);
         }
 
         public void TakeDamage(float damage)
@@ -183,7 +209,7 @@ namespace JunkyardBoss
             if (_state == BossExcavatorState.Reposition)
             {
                 _move.SetChargeAlign(false);
-                _move.Tick();
+                _move.FixedTick();
 
                 return;
             }
@@ -191,14 +217,14 @@ namespace JunkyardBoss
             if (_state == BossExcavatorState.Chase)
             {
                 _move.SetChargeAlign(false);
-                _move.Tick();
+                _move.FixedTick();
 
                 return;
             }
 
             if (_state == BossExcavatorState.Attack)
             {
-                _move.Tick();
+                _move.FixedTick();
             }
         }
 
@@ -214,14 +240,19 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(_move));
             }
 
-            if (_target == null)
+            if (_aim == null)
             {
-                throw new InvalidOperationException(nameof(_target));
+                throw new InvalidOperationException(nameof(_aim));
             }
 
             if (_base == null)
             {
                 throw new InvalidOperationException(nameof(_base));
+            }
+
+            if (_baseRigidbody == null)
+            {
+                throw new InvalidOperationException(nameof(_baseRigidbody));
             }
 
             if (_cabin == null)
@@ -243,6 +274,87 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_bucket));
             }
+        }
+
+        private bool CanUseTarget()
+        {
+            if (_target == null)
+            {
+                return false;
+            }
+
+            if (IsTargetSelf(_target))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryResolveTarget()
+        {
+            if (CanUseTarget())
+            {
+                return true;
+            }
+
+            Player player = FindFirstObjectByType<Player>();
+
+            if (player == null)
+            {
+                return false;
+            }
+
+            Transform playerBody = GetPlayerBody(player);
+
+            if (playerBody == null)
+            {
+                return false;
+            }
+
+            if (IsTargetSelf(playerBody))
+            {
+                return false;
+            }
+
+            _target = playerBody;
+            _move.SetTarget(playerBody);
+            _aim.SetTarget(playerBody);
+
+            return true;
+        }
+
+        private Transform GetPlayerBody(Player player)
+        {
+            if (player == null)
+            {
+                return null;
+            }
+
+            Transform playerTransform = player.transform;
+            Transform playerBody = playerTransform.Find("Body");
+
+            if (playerBody == null)
+            {
+                return null;
+            }
+
+            return playerBody;
+        }
+
+        private bool IsTargetSelf(Transform target)
+        {
+            if (target == null)
+            {
+                return false;
+            }
+
+            if (target == transform)
+            {
+                return true;
+            }
+
+            return target.IsChildOf(transform);
         }
     }
 }

@@ -8,6 +8,7 @@ namespace JunkyardBoss
         PlayerBack = 3,
         WallEscape = 4,
         ArenaCenter = 5,
-        ChargeAlign = 6
+        ChargeAlign = 6,
+        CornerEscape = 7
     }
 }

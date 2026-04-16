@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.AI.Navigation;
+using JunkyardBoss;
 using UnityEngine;
 
 public sealed class RoomContentSpawner : MonoBehaviour
@@ -998,6 +999,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             return false;
         }
 
+        SetupBossEnemy(instance);
         SetupEnemy(instance, enemySpawn);
 
         if (TrySnapGroundEnemy(instance, spawnHeight) == false)
@@ -1056,6 +1058,36 @@ public sealed class RoomContentSpawner : MonoBehaviour
         }
 
         enemyMeleeBrain.ApplyRole();
+    }
+
+    private void SetupBossEnemy(GameObject enemyObject)
+    {
+        if (enemyObject == null)
+        {
+            return;
+        }
+
+        if (_roomRuntimeState == null)
+        {
+            return;
+        }
+
+        BossExcavator bossExcavator = enemyObject.GetComponent<BossExcavator>();
+
+        if (bossExcavator == null)
+        {
+            return;
+        }
+
+        BossExcavatorMove bossExcavatorMove = bossExcavator.Move;
+
+        if (bossExcavatorMove == null)
+        {
+            return;
+        }
+
+        Bounds roomBounds = _roomRuntimeState.GetRoomBounds();
+        bossExcavatorMove.SetArenaCenter(roomBounds.center);
     }
 
     private void BindEnemyRoom(GameObject enemyObject)
