@@ -82,6 +82,7 @@ namespace JunkyardBoss
                 TryResolveTarget();
             }
 
+            _brain.FixedTick();
             UpdateMove();
         }
 

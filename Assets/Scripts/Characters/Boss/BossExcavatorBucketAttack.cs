@@ -306,6 +306,18 @@ namespace JunkyardBoss
         private Vector3 ResolveStrikeForward()
         {
             Transform bucket = _boss.Bucket;
+            Transform target = _boss.Target;
+
+            if (bucket != null && target != null)
+            {
+                Vector3 targetDirection = target.position - bucket.position;
+                targetDirection.y = 0f;
+
+                if (targetDirection.sqrMagnitude > MinDirectionSqr)
+                {
+                    return targetDirection.normalized;
+                }
+            }
 
             if (bucket != null)
             {

@@ -15,31 +15,31 @@ namespace JunkyardBoss
 
         [Header("Move")]
         [Min(0.1f)]
-        [SerializeField] private float _baseMoveSpeed = 2.6f;
+        [SerializeField] private float _baseMoveSpeed = 5.9f;
 
         [Min(1f)]
-        [SerializeField] private float _baseTurnSpeed = 110f;
+        [SerializeField] private float _baseTurnSpeed = 145f;
 
         [Range(1f, 45f)]
         [SerializeField] private float _moveStartAngle = 10f;
 
         [Range(1f, 60f)]
-        [SerializeField] private float _moveStopAngle = 38f;
+        [SerializeField] private float _moveStopAngle = 36f;
 
         [Min(0.1f)]
-        [SerializeField] private float _stopDistance = 0.75f;
+        [SerializeField] private float _stopDistance = 0.55f;
 
         [Min(0.1f)]
-        [SerializeField] private float _mediumDistance = 11.4f;
+        [SerializeField] private float _mediumDistance = 5.6f;
 
         [Min(0.1f)]
-        [SerializeField] private float _distanceTolerance = 1.5f;
+        [SerializeField] private float _distanceTolerance = 0.7f;
 
         [Min(0.1f)]
-        [SerializeField] private float _distanceHysteresis = 0.75f;
+        [SerializeField] private float _distanceHysteresis = 0.35f;
 
         [Min(0.1f)]
-        [SerializeField] private float _retreatDistance = 15f;
+        [SerializeField] private float _retreatDistance = 6.35f;
 
         [Range(5f, 90f)]
         [SerializeField] private float _flankAngle = 20f;
@@ -51,10 +51,10 @@ namespace JunkyardBoss
         [SerializeField] private float _flankSwitchCooldown = 1.8f;
 
         [Min(0f)]
-        [SerializeField] private float _targetSwitchCooldown = 0.85f;
+        [SerializeField] private float _targetSwitchCooldown = 0.35f;
 
         [Min(0f)]
-        [SerializeField] private float _desiredPointDeadZone = 0.9f;
+        [SerializeField] private float _desiredPointDeadZone = 0.4f;
 
         [Min(0.1f)]
         [SerializeField] private float _wallProbeDistance = 2.2f;
@@ -94,13 +94,13 @@ namespace JunkyardBoss
 
         [Header("Attack Decision")]
         [Min(0.1f)]
-        [SerializeField] private float _attackChaseDistance = 12.6f;
+        [SerializeField] private float _attackChaseDistance = 6.1f;
 
         [Range(5f, 90f)]
-        [SerializeField] private float _repositionBaseAngle = 68f;
+        [SerializeField] private float _repositionBaseAngle = 86f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketMaxDistance = 4.8f;
+        [SerializeField] private float _bucketMaxDistance = 5.2f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _bucketBaseAngle = 34f;
@@ -156,7 +156,16 @@ namespace JunkyardBoss
         [SerializeField] private float _throwReleaseTime = 0.42f;
 
         [Min(0.05f)]
+        [SerializeField] private float _chargeAlignTime = 0.2f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _chargeTelegraphTime = 0.45f;
+
+        [Min(0.05f)]
         [SerializeField] private float _chargeAttackTime = 1.15f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _chargeRecoveryTime = 0.7f;
 
         [Range(0.1f, 3f)]
         [SerializeField] private float _attackPoseSpeedMult = 1.45f;
@@ -166,13 +175,13 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketHitDamage = 28f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketHitRadius = 2.1f;
+        [SerializeField] private float _bucketHitRadius = 2.35f;
 
         [Range(1f, 180f)]
         [SerializeField] private float _bucketHitAngle = 95f;
 
         [Min(0f)]
-        [SerializeField] private float _bucketHitOffset = 1.15f;
+        [SerializeField] private float _bucketHitOffset = 1.35f;
 
         [SerializeField] private LayerMask _bucketHitMask = ~0;
 
@@ -184,6 +193,39 @@ namespace JunkyardBoss
 
         [Range(0.1f, 3f)]
         [SerializeField] private float _bucketRecoverSpeedMult = 1.15f;
+
+        [Header("Throw Attack")]
+        [Min(1)]
+        [SerializeField] private int _throwProjectileCount = 3;
+
+        [Range(0f, 90f)]
+        [SerializeField] private float _throwProjectileSpreadAngle = 18f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _throwProjectileDamage = 8f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _throwProjectileSpeedMult = 1.15f;
+
+        [Min(0f)]
+        [SerializeField] private float _throwSpawnOffset = 0.8f;
+
+        [SerializeField] private LayerMask _throwHitMask = ~0;
+
+        [Header("Charge Attack")]
+        [Min(0.1f)]
+        [SerializeField] private float _chargeSpeed = 14f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _chargeHitDamage = 32f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _chargeHitRadius = 1.4f;
+
+        [Min(0f)]
+        [SerializeField] private float _chargeHitOffset = 1.1f;
+
+        [SerializeField] private LayerMask _chargeHitMask = ~0;
 
         [Min(0.05f)]
         [SerializeField] private float _attackRecoveryTime = 0.35f;
@@ -199,17 +241,23 @@ namespace JunkyardBoss
         [SerializeField] private float _moveRetreatTime = 0.55f;
 
         [Min(0f)]
-        [SerializeField] private float _moveRepositionCommitTime = 0.35f;
+        [SerializeField] private float _moveRepositionCommitTime = 0.18f;
 
         [Min(0f)]
-        [SerializeField] private float _moveChaseCommitTime = 0.25f;
+        [SerializeField] private float _moveChaseCommitTime = 0.1f;
 
         [Header("Aim")]
         [Min(1f)]
-        [SerializeField] private float _cabinTurnSpeed = 58f;
+        [SerializeField] private float _cabinTurnSpeed = 64f;
 
         [Range(1f, 3f)]
         [SerializeField] private float _cabinPhaseTwoMult = 1.35f;
+
+        [Min(1f)]
+        [SerializeField] private float _throwAimHeight = 1.2f;
+
+        [Min(0f)]
+        [SerializeField] private float _throwUpwardBias = 0.35f;
 
         [Header("Arm")]
         [SerializeField] private Vector3 _armDefaultBoomEuler = new Vector3(0f, 0f, -35f);
@@ -312,7 +360,10 @@ namespace JunkyardBoss
         public float BucketStrikeTime => _bucketStrikeTime;
         public float ThrowGrabTime => _throwGrabTime;
         public float ThrowReleaseTime => _throwReleaseTime;
+        public float ChargeAlignTime => _chargeAlignTime;
+        public float ChargeTelegraphTime => _chargeTelegraphTime;
         public float ChargeAttackTime => _chargeAttackTime;
+        public float ChargeRecoveryTime => _chargeRecoveryTime;
         public float AttackPoseSpeedMult => _attackPoseSpeedMult;
         public float BucketHitDamage => _bucketHitDamage;
         public float BucketHitRadius => _bucketHitRadius;
@@ -322,6 +373,19 @@ namespace JunkyardBoss
         public float BucketPrepareSpeedMult => _bucketPrepareSpeedMult;
         public float BucketStrikeSpeedMult => _bucketStrikeSpeedMult;
         public float BucketRecoverSpeedMult => _bucketRecoverSpeedMult;
+        public int ThrowProjectileCount => Mathf.Max(_throwProjectileCount, 1);
+        public float ThrowProjectileSpreadAngle => _throwProjectileSpreadAngle;
+        public float ThrowProjectileDamage => _throwProjectileDamage;
+        public float ThrowProjectileSpeedMult => _throwProjectileSpeedMult;
+        public float ThrowSpawnOffset => _throwSpawnOffset;
+        public float ThrowAimHeight => _throwAimHeight;
+        public float ThrowUpwardBias => _throwUpwardBias;
+        public LayerMask ThrowHitMask => _throwHitMask;
+        public float ChargeSpeed => _chargeSpeed;
+        public float ChargeHitDamage => _chargeHitDamage;
+        public float ChargeHitRadius => _chargeHitRadius;
+        public float ChargeHitOffset => _chargeHitOffset;
+        public LayerMask ChargeHitMask => _chargeHitMask;
         public float AttackRecoveryTime => _attackRecoveryTime;
         public float MoveOrbitTime => _moveOrbitTime;
         public float MovePressureTime => _movePressureTime;

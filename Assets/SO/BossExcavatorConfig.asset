@@ -15,20 +15,20 @@ MonoBehaviour:
   _maxHealth: 300
   _phaseTwoRatio: 0.5
   _startState: 2
-  _baseMoveSpeed: 2.6
-  _baseTurnSpeed: 110
+  _baseMoveSpeed: 4.9
+  _baseTurnSpeed: 145
   _moveStartAngle: 10
-  _moveStopAngle: 38
-  _stopDistance: 0.75
-  _mediumDistance: 11.4
-  _distanceTolerance: 1.5
-  _distanceHysteresis: 0.75
-  _retreatDistance: 15
+  _moveStopAngle: 36
+  _stopDistance: 0.55
+  _mediumDistance: 5.6
+  _distanceTolerance: 0.7
+  _distanceHysteresis: 0.35
+  _retreatDistance: 6.35
   _flankAngle: 20
   _flankSwitchThreshold: 2
   _flankSwitchCooldown: 1.8
-  _targetSwitchCooldown: 1.1
-  _desiredPointDeadZone: 0.9
+  _targetSwitchCooldown: 0.35
+  _desiredPointDeadZone: 0.4
   _wallProbeDistance: 2.2
   _probeRadius: 0.75
   _probeHeight: 0.8
@@ -41,9 +41,9 @@ MonoBehaviour:
   _wallPenalty: 4.5
   _cornerPenalty: 8
   _blockedPenalty: 6
-  _attackChaseDistance: 12.6
-  _repositionBaseAngle: 68
-  _bucketMaxDistance: 4.8
+  _attackChaseDistance: 6.1
+  _repositionBaseAngle: 86
+  _bucketMaxDistance: 5.2
   _bucketBaseAngle: 34
   _bucketCabinAngle: 38
   _throwMinDistance: 5
@@ -61,26 +61,46 @@ MonoBehaviour:
   _bucketStrikeTime: 0.32
   _throwGrabTime: 0.52
   _throwReleaseTime: 0.42
+  _chargeAlignTime: 0.2
+  _chargeTelegraphTime: 0.45
   _chargeAttackTime: 1.15
+  _chargeRecoveryTime: 0.7
   _attackPoseSpeedMult: 1.45
   _bucketHitDamage: 28
-  _bucketHitRadius: 2.1
+  _bucketHitRadius: 2.35
   _bucketHitAngle: 95
-  _bucketHitOffset: 1.15
+  _bucketHitOffset: 1.35
   _bucketHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
   _bucketPrepareSpeedMult: 1.35
   _bucketStrikeSpeedMult: 2
   _bucketRecoverSpeedMult: 1.15
+  _throwProjectileCount: 3
+  _throwProjectileSpreadAngle: 18
+  _throwProjectileDamage: 8
+  _throwProjectileSpeedMult: 1.15
+  _throwSpawnOffset: 0.8
+  _throwHitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _chargeSpeed: 14
+  _chargeHitDamage: 32
+  _chargeHitRadius: 1.4
+  _chargeHitOffset: 1.1
+  _chargeHitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   _attackRecoveryTime: 0.35
   _moveOrbitTime: 0.9
   _movePressureTime: 2
   _moveRetreatTime: 0.55
-  _moveRepositionCommitTime: 0.35
-  _moveChaseCommitTime: 0.25
-  _cabinTurnSpeed: 52
+  _moveRepositionCommitTime: 0.18
+  _moveChaseCommitTime: 0.1
+  _cabinTurnSpeed: 64
   _cabinPhaseTwoMult: 1.35
+  _throwAimHeight: 1.2
+  _throwUpwardBias: 0.35
   _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
   _armDefaultStickEuler: {x: 0, y: 0, z: 70}
   _armDefaultBucketEuler: {x: 0, y: 0, z: -25}
