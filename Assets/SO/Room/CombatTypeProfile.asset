@@ -130,9 +130,9 @@ MonoBehaviour:
     _maximumSameTypeWithinNeighborRadius: 1
     _scatterRadiusInCells: 0
   - _prefab: {fileID: 7892580720158080282, guid: 6f93e87cb1d2480db3e829fd7b989716, type: 3}
-    _weight: 3
+    _weight: 6
     _guaranteed: 0
-    _countRange: {x: 0, y: 1}
+    _countRange: {x: 0, y: 2}
     _minimumDistanceFromCorridorInCells: 10
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1

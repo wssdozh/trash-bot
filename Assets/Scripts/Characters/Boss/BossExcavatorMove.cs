@@ -1,19 +1,39 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace JunkyardBoss
 {
     public sealed class BossExcavatorMove : MonoBehaviour
     {
         private const float MinSqrMagnitude = 0.0001f;
-        private const int PointSearchCount = 4;
-        private const int WallPushCount = 3;
-        private const float PointSearchAngleStep = 20f;
-        private const float MinMoveSpeedFactor = 0.18f;
-        private const float MinPushDelta = 0.05f;
+        private const float NavSampleGap = 2f;
+        private const float NavRecoverGap = 6f;
+        private const float NavSnapGap = 0.35f;
+        private const float PathRefreshGap = 0.35f;
+        private const float PathLookDistance = 0.9f;
+        private const float LookBlend = 0.6f;
+        private const float MinMoveSpeedFactor = 0.22f;
+        private const float GizmoPointSize = 0.35f;
+        private const float GizmoSmallPointSize = 0.2f;
+        private const float BossRoomRadius = 30f;
+        private const float MediumDistanceFactor = 0.38f;
+        private const float RetreatDistanceFactor = 0.5f;
+        private const float AttackChaseDistanceFactor = 0.42f;
+        private const float ArenaReturnDistanceFactor = 0.63f;
+        private const float ChargeAlignDistanceFactor = 0.46f;
+        private const float WallEscapeDistanceFactor = 0.2f;
+        private const float CornerEscapeDistanceFactor = 0.3f;
+        private const float DistanceToleranceFactor = 0.05f;
+        private const float DistanceHysteresisFactor = 0.025f;
+        private const float DesiredPointDeadZoneFactor = 0.03f;
 
         [SerializeField] private Transform _arenaCenter;
         [SerializeField] private LayerMask _obstacleMask;
+        [SerializeField] private NavMeshAgent _navMeshAgent;
+
+        private NavMeshPath _navPath;
+        private NavMeshPath _scorePath;
 
         private BossExcavatorConfig _config;
         private RoomRuntimeState _roomRuntimeState;
@@ -22,22 +42,56 @@ namespace JunkyardBoss
         private Transform _target;
         private BossExcavatorTargetPoint _targetPoint;
         private Vector3 _desiredPoint;
+        private Vector3 _pathTargetPoint;
         private Vector3 _runtimeArenaCenter;
         private Vector3 _fallbackArenaCenter;
         private bool _isChargeAlign;
+        private bool _hasPathTarget;
         private bool _hasRuntimeArenaCenter;
         private bool _hasFallbackArenaCenter;
+        private float _pathStopDistance;
         private float _flankSwitchTimer;
         private float _targetSwitchTimer;
         private int _flankSign = 1;
-        private bool _isMoveAllowed;
+        private Vector3 _lastNavPoint;
+        private bool _hasLastNavPoint;
 
         public BossExcavatorTargetPoint TargetPoint => _targetPoint;
         public Vector3 DesiredPoint => _desiredPoint;
+        public float MediumDistance => GetMediumDistance();
+        public float RetreatDistance => GetRetreatDistance();
+        public float MinMoveDistance => GetMinMoveDistance();
+        public float AttackChaseDistance => GetAttackChaseDistance();
 
         private void Awake()
         {
-            ValidateDependencies();
+            InitializeNavPaths();
+            ResolveRoomState();
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            if (_config == null)
+            {
+                return;
+            }
+
+            Vector3 currentPoint = GetGizmoBasePoint();
+            Vector3 arenaCenterPoint = GetGizmoArenaCenterPoint(currentPoint);
+
+            DrawArenaGizmo(currentPoint, arenaCenterPoint);
+            DrawBaseGizmo(currentPoint);
+
+            if (_target == null)
+            {
+                return;
+            }
+
+            Vector3 targetPoint = GetPlanarPosition(_target.position);
+
+            DrawTargetDistanceGizmo(targetPoint);
+            DrawCandidatePointGizmo(currentPoint, targetPoint, arenaCenterPoint);
+            DrawDesiredPointGizmo(currentPoint, targetPoint);
         }
 
         public void Setup(BossExcavatorConfig config, Transform baseTransform, Rigidbody baseRigidbody, Transform target)
@@ -61,14 +115,31 @@ namespace JunkyardBoss
             _base = baseTransform;
             _baseRigidbody = baseRigidbody;
             _target = target;
+
+            InitializeNavPaths();
+            ResolveRoomState();
+            ResolveNavMeshAgent(baseTransform);
+            ConfigureNavMeshAgent();
+            ResetRuntime();
+        }
+
+        public void ResetRuntime()
+        {
             _targetPoint = BossExcavatorTargetPoint.ArenaCenter;
-            _desiredPoint = GetPlanarPosition(_baseRigidbody.position);
+            _desiredPoint = GetBasePoint();
+            _pathTargetPoint = _desiredPoint;
+            _pathStopDistance = _config != null ? _config.StopDistance : 0f;
+            _hasPathTarget = false;
+            _isChargeAlign = false;
+            _targetSwitchTimer = 0f;
+            _flankSwitchTimer = 0f;
+            _flankSign = 1;
             _fallbackArenaCenter = _desiredPoint;
             _hasFallbackArenaCenter = true;
-            _targetSwitchTimer = 0f;
-            _isMoveAllowed = false;
+            _lastNavPoint = Vector3.zero;
+            _hasLastNavPoint = false;
 
-            ResolveRoomState();
+            Stop();
         }
 
         public void SetTarget(Transform target)
@@ -92,7 +163,145 @@ namespace JunkyardBoss
             _hasRuntimeArenaCenter = true;
         }
 
+        public void Stop()
+        {
+            if (_navMeshAgent == null)
+            {
+                return;
+            }
+
+            if (_navMeshAgent.enabled)
+            {
+                if (_navMeshAgent.isOnNavMesh)
+                {
+                    _navMeshAgent.ResetPath();
+                    _navMeshAgent.nextPosition = GetBasePoint();
+                }
+            }
+
+            _hasPathTarget = false;
+
+            if (_baseRigidbody != null)
+            {
+                Vector3 currentVelocity = _baseRigidbody.linearVelocity;
+                currentVelocity.x = 0f;
+                currentVelocity.z = 0f;
+                _baseRigidbody.linearVelocity = currentVelocity;
+            }
+        }
+
         public void FixedTick()
+        {
+            ValidateRuntime();
+
+            if (_target == null)
+            {
+                Stop();
+
+                return;
+            }
+
+            Vector3 currentPoint = GetBasePoint();
+
+            if (SyncAgent(currentPoint) == false)
+            {
+                Stop();
+
+                return;
+            }
+
+            UpdateTimers();
+
+            Vector3 targetPoint = GetPlanarPosition(_target.position);
+            Vector3 arenaCenterPoint = GetArenaCenterPosition();
+            BossExcavatorTargetPoint nextTargetPoint = SelectTargetPoint(currentPoint, targetPoint, arenaCenterPoint);
+
+            if (ShouldKeepTargetPoint(nextTargetPoint))
+            {
+                nextTargetPoint = _targetPoint;
+            }
+
+            Vector3 nextDesiredPoint = BuildDesiredPoint(currentPoint, targetPoint, arenaCenterPoint, nextTargetPoint);
+            float stopDistance = GetStopDistance(nextTargetPoint);
+
+            if (nextTargetPoint != _targetPoint)
+            {
+                _targetSwitchTimer = _config.TargetSwitchCooldown;
+            }
+
+            _targetPoint = nextTargetPoint;
+            _desiredPoint = nextDesiredPoint;
+
+            if (RefreshPath(nextDesiredPoint, stopDistance) == false)
+            {
+                Stop();
+                RotateBase(currentPoint, targetPoint, Vector3.zero, nextTargetPoint);
+
+                return;
+            }
+
+            Vector3 moveDirection = GetMoveDirection(currentPoint);
+            RotateBase(currentPoint, targetPoint, moveDirection, nextTargetPoint);
+            MoveBase(currentPoint, moveDirection, stopDistance);
+        }
+
+        private void ResolveNavMeshAgent(Transform baseTransform)
+        {
+            if (_navMeshAgent != null)
+            {
+                if (_navMeshAgent.transform == baseTransform)
+                {
+                    return;
+                }
+
+                _navMeshAgent.enabled = false;
+                _navMeshAgent = null;
+            }
+
+            _navMeshAgent = baseTransform.GetComponent<NavMeshAgent>();
+
+            if (_navMeshAgent == null)
+            {
+                throw new InvalidOperationException(nameof(_navMeshAgent));
+            }
+        }
+
+        private void ConfigureNavMeshAgent()
+        {
+            if (_navMeshAgent == null)
+            {
+                throw new InvalidOperationException(nameof(_navMeshAgent));
+            }
+
+            _navMeshAgent.updatePosition = false;
+            _navMeshAgent.updateRotation = false;
+            _navMeshAgent.autoBraking = true;
+            _navMeshAgent.autoRepath = true;
+            _navMeshAgent.angularSpeed = 0f;
+            _navMeshAgent.speed = _config.BaseMoveSpeed;
+            _navMeshAgent.acceleration = Mathf.Max(_config.BaseMoveSpeed * 8f, 8f);
+            _navMeshAgent.avoidancePriority = GetAvoidPriority();
+            _navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
+            _navMeshAgent.radius = Mathf.Max(_config.ProbeRadius, 0.2f);
+            _navMeshAgent.height = Mathf.Max(_config.ProbeHeight * 2f, 0.8f);
+            _navMeshAgent.stoppingDistance = _config.StopDistance;
+            _navMeshAgent.enabled = false;
+        }
+
+        private void InitializeNavPaths()
+        {
+            if (_navPath == null)
+            {
+                _navPath = new NavMeshPath();
+            }
+
+            if (_scorePath == null)
+            {
+                _scorePath = new NavMeshPath();
+            }
+        }
+
+        private void ValidateRuntime()
         {
             if (_config == null)
             {
@@ -109,137 +318,151 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(_baseRigidbody));
             }
 
-            if (_target == null)
+            if (_navMeshAgent == null)
             {
-                return;
+                throw new InvalidOperationException(nameof(_navMeshAgent));
             }
 
-            UpdateTimers();
+            InitializeNavPaths();
+        }
 
-            Vector3 basePosition = GetPlanarPosition(_baseRigidbody.position);
-            Vector3 targetPosition = GetPlanarPosition(_target.position);
-            Vector3 arenaCenterPosition = GetArenaCenterPosition();
+        private void DrawArenaGizmo(Vector3 currentPoint, Vector3 arenaCenterPoint)
+        {
+            Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.9f);
+            Gizmos.DrawLine(currentPoint, arenaCenterPoint);
+            Gizmos.DrawWireSphere(arenaCenterPoint, GizmoPointSize);
+            Gizmos.DrawWireSphere(arenaCenterPoint, GetArenaReturnDistance());
+        }
 
-            BossExcavatorTargetPoint nextTargetPoint = SelectTargetPoint(basePosition, targetPosition, arenaCenterPosition);
-            nextTargetPoint = ResolveTargetPoint(nextTargetPoint);
+        private void DrawBaseGizmo(Vector3 currentPoint)
+        {
+            Transform forwardTransform = transform;
 
-            Vector3 nextDesiredPoint = BuildTargetPoint(basePosition, targetPosition, arenaCenterPosition, nextTargetPoint);
-            nextDesiredPoint = ResolveDesiredPoint(basePosition, nextDesiredPoint, targetPosition, arenaCenterPosition, nextTargetPoint);
-            nextDesiredPoint = StabilizeDesiredPoint(basePosition, nextDesiredPoint, nextTargetPoint);
-
-            if (nextTargetPoint != _targetPoint)
+            if (_base != null)
             {
-                _targetSwitchTimer = _config.TargetSwitchCooldown;
-                _isMoveAllowed = false;
+                forwardTransform = _base;
             }
 
-            _targetPoint = nextTargetPoint;
-            _desiredPoint = nextDesiredPoint;
+            Vector3 forwardPoint = currentPoint + (GetPlanarForward(forwardTransform.forward) * 2f);
 
-            Vector3 lookPoint = GetLookPoint(targetPosition, nextDesiredPoint, nextTargetPoint);
-            Quaternion nextRotation = RotateBase(basePosition, lookPoint);
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(currentPoint, forwardPoint);
+            Gizmos.DrawWireSphere(forwardPoint, GizmoSmallPointSize);
+        }
 
-            MoveBase(basePosition, arenaCenterPosition, nextRotation);
+        private void DrawTargetDistanceGizmo(Vector3 targetPoint)
+        {
+            Gizmos.color = new Color(1f, 0.25f, 0.25f, 0.9f);
+            Gizmos.DrawWireSphere(targetPoint, _config.BucketMaxDistance);
+
+            Gizmos.color = new Color(0.2f, 1f, 1f, 0.9f);
+            Gizmos.DrawWireSphere(targetPoint, GetAttackChaseDistance());
+
+            Gizmos.color = new Color(1f, 0.85f, 0.2f, 0.9f);
+            Gizmos.DrawWireSphere(targetPoint, GetMediumDistance());
+
+            Gizmos.color = new Color(1f, 0.5f, 0.2f, 0.9f);
+            Gizmos.DrawWireSphere(targetPoint, GetRetreatDistance());
+
+            Gizmos.color = new Color(0.3f, 1f, 0.35f, 0.9f);
+            Gizmos.DrawWireSphere(targetPoint, GetMinMoveDistance());
+        }
+
+        private void DrawCandidatePointGizmo(Vector3 currentPoint, Vector3 targetPoint, Vector3 arenaCenterPoint)
+        {
+            Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+            Vector3 leftPoint = BuildOrbitPoint(currentPoint, targetPoint, -1f);
+            Vector3 rightPoint = BuildOrbitPoint(currentPoint, targetPoint, 1f);
+            Vector3 backPoint = BuildCenterPoint(currentPoint, targetPoint, GetRetreatDistance());
+            Vector3 chargePoint = BuildCenterPoint(currentPoint, targetPoint, GetChargeAlignDistance());
+
+            DrawPointGizmo(targetPoint, centerPoint, Color.white, GizmoSmallPointSize);
+            DrawPointGizmo(targetPoint, leftPoint, Color.yellow, GizmoSmallPointSize);
+            DrawPointGizmo(targetPoint, rightPoint, Color.yellow, GizmoSmallPointSize);
+            DrawPointGizmo(targetPoint, backPoint, new Color(1f, 0.45f, 0.2f, 0.95f), GizmoSmallPointSize);
+            DrawPointGizmo(targetPoint, chargePoint, Color.red, GizmoSmallPointSize);
+
+            Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.5f);
+            Gizmos.DrawLine(arenaCenterPoint, currentPoint);
+        }
+
+        private void DrawDesiredPointGizmo(Vector3 currentPoint, Vector3 targetPoint)
+        {
+            Vector3 desiredPoint = _desiredPoint;
+
+            if (Application.isPlaying == false)
+            {
+                desiredPoint = BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+            }
+
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawLine(currentPoint, desiredPoint);
+            Gizmos.DrawWireSphere(desiredPoint, GizmoPointSize);
+        }
+
+        private void DrawPointGizmo(Vector3 fromPoint, Vector3 toPoint, Color color, float radius)
+        {
+            Gizmos.color = color;
+            Gizmos.DrawLine(fromPoint, toPoint);
+            Gizmos.DrawWireSphere(toPoint, radius);
+        }
+
+        private Vector3 GetGizmoBasePoint()
+        {
+            if (_baseRigidbody != null)
+            {
+                return GetPlanarPosition(_baseRigidbody.position);
+            }
+
+            if (_base != null)
+            {
+                return GetPlanarPosition(_base.position);
+            }
+
+            return GetPlanarPosition(transform.position);
+        }
+
+        private Vector3 GetGizmoArenaCenterPoint(Vector3 currentPoint)
+        {
+            if (Application.isPlaying)
+            {
+                return GetArenaCenterPosition();
+            }
+
+            if (_arenaCenter != null)
+            {
+                return GetPlanarPosition(_arenaCenter.position);
+            }
+
+            return currentPoint;
         }
 
         private void UpdateTimers()
         {
-            if (_flankSwitchTimer <= 0f)
-            {
-                _flankSwitchTimer = 0f;
-            }
-            else
-            {
-                _flankSwitchTimer = Mathf.Max(0f, _flankSwitchTimer - Time.fixedDeltaTime);
-            }
-
-            if (_targetSwitchTimer <= 0f)
-            {
-                _targetSwitchTimer = 0f;
-            }
-            else
-            {
-                _targetSwitchTimer = Mathf.Max(0f, _targetSwitchTimer - Time.fixedDeltaTime);
-            }
+            _flankSwitchTimer = Mathf.Max(0f, _flankSwitchTimer - Time.fixedDeltaTime);
+            _targetSwitchTimer = Mathf.Max(0f, _targetSwitchTimer - Time.fixedDeltaTime);
         }
 
-        private BossExcavatorTargetPoint ResolveTargetPoint(BossExcavatorTargetPoint nextTargetPoint)
+        private BossExcavatorTargetPoint SelectTargetPoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 arenaCenterPoint)
         {
-            if (ShouldKeepTargetPoint(nextTargetPoint))
-            {
-                return _targetPoint;
-            }
-
-            return nextTargetPoint;
-        }
-
-        private bool ShouldKeepTargetPoint(BossExcavatorTargetPoint nextTargetPoint)
-        {
-            if (nextTargetPoint == _targetPoint)
-            {
-                return false;
-            }
-
-            if (_targetSwitchTimer <= 0f)
-            {
-                return false;
-            }
-
-            if (IsImmediateTargetPoint(nextTargetPoint))
-            {
-                return false;
-            }
-
-            if (IsImmediateTargetPoint(_targetPoint))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool IsImmediateTargetPoint(BossExcavatorTargetPoint targetPoint)
-        {
-            if (targetPoint == BossExcavatorTargetPoint.WallEscape)
-            {
-                return true;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.CornerEscape)
-            {
-                return true;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.ArenaCenter)
-            {
-                return true;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.ChargeAlign)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private BossExcavatorTargetPoint SelectTargetPoint(Vector3 basePosition, Vector3 targetPosition, Vector3 arenaCenterPosition)
-        {
-            if (ShouldReturnToCenter(basePosition, arenaCenterPosition))
+            if (ShouldReturnToCenter(currentPoint, arenaCenterPoint))
             {
                 return BossExcavatorTargetPoint.ArenaCenter;
             }
 
-            int wallHitCount = GetWallHitCount(basePosition);
-
-            if (wallHitCount > 1)
+            if (IsNearCorner(currentPoint))
             {
                 return BossExcavatorTargetPoint.CornerEscape;
             }
 
-            if (wallHitCount > 0)
+            if (IsNearWall(currentPoint))
             {
-                return BossExcavatorTargetPoint.WallEscape;
+                float distanceToTarget = Vector3.Distance(currentPoint, targetPoint);
+
+                if (distanceToTarget < GetMediumDistance())
+                {
+                    return BossExcavatorTargetPoint.WallEscape;
+                }
             }
 
             if (_isChargeAlign)
@@ -247,31 +470,31 @@ namespace JunkyardBoss
                 return BossExcavatorTargetPoint.ChargeAlign;
             }
 
-            float distanceToTarget = Vector3.Distance(basePosition, targetPosition);
+            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
 
-            if (ShouldUseRetreatPoint(distanceToTarget))
+            if (ShouldUseRetreat(targetDistance))
             {
                 return BossExcavatorTargetPoint.PlayerBack;
             }
 
-            if (ShouldUseCenterPoint(distanceToTarget))
+            if (ShouldUseCenter(targetDistance))
             {
                 return BossExcavatorTargetPoint.PlayerCenter;
             }
 
-            return SelectFlankPoint(basePosition, targetPosition);
+            return SelectFlankPoint(currentPoint, targetPoint);
         }
 
-        private bool ShouldUseRetreatPoint(float distanceToTarget)
+        private bool ShouldUseRetreat(float targetDistance)
         {
-            if (distanceToTarget < _config.MinMoveDistance)
+            if (targetDistance < GetMinMoveDistance())
             {
                 return true;
             }
 
             if (_targetPoint == BossExcavatorTargetPoint.PlayerBack)
             {
-                if (distanceToTarget < _config.MediumDistance - _config.DistanceHysteresis)
+                if (targetDistance < GetMediumDistance())
                 {
                     return true;
                 }
@@ -280,16 +503,16 @@ namespace JunkyardBoss
             return false;
         }
 
-        private bool ShouldUseCenterPoint(float distanceToTarget)
+        private bool ShouldUseCenter(float targetDistance)
         {
-            if (distanceToTarget > _config.MaxMoveDistance)
+            if (targetDistance > GetAttackChaseDistance())
             {
                 return true;
             }
 
             if (_targetPoint == BossExcavatorTargetPoint.PlayerCenter)
             {
-                if (distanceToTarget > _config.MediumDistance + _config.DistanceHysteresis)
+                if (targetDistance > GetMediumDistance() - GetDistanceHysteresis())
                 {
                     return true;
                 }
@@ -298,12 +521,12 @@ namespace JunkyardBoss
             return false;
         }
 
-        private BossExcavatorTargetPoint SelectFlankPoint(Vector3 basePosition, Vector3 targetPosition)
+        private BossExcavatorTargetPoint SelectFlankPoint(Vector3 currentPoint, Vector3 targetPoint)
         {
-            Vector3 leftPoint = BuildOrbitPoint(basePosition, targetPosition, -1f);
-            Vector3 rightPoint = BuildOrbitPoint(basePosition, targetPosition, 1f);
-            float leftScore = GetPointScore(basePosition, leftPoint);
-            float rightScore = GetPointScore(basePosition, rightPoint);
+            Vector3 leftPoint = BuildOrbitPoint(currentPoint, targetPoint, -1f);
+            Vector3 rightPoint = BuildOrbitPoint(currentPoint, targetPoint, 1f);
+            float leftScore = GetPointScore(currentPoint, leftPoint);
+            float rightScore = GetPointScore(currentPoint, rightPoint);
             int currentFlankSign = GetFlankSign(_targetPoint);
 
             if (currentFlankSign != 0)
@@ -376,103 +599,172 @@ namespace JunkyardBoss
             return BossExcavatorTargetPoint.PlayerRight;
         }
 
-        private Vector3 BuildTargetPoint(Vector3 basePosition, Vector3 targetPosition, Vector3 arenaCenterPosition, BossExcavatorTargetPoint targetPoint)
+        private bool ShouldKeepTargetPoint(BossExcavatorTargetPoint nextTargetPoint)
         {
-            if (targetPoint == BossExcavatorTargetPoint.PlayerCenter)
+            if (nextTargetPoint == _targetPoint)
             {
-                return BuildCenterPoint(basePosition, targetPosition, _config.MediumDistance);
+                return false;
             }
 
-            if (targetPoint == BossExcavatorTargetPoint.PlayerLeft)
+            if (_targetSwitchTimer <= 0f)
             {
-                return BuildOrbitPoint(basePosition, targetPosition, -1f);
+                return false;
             }
 
-            if (targetPoint == BossExcavatorTargetPoint.PlayerRight)
+            if (IsImmediatePoint(nextTargetPoint))
             {
-                return BuildOrbitPoint(basePosition, targetPosition, 1f);
+                return false;
             }
 
-            if (targetPoint == BossExcavatorTargetPoint.PlayerBack)
+            if (IsImmediatePoint(_targetPoint))
             {
-                return BuildCenterPoint(basePosition, targetPosition, _config.RetreatDistance);
+                return false;
             }
 
+            return true;
+        }
+
+        private bool IsImmediatePoint(BossExcavatorTargetPoint targetPoint)
+        {
             if (targetPoint == BossExcavatorTargetPoint.WallEscape)
             {
-                return BuildWallEscapePoint(basePosition, arenaCenterPosition);
+                return true;
             }
 
             if (targetPoint == BossExcavatorTargetPoint.CornerEscape)
             {
-                return BuildCornerEscapePoint(basePosition, arenaCenterPosition);
+                return true;
             }
 
             if (targetPoint == BossExcavatorTargetPoint.ArenaCenter)
             {
-                return arenaCenterPosition;
+                return true;
             }
 
             if (targetPoint == BossExcavatorTargetPoint.ChargeAlign)
             {
-                return BuildCenterPoint(basePosition, targetPosition, _config.ChargeAlignDistance);
+                return true;
             }
 
-            return arenaCenterPosition;
+            return false;
         }
 
-        private Vector3 BuildCenterPoint(Vector3 basePosition, Vector3 targetPosition, float distance)
+        private Vector3 BuildDesiredPoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 arenaCenterPoint, BossExcavatorTargetPoint targetPointType)
         {
-            Vector3 fromTargetToBase = basePosition - targetPosition;
+            Vector3 rawPoint = BuildRawPoint(currentPoint, targetPoint, arenaCenterPoint, targetPointType);
+            Vector3 resolvedPoint;
 
-            if (fromTargetToBase.sqrMagnitude <= MinSqrMagnitude)
+            if (TryResolvePoint(currentPoint, rawPoint, out resolvedPoint))
             {
-                fromTargetToBase = -GetPlanarForward(_target.forward);
+                return resolvedPoint;
             }
 
-            Vector3 direction = fromTargetToBase.normalized;
-
-            return targetPosition + direction * distance;
-        }
-
-        private Vector3 BuildOrbitPoint(Vector3 basePosition, Vector3 targetPosition, float sideSign)
-        {
-            Vector3 fromTargetToBase = basePosition - targetPosition;
-
-            if (fromTargetToBase.sqrMagnitude <= MinSqrMagnitude)
+            if (targetPointType == BossExcavatorTargetPoint.PlayerLeft || targetPointType == BossExcavatorTargetPoint.PlayerRight)
             {
-                fromTargetToBase = -GetPlanarForward(_target.forward);
+                Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+
+                if (TryResolvePoint(currentPoint, centerPoint, out resolvedPoint))
+                {
+                    return resolvedPoint;
+                }
             }
 
-            Vector3 baseDirection = fromTargetToBase.normalized;
-            Quaternion rotation = Quaternion.AngleAxis(_config.FlankAngle * sideSign, Vector3.up);
-            Vector3 orbitDirection = rotation * baseDirection;
+            if (targetPointType != BossExcavatorTargetPoint.PlayerBack)
+            {
+                Vector3 backPoint = BuildCenterPoint(currentPoint, targetPoint, GetRetreatDistance());
 
-            return targetPosition + orbitDirection * _config.MediumDistance;
+                if (TryResolvePoint(currentPoint, backPoint, out resolvedPoint))
+                {
+                    return resolvedPoint;
+                }
+            }
+
+            if (TryResolvePoint(currentPoint, arenaCenterPoint, out resolvedPoint))
+            {
+                return resolvedPoint;
+            }
+
+            return currentPoint;
         }
 
-        private Vector3 BuildWallEscapePoint(Vector3 basePosition, Vector3 arenaCenterPosition)
+        private Vector3 BuildRawPoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 arenaCenterPoint, BossExcavatorTargetPoint targetPointType)
         {
-            return BuildEscapePoint(basePosition, arenaCenterPosition, _config.WallEscapeDistance);
+            if (targetPointType == BossExcavatorTargetPoint.PlayerCenter)
+            {
+                return BuildCenterPoint(currentPoint, targetPoint, GetMediumDistance());
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.PlayerLeft)
+            {
+                return BuildOrbitPoint(currentPoint, targetPoint, -1f);
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.PlayerRight)
+            {
+                return BuildOrbitPoint(currentPoint, targetPoint, 1f);
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.PlayerBack)
+            {
+                return BuildCenterPoint(currentPoint, targetPoint, GetRetreatDistance());
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.WallEscape)
+            {
+                return BuildEscapePoint(currentPoint, arenaCenterPoint, GetWallEscapeDistance());
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.CornerEscape)
+            {
+                return BuildEscapePoint(currentPoint, arenaCenterPoint, GetCornerEscapeDistance());
+            }
+
+            if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                return BuildCenterPoint(currentPoint, targetPoint, GetChargeAlignDistance());
+            }
+
+            return arenaCenterPoint;
         }
 
-        private Vector3 BuildCornerEscapePoint(Vector3 basePosition, Vector3 arenaCenterPosition)
+        private Vector3 BuildCenterPoint(Vector3 currentPoint, Vector3 targetPoint, float distance)
         {
-            return BuildEscapePoint(basePosition, arenaCenterPosition, _config.CornerEscapeDistance);
+            Vector3 fromTarget = currentPoint - targetPoint;
+
+            if (fromTarget.sqrMagnitude <= MinSqrMagnitude)
+            {
+                fromTarget = -GetPlanarForward(_target.forward);
+            }
+
+            return targetPoint + fromTarget.normalized * distance;
         }
 
-        private Vector3 BuildEscapePoint(Vector3 basePosition, Vector3 arenaCenterPosition, float escapeDistance)
+        private Vector3 BuildOrbitPoint(Vector3 currentPoint, Vector3 targetPoint, float sideSign)
+        {
+            Vector3 fromTarget = currentPoint - targetPoint;
+
+            if (fromTarget.sqrMagnitude <= MinSqrMagnitude)
+            {
+                fromTarget = -GetPlanarForward(_target.forward);
+            }
+
+            Vector3 orbitDirection = RotateDirection(fromTarget.normalized, _config.FlankAngle * sideSign);
+
+            return targetPoint + orbitDirection * GetMediumDistance();
+        }
+
+        private Vector3 BuildEscapePoint(Vector3 currentPoint, Vector3 arenaCenterPoint, float escapeDistance)
         {
             Vector3 normalSum = Vector3.zero;
             int hitCount = 0;
 
-            hitCount += TryAddWallNormal(basePosition, Vector3.forward, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(basePosition, Vector3.back, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(basePosition, Vector3.left, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(basePosition, Vector3.right, _config.WallProbeDistance, ref normalSum);
+            hitCount += TryAddWallNormal(currentPoint, Vector3.forward, ref normalSum);
+            hitCount += TryAddWallNormal(currentPoint, Vector3.back, ref normalSum);
+            hitCount += TryAddWallNormal(currentPoint, Vector3.left, ref normalSum);
+            hitCount += TryAddWallNormal(currentPoint, Vector3.right, ref normalSum);
 
             Vector3 escapeDirection = GetPlanarDirection(normalSum);
-            Vector3 centerDirection = GetPlanarDirection(arenaCenterPosition - basePosition);
+            Vector3 centerDirection = GetPlanarDirection(arenaCenterPoint - currentPoint);
 
             if (centerDirection.sqrMagnitude > MinSqrMagnitude)
             {
@@ -483,226 +775,631 @@ namespace JunkyardBoss
 
             if (escapeDirection.sqrMagnitude <= MinSqrMagnitude)
             {
-                if (centerDirection.sqrMagnitude <= MinSqrMagnitude)
-                {
-                    return arenaCenterPosition;
-                }
-
                 escapeDirection = centerDirection;
+            }
+
+            if (escapeDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return arenaCenterPoint;
             }
 
             if (hitCount <= 0)
             {
-                if (centerDirection.sqrMagnitude > MinSqrMagnitude)
-                {
-                    escapeDirection = centerDirection;
-                }
+                return arenaCenterPoint;
             }
 
-            return basePosition + escapeDirection.normalized * escapeDistance;
+            return currentPoint + escapeDirection.normalized * escapeDistance;
         }
 
-        private Vector3 ResolveDesiredPoint(Vector3 basePosition, Vector3 desiredPoint, Vector3 targetPosition, Vector3 arenaCenterPosition, BossExcavatorTargetPoint targetPoint)
+        private bool TryResolvePoint(Vector3 currentPoint, Vector3 point, out Vector3 resolvedPoint)
         {
-            Vector3 safePoint = ResolveSafePoint(desiredPoint, arenaCenterPosition);
+            Vector3 safePoint = ClampRoomPoint(point);
 
-            if (HasPathBlocked(basePosition, safePoint) == false)
-            {
-                return safePoint;
-            }
-
-            float distanceToPoint = Vector3.Distance(basePosition, safePoint);
-            Vector3 directionToPoint = GetPlanarDirection(safePoint - basePosition);
-            Vector3 openPoint;
-
-            if (TryFindOpenPoint(basePosition, directionToPoint, distanceToPoint, arenaCenterPosition, out openPoint))
-            {
-                return openPoint;
-            }
-
-            if (targetPoint != BossExcavatorTargetPoint.WallEscape)
-            {
-                if (targetPoint != BossExcavatorTargetPoint.CornerEscape)
-                {
-                    Vector3 escapePoint = BuildWallEscapePoint(basePosition, arenaCenterPosition);
-                    escapePoint = ResolveSafePoint(escapePoint, arenaCenterPosition);
-
-                    if (HasPathBlocked(basePosition, escapePoint) == false)
-                    {
-                        return escapePoint;
-                    }
-                }
-            }
-
-            Vector3 centerPoint = BuildCenterPoint(basePosition, targetPosition, _config.MediumDistance);
-            centerPoint = ResolveSafePoint(centerPoint, arenaCenterPosition);
-
-            if (HasPathBlocked(basePosition, centerPoint) == false)
-            {
-                return centerPoint;
-            }
-
-            return ResolveSafePoint(arenaCenterPosition, arenaCenterPosition);
-        }
-
-        private Vector3 StabilizeDesiredPoint(Vector3 basePosition, Vector3 nextDesiredPoint, BossExcavatorTargetPoint nextTargetPoint)
-        {
-            if (nextTargetPoint != _targetPoint)
-            {
-                return nextDesiredPoint;
-            }
-
-            if (IsImmediateTargetPoint(nextTargetPoint))
-            {
-                return nextDesiredPoint;
-            }
-
-            float desiredDelta = Vector3.Distance(nextDesiredPoint, _desiredPoint);
-
-            if (desiredDelta > _config.DesiredPointDeadZone)
-            {
-                return nextDesiredPoint;
-            }
-
-            if (HasPathBlocked(basePosition, _desiredPoint))
-            {
-                return nextDesiredPoint;
-            }
-
-            return _desiredPoint;
-        }
-
-        private bool TryFindOpenPoint(Vector3 basePosition, Vector3 baseDirection, float distanceToPoint, Vector3 arenaCenterPosition, out Vector3 openPoint)
-        {
-            openPoint = basePosition;
-
-            if (baseDirection.sqrMagnitude <= MinSqrMagnitude)
+            if (TryGetNavPoint(safePoint, out resolvedPoint) == false)
             {
                 return false;
             }
 
-            float safeDistance = Mathf.Max(distanceToPoint, _config.StopDistance + _config.ProbeRadius);
-            int pointSearchIndex = 1;
-
-            while (pointSearchIndex <= PointSearchCount)
+            if (HasCompletePath(currentPoint, resolvedPoint) == false)
             {
-                float positiveAngle = PointSearchAngleStep * pointSearchIndex;
-                Vector3 positivePoint = GetRotatedCandidatePoint(basePosition, baseDirection, safeDistance, positiveAngle, arenaCenterPosition);
+                return false;
+            }
 
-                if (HasPathBlocked(basePosition, positivePoint) == false)
+            return true;
+        }
+
+        private float GetPointScore(Vector3 currentPoint, Vector3 point)
+        {
+            Vector3 resolvedPoint;
+
+            if (TryResolvePoint(currentPoint, point, out resolvedPoint) == false)
+            {
+                return float.MaxValue;
+            }
+
+            float pointScore = GetPathLength(currentPoint, resolvedPoint, _scorePath);
+
+            if (IsNearWall(resolvedPoint))
+            {
+                pointScore += _config.WallPenalty;
+            }
+
+            if (IsNearCorner(resolvedPoint))
+            {
+                pointScore += _config.CornerPenalty;
+            }
+
+            return pointScore;
+        }
+
+        private float GetStopDistance(BossExcavatorTargetPoint targetPoint)
+        {
+            if (targetPoint == BossExcavatorTargetPoint.PlayerLeft || targetPoint == BossExcavatorTargetPoint.PlayerRight)
+            {
+                return _config.StopDistance + GetDesiredPointDeadZone();
+            }
+
+            return _config.StopDistance;
+        }
+
+        private bool RefreshPath(Vector3 targetPoint, float stopDistance)
+        {
+            if (NeedPathRefresh(targetPoint, stopDistance))
+            {
+                _navMeshAgent.stoppingDistance = stopDistance;
+
+                if (TrySetPath(targetPoint) == false)
                 {
-                    openPoint = positivePoint;
-
-                    return true;
+                    return false;
                 }
 
-                float negativeAngle = -PointSearchAngleStep * pointSearchIndex;
-                Vector3 negativePoint = GetRotatedCandidatePoint(basePosition, baseDirection, safeDistance, negativeAngle, arenaCenterPosition);
+                _pathTargetPoint = targetPoint;
+                _pathStopDistance = stopDistance;
+                _hasPathTarget = true;
+            }
 
-                if (HasPathBlocked(basePosition, negativePoint) == false)
-                {
-                    openPoint = negativePoint;
+            if (_navMeshAgent.pathPending)
+            {
+                return true;
+            }
 
-                    return true;
-                }
+            if (_navMeshAgent.hasPath == false)
+            {
+                return false;
+            }
 
-                pointSearchIndex += 1;
+            if (_navMeshAgent.pathStatus != NavMeshPathStatus.PathComplete)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool NeedPathRefresh(Vector3 targetPoint, float stopDistance)
+        {
+            if (_hasPathTarget == false)
+            {
+                return true;
+            }
+
+            if (Vector3.Distance(_pathTargetPoint, targetPoint) > PathRefreshGap)
+            {
+                return true;
+            }
+
+            if (Mathf.Abs(_pathStopDistance - stopDistance) > 0.05f)
+            {
+                return true;
+            }
+
+            if (_navMeshAgent.hasPath == false)
+            {
+                return true;
+            }
+
+            if (_navMeshAgent.pathStatus != NavMeshPathStatus.PathComplete)
+            {
+                return true;
+            }
+
+            if (_navMeshAgent.isPathStale)
+            {
+                return true;
             }
 
             return false;
         }
 
-        private Vector3 GetRotatedCandidatePoint(Vector3 basePosition, Vector3 baseDirection, float distanceToPoint, float angle, Vector3 arenaCenterPosition)
+        private bool TrySetPath(Vector3 targetPoint)
         {
-            Vector3 rotatedDirection = Quaternion.AngleAxis(angle, Vector3.up) * baseDirection.normalized;
-            Vector3 candidatePoint = basePosition + rotatedDirection * distanceToPoint;
+            bool hasPath = _navMeshAgent.CalculatePath(targetPoint, _navPath);
 
-            return ResolveSafePoint(candidatePoint, arenaCenterPosition);
+            if (hasPath == false)
+            {
+                return false;
+            }
+
+            if (_navPath.status != NavMeshPathStatus.PathComplete)
+            {
+                return false;
+            }
+
+            Vector3[] corners = _navPath.corners;
+
+            if (corners == null)
+            {
+                return false;
+            }
+
+            if (corners.Length == 0)
+            {
+                return false;
+            }
+
+            return _navMeshAgent.SetPath(_navPath);
         }
 
-        private Vector3 PushPointFromWalls(Vector3 point, Vector3 arenaCenterPosition)
+        private Vector3 GetMoveDirection(Vector3 currentPoint)
         {
-            Vector3 normalSum = Vector3.zero;
-            int hitCount = 0;
+            Vector3 pathDirection = GetPathDirection(currentPoint);
+            Vector3 desiredDirection = GetPlanarDirection(_navMeshAgent.desiredVelocity);
 
-            hitCount += TryAddWallNormal(point, Vector3.forward, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(point, Vector3.back, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(point, Vector3.left, _config.WallProbeDistance, ref normalSum);
-            hitCount += TryAddWallNormal(point, Vector3.right, _config.WallProbeDistance, ref normalSum);
-
-            if (hitCount <= 0)
+            if (pathDirection.sqrMagnitude > MinSqrMagnitude)
             {
-                return point;
-            }
-
-            Vector3 pushDirection = GetPlanarDirection(normalSum);
-            Vector3 centerDirection = GetPlanarDirection(arenaCenterPosition - point);
-
-            if (centerDirection.sqrMagnitude > MinSqrMagnitude)
-            {
-                pushDirection += centerDirection.normalized * _config.EscapeCenterWeight;
-            }
-
-            pushDirection = GetPlanarDirection(pushDirection);
-
-            if (pushDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return point;
-            }
-
-            float pushDistance = _config.StopDistance + _config.ProbeRadius;
-
-            return point + pushDirection.normalized * pushDistance;
-        }
-
-        private Vector3 ResolveSafePoint(Vector3 point, Vector3 arenaCenterPosition)
-        {
-            Vector3 safePoint = ClampRoomPoint(point);
-            int pushIndex = 0;
-
-            while (pushIndex < WallPushCount)
-            {
-                Vector3 nextPoint = PushPointFromWalls(safePoint, arenaCenterPosition);
-                nextPoint = ClampRoomPoint(nextPoint);
-                float pushDelta = Vector3.Distance(nextPoint, safePoint);
-                safePoint = nextPoint;
-
-                if (pushDelta <= MinPushDelta)
+                if (desiredDirection.sqrMagnitude > MinSqrMagnitude)
                 {
-                    return safePoint;
+                    float directionDot = Vector3.Dot(pathDirection, desiredDirection);
+
+                    if (directionDot > 0f)
+                    {
+                        return GetPlanarDirection(pathDirection + desiredDirection);
+                    }
                 }
 
-                if (IsNearWall(safePoint) == false)
+                return pathDirection;
+            }
+
+            if (desiredDirection.sqrMagnitude > MinSqrMagnitude)
+            {
+                return desiredDirection;
+            }
+
+            if (_navMeshAgent.hasPath)
+            {
+                Vector3 steeringPoint = GetPlanarPosition(_navMeshAgent.steeringTarget);
+                Vector3 steeringDirection = GetPlanarDirection(steeringPoint - currentPoint);
+
+                if (steeringDirection.sqrMagnitude > MinSqrMagnitude)
                 {
-                    return safePoint;
+                    return steeringDirection;
+                }
+            }
+
+            return GetPlanarDirection(_desiredPoint - currentPoint);
+        }
+
+        private Vector3 GetPathDirection(Vector3 currentPoint)
+        {
+            if (_navMeshAgent.hasPath == false)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3[] corners = _navMeshAgent.path.corners;
+
+            if (corners == null)
+            {
+                return Vector3.zero;
+            }
+
+            if (corners.Length == 0)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3 segmentStart = currentPoint;
+            Vector3 lookPoint = currentPoint;
+            float remainingDistance = Mathf.Max(PathLookDistance, _config.ProbeRadius * 2f);
+            int cornerIndex = 0;
+
+            while (cornerIndex < corners.Length)
+            {
+                Vector3 cornerPoint = GetPlanarPosition(corners[cornerIndex]);
+                Vector3 segment = cornerPoint - segmentStart;
+                float segmentLength = segment.magnitude;
+
+                if (segmentLength <= MinSqrMagnitude)
+                {
+                    cornerIndex += 1;
+
+                    continue;
                 }
 
-                pushIndex += 1;
+                if (remainingDistance <= segmentLength)
+                {
+                    Vector3 segmentDirection = segment / segmentLength;
+                    lookPoint = segmentStart + segmentDirection * remainingDistance;
+
+                    break;
+                }
+
+                remainingDistance -= segmentLength;
+                segmentStart = cornerPoint;
+                lookPoint = cornerPoint;
+                cornerIndex += 1;
             }
 
-            return safePoint;
+            return GetPlanarDirection(lookPoint - currentPoint);
         }
 
-        private Vector3 ClampRoomPoint(Vector3 point)
+        private void RotateBase(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
-            ResolveRoomState();
+            Vector3 lookDirection = GetLookDirection(currentPoint, targetPoint, moveDirection, targetPointType);
 
-            if (_roomRuntimeState == null)
+            if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
-                return point;
+                return;
             }
 
-            Vector3 clampedPoint = _roomRuntimeState.ClampMovePoint(point);
+            Quaternion currentRotation = _baseRigidbody.rotation;
+            Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, _config.BaseTurnSpeed * Time.fixedDeltaTime);
 
-            return GetPlanarPosition(clampedPoint);
+            _baseRigidbody.MoveRotation(nextRotation);
         }
 
-        private int TryAddWallNormal(Vector3 position, Vector3 direction, float probeDistance, ref Vector3 normalSum)
+        private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
+        {
+            Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
+
+            if (targetPointType == BossExcavatorTargetPoint.PlayerLeft
+                || targetPointType == BossExcavatorTargetPoint.PlayerRight
+                || targetPointType == BossExcavatorTargetPoint.PlayerCenter
+                || targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
+                {
+                    return targetDirection;
+                }
+
+                if (targetDirection.sqrMagnitude <= MinSqrMagnitude)
+                {
+                    return moveDirection;
+                }
+
+                Vector3 blendedDirection = moveDirection * (1f - LookBlend);
+                blendedDirection += targetDirection * LookBlend;
+
+                return GetPlanarDirection(blendedDirection);
+            }
+
+            if (moveDirection.sqrMagnitude > MinSqrMagnitude)
+            {
+                return moveDirection;
+            }
+
+            return targetDirection;
+        }
+
+        private void MoveBase(Vector3 currentPoint, Vector3 moveDirection, float stopDistance)
+        {
+            float targetDistance = Vector3.Distance(currentPoint, _desiredPoint);
+
+            if (targetDistance <= stopDistance)
+            {
+                Vector3 currentVelocity = _baseRigidbody.linearVelocity;
+                currentVelocity.x = 0f;
+                currentVelocity.z = 0f;
+                _baseRigidbody.linearVelocity = currentVelocity;
+
+                return;
+            }
+
+            if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return;
+            }
+
+            Vector3 forward = GetPlanarForward(_base.forward);
+            float angle = Vector3.Angle(forward, moveDirection);
+
+            if (angle > _config.MoveStopAngle)
+            {
+                return;
+            }
+
+            float speedFactor = GetMoveSpeedFactor(angle);
+            float moveDistance = _config.BaseMoveSpeed * speedFactor * Time.fixedDeltaTime;
+            float maxDistance = Mathf.Max(0f, targetDistance - stopDistance);
+
+            if (moveDistance > maxDistance)
+            {
+                moveDistance = maxDistance;
+            }
+
+            if (moveDistance <= 0f)
+            {
+                return;
+            }
+
+            Vector3 nextPlanarPosition = currentPoint + forward * moveDistance;
+            Vector3 nextPosition = new Vector3(nextPlanarPosition.x, _baseRigidbody.position.y, nextPlanarPosition.z);
+
+            _baseRigidbody.MovePosition(nextPosition);
+            _navMeshAgent.nextPosition = GetPlanarPosition(nextPosition);
+        }
+
+        private float GetMoveSpeedFactor(float angle)
+        {
+            if (angle <= _config.MoveStartAngle)
+            {
+                return 1f;
+            }
+
+            float angleRange = Mathf.Max(0.01f, _config.MoveStopAngle - _config.MoveStartAngle);
+            float angleProgress = (angle - _config.MoveStartAngle) / angleRange;
+            float angleFactor = 1f - Mathf.Clamp01(angleProgress);
+
+            return Mathf.Lerp(MinMoveSpeedFactor, 1f, angleFactor);
+        }
+
+        private bool SyncAgent(Vector3 currentPoint)
+        {
+            InitializeNavPaths();
+
+            if (_navMeshAgent == null)
+            {
+                return false;
+            }
+
+            if (HasAnyNavMesh() == false)
+            {
+                return false;
+            }
+
+            if (_navMeshAgent.enabled == false)
+            {
+                return TryActivateAgent(currentPoint);
+            }
+
+            if (_navMeshAgent.isOnNavMesh == false)
+            {
+                Vector3 navPoint;
+
+                if (TryGetRecoverPoint(currentPoint, out navPoint) == false)
+                {
+                    _navMeshAgent.enabled = false;
+
+                    return false;
+                }
+
+                if (Vector3.Distance(currentPoint, navPoint) > NavSnapGap)
+                {
+                    SnapToPoint(navPoint);
+                    currentPoint = navPoint;
+                }
+
+                if (_navMeshAgent.Warp(navPoint) == false)
+                {
+                    _navMeshAgent.enabled = false;
+
+                    return false;
+                }
+
+                CacheNavPoint(navPoint);
+
+                return true;
+            }
+
+            _navMeshAgent.nextPosition = currentPoint;
+            CacheNavPoint(currentPoint);
+            PullAgent(currentPoint);
+
+            return true;
+        }
+
+        private bool TryActivateAgent(Vector3 currentPoint)
+        {
+            if (HasAnyNavMesh() == false)
+            {
+                return false;
+            }
+
+            Vector3 navPoint;
+
+            if (TryGetNavPoint(currentPoint, out navPoint) == false)
+            {
+                return false;
+            }
+
+            SnapToPoint(navPoint);
+            currentPoint = GetBasePoint();
+
+            _navMeshAgent.enabled = true;
+
+            if (_navMeshAgent.isOnNavMesh == false)
+            {
+                _navMeshAgent.enabled = false;
+
+                return false;
+            }
+
+            _navMeshAgent.nextPosition = currentPoint;
+            CacheNavPoint(navPoint);
+
+            return true;
+        }
+
+        private bool TryGetRecoverPoint(Vector3 currentPoint, out Vector3 navPoint)
+        {
+            if (TryGetNavPoint(currentPoint, out navPoint))
+            {
+                return true;
+            }
+
+            if (TryGetNavPoint(currentPoint, NavRecoverGap, out navPoint))
+            {
+                return true;
+            }
+
+            if (_hasLastNavPoint)
+            {
+                if (TryGetNavPoint(_lastNavPoint, NavRecoverGap, out navPoint))
+                {
+                    return true;
+                }
+            }
+
+            navPoint = currentPoint;
+
+            return false;
+        }
+
+        private void SnapToPoint(Vector3 navPoint)
+        {
+            Vector3 nextPosition = _baseRigidbody.position;
+            nextPosition.x = navPoint.x;
+            nextPosition.z = navPoint.z;
+
+            _baseRigidbody.position = nextPosition;
+            Vector3 currentVelocity = _baseRigidbody.linearVelocity;
+            _baseRigidbody.linearVelocity = new Vector3(0f, currentVelocity.y, 0f);
+        }
+
+        private void CacheNavPoint(Vector3 navPoint)
+        {
+            _lastNavPoint = navPoint;
+            _hasLastNavPoint = true;
+        }
+
+        private void PullAgent(Vector3 currentPoint)
+        {
+            Vector3 worldDeltaPosition = _navMeshAgent.nextPosition - currentPoint;
+            worldDeltaPosition.y = 0f;
+            float agentRadius = Mathf.Max(_navMeshAgent.radius, _config.ProbeRadius);
+
+            if (worldDeltaPosition.sqrMagnitude <= agentRadius * agentRadius)
+            {
+                return;
+            }
+
+            _navMeshAgent.nextPosition = currentPoint + (worldDeltaPosition * 0.9f);
+        }
+
+        private bool HasCompletePath(Vector3 currentPoint, Vector3 targetPoint)
+        {
+            Vector3 currentNavPoint;
+            Vector3 targetNavPoint;
+
+            if (TryGetNavPoint(currentPoint, NavRecoverGap, out currentNavPoint) == false)
+            {
+                return false;
+            }
+
+            if (TryGetNavPoint(targetPoint, NavRecoverGap, out targetNavPoint) == false)
+            {
+                return false;
+            }
+
+            bool hasPath = NavMesh.CalculatePath(currentNavPoint, targetNavPoint, NavMesh.AllAreas, _scorePath);
+
+            if (hasPath == false)
+            {
+                return false;
+            }
+
+            return _scorePath.status == NavMeshPathStatus.PathComplete;
+        }
+
+        private float GetPathLength(Vector3 currentPoint, Vector3 targetPoint, NavMeshPath navPath)
+        {
+            Vector3 currentNavPoint;
+            Vector3 targetNavPoint;
+
+            if (TryGetNavPoint(currentPoint, NavRecoverGap, out currentNavPoint) == false)
+            {
+                return float.MaxValue;
+            }
+
+            if (TryGetNavPoint(targetPoint, NavRecoverGap, out targetNavPoint) == false)
+            {
+                return float.MaxValue;
+            }
+
+            bool hasPath = NavMesh.CalculatePath(currentNavPoint, targetNavPoint, NavMesh.AllAreas, navPath);
+
+            if (hasPath == false)
+            {
+                return float.MaxValue;
+            }
+
+            if (navPath.status != NavMeshPathStatus.PathComplete)
+            {
+                return float.MaxValue;
+            }
+
+            Vector3[] corners = navPath.corners;
+
+            if (corners == null)
+            {
+                return float.MaxValue;
+            }
+
+            if (corners.Length == 0)
+            {
+                return float.MaxValue;
+            }
+
+            float pathLength = 0f;
+            Vector3 segmentStart = currentNavPoint;
+            int cornerIndex = 0;
+
+            while (cornerIndex < corners.Length)
+            {
+                Vector3 segmentEnd = GetPlanarPosition(corners[cornerIndex]);
+                pathLength += Vector3.Distance(segmentStart, segmentEnd);
+                segmentStart = segmentEnd;
+                cornerIndex += 1;
+            }
+
+            return pathLength;
+        }
+
+        private bool TryGetNavPoint(Vector3 point, out Vector3 navPoint)
+        {
+            return TryGetNavPoint(point, GetNavSampleGap(), out navPoint);
+        }
+
+        private bool TryGetNavPoint(Vector3 point, float sampleGap, out Vector3 navPoint)
+        {
+            NavMeshHit navMeshHit;
+
+            if (NavMesh.SamplePosition(point, out navMeshHit, sampleGap, NavMesh.AllAreas) == false)
+            {
+                navPoint = point;
+
+                return false;
+            }
+
+            navPoint = GetPlanarPosition(navMeshHit.position);
+
+            return true;
+        }
+
+        private float GetNavSampleGap()
+        {
+            float minSampleGap = Mathf.Max(NavSampleGap, _config.ProbeRadius * 4f);
+
+            return Mathf.Max(minSampleGap, _config.ProbeHeight * 4f);
+        }
+
+        private int TryAddWallNormal(Vector3 position, Vector3 direction, ref Vector3 normalSum)
         {
             Vector3 rayOrigin = position + Vector3.up * _config.ProbeHeight;
             RaycastHit hit;
 
-            if (Physics.SphereCast(rayOrigin, _config.ProbeRadius, direction, out hit, probeDistance, _obstacleMask, QueryTriggerInteraction.Ignore) == false)
+            if (Physics.SphereCast(rayOrigin, _config.ProbeRadius, direction, out hit, _config.WallProbeDistance, _obstacleMask, QueryTriggerInteraction.Ignore) == false)
             {
                 return 0;
             }
@@ -712,191 +1409,20 @@ namespace JunkyardBoss
             return 1;
         }
 
-        private float GetPointScore(Vector3 basePosition, Vector3 point)
+        private bool IsNearWall(Vector3 point)
         {
-            float pointScore = Vector3.Distance(basePosition, point);
-
-            if (IsNearWall(point))
-            {
-                pointScore += _config.WallPenalty;
-            }
-
-            if (IsNearCorner(point))
-            {
-                pointScore += _config.CornerPenalty;
-            }
-
-            if (HasPathBlocked(basePosition, point))
-            {
-                pointScore += _config.BlockedPenalty;
-            }
-
-            return pointScore;
+            return GetWallHitCount(point) > 0;
         }
 
-        private Vector3 GetLookPoint(Vector3 targetPosition, Vector3 desiredPoint, BossExcavatorTargetPoint targetPoint)
+        private bool IsNearCorner(Vector3 point)
         {
-            if (targetPoint == BossExcavatorTargetPoint.ChargeAlign)
-            {
-                return targetPosition;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.PlayerCenter)
-            {
-                return targetPosition;
-            }
-
-            return desiredPoint;
+            return GetWallHitCount(point) > 1;
         }
 
-        private Quaternion RotateBase(Vector3 basePosition, Vector3 lookPoint)
-        {
-            Vector3 lookDirection = GetPlanarDirection(lookPoint - basePosition);
-            Quaternion currentRotation = _baseRigidbody.rotation;
-
-            if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return currentRotation;
-            }
-
-            Quaternion targetRotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
-            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, _config.BaseTurnSpeed * Time.fixedDeltaTime);
-
-            _baseRigidbody.MoveRotation(nextRotation);
-
-            return nextRotation;
-        }
-
-        private void MoveBase(Vector3 basePosition, Vector3 arenaCenterPosition, Quaternion nextRotation)
-        {
-            Vector3 direction = GetPlanarDirection(_desiredPoint - basePosition);
-
-            if (direction.sqrMagnitude <= MinSqrMagnitude)
-            {
-                _isMoveAllowed = false;
-
-                return;
-            }
-
-            float distanceToPoint = direction.magnitude;
-
-            if (distanceToPoint <= _config.StopDistance)
-            {
-                _isMoveAllowed = false;
-
-                return;
-            }
-
-            Vector3 forward = GetPlanarForward(nextRotation * Vector3.forward);
-            float angle = Vector3.Angle(forward, direction.normalized);
-
-            if (CanMoveByAngle(angle) == false)
-            {
-                return;
-            }
-
-            if (IsForwardBlocked(basePosition, forward))
-            {
-                _isMoveAllowed = false;
-                int wallHitCount = GetWallHitCount(basePosition);
-
-                if (wallHitCount > 1)
-                {
-                    _targetPoint = BossExcavatorTargetPoint.CornerEscape;
-                    _desiredPoint = BuildCornerEscapePoint(basePosition, arenaCenterPosition);
-                }
-                else
-                {
-                    _targetPoint = BossExcavatorTargetPoint.WallEscape;
-                    _desiredPoint = BuildWallEscapePoint(basePosition, arenaCenterPosition);
-                }
-
-                return;
-            }
-
-            float moveSpeedMultiplier = GetMoveSpeedMultiplier(angle);
-            float moveDistance = Mathf.Min(_config.BaseMoveSpeed * moveSpeedMultiplier * Time.fixedDeltaTime, distanceToPoint);
-            Vector3 nextPlanarPosition = basePosition + forward * moveDistance;
-            Vector3 nextPosition = new Vector3(nextPlanarPosition.x, _baseRigidbody.position.y, nextPlanarPosition.z);
-
-            _baseRigidbody.MovePosition(nextPosition);
-        }
-
-        private bool CanMoveByAngle(float angle)
-        {
-            if (_isMoveAllowed == false)
-            {
-                if (angle > _config.MoveStartAngle)
-                {
-                    return false;
-                }
-
-                _isMoveAllowed = true;
-
-                return true;
-            }
-
-            if (angle > _config.MoveStopAngle)
-            {
-                _isMoveAllowed = false;
-
-                return false;
-            }
-
-            return true;
-        }
-
-        private float GetMoveSpeedMultiplier(float angle)
-        {
-            float angleFactor = 1f - Mathf.Clamp01(angle / _config.MoveStartAngle);
-
-            return Mathf.Lerp(MinMoveSpeedFactor, 1f, angleFactor);
-        }
-
-        private bool IsForwardBlocked(Vector3 basePosition, Vector3 forward)
-        {
-            Vector3 rayOrigin = basePosition + Vector3.up * _config.ProbeHeight;
-            RaycastHit hit;
-
-            return Physics.SphereCast(rayOrigin, _config.ProbeRadius, forward, out hit, _config.ForwardProbeDistance, _obstacleMask, QueryTriggerInteraction.Ignore);
-        }
-
-        private bool HasPathBlocked(Vector3 basePosition, Vector3 point)
-        {
-            Vector3 pathDirection = GetPlanarDirection(point - basePosition);
-
-            if (pathDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return false;
-            }
-
-            float pathDistance = pathDirection.magnitude - _config.StopDistance;
-
-            if (pathDistance <= 0f)
-            {
-                return false;
-            }
-
-            Vector3 rayOrigin = basePosition + Vector3.up * _config.ProbeHeight;
-            RaycastHit hit;
-
-            return Physics.SphereCast(rayOrigin, _config.ProbeRadius, pathDirection.normalized, out hit, pathDistance, _obstacleMask, QueryTriggerInteraction.Ignore);
-        }
-
-        private bool IsNearWall(Vector3 position)
-        {
-            return GetWallHitCount(position) > 0;
-        }
-
-        private bool IsNearCorner(Vector3 position)
-        {
-            return GetWallHitCount(position) > 1;
-        }
-
-        private int GetWallHitCount(Vector3 position)
+        private int GetWallHitCount(Vector3 point)
         {
             int hitCount = 0;
-            Vector3 rayOrigin = position + Vector3.up * _config.ProbeHeight;
+            Vector3 rayOrigin = point + Vector3.up * _config.ProbeHeight;
             RaycastHit hit;
 
             if (Physics.SphereCast(rayOrigin, _config.ProbeRadius, Vector3.forward, out hit, _config.WallProbeDistance, _obstacleMask, QueryTriggerInteraction.Ignore))
@@ -922,11 +1448,11 @@ namespace JunkyardBoss
             return hitCount;
         }
 
-        private bool ShouldReturnToCenter(Vector3 basePosition, Vector3 arenaCenterPosition)
+        private bool ShouldReturnToCenter(Vector3 currentPoint, Vector3 arenaCenterPoint)
         {
-            float distanceToCenter = Vector3.Distance(basePosition, arenaCenterPosition);
+            float distanceToCenter = Vector3.Distance(currentPoint, arenaCenterPoint);
 
-            if (distanceToCenter >= _config.ArenaReturnDistance)
+            if (distanceToCenter >= GetArenaReturnDistance())
             {
                 return true;
             }
@@ -934,30 +1460,126 @@ namespace JunkyardBoss
             return false;
         }
 
-        private Vector3 GetPlanarPosition(Vector3 position)
+        private float GetMediumDistance()
         {
-            position.y = 0f;
-
-            return position;
+            return BossRoomRadius * MediumDistanceFactor;
         }
 
-        private Vector3 GetPlanarDirection(Vector3 direction)
+        private float GetRetreatDistance()
         {
-            direction.y = 0f;
-
-            return direction;
+            return BossRoomRadius * RetreatDistanceFactor;
         }
 
-        private Vector3 GetPlanarForward(Vector3 forward)
+        private float GetAttackChaseDistance()
         {
-            forward.y = 0f;
+            return BossRoomRadius * AttackChaseDistanceFactor;
+        }
 
-            if (forward.sqrMagnitude <= MinSqrMagnitude)
+        private float GetArenaReturnDistance()
+        {
+            return BossRoomRadius * ArenaReturnDistanceFactor;
+        }
+
+        private float GetChargeAlignDistance()
+        {
+            return BossRoomRadius * ChargeAlignDistanceFactor;
+        }
+
+        private float GetWallEscapeDistance()
+        {
+            return BossRoomRadius * WallEscapeDistanceFactor;
+        }
+
+        private float GetCornerEscapeDistance()
+        {
+            return BossRoomRadius * CornerEscapeDistanceFactor;
+        }
+
+        private float GetDistanceTolerance()
+        {
+            return BossRoomRadius * DistanceToleranceFactor;
+        }
+
+        private float GetDistanceHysteresis()
+        {
+            return BossRoomRadius * DistanceHysteresisFactor;
+        }
+
+        private float GetDesiredPointDeadZone()
+        {
+            return BossRoomRadius * DesiredPointDeadZoneFactor;
+        }
+
+        private float GetMinMoveDistance()
+        {
+            return Mathf.Max(0.1f, GetMediumDistance() - GetDistanceTolerance());
+        }
+
+        private Vector3 ClampRoomPoint(Vector3 point)
+        {
+            ResolveRoomState();
+
+            if (_roomRuntimeState == null)
             {
-                return Vector3.forward;
+                return GetPlanarPosition(point);
             }
 
-            return forward.normalized;
+            return GetPlanarPosition(_roomRuntimeState.ClampMovePoint(point));
+        }
+
+        private int GetAvoidPriority()
+        {
+            GameObject priorityGameObject = gameObject;
+
+            if (_base != null)
+            {
+                priorityGameObject = _base.gameObject;
+            }
+
+            int priorityId = priorityGameObject.GetInstanceID();
+
+            if (priorityId == int.MinValue)
+            {
+                priorityId = int.MaxValue;
+            }
+
+            if (priorityId < 0)
+            {
+                priorityId = -priorityId;
+            }
+
+            return 20 + (priorityId % 60);
+        }
+
+        private bool HasAnyNavMesh()
+        {
+            NavMeshTriangulation navMeshTriangulation = NavMesh.CalculateTriangulation();
+
+            if (navMeshTriangulation.vertices == null)
+            {
+                return false;
+            }
+
+            return navMeshTriangulation.vertices.Length > 0;
+        }
+
+        private Vector3 RotateDirection(Vector3 direction, float angle)
+        {
+            Vector3 flatDirection = GetPlanarDirection(direction);
+
+            if (flatDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return Vector3.zero;
+            }
+
+            Quaternion rotation = Quaternion.Euler(0f, angle, 0f);
+
+            return GetPlanarDirection(rotation * flatDirection);
+        }
+
+        private Vector3 GetBasePoint()
+        {
+            return GetPlanarPosition(_baseRigidbody.position);
         }
 
         private Vector3 GetArenaCenterPosition()
@@ -983,15 +1605,7 @@ namespace JunkyardBoss
 
             if (_hasFallbackArenaCenter == false)
             {
-                if (_baseRigidbody != null)
-                {
-                    _fallbackArenaCenter = GetPlanarPosition(_baseRigidbody.position);
-                }
-                else
-                {
-                    _fallbackArenaCenter = GetPlanarPosition(transform.position);
-                }
-
+                _fallbackArenaCenter = GetBasePoint();
                 _hasFallbackArenaCenter = true;
             }
 
@@ -1034,17 +1648,54 @@ namespace JunkyardBoss
                 if (roomRuntimeState != null)
                 {
                     _roomRuntimeState = roomRuntimeState;
-
-                    return;
                 }
             }
-
-            _roomRuntimeState = GetComponentInParent<RoomRuntimeState>();
         }
 
-        private void ValidateDependencies()
+        private Vector3 GetPlanarPosition(Vector3 position)
         {
-            ResolveRoomState();
+            position.y = GetMoveHeight();
+
+            return position;
+        }
+
+        private float GetMoveHeight()
+        {
+            if (_baseRigidbody != null)
+            {
+                return _baseRigidbody.position.y;
+            }
+
+            if (_base != null)
+            {
+                return _base.position.y;
+            }
+
+            return transform.position.y;
+        }
+
+        private Vector3 GetPlanarDirection(Vector3 direction)
+        {
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return Vector3.zero;
+            }
+
+            return direction.normalized;
+        }
+
+        private Vector3 GetPlanarForward(Vector3 forward)
+        {
+            forward.y = 0f;
+
+            if (forward.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return Vector3.forward;
+            }
+
+            return forward.normalized;
         }
     }
 }

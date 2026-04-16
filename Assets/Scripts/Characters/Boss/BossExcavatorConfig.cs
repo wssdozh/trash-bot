@@ -15,34 +15,34 @@ namespace JunkyardBoss
 
         [Header("Move")]
         [Min(0.1f)]
-        [SerializeField] private float _baseMoveSpeed = 1.35f;
+        [SerializeField] private float _baseMoveSpeed = 2.6f;
 
         [Min(1f)]
-        [SerializeField] private float _baseTurnSpeed = 62f;
+        [SerializeField] private float _baseTurnSpeed = 110f;
 
         [Range(1f, 45f)]
-        [SerializeField] private float _moveStartAngle = 8f;
+        [SerializeField] private float _moveStartAngle = 10f;
 
         [Range(1f, 60f)]
-        [SerializeField] private float _moveStopAngle = 14f;
+        [SerializeField] private float _moveStopAngle = 38f;
 
         [Min(0.1f)]
-        [SerializeField] private float _stopDistance = 0.9f;
+        [SerializeField] private float _stopDistance = 0.75f;
 
         [Min(0.1f)]
-        [SerializeField] private float _mediumDistance = 9f;
+        [SerializeField] private float _mediumDistance = 11.4f;
 
         [Min(0.1f)]
-        [SerializeField] private float _distanceTolerance = 1.4f;
+        [SerializeField] private float _distanceTolerance = 1.5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _distanceHysteresis = 0.6f;
+        [SerializeField] private float _distanceHysteresis = 0.75f;
 
         [Min(0.1f)]
-        [SerializeField] private float _retreatDistance = 11.5f;
+        [SerializeField] private float _retreatDistance = 15f;
 
         [Range(5f, 90f)]
-        [SerializeField] private float _flankAngle = 26f;
+        [SerializeField] private float _flankAngle = 20f;
 
         [Min(0f)]
         [SerializeField] private float _flankSwitchThreshold = 2f;
@@ -54,34 +54,34 @@ namespace JunkyardBoss
         [SerializeField] private float _targetSwitchCooldown = 0.85f;
 
         [Min(0f)]
-        [SerializeField] private float _desiredPointDeadZone = 1.1f;
+        [SerializeField] private float _desiredPointDeadZone = 0.9f;
 
         [Min(0.1f)]
-        [SerializeField] private float _wallProbeDistance = 2.8f;
+        [SerializeField] private float _wallProbeDistance = 2.2f;
 
         [Min(0.05f)]
-        [SerializeField] private float _probeRadius = 1f;
+        [SerializeField] private float _probeRadius = 0.75f;
 
         [Min(0f)]
         [SerializeField] private float _probeHeight = 0.8f;
 
         [Min(0.1f)]
-        [SerializeField] private float _forwardProbeDistance = 2.6f;
+        [SerializeField] private float _forwardProbeDistance = 2f;
 
         [Min(0.1f)]
-        [SerializeField] private float _wallEscapeDistance = 5.2f;
+        [SerializeField] private float _wallEscapeDistance = 6f;
 
         [Min(0.1f)]
-        [SerializeField] private float _cornerEscapeDistance = 7.2f;
+        [SerializeField] private float _cornerEscapeDistance = 9f;
 
         [Range(0f, 1f)]
         [SerializeField] private float _escapeCenterWeight = 0.5f;
 
         [Min(1f)]
-        [SerializeField] private float _arenaReturnDistance = 14f;
+        [SerializeField] private float _arenaReturnDistance = 18.9f;
 
         [Min(0.1f)]
-        [SerializeField] private float _chargeAlignDistance = 12f;
+        [SerializeField] private float _chargeAlignDistance = 13.8f;
 
         [Min(0f)]
         [SerializeField] private float _wallPenalty = 4.5f;
@@ -94,13 +94,13 @@ namespace JunkyardBoss
 
         [Header("Attack Decision")]
         [Min(0.1f)]
-        [SerializeField] private float _attackChaseDistance = 8.8f;
+        [SerializeField] private float _attackChaseDistance = 12.6f;
 
         [Range(5f, 90f)]
         [SerializeField] private float _repositionBaseAngle = 68f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketMaxDistance = 6.6f;
+        [SerializeField] private float _bucketMaxDistance = 4.8f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _bucketBaseAngle = 34f;
@@ -109,10 +109,10 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketCabinAngle = 38f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwMinDistance = 6.2f;
+        [SerializeField] private float _throwMinDistance = 5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwMaxDistance = 14.8f;
+        [SerializeField] private float _throwMaxDistance = 9f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _throwBaseAngle = 32f;
@@ -121,10 +121,10 @@ namespace JunkyardBoss
         [SerializeField] private float _throwCabinAngle = 28f;
 
         [Min(0.1f)]
-        [SerializeField] private float _chargeMinDistance = 8.5f;
+        [SerializeField] private float _chargeMinDistance = 6.5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _chargeMaxDistance = 20f;
+        [SerializeField] private float _chargeMaxDistance = 11f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _chargeBaseAngle = 14f;
@@ -160,6 +160,30 @@ namespace JunkyardBoss
 
         [Range(0.1f, 3f)]
         [SerializeField] private float _attackPoseSpeedMult = 1.45f;
+
+        [Header("Bucket Attack")]
+        [Min(0.1f)]
+        [SerializeField] private float _bucketHitDamage = 28f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _bucketHitRadius = 2.1f;
+
+        [Range(1f, 180f)]
+        [SerializeField] private float _bucketHitAngle = 95f;
+
+        [Min(0f)]
+        [SerializeField] private float _bucketHitOffset = 1.15f;
+
+        [SerializeField] private LayerMask _bucketHitMask = ~0;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _bucketPrepareSpeedMult = 1.35f;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _bucketStrikeSpeedMult = 2f;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _bucketRecoverSpeedMult = 1.15f;
 
         [Min(0.05f)]
         [SerializeField] private float _attackRecoveryTime = 0.35f;
@@ -290,6 +314,14 @@ namespace JunkyardBoss
         public float ThrowReleaseTime => _throwReleaseTime;
         public float ChargeAttackTime => _chargeAttackTime;
         public float AttackPoseSpeedMult => _attackPoseSpeedMult;
+        public float BucketHitDamage => _bucketHitDamage;
+        public float BucketHitRadius => _bucketHitRadius;
+        public float BucketHitAngle => _bucketHitAngle;
+        public float BucketHitOffset => _bucketHitOffset;
+        public LayerMask BucketHitMask => _bucketHitMask;
+        public float BucketPrepareSpeedMult => _bucketPrepareSpeedMult;
+        public float BucketStrikeSpeedMult => _bucketStrikeSpeedMult;
+        public float BucketRecoverSpeedMult => _bucketRecoverSpeedMult;
         public float AttackRecoveryTime => _attackRecoveryTime;
         public float MoveOrbitTime => _moveOrbitTime;
         public float MovePressureTime => _movePressureTime;

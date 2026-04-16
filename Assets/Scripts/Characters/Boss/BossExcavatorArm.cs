@@ -152,7 +152,7 @@ namespace JunkyardBoss
 
             ResolvePose(pose, out boomLocalEuler, out stickLocalEuler, out bucketLocalEuler);
             _currentPose = pose;
-            SetPoseImmediate(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
+            ApplyPoseImmediate(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
         }
 
         public void SetPose(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler)
@@ -173,14 +173,8 @@ namespace JunkyardBoss
 
         public void SetPoseImmediate(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler)
         {
-            _boomTarget = Quaternion.Euler(boomLocalEuler);
-            _stickTarget = Quaternion.Euler(stickLocalEuler);
-            _bucketTarget = Quaternion.Euler(bucketLocalEuler);
-            _poseSpeedMult = 1f;
             _currentPose = BossExcavatorArmPose.Custom;
-            _boom.localRotation = _boomTarget;
-            _stick.localRotation = _stickTarget;
-            _bucket.localRotation = _bucketTarget;
+            ApplyPoseImmediate(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
         }
 
         private void ResolvePose(BossExcavatorArmPose pose, out Vector3 boomLocalEuler, out Vector3 stickLocalEuler, out Vector3 bucketLocalEuler)
@@ -230,6 +224,14 @@ namespace JunkyardBoss
             _stickTarget = BuildJointRotation(stickLocalEuler, _config.ArmStickAxis, _config.ArmStickAxisInvert);
             _bucketTarget = BuildJointRotation(bucketLocalEuler, _config.ArmBucketAxis, _config.ArmBucketAxisInvert);
             _poseSpeedMult = poseSpeedMult;
+        }
+
+        private void ApplyPoseImmediate(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler)
+        {
+            ApplyPose(boomLocalEuler, stickLocalEuler, bucketLocalEuler, 1f);
+            _boom.localRotation = _boomTarget;
+            _stick.localRotation = _stickTarget;
+            _bucket.localRotation = _bucketTarget;
         }
 
         private Quaternion BuildJointRotation(Vector3 sourceEuler, BossExcavatorAxis axis, bool isInverted)

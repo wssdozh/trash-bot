@@ -54,6 +54,7 @@ MonoBehaviour:
   _obstacleMask:
     serializedVersion: 2
     m_Bits: 1409
+  _navMeshAgent: {fileID: 212154565948459310}
 --- !u!114 &1000000000000000004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,19 +85,21 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000000000000000001}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5f45f10fcd94b249df798a0c213c37c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorDebugRuntime
   _boss: {fileID: 1000000000000000004}
+  _currentState: 0
+  _currentPhase: 0
+  _currentAttack: 0
+  _currentArmPose: 0
   _state: 1
   _chargeAlign: 0
   _aimLocked: 0
   _armLocked: 0
   _selectedArmPose: 0
-  _currentArmPose: 0
-  _currentAttack: 0
   _applyNow: 0
   _resetNow: 0
   _completePhaseNow: 0
@@ -126,6 +129,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299e560cf26c448a8da4b715a48fadd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorArm
+--- !u!195 &212154565948459310
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000301}
+  m_Enabled: 0
+  m_AgentTypeID: 0
+  m_Radius: 0.95
+  m_Speed: 3.1
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120.74
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.6
+  m_BaseOffset: 0.2
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &1000000000000000301
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,6 +164,7 @@ GameObject:
   - component: {fileID: 7339619860876943693}
   - component: {fileID: 1444474322926337203}
   - component: {fileID: 9007546120406809698}
+  - component: {fileID: 212154565948459310}
   m_Layer: 0
   m_Name: Base
   m_TagString: Untagged

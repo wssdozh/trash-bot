@@ -6,26 +6,15 @@ namespace JunkyardBoss
     public sealed class BossExcavatorBrain
     {
         private const float MinDirectionSqr = 0.0001f;
-        private const float CloseBucketFactor = 1f;
-        private const float ChargePreferOffset = -0.75f;
-        private const int FlowOrbit = 0;
-        private const int FlowPressure = 1;
-        private const int FlowRetreat = 2;
 
         private readonly BossExcavator _boss;
-        private bool _attackStageEntered;
-        private float _attackTimer;
+        private readonly BossExcavatorBucketAttack _bucketAttack;
+
         private float _bucketCooldownTimer;
-        private float _throwCooldownTimer;
-        private float _chargeCooldownTimer;
         private float _postAttackTimer;
-        private float _moveFlowTimer;
-        private float _moveStateCommitTimer;
-        private int _moveFlow;
-        private BossExcavatorState _committedMoveState;
-        private bool _hasCommittedMoveState;
+        private float _moveStateTimer;
         private BossExcavatorAttack _currentAttack;
-        private BossExcavatorAttack _lastAttack;
+        private BossExcavatorState _moveState;
 
         public BossExcavatorAttack CurrentAttack => _currentAttack;
 
@@ -37,24 +26,18 @@ namespace JunkyardBoss
             }
 
             _boss = boss;
+            _bucketAttack = new BossExcavatorBucketAttack(_boss, _boss.Config);
             _currentAttack = BossExcavatorAttack.None;
-            _lastAttack = BossExcavatorAttack.None;
         }
 
         public void Reset()
         {
-            _attackStageEntered = false;
-            _attackTimer = 0f;
             _bucketCooldownTimer = 0f;
-            _throwCooldownTimer = 0f;
-            _chargeCooldownTimer = 0f;
             _postAttackTimer = 0f;
-            _moveStateCommitTimer = 0f;
-            _hasCommittedMoveState = false;
+            _moveStateTimer = 0f;
             _currentAttack = BossExcavatorAttack.None;
-            _lastAttack = BossExcavatorAttack.None;
-            SetMoveFlow(FlowOrbit);
-
+            _moveState = BossExcavatorState.Chase;
+            _bucketAttack.Reset();
             ApplyCombatDefaults();
         }
 
@@ -67,9 +50,6 @@ namespace JunkyardBoss
                 return;
             }
 
-            UpdateCooldowns();
-            UpdatePostAttackTimer();
-
             if (_boss.State == BossExcavatorState.PhaseChange)
             {
                 ClearAttackRuntime(false);
@@ -77,13 +57,13 @@ namespace JunkyardBoss
                 return;
             }
 
+            UpdateTimers();
+
             if (_currentAttack != BossExcavatorAttack.None)
             {
                 _boss.RequestAutoState(BossExcavatorState.Attack);
 
-                bool isAttackRunning = UpdateAttackRuntime();
-
-                if (isAttackRunning)
+                if (UpdateAttackRuntime())
                 {
                     return;
                 }
@@ -93,38 +73,23 @@ namespace JunkyardBoss
 
             if (nextState == BossExcavatorState.Attack)
             {
-                BossExcavatorAttack attack = SelectAttack();
-
-                if (attack == BossExcavatorAttack.None)
-                {
-                    ApplyMovementCommands(BossExcavatorState.Reposition);
-                    _boss.RequestAutoState(BossExcavatorState.Reposition);
-
-                    return;
-                }
-
-                StartAttack(attack);
+                StartAttack(BossExcavatorAttack.BucketStrike);
                 _boss.RequestAutoState(BossExcavatorState.Attack);
 
                 return;
             }
 
-            ApplyMovementCommands(nextState);
+            ApplyMovementCommands();
             _boss.RequestAutoState(nextState);
         }
 
-        private void UpdateCooldowns()
+        private void UpdateTimers()
         {
             float deltaTime = Time.deltaTime;
 
             _bucketCooldownTimer = Mathf.Max(0f, _bucketCooldownTimer - deltaTime);
-            _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - deltaTime);
-            _chargeCooldownTimer = Mathf.Max(0f, _chargeCooldownTimer - deltaTime);
-        }
-
-        private void UpdatePostAttackTimer()
-        {
-            _postAttackTimer = Mathf.Max(0f, _postAttackTimer - Time.deltaTime);
+            _postAttackTimer = Mathf.Max(0f, _postAttackTimer - deltaTime);
+            _moveStateTimer = Mathf.Max(0f, _moveStateTimer - deltaTime);
         }
 
         private BossExcavatorState SelectAutoState()
@@ -134,57 +99,164 @@ namespace JunkyardBoss
                 return BossExcavatorState.Idle;
             }
 
-            float distanceToTarget = GetTargetDistance();
+            float targetDistance = GetTargetDistance();
             float baseAngle = GetTargetAngle(_boss.Base);
             float cabinAngle = GetTargetAngle(_boss.Cabin);
-            bool hasAttack = HasReadyAttack(distanceToTarget, baseAngle, cabinAngle);
 
-            if (ShouldHardReposition(distanceToTarget, baseAngle))
-            {
-                return CommitMoveState(BossExcavatorState.Reposition, true);
-            }
-
-            if (hasAttack)
+            if (CanUseBucket(targetDistance, baseAngle, cabinAngle))
             {
                 return BossExcavatorState.Attack;
             }
 
+            BossExcavatorState desiredMoveState = SelectMoveState(targetDistance, baseAngle);
+
+            return ResolveMoveState(desiredMoveState, targetDistance, baseAngle);
+        }
+
+        private BossExcavatorState SelectMoveState(float targetDistance, float baseAngle)
+        {
+            if (ShouldReposition(targetDistance, baseAngle))
+            {
+                return BossExcavatorState.Reposition;
+            }
+
             if (_postAttackTimer > 0f)
             {
-                UpdateMoveFlow(distanceToTarget);
-                BossExcavatorState recoveryState = BossExcavatorState.Chase;
+                return GetRecoveryState(targetDistance);
+            }
 
-                if (distanceToTarget < _boss.Config.MinMoveDistance)
+            return BossExcavatorState.Chase;
+        }
+
+        private BossExcavatorState ResolveMoveState(BossExcavatorState desiredMoveState, float targetDistance, float baseAngle)
+        {
+            if (IsForcedReposition(targetDistance, baseAngle))
+            {
+                SetMoveState(BossExcavatorState.Reposition);
+
+                return _moveState;
+            }
+
+            if (_moveState != BossExcavatorState.Chase && _moveState != BossExcavatorState.Reposition)
+            {
+                SetMoveState(desiredMoveState);
+
+                return _moveState;
+            }
+
+            if (_moveState != desiredMoveState)
+            {
+                if (_moveStateTimer > 0f)
                 {
-                    recoveryState = BossExcavatorState.Reposition;
+                    return _moveState;
                 }
 
-                return CommitMoveState(recoveryState, false);
+                SetMoveState(desiredMoveState);
             }
 
-            UpdateMoveFlow(distanceToTarget);
+            return _moveState;
+        }
 
-            if (distanceToTarget > _boss.Config.AttackChaseDistance)
+        private BossExcavatorState GetRecoveryState(float targetDistance)
+        {
+            if (targetDistance < _boss.Move.MinMoveDistance)
             {
-                return CommitMoveState(BossExcavatorState.Chase, false);
+                return BossExcavatorState.Reposition;
             }
 
-            if (_moveFlow == FlowPressure)
+            if (IsRepositionTargetPoint(_boss.Move.TargetPoint))
             {
-                return CommitMoveState(BossExcavatorState.Chase, false);
+                return BossExcavatorState.Reposition;
             }
 
-            if (_moveFlow == FlowRetreat)
+            return BossExcavatorState.Chase;
+        }
+
+        private bool ShouldReposition(float targetDistance, float baseAngle)
+        {
+            if (IsRepositionTargetPoint(_boss.Move.TargetPoint))
             {
-                return CommitMoveState(BossExcavatorState.Reposition, false);
+                return true;
             }
 
-            if (distanceToTarget < _boss.Config.MinMoveDistance + _boss.Config.DistanceHysteresis)
+            if (baseAngle > _boss.Config.RepositionBaseAngle)
             {
-                return CommitMoveState(BossExcavatorState.Reposition, false);
+                if (targetDistance < _boss.Move.AttackChaseDistance)
+                {
+                    return true;
+                }
             }
 
-            return CommitMoveState(BossExcavatorState.Chase, false);
+            return false;
+        }
+
+        private bool IsForcedReposition(float targetDistance, float baseAngle)
+        {
+            if (targetDistance < _boss.Move.MinMoveDistance)
+            {
+                return true;
+            }
+
+            if (IsRepositionTargetPoint(_boss.Move.TargetPoint))
+            {
+                return true;
+            }
+
+            if (baseAngle > _boss.Config.RepositionBaseAngle)
+            {
+                if (targetDistance < _boss.Move.AttackChaseDistance)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void SetMoveState(BossExcavatorState moveState)
+        {
+            _moveState = moveState;
+
+            if (moveState == BossExcavatorState.Reposition)
+            {
+                _moveStateTimer = _boss.Config.MoveRepositionCommitTime;
+
+                return;
+            }
+
+            if (moveState == BossExcavatorState.Chase)
+            {
+                _moveStateTimer = _boss.Config.MoveChaseCommitTime;
+
+                return;
+            }
+
+            _moveStateTimer = 0f;
+        }
+
+        private bool IsRepositionTargetPoint(BossExcavatorTargetPoint targetPoint)
+        {
+            if (targetPoint == BossExcavatorTargetPoint.PlayerBack)
+            {
+                return true;
+            }
+
+            if (targetPoint == BossExcavatorTargetPoint.WallEscape)
+            {
+                return true;
+            }
+
+            if (targetPoint == BossExcavatorTargetPoint.CornerEscape)
+            {
+                return true;
+            }
+
+            if (targetPoint == BossExcavatorTargetPoint.ArenaCenter)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool CanUseCombatData()
@@ -207,326 +279,19 @@ namespace JunkyardBoss
             return true;
         }
 
-        private bool ShouldHardReposition(float distanceToTarget, float baseAngle)
-        {
-            if (HasBadTargetPoint())
-            {
-                return true;
-            }
-
-            if (distanceToTarget < _boss.Config.StopDistance * 1.5f)
-            {
-                return true;
-            }
-
-            if (baseAngle > _boss.Config.RepositionBaseAngle)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool HasBadTargetPoint()
-        {
-            BossExcavatorTargetPoint targetPoint = _boss.Move.TargetPoint;
-
-            if (targetPoint == BossExcavatorTargetPoint.WallEscape)
-            {
-                return true;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.CornerEscape)
-            {
-                return true;
-            }
-
-            if (targetPoint == BossExcavatorTargetPoint.ArenaCenter)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool HasReadyAttack(float distanceToTarget, float baseAngle, float cabinAngle)
+        private bool CanUseBucket(float targetDistance, float baseAngle, float cabinAngle)
         {
             if (_postAttackTimer > 0f)
             {
                 return false;
             }
 
-            bool canUseBucket = CanUseBucket(distanceToTarget, baseAngle, cabinAngle);
-            bool canUseThrow = CanUseThrow(distanceToTarget, baseAngle, cabinAngle);
-            bool canUseCharge = CanUseCharge(distanceToTarget, baseAngle);
-
-            if (_boss.Phase == BossExcavatorPhase.PhaseOne)
-            {
-                canUseCharge = false;
-            }
-
-            if (canUseBucket)
-            {
-                return true;
-            }
-
-            if (canUseThrow)
-            {
-                return true;
-            }
-
-            if (canUseCharge)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private void UpdateMoveFlow(float distanceToTarget)
-        {
-            if (distanceToTarget > _boss.Config.AttackChaseDistance + _boss.Config.DistanceTolerance)
-            {
-                SetMoveFlow(FlowPressure);
-
-                return;
-            }
-
-            if (distanceToTarget < _boss.Config.MinMoveDistance)
-            {
-                SetMoveFlow(FlowRetreat);
-
-                return;
-            }
-
-            _moveFlowTimer = Mathf.Max(0f, _moveFlowTimer - Time.deltaTime);
-
-            if (_moveFlowTimer > 0f)
-            {
-                return;
-            }
-
-            if (_moveFlow == FlowOrbit)
-            {
-                SetMoveFlow(FlowPressure);
-
-                return;
-            }
-
-            if (_moveFlow == FlowPressure)
-            {
-                SetMoveFlow(FlowOrbit);
-
-                return;
-            }
-
-            if (_moveFlow == FlowRetreat)
-            {
-                SetMoveFlow(FlowPressure);
-
-                return;
-            }
-
-            SetMoveFlow(FlowPressure);
-        }
-
-        private void SetMoveFlow(int moveFlow)
-        {
-            _moveFlow = moveFlow;
-            _moveFlowTimer = GetMoveFlowTime(moveFlow);
-        }
-
-        private float GetMoveFlowTime(int moveFlow)
-        {
-            if (moveFlow == FlowPressure)
-            {
-                return _boss.Config.MovePressureTime;
-            }
-
-            if (moveFlow == FlowRetreat)
-            {
-                return _boss.Config.MoveRetreatTime;
-            }
-
-            return _boss.Config.MoveOrbitTime;
-        }
-
-        private BossExcavatorState CommitMoveState(BossExcavatorState moveState, bool isForceSwitch)
-        {
-            _moveStateCommitTimer = Mathf.Max(0f, _moveStateCommitTimer - Time.deltaTime);
-
-            if (_hasCommittedMoveState == false)
-            {
-                _committedMoveState = moveState;
-                _hasCommittedMoveState = true;
-                _moveStateCommitTimer = GetMoveCommitTime(moveState);
-
-                return moveState;
-            }
-
-            if (isForceSwitch)
-            {
-                _committedMoveState = moveState;
-                _moveStateCommitTimer = GetMoveCommitTime(moveState);
-
-                return moveState;
-            }
-
-            if (moveState != _committedMoveState)
-            {
-                if (_moveStateCommitTimer > 0f)
-                {
-                    return _committedMoveState;
-                }
-
-                _committedMoveState = moveState;
-                _moveStateCommitTimer = GetMoveCommitTime(moveState);
-            }
-
-            return _committedMoveState;
-        }
-
-        private float GetMoveCommitTime(BossExcavatorState moveState)
-        {
-            if (moveState == BossExcavatorState.Chase)
-            {
-                return _boss.Config.MoveChaseCommitTime;
-            }
-
-            return _boss.Config.MoveRepositionCommitTime;
-        }
-
-        private BossExcavatorAttack SelectAttack()
-        {
-            if (CanUseCombatData() == false)
-            {
-                return BossExcavatorAttack.None;
-            }
-
-            float distanceToTarget = GetTargetDistance();
-            float baseAngle = GetTargetAngle(_boss.Base);
-            float cabinAngle = GetTargetAngle(_boss.Cabin);
-
-            bool canUseBucket = CanUseBucket(distanceToTarget, baseAngle, cabinAngle);
-            bool canUseThrow = CanUseThrow(distanceToTarget, baseAngle, cabinAngle);
-            bool canUseCharge = CanUseCharge(distanceToTarget, baseAngle);
-
-            if (_boss.Phase == BossExcavatorPhase.PhaseOne)
-            {
-                canUseCharge = false;
-            }
-
-            BossExcavatorAttack selectedAttack = ChooseAttackPriority(distanceToTarget, canUseBucket, canUseThrow, canUseCharge);
-
-            if (selectedAttack == BossExcavatorAttack.None)
-            {
-                return BossExcavatorAttack.None;
-            }
-
-            if (selectedAttack == _lastAttack)
-            {
-                BossExcavatorAttack alternativeAttack = ChooseAlternativeAttack(selectedAttack, canUseBucket, canUseThrow, canUseCharge);
-
-                if (alternativeAttack != BossExcavatorAttack.None)
-                {
-                    selectedAttack = alternativeAttack;
-                }
-            }
-
-            return selectedAttack;
-        }
-
-        private BossExcavatorAttack ChooseAttackPriority(float distanceToTarget, bool canUseBucket, bool canUseThrow, bool canUseCharge)
-        {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                if (canUseCharge)
-                {
-                    float chargePreferDistance = _boss.Config.ChargeMinDistance + ChargePreferOffset;
-
-                    if (distanceToTarget >= chargePreferDistance)
-                    {
-                        return BossExcavatorAttack.Charge;
-                    }
-                }
-            }
-
-            if (canUseBucket)
-            {
-                float bucketCloseDistance = _boss.Config.BucketMaxDistance * CloseBucketFactor;
-
-                if (distanceToTarget <= bucketCloseDistance)
-                {
-                    return BossExcavatorAttack.BucketStrike;
-                }
-            }
-
-            if (canUseBucket)
-            {
-                return BossExcavatorAttack.BucketStrike;
-            }
-
-            if (canUseThrow)
-            {
-                return BossExcavatorAttack.ThrowScrap;
-            }
-
-            if (canUseCharge)
-            {
-                return BossExcavatorAttack.Charge;
-            }
-
-            return BossExcavatorAttack.None;
-        }
-
-        private BossExcavatorAttack ChooseAlternativeAttack(BossExcavatorAttack selectedAttack, bool canUseBucket, bool canUseThrow, bool canUseCharge)
-        {
-            if (selectedAttack != BossExcavatorAttack.BucketStrike)
-            {
-                if (canUseBucket)
-                {
-                    return BossExcavatorAttack.BucketStrike;
-                }
-            }
-
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                if (selectedAttack != BossExcavatorAttack.Charge)
-                {
-                    if (canUseCharge)
-                    {
-                        return BossExcavatorAttack.Charge;
-                    }
-                }
-            }
-
-            if (selectedAttack != BossExcavatorAttack.Charge)
-            {
-                if (canUseCharge)
-                {
-                    return BossExcavatorAttack.Charge;
-                }
-            }
-
-            if (selectedAttack != BossExcavatorAttack.ThrowScrap)
-            {
-                if (canUseThrow)
-                {
-                    return BossExcavatorAttack.ThrowScrap;
-                }
-            }
-
-            return BossExcavatorAttack.None;
-        }
-
-        private bool CanUseBucket(float distanceToTarget, float baseAngle, float cabinAngle)
-        {
             if (_bucketCooldownTimer > 0f)
             {
                 return false;
             }
 
-            if (distanceToTarget > _boss.Config.BucketMaxDistance)
+            if (targetDistance > _boss.Config.BucketMaxDistance)
             {
                 return false;
             }
@@ -544,128 +309,27 @@ namespace JunkyardBoss
             return true;
         }
 
-        private bool CanUseThrow(float distanceToTarget, float baseAngle, float cabinAngle)
-        {
-            if (_throwCooldownTimer > 0f)
-            {
-                return false;
-            }
-
-            if (distanceToTarget < _boss.Config.ThrowMinDistance)
-            {
-                return false;
-            }
-
-            if (distanceToTarget > _boss.Config.ThrowMaxDistance)
-            {
-                return false;
-            }
-
-            if (baseAngle > _boss.Config.ThrowBaseAngle)
-            {
-                return false;
-            }
-
-            if (cabinAngle > _boss.Config.ThrowCabinAngle)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool CanUseCharge(float distanceToTarget, float baseAngle)
-        {
-            if (_chargeCooldownTimer > 0f)
-            {
-                return false;
-            }
-
-            if (distanceToTarget < _boss.Config.ChargeMinDistance)
-            {
-                return false;
-            }
-
-            if (distanceToTarget > _boss.Config.ChargeMaxDistance)
-            {
-                return false;
-            }
-
-            if (baseAngle > _boss.Config.ChargeBaseAngle)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
         private void StartAttack(BossExcavatorAttack attack)
         {
             _currentAttack = attack;
-            _attackStageEntered = false;
-            _attackTimer = GetAttackTime(attack);
-
+            _boss.SetChargeAlign(false);
+            _boss.SetAimLocked(false);
             _boss.SetArmLocked(false);
 
             if (attack == BossExcavatorAttack.BucketStrike)
             {
-                _boss.SetChargeAlign(false);
-                _boss.SetAimLocked(true);
-                _boss.SetArmPose(BossExcavatorArmPose.BucketPrepare, _boss.Config.AttackPoseSpeedMult);
+                _bucketAttack.StartAttack();
             }
-            else if (attack == BossExcavatorAttack.ThrowScrap)
-            {
-                _boss.SetChargeAlign(false);
-                _boss.SetAimLocked(true);
-                _boss.SetArmPose(BossExcavatorArmPose.GrabScrap, _boss.Config.AttackPoseSpeedMult);
-            }
-            else
-            {
-                _boss.SetChargeAlign(true);
-                _boss.SetAimLocked(false);
-                _boss.SetArmPose(BossExcavatorArmPose.Neutral, _boss.Config.AttackPoseSpeedMult);
-            }
-        }
-
-        private float GetAttackTime(BossExcavatorAttack attack)
-        {
-            if (attack == BossExcavatorAttack.BucketStrike)
-            {
-                return _boss.Config.BucketPrepareTime + _boss.Config.BucketStrikeTime;
-            }
-
-            if (attack == BossExcavatorAttack.ThrowScrap)
-            {
-                return _boss.Config.ThrowGrabTime + _boss.Config.ThrowReleaseTime;
-            }
-
-            if (attack == BossExcavatorAttack.Charge)
-            {
-                return _boss.Config.ChargeAttackTime;
-            }
-
-            return 0f;
         }
 
         private bool UpdateAttackRuntime()
         {
-            if (_currentAttack == BossExcavatorAttack.None)
+            if (_currentAttack != BossExcavatorAttack.BucketStrike)
             {
                 return false;
             }
 
-            _attackTimer = Mathf.Max(0f, _attackTimer - Time.deltaTime);
-
-            if (_currentAttack == BossExcavatorAttack.BucketStrike)
-            {
-                UpdateBucketAttackStage();
-            }
-            else if (_currentAttack == BossExcavatorAttack.ThrowScrap)
-            {
-                UpdateThrowAttackStage();
-            }
-
-            if (_attackTimer > 0f)
+            if (_bucketAttack.Tick())
             {
                 return true;
             }
@@ -675,85 +339,11 @@ namespace JunkyardBoss
             return false;
         }
 
-        private void UpdateBucketAttackStage()
-        {
-            if (_attackStageEntered)
-            {
-                return;
-            }
-
-            if (_attackTimer > _boss.Config.BucketStrikeTime)
-            {
-                return;
-            }
-
-            _attackStageEntered = true;
-            _boss.SetArmPose(BossExcavatorArmPose.BucketStrike, _boss.Config.AttackPoseSpeedMult);
-        }
-
-        private void UpdateThrowAttackStage()
-        {
-            if (_attackStageEntered)
-            {
-                return;
-            }
-
-            if (_attackTimer > _boss.Config.ThrowReleaseTime)
-            {
-                return;
-            }
-
-            _attackStageEntered = true;
-            _boss.SetArmPose(BossExcavatorArmPose.ThrowScrap, _boss.Config.AttackPoseSpeedMult);
-        }
-
         private void FinishAttack()
         {
-            BossExcavatorAttack completedAttack = _currentAttack;
-            float cooldown = GetAttackCooldown(completedAttack);
-
-            if (completedAttack == BossExcavatorAttack.BucketStrike)
-            {
-                _bucketCooldownTimer = cooldown;
-            }
-            else if (completedAttack == BossExcavatorAttack.ThrowScrap)
-            {
-                _throwCooldownTimer = cooldown;
-            }
-            else if (completedAttack == BossExcavatorAttack.Charge)
-            {
-                _chargeCooldownTimer = cooldown;
-            }
-
-            _lastAttack = completedAttack;
+            _bucketCooldownTimer = _boss.Config.BucketAttackCooldown;
             _postAttackTimer = _boss.Config.AttackRecoveryTime;
-            SetMoveFlow(FlowPressure);
             ClearAttackRuntime(true);
-        }
-
-        private float GetAttackCooldown(BossExcavatorAttack attack)
-        {
-            float cooldown = 0f;
-
-            if (attack == BossExcavatorAttack.BucketStrike)
-            {
-                cooldown = _boss.Config.BucketAttackCooldown;
-            }
-            else if (attack == BossExcavatorAttack.ThrowScrap)
-            {
-                cooldown = _boss.Config.ThrowAttackCooldown;
-            }
-            else if (attack == BossExcavatorAttack.Charge)
-            {
-                cooldown = _boss.Config.ChargeAttackCooldown;
-            }
-
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                cooldown *= _boss.Config.PhaseTwoCooldownMult;
-            }
-
-            return Mathf.Max(0f, cooldown);
         }
 
         private void ClearAttackRuntime(bool restorePose)
@@ -764,9 +354,7 @@ namespace JunkyardBoss
             }
 
             _currentAttack = BossExcavatorAttack.None;
-            _attackTimer = 0f;
-            _attackStageEntered = false;
-
+            _bucketAttack.Cancel(restorePose);
             ApplyCombatDefaults();
 
             if (restorePose)
@@ -782,18 +370,10 @@ namespace JunkyardBoss
             _boss.SetArmLocked(false);
         }
 
-        private void ApplyMovementCommands(BossExcavatorState moveState)
+        private void ApplyMovementCommands()
         {
             _boss.SetAimLocked(false);
             _boss.SetArmLocked(false);
-
-            if (moveState == BossExcavatorState.Chase)
-            {
-                _boss.SetChargeAlign(_moveFlow != FlowRetreat);
-
-                return;
-            }
-
             _boss.SetChargeAlign(false);
         }
 

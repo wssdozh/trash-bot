@@ -92,6 +92,7 @@ namespace JunkyardBoss
 
             _stateMachine.Reset();
             ApplyState(_config.StartState);
+            _move.ResetRuntime();
             _move.SetChargeAlign(false);
             _aim.SetLocked(false);
             _arm.SetLocked(false);
@@ -274,16 +275,22 @@ namespace JunkyardBoss
         {
             if (_state == BossExcavatorState.Dead)
             {
+                _move.Stop();
+
                 return;
             }
 
             if (_state == BossExcavatorState.PhaseChange)
             {
+                _move.Stop();
+
                 return;
             }
 
             if (_state == BossExcavatorState.Idle)
             {
+                _move.Stop();
+
                 return;
             }
 
@@ -304,7 +311,7 @@ namespace JunkyardBoss
 
             if (_state == BossExcavatorState.Attack)
             {
-                _move.FixedTick();
+                _move.Stop();
             }
         }
 

@@ -98,6 +98,8 @@ namespace JunkyardBoss
         private void EnterPhaseChange()
         {
             _phaseChangeCompleted = false;
+            _hasManualRequest = false;
+            _requestedState = BossExcavatorState.Reposition;
             _boss.ApplyState(BossExcavatorState.PhaseChange);
         }
 
@@ -109,7 +111,9 @@ namespace JunkyardBoss
             }
 
             _boss.ApplyPhase(BossExcavatorPhase.PhaseTwo);
-            ApplyRequestedState();
+            _hasManualRequest = false;
+            _requestedState = BossExcavatorState.Reposition;
+            _boss.ApplyState(_requestedState);
             _phaseChangeCompleted = false;
         }
 
