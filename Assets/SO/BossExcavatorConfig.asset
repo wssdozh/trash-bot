@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dd3307af0debb4409591fc6d8657b17, type: 3}
   m_Name: BossExcavatorConfig
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorConfig
-  _maxHealth: 300
+  _maxHealth: 280
   _phaseTwoRatio: 0.5
   _startState: 2
-  _baseMoveSpeed: 4.9
+  _baseMoveSpeed: 4.6
   _baseTurnSpeed: 185
   _moveStartAngle: 10
   _moveStopAngle: 36
@@ -72,34 +72,34 @@ MonoBehaviour:
   _chargeAttackTime: 1.15
   _chargeRecoveryTime: 0.7
   _attackPoseSpeedMult: 1.45
-  _bucketHitDamage: 28
+  _bucketHitDamage: 24
   _bucketHitRadius: 2.35
   _bucketHitAngle: 95
   _bucketHitOffset: 1.35
-  _bucketShockwaveDamage: 14
+  _bucketShockwaveDamage: 12
   _bucketShockwaveRadius: 2.75
-  _bucketShockwaveOffset: 0.55
+  _bucketShockwaveOffset: 0.2
   _bucketHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
   _bucketPrepareSpeedMult: 1.35
   _bucketStrikeSpeedMult: 2
   _bucketRecoverSpeedMult: 1.15
-  _sweepHitDamage: 5
+  _sweepHitDamage: 4
   _sweepDamageInterval: 0.22
   _sweepHitRadius: 1.45
   _sweepHitOffset: 0.45
   _sweepSpinSpeed: 270
   _throwProjectileCount: 3
   _throwProjectileSpreadAngle: 18
-  _throwProjectileDamage: 8
+  _throwProjectileDamage: 6.5
   _throwProjectileSpeedMult: 1.15
   _throwSpawnOffset: 0.8
   _throwHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _chargeSpeed: 14
-  _chargeHitDamage: 32
+  _chargeSpeed: 12.5
+  _chargeHitDamage: 28
   _chargeHitRadius: 1.4
   _chargeHitOffset: 1.1
   _chargeHitMask:

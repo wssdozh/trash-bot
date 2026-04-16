@@ -215,7 +215,7 @@ namespace JunkyardBoss
                 strikeForward = ResolveStrikeForward();
             }
 
-            Vector3 hitCenter = bucket.position + strikeForward * _config.BucketHitOffset;
+            Vector3 hitCenter = ResolveImpactCenter(bucket.position, strikeForward, _config.BucketHitOffset, _config.BucketHitRadius);
 
             int hitCount = Physics.OverlapSphereNonAlloc(
                 hitCenter,
@@ -371,7 +371,7 @@ namespace JunkyardBoss
 
         private void ApplyShockwave(Vector3 hitCenter)
         {
-            Vector3 shockwaveCenter = hitCenter + (_strikeForward * _config.BucketShockwaveOffset);
+            Vector3 shockwaveCenter = ResolveImpactCenter(hitCenter, _strikeForward, _config.BucketShockwaveOffset, _config.BucketShockwaveRadius);
             int hitCount = Physics.OverlapSphereNonAlloc(
                 shockwaveCenter,
                 _config.BucketShockwaveRadius,
@@ -415,11 +415,25 @@ namespace JunkyardBoss
             }
         }
 
+        private Vector3 ResolveImpactCenter(Vector3 origin, Vector3 forward, float offset, float radius)
+        {
+            Vector3 impactCenter = origin + forward * offset;
+            float impactHeight = _boss.Base.position.y + Mathf.Min(radius * 0.3f, 0.8f);
+            impactCenter.y = impactHeight;
+
+            return impactCenter;
+        }
+
         private void ValidateDependencies()
         {
             if (_boss.Bucket == null)
             {
                 throw new InvalidOperationException(nameof(_boss.Bucket));
+            }
+
+            if (_boss.Base == null)
+            {
+                throw new InvalidOperationException(nameof(_boss.Base));
             }
 
             if (_boss.Boom == null)

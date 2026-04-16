@@ -7,6 +7,8 @@ namespace JunkyardBoss
     {
         private const float MinDirectionSqr = 0.0001f;
         private const string ScrapCubeSpawnerKey = "BossScrapCubeProjectile";
+        private const float SpawnForwardPadding = 0.55f;
+        private const float SpawnHeightOffset = 0.75f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
@@ -158,7 +160,7 @@ namespace JunkyardBoss
 
             Transform bucket = _boss.Bucket;
             Vector3 launchForward = ResolveLaunchForward();
-            Vector3 spawnPosition = bucket.position + launchForward * _config.ThrowSpawnOffset;
+            Vector3 spawnPosition = ResolveSpawnPosition(bucket.position, launchForward);
             int projectileCount = _config.ThrowProjectileCount;
             int projectileIndex = 0;
 
@@ -177,6 +179,19 @@ namespace JunkyardBoss
 
                 projectileIndex += 1;
             }
+        }
+
+        private Vector3 ResolveSpawnPosition(Vector3 bucketPosition, Vector3 launchForward)
+        {
+            Vector3 spawnPosition = bucketPosition + launchForward * (_config.ThrowSpawnOffset + SpawnForwardPadding);
+            float minSpawnHeight = _boss.Base.position.y + SpawnHeightOffset;
+
+            if (spawnPosition.y < minSpawnHeight)
+            {
+                spawnPosition.y = minSpawnHeight;
+            }
+
+            return spawnPosition;
         }
 
         private float GetProjectileAngleOffset(int projectileIndex, int projectileCount)
@@ -266,6 +281,11 @@ namespace JunkyardBoss
             if (_boss.Bucket == null)
             {
                 throw new InvalidOperationException(nameof(_boss.Bucket));
+            }
+
+            if (_boss.Base == null)
+            {
+                throw new InvalidOperationException(nameof(_boss.Base));
             }
 
             if (_boss.Boom == null)

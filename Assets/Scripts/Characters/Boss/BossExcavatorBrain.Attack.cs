@@ -22,16 +22,16 @@ namespace JunkyardBoss
                 return _pendingAttack;
             }
 
-            if (CanUseCharge(targetDistance, baseAngle))
+            if (CanUseThrow(targetDistance, baseAngle, cabinAngle))
             {
-                _pendingAttack = BossExcavatorAttack.Charge;
+                _pendingAttack = BossExcavatorAttack.ThrowScrap;
 
                 return _pendingAttack;
             }
 
-            if (CanUseThrow(targetDistance, baseAngle, cabinAngle))
+            if (CanUseCharge(targetDistance, baseAngle))
             {
-                _pendingAttack = BossExcavatorAttack.ThrowScrap;
+                _pendingAttack = BossExcavatorAttack.Charge;
 
                 return _pendingAttack;
             }

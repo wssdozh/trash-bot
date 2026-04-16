@@ -6,7 +6,7 @@ namespace JunkyardBoss
     public sealed class BossExcavatorConfig : ScriptableObject
     {
         [Min(1f)]
-        [SerializeField] private float _maxHealth = 300f;
+        [SerializeField] private float _maxHealth = 280f;
 
         [Range(0.05f, 0.95f)]
         [SerializeField] private float _phaseTwoRatio = 0.5f;
@@ -15,7 +15,7 @@ namespace JunkyardBoss
 
         [Header("Move")]
         [Min(0.1f)]
-        [SerializeField] private float _baseMoveSpeed = 5.9f;
+        [SerializeField] private float _baseMoveSpeed = 4.6f;
 
         [Min(1f)]
         [SerializeField] private float _baseTurnSpeed = 185f;
@@ -190,7 +190,7 @@ namespace JunkyardBoss
 
         [Header("Bucket Attack")]
         [Min(0.1f)]
-        [SerializeField] private float _bucketHitDamage = 28f;
+        [SerializeField] private float _bucketHitDamage = 24f;
 
         [Min(0.1f)]
         [SerializeField] private float _bucketHitRadius = 2.35f;
@@ -202,13 +202,13 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketHitOffset = 1.35f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketShockwaveDamage = 14f;
+        [SerializeField] private float _bucketShockwaveDamage = 12f;
 
         [Min(0.1f)]
         [SerializeField] private float _bucketShockwaveRadius = 2.75f;
 
         [Min(0f)]
-        [SerializeField] private float _bucketShockwaveOffset = 0.55f;
+        [SerializeField] private float _bucketShockwaveOffset = 0.2f;
 
         [SerializeField] private LayerMask _bucketHitMask = ~0;
 
@@ -223,7 +223,7 @@ namespace JunkyardBoss
 
         [Header("Sweep Attack")]
         [Min(0.1f)]
-        [SerializeField] private float _sweepHitDamage = 5f;
+        [SerializeField] private float _sweepHitDamage = 4f;
 
         [Min(0.05f)]
         [SerializeField] private float _sweepDamageInterval = 0.22f;
@@ -245,7 +245,7 @@ namespace JunkyardBoss
         [SerializeField] private float _throwProjectileSpreadAngle = 18f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwProjectileDamage = 8f;
+        [SerializeField] private float _throwProjectileDamage = 6.5f;
 
         [Min(0.1f)]
         [SerializeField] private float _throwProjectileSpeedMult = 1.15f;
@@ -257,10 +257,10 @@ namespace JunkyardBoss
 
         [Header("Charge Attack")]
         [Min(0.1f)]
-        [SerializeField] private float _chargeSpeed = 14f;
+        [SerializeField] private float _chargeSpeed = 12.5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _chargeHitDamage = 32f;
+        [SerializeField] private float _chargeHitDamage = 28f;
 
         [Min(0.1f)]
         [SerializeField] private float _chargeHitRadius = 1.4f;
