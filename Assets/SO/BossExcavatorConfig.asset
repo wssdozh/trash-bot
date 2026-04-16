@@ -43,3 +43,27 @@ MonoBehaviour:
   _blockedPenalty: 6
   _cabinTurnSpeed: 52
   _cabinPhaseTwoMult: 1.35
+  _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
+  _armDefaultStickEuler: {x: 0, y: 0, z: 70}
+  _armDefaultBucketEuler: {x: 0, y: 0, z: -25}
+  _armBucketPrepareBoomEuler: {x: 0, y: 0, z: -55}
+  _armBucketPrepareStickEuler: {x: 0, y: 0, z: 95}
+  _armBucketPrepareBucketEuler: {x: 0, y: 0, z: -45}
+  _armBucketStrikeBoomEuler: {x: 0, y: 0, z: 10}
+  _armBucketStrikeStickEuler: {x: 0, y: 0, z: -35}
+  _armBucketStrikeBucketEuler: {x: 0, y: 0, z: 20}
+  _armGrabScrapBoomEuler: {x: 0, y: 0, z: 35}
+  _armGrabScrapStickEuler: {x: 0, y: 0, z: 55}
+  _armGrabScrapBucketEuler: {x: 0, y: 0, z: -60}
+  _armThrowScrapBoomEuler: {x: 0, y: 0, z: -15}
+  _armThrowScrapStickEuler: {x: 0, y: 0, z: -25}
+  _armThrowScrapBucketEuler: {x: 0, y: 0, z: 55}
+  _armBoomAxis: 0
+  _armStickAxis: 0
+  _armBucketAxis: 0
+  _armBoomAxisInvert: 0
+  _armStickAxisInvert: 0
+  _armBucketAxisInvert: 0
+  _armBoomSpeed: 38
+  _armStickSpeed: 54
+  _armBucketSpeed: 76

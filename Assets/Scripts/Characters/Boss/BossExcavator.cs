@@ -8,6 +8,7 @@ namespace JunkyardBoss
         [SerializeField] private BossExcavatorConfig _config;
         [SerializeField] private BossExcavatorMove _move;
         [SerializeField] private BossExcavatorAim _aim;
+        [SerializeField] private BossExcavatorArm _arm;
         [SerializeField] private Transform _target;
         [SerializeField] private Transform _base;
         [SerializeField] private Rigidbody _baseRigidbody;
@@ -28,6 +29,7 @@ namespace JunkyardBoss
         public BossExcavatorConfig Config => _config;
         public BossExcavatorMove Move => _move;
         public BossExcavatorAim Aim => _aim;
+        public BossExcavatorArm Arm => _arm;
         public Transform Target => _target;
         public Transform Base => _base;
         public Rigidbody BaseRigidbody => _baseRigidbody;
@@ -52,6 +54,7 @@ namespace JunkyardBoss
             _stateMachine = new BossExcavatorStateMachine(this);
             _move.Setup(_config, _base, _baseRigidbody, _target);
             _aim.Setup(this, _config, _cabin, _target);
+            _arm.Setup(this, _config, _boom, _stick, _bucket);
             TryResolveTarget();
 
             ResetBoss();
@@ -65,6 +68,7 @@ namespace JunkyardBoss
         private void LateUpdate()
         {
             _aim.Tick();
+            _arm.Tick();
         }
 
         private void FixedUpdate()
@@ -86,6 +90,8 @@ namespace JunkyardBoss
             ApplyState(_config.StartState);
             _move.SetChargeAlign(false);
             _aim.SetLocked(false);
+            _arm.SetLocked(false);
+            _arm.SetDefaultPoseImmediate();
         }
 
         public void RequestState(BossExcavatorState state)
@@ -125,6 +131,71 @@ namespace JunkyardBoss
         public void SetAimLocked(bool isLocked)
         {
             _aim.SetLocked(isLocked);
+        }
+
+        public void SetArmLocked(bool isLocked)
+        {
+            _arm.SetLocked(isLocked);
+        }
+
+        public void SetArmDefaultPose()
+        {
+            _arm.SetDefaultPose();
+        }
+
+        public BossExcavatorArmPose GetArmPose()
+        {
+            return _arm.CurrentPose;
+        }
+
+        public void SetArmNeutralPose()
+        {
+            _arm.SetNeutralPose();
+        }
+
+        public void SetArmBucketPreparePose()
+        {
+            _arm.SetBucketPreparePose();
+        }
+
+        public void SetArmBucketStrikePose()
+        {
+            _arm.SetBucketStrikePose();
+        }
+
+        public void SetArmGrabScrapPose()
+        {
+            _arm.SetGrabScrapPose();
+        }
+
+        public void SetArmThrowScrapPose()
+        {
+            _arm.SetThrowScrapPose();
+        }
+
+        public void SetArmPose(BossExcavatorArmPose pose)
+        {
+            _arm.SetPose(pose);
+        }
+
+        public void SetArmPose(BossExcavatorArmPose pose, float poseSpeedMult)
+        {
+            _arm.SetPose(pose, poseSpeedMult);
+        }
+
+        public void SetArmPose(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler)
+        {
+            _arm.SetPose(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
+        }
+
+        public void SetArmPose(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler, float poseSpeedMult)
+        {
+            _arm.SetPose(boomLocalEuler, stickLocalEuler, bucketLocalEuler, poseSpeedMult);
+        }
+
+        public void SetArmPoseImmediate(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler)
+        {
+            _arm.SetPoseImmediate(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
         }
 
         public void TakeDamage(float damage)
@@ -243,6 +314,11 @@ namespace JunkyardBoss
             if (_aim == null)
             {
                 throw new InvalidOperationException(nameof(_aim));
+            }
+
+            if (_arm == null)
+            {
+                throw new InvalidOperationException(nameof(_arm));
             }
 
             if (_base == null)

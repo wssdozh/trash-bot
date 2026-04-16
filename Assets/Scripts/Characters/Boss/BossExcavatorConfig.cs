@@ -99,6 +99,58 @@ namespace JunkyardBoss
         [Range(1f, 3f)]
         [SerializeField] private float _cabinPhaseTwoMult = 1.35f;
 
+        [Header("Arm")]
+        [SerializeField] private Vector3 _armDefaultBoomEuler = new Vector3(0f, 0f, -35f);
+
+        [SerializeField] private Vector3 _armDefaultStickEuler = new Vector3(0f, 0f, 70f);
+
+        [SerializeField] private Vector3 _armDefaultBucketEuler = new Vector3(0f, 0f, -25f);
+
+        [SerializeField] private Vector3 _armBucketPrepareBoomEuler = new Vector3(0f, 0f, -55f);
+
+        [SerializeField] private Vector3 _armBucketPrepareStickEuler = new Vector3(0f, 0f, 95f);
+
+        [SerializeField] private Vector3 _armBucketPrepareBucketEuler = new Vector3(0f, 0f, -45f);
+
+        [SerializeField] private Vector3 _armBucketStrikeBoomEuler = new Vector3(0f, 0f, 10f);
+
+        [SerializeField] private Vector3 _armBucketStrikeStickEuler = new Vector3(0f, 0f, -35f);
+
+        [SerializeField] private Vector3 _armBucketStrikeBucketEuler = new Vector3(0f, 0f, 20f);
+
+        [SerializeField] private Vector3 _armGrabScrapBoomEuler = new Vector3(0f, 0f, 35f);
+
+        [SerializeField] private Vector3 _armGrabScrapStickEuler = new Vector3(0f, 0f, 55f);
+
+        [SerializeField] private Vector3 _armGrabScrapBucketEuler = new Vector3(0f, 0f, -60f);
+
+        [SerializeField] private Vector3 _armThrowScrapBoomEuler = new Vector3(0f, 0f, -15f);
+
+        [SerializeField] private Vector3 _armThrowScrapStickEuler = new Vector3(0f, 0f, -25f);
+
+        [SerializeField] private Vector3 _armThrowScrapBucketEuler = new Vector3(0f, 0f, 55f);
+
+        [SerializeField] private BossExcavatorAxis _armBoomAxis = BossExcavatorAxis.X;
+
+        [SerializeField] private BossExcavatorAxis _armStickAxis = BossExcavatorAxis.X;
+
+        [SerializeField] private BossExcavatorAxis _armBucketAxis = BossExcavatorAxis.X;
+
+        [SerializeField] private bool _armBoomAxisInvert;
+
+        [SerializeField] private bool _armStickAxisInvert;
+
+        [SerializeField] private bool _armBucketAxisInvert;
+
+        [Min(1f)]
+        [SerializeField] private float _armBoomSpeed = 38f;
+
+        [Min(1f)]
+        [SerializeField] private float _armStickSpeed = 54f;
+
+        [Min(1f)]
+        [SerializeField] private float _armBucketSpeed = 76f;
+
         public float MaxHealth => _maxHealth;
         public float PhaseTwoRatio => _phaseTwoRatio;
         public BossExcavatorState StartState => _startState;
@@ -130,6 +182,33 @@ namespace JunkyardBoss
         public float BlockedPenalty => _blockedPenalty;
         public float CabinTurnSpeed => _cabinTurnSpeed;
         public float CabinPhaseTwoMult => _cabinPhaseTwoMult;
+        public Vector3 ArmNeutralBoomEuler => _armDefaultBoomEuler;
+        public Vector3 ArmNeutralStickEuler => _armDefaultStickEuler;
+        public Vector3 ArmNeutralBucketEuler => _armDefaultBucketEuler;
+        public Vector3 ArmBucketPrepareBoomEuler => _armBucketPrepareBoomEuler;
+        public Vector3 ArmBucketPrepareStickEuler => _armBucketPrepareStickEuler;
+        public Vector3 ArmBucketPrepareBucketEuler => _armBucketPrepareBucketEuler;
+        public Vector3 ArmBucketStrikeBoomEuler => _armBucketStrikeBoomEuler;
+        public Vector3 ArmBucketStrikeStickEuler => _armBucketStrikeStickEuler;
+        public Vector3 ArmBucketStrikeBucketEuler => _armBucketStrikeBucketEuler;
+        public Vector3 ArmGrabScrapBoomEuler => _armGrabScrapBoomEuler;
+        public Vector3 ArmGrabScrapStickEuler => _armGrabScrapStickEuler;
+        public Vector3 ArmGrabScrapBucketEuler => _armGrabScrapBucketEuler;
+        public Vector3 ArmThrowScrapBoomEuler => _armThrowScrapBoomEuler;
+        public Vector3 ArmThrowScrapStickEuler => _armThrowScrapStickEuler;
+        public Vector3 ArmThrowScrapBucketEuler => _armThrowScrapBucketEuler;
+        public BossExcavatorAxis ArmBoomAxis => _armBoomAxis;
+        public BossExcavatorAxis ArmStickAxis => _armStickAxis;
+        public BossExcavatorAxis ArmBucketAxis => _armBucketAxis;
+        public bool ArmBoomAxisInvert => _armBoomAxisInvert;
+        public bool ArmStickAxisInvert => _armStickAxisInvert;
+        public bool ArmBucketAxisInvert => _armBucketAxisInvert;
+        public Vector3 ArmDefaultBoomEuler => _armDefaultBoomEuler;
+        public Vector3 ArmDefaultStickEuler => _armDefaultStickEuler;
+        public Vector3 ArmDefaultBucketEuler => _armDefaultBucketEuler;
+        public float ArmBoomSpeed => _armBoomSpeed;
+        public float ArmStickSpeed => _armStickSpeed;
+        public float ArmBucketSpeed => _armBucketSpeed;
         public float MinMoveDistance => _mediumDistance - _distanceTolerance;
         public float MaxMoveDistance => _mediumDistance + _distanceTolerance;
     }
