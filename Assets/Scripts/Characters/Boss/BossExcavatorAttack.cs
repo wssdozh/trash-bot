@@ -5,6 +5,7 @@ namespace JunkyardBoss
         None = 0,
         BucketStrike = 1,
         ThrowScrap = 2,
-        Charge = 3
+        Charge = 3,
+        Sweep = 4
     }
 }

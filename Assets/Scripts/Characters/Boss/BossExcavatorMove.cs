@@ -15,12 +15,15 @@ namespace JunkyardBoss
         private const float NavSampleGap = 2f;
         private const float NavRecoverGap = 6f;
         private const float NavSnapGap = 0.35f;
-        private const float PathRefreshGap = 0.35f;
+        private const float PathRefreshGap = 0.5f;
         private const float PathLookDistance = 0.9f;
         private const float MoveLookBlend = 0.2f;
-        private const float MinMoveSpeedFactor = 0.18f;
-        private const float ReverseEnterAngle = 115f;
-        private const float ReverseExitAngle = 70f;
+        private const float PressureLookBlend = 0.58f;
+        private const float LookSmoothTime = 0.16f;
+        private const float MoveSmoothTime = 0.14f;
+        private const float PathTurnSlowStartAngle = 12f;
+        private const float PathTurnSlowStopAngle = 70f;
+        private const float MinPathTurnSpeedFactor = 0.78f;
         private const float GizmoPointSize = 0.35f;
         private const float GizmoSmallPointSize = 0.2f;
         private const int AvoidDirectionCount = 3;
@@ -53,8 +56,9 @@ namespace JunkyardBoss
         private float _combatTargetTimer;
         private int _flankSign = 1;
         private Vector3 _lastNavPoint;
+        private Vector3 _smoothedLookDirection;
+        private Vector3 _smoothedMoveDirection;
         private bool _hasLastNavPoint;
-        private bool _isDrivingReverse;
         private readonly Collider[] _overlapBuffer = new Collider[OverlapBufferCount];
         private Collider[] _bodyColliders;
 
@@ -117,8 +121,9 @@ namespace JunkyardBoss
             _fallbackArenaCenter = _desiredPoint;
             _hasFallbackArenaCenter = true;
             _lastNavPoint = Vector3.zero;
+            _smoothedLookDirection = GetPlanarForward(_base != null ? _base.forward : transform.forward);
+            _smoothedMoveDirection = _smoothedLookDirection;
             _hasLastNavPoint = false;
-            _isDrivingReverse = false;
 
             Stop();
         }
@@ -511,10 +516,10 @@ namespace JunkyardBoss
 
             if (steerDirection.sqrMagnitude <= MinSqrMagnitude)
             {
-                return moveDirection;
+                return GetSmoothedMoveDirection(moveDirection);
             }
 
-            return steerDirection;
+            return GetSmoothedMoveDirection(steerDirection);
         }
 
         private Vector3 GetPathDirection(Vector3 currentPoint)
@@ -573,7 +578,14 @@ namespace JunkyardBoss
 
         private void RotateBase(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
-            Vector3 lookDirection = GetLookDirection(currentPoint, targetPoint, moveDirection, targetPointType);
+            Vector3 desiredLookDirection = GetLookDirection(currentPoint, targetPoint, moveDirection, targetPointType);
+
+            if (desiredLookDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return;
+            }
+
+            Vector3 lookDirection = GetSmoothedLookDirection(desiredLookDirection);
 
             if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
@@ -582,7 +594,8 @@ namespace JunkyardBoss
 
             Quaternion currentRotation = _baseRigidbody.rotation;
             Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
-            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, _config.BaseTurnSpeed * Time.fixedDeltaTime);
+            float turnSpeed = GetTurnSpeed(currentPoint, targetPoint, lookDirection);
+            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
 
             _baseRigidbody.MoveRotation(nextRotation);
         }
@@ -590,18 +603,21 @@ namespace JunkyardBoss
         private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
             Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
+            Vector3 navigationLookDirection = GetNavigationLookDirection(currentPoint, moveDirection);
 
-            if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
+            if (navigationLookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
                 return targetDirection;
             }
 
             if (ShouldBlendLookWithTarget(targetPointType) == false)
             {
-                return moveDirection;
+                return navigationLookDirection;
             }
 
-            return GetMovementLookDirection(moveDirection, targetDirection);
+            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+
+            return GetMovementLookDirection(navigationLookDirection, targetDirection, targetDistance);
         }
 
         private bool ShouldBlendLookWithTarget(BossExcavatorTargetPoint targetPointType)
@@ -621,6 +637,11 @@ namespace JunkyardBoss
                 return true;
             }
 
+            if (targetPointType == BossExcavatorTargetPoint.PlayerBack)
+            {
+                return true;
+            }
+
             if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
             {
                 return true;
@@ -629,7 +650,7 @@ namespace JunkyardBoss
             return false;
         }
 
-        private Vector3 GetMovementLookDirection(Vector3 moveDirection, Vector3 targetDirection)
+        private Vector3 GetMovementLookDirection(Vector3 moveDirection, Vector3 targetDirection, float targetDistance)
         {
             if (targetDirection.sqrMagnitude <= MinSqrMagnitude)
             {
@@ -637,21 +658,136 @@ namespace JunkyardBoss
             }
 
             float moveAngle = Vector3.Angle(moveDirection, targetDirection);
+            float attackDistance = GetAttackChaseDistance() + GetDistanceTolerance();
+            float distanceBlend = 0f;
 
-            if (moveAngle >= _config.MoveStartAngle)
+            if (targetDistance <= attackDistance)
             {
-                return moveDirection;
+                float nearDistance = GetMinMoveDistance();
+
+                if (attackDistance <= nearDistance)
+                {
+                    distanceBlend = 1f;
+                }
+
+                else
+                {
+                    distanceBlend = 1f - Mathf.InverseLerp(nearDistance, attackDistance, targetDistance);
+                }
             }
 
-            float blendProgress = 1f - Mathf.InverseLerp(0f, _config.MoveStartAngle, moveAngle);
-            float lookBlend = MoveLookBlend * blendProgress;
+            if (distanceBlend <= 0f)
+            {
+                if (moveAngle >= _config.MoveStartAngle)
+                {
+                    return moveDirection;
+                }
+            }
+
+            float angleBlend = 1f - Mathf.InverseLerp(0f, Mathf.Max(_config.MoveStopAngle, _config.MoveStartAngle + 1f), moveAngle);
+            angleBlend = Mathf.Clamp01(angleBlend);
+            float blendProgress = Mathf.Max(distanceBlend, angleBlend);
+            float lookBlend = Mathf.Lerp(MoveLookBlend, PressureLookBlend, blendProgress);
             Vector3 blendedDirection = moveDirection * (1f - lookBlend);
             blendedDirection += targetDirection * lookBlend;
 
             return GetPlanarDirection(blendedDirection);
         }
 
-        private void MoveBase(Vector3 currentPoint, Vector3 moveDirection, float stopDistance)
+        private Vector3 GetNavigationLookDirection(Vector3 currentPoint, Vector3 moveDirection)
+        {
+            Vector3 steeringDirection = Vector3.zero;
+
+            if (_navMeshAgent != null)
+            {
+                Vector3 steeringPoint = GetPlanarPosition(_navMeshAgent.steeringTarget);
+                steeringDirection = GetPlanarDirection(steeringPoint - currentPoint);
+            }
+
+            if (steeringDirection.sqrMagnitude > MinSqrMagnitude)
+            {
+                return steeringDirection;
+            }
+
+            return moveDirection;
+        }
+
+        private Vector3 GetSmoothedLookDirection(Vector3 desiredLookDirection)
+        {
+            Vector3 planarDesiredDirection = GetPlanarDirection(desiredLookDirection);
+
+            if (planarDesiredDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return Vector3.zero;
+            }
+
+            if (_smoothedLookDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                _smoothedLookDirection = planarDesiredDirection;
+
+                return _smoothedLookDirection;
+            }
+
+            float smooth = Mathf.Min(1f, Time.fixedDeltaTime / LookSmoothTime);
+            _smoothedLookDirection = Vector3.Slerp(_smoothedLookDirection, planarDesiredDirection, smooth);
+            _smoothedLookDirection = GetPlanarDirection(_smoothedLookDirection);
+
+            return _smoothedLookDirection;
+        }
+
+        private Vector3 GetSmoothedMoveDirection(Vector3 desiredMoveDirection)
+        {
+            Vector3 planarDesiredDirection = GetPlanarDirection(desiredMoveDirection);
+
+            if (planarDesiredDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                return Vector3.zero;
+            }
+
+            if (_smoothedMoveDirection.sqrMagnitude <= MinSqrMagnitude)
+            {
+                _smoothedMoveDirection = planarDesiredDirection;
+
+                return _smoothedMoveDirection;
+            }
+
+            float smooth = Mathf.Min(1f, Time.fixedDeltaTime / MoveSmoothTime);
+            _smoothedMoveDirection = Vector3.Slerp(_smoothedMoveDirection, planarDesiredDirection, smooth);
+            _smoothedMoveDirection = GetPlanarDirection(_smoothedMoveDirection);
+
+            return _smoothedMoveDirection;
+        }
+
+        private float GetTurnSpeed(Vector3 currentPoint, Vector3 targetPoint, Vector3 lookDirection)
+        {
+            Vector3 forward = GetPlanarForward(_base.forward);
+            float turnAngle = Vector3.Angle(forward, lookDirection);
+            float angleBlend = Mathf.InverseLerp(_config.MoveStartAngle, 180f, turnAngle);
+            float angleMultiplier = Mathf.Lerp(1f, 1.35f, angleBlend);
+            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+            float attackDistance = GetAttackChaseDistance() + GetDistanceTolerance();
+            float pressureMultiplier = 1f;
+
+            if (targetDistance <= attackDistance)
+            {
+                float nearDistance = GetMinMoveDistance();
+                float distanceBlend = 1f;
+
+                if (attackDistance > nearDistance)
+                {
+                    distanceBlend = 1f - Mathf.InverseLerp(nearDistance, attackDistance, targetDistance);
+                }
+
+                pressureMultiplier = Mathf.Lerp(1f, 1.12f, distanceBlend);
+            }
+
+            return _config.BaseTurnSpeed * angleMultiplier * pressureMultiplier;
+        }
+
+        private void MoveBase(
+            Vector3 currentPoint,
+            Vector3 moveDirection,
+            float stopDistance)
         {
             float targetDistance = Vector3.Distance(currentPoint, _desiredPoint);
 
@@ -670,10 +806,8 @@ namespace JunkyardBoss
                 return;
             }
 
-            Vector3 forward = GetPlanarForward(_base.forward);
-            Vector3 driveDirection = GetDriveDirection(forward, moveDirection);
-            float angle = Vector3.Angle(driveDirection, moveDirection);
-            float speedFactor = GetMoveSpeedFactor(angle);
+            Vector3 driveDirection = moveDirection.normalized;
+            float speedFactor = GetPathTurnSpeedFactor(currentPoint, driveDirection);
             float moveDistance = _config.BaseMoveSpeed * speedFactor * Time.fixedDeltaTime;
             float maxDistance = Mathf.Max(0f, targetDistance - stopDistance);
 
@@ -694,56 +828,19 @@ namespace JunkyardBoss
             _navMeshAgent.nextPosition = GetPlanarPosition(nextPosition);
         }
 
-        private float GetMoveSpeedFactor(float angle)
+        private float GetPathTurnSpeedFactor(Vector3 currentPoint, Vector3 moveDirection)
         {
-            if (angle <= _config.MoveStartAngle)
+            Vector3 navigationDirection = GetNavigationLookDirection(currentPoint, moveDirection);
+
+            if (navigationDirection.sqrMagnitude <= MinSqrMagnitude)
             {
                 return 1f;
             }
 
-            float angleRange = Mathf.Max(0.01f, _config.MoveStopAngle - _config.MoveStartAngle);
-            float angleProgress = (angle - _config.MoveStartAngle) / angleRange;
-            float angleFactor = 1f - Mathf.Clamp01(angleProgress);
-            angleFactor *= angleFactor;
+            float turnAngle = Vector3.Angle(moveDirection, navigationDirection);
+            float turnBlend = Mathf.InverseLerp(PathTurnSlowStartAngle, PathTurnSlowStopAngle, turnAngle);
 
-            return Mathf.Lerp(MinMoveSpeedFactor, 1f, angleFactor);
-        }
-
-        private Vector3 GetDriveDirection(Vector3 forward, Vector3 moveDirection)
-        {
-            UpdateDriveMode(forward, moveDirection);
-
-            if (_isDrivingReverse)
-            {
-                return -forward;
-            }
-
-            return forward;
-        }
-
-        private void UpdateDriveMode(Vector3 forward, Vector3 moveDirection)
-        {
-            if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return;
-            }
-
-            float forwardAngle = Vector3.Angle(forward, moveDirection);
-
-            if (_isDrivingReverse)
-            {
-                if (forwardAngle <= ReverseExitAngle)
-                {
-                    _isDrivingReverse = false;
-                }
-
-                return;
-            }
-
-            if (forwardAngle >= ReverseEnterAngle)
-            {
-                _isDrivingReverse = true;
-            }
+            return Mathf.Lerp(1f, MinPathTurnSpeedFactor, turnBlend);
         }
 
         private bool SyncAgent(Vector3 currentPoint)

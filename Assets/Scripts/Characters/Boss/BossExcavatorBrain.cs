@@ -11,11 +11,14 @@ namespace JunkyardBoss
         private readonly BossExcavatorBucketAttack _bucketAttack;
         private readonly BossExcavatorThrowAttack _throwAttack;
         private readonly BossExcavatorChargeAttack _chargeAttack;
+        private readonly BossExcavatorSweepAttack _sweepAttack;
 
+        private float _sweepCooldownTimer;
         private float _bucketCooldownTimer;
         private float _throwCooldownTimer;
         private float _chargeCooldownTimer;
         private float _postAttackTimer;
+        private float _forcedChaseTimer;
         private float _moveStateTimer;
         private BossExcavatorAttack _currentAttack;
         private BossExcavatorAttack _pendingAttack;
@@ -34,20 +37,24 @@ namespace JunkyardBoss
             _bucketAttack = new BossExcavatorBucketAttack(_boss, _boss.Config);
             _throwAttack = new BossExcavatorThrowAttack(_boss, _boss.Config);
             _chargeAttack = new BossExcavatorChargeAttack(_boss, _boss.Config);
+            _sweepAttack = new BossExcavatorSweepAttack(_boss, _boss.Config);
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
         }
 
         public void Reset()
         {
+            _sweepCooldownTimer = 0f;
             _bucketCooldownTimer = 0f;
             _throwCooldownTimer = 0f;
             _chargeCooldownTimer = 0f;
             _postAttackTimer = 0f;
+            _forcedChaseTimer = 0f;
             _moveStateTimer = 0f;
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
             _moveState = BossExcavatorState.Chase;
+            _sweepAttack.Reset();
             _bucketAttack.Reset();
             _throwAttack.Reset();
             _chargeAttack.Reset();
@@ -116,10 +123,12 @@ namespace JunkyardBoss
         {
             float deltaTime = Time.deltaTime;
 
+            _sweepCooldownTimer = Mathf.Max(0f, _sweepCooldownTimer - deltaTime);
             _bucketCooldownTimer = Mathf.Max(0f, _bucketCooldownTimer - deltaTime);
             _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - deltaTime);
             _chargeCooldownTimer = Mathf.Max(0f, _chargeCooldownTimer - deltaTime);
             _postAttackTimer = Mathf.Max(0f, _postAttackTimer - deltaTime);
+            _forcedChaseTimer = Mathf.Max(0f, _forcedChaseTimer - deltaTime);
             _moveStateTimer = Mathf.Max(0f, _moveStateTimer - deltaTime);
         }
 

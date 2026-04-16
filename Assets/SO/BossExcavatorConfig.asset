@@ -16,14 +16,14 @@ MonoBehaviour:
   _phaseTwoRatio: 0.5
   _startState: 2
   _baseMoveSpeed: 4.9
-  _baseTurnSpeed: 145
+  _baseTurnSpeed: 185
   _moveStartAngle: 10
   _moveStopAngle: 36
   _stopDistance: 0.55
   _mediumDistance: 5.6
   _distanceTolerance: 0.7
   _distanceHysteresis: 0.35
-  _retreatDistance: 6.35
+  _retreatDistance: 5.95
   _flankAngle: 20
   _flankSwitchThreshold: 2
   _flankSwitchCooldown: 1.8
@@ -41,24 +41,30 @@ MonoBehaviour:
   _wallPenalty: 4.5
   _cornerPenalty: 8
   _blockedPenalty: 6
-  _attackChaseDistance: 6.1
+  _attackChaseDistance: 6.2
   _repositionBaseAngle: 86
-  _bucketMaxDistance: 5.2
-  _bucketBaseAngle: 34
-  _bucketCabinAngle: 38
-  _throwMinDistance: 5
-  _throwMaxDistance: 9
-  _throwBaseAngle: 32
-  _throwCabinAngle: 28
-  _chargeMinDistance: 6.5
-  _chargeMaxDistance: 11
-  _chargeBaseAngle: 14
+  _bucketMaxDistance: 5.9
+  _bucketBaseAngle: 50
+  _bucketCabinAngle: 58
+  _sweepMaxDistance: 3.4
+  _sweepCabinAngle: 115
+  _throwMinDistance: 5.7
+  _throwMaxDistance: 9.1
+  _throwBaseAngle: 52
+  _throwCabinAngle: 46
+  _chargeMinDistance: 5.3
+  _chargeMaxDistance: 13
+  _chargeBaseAngle: 36
   _phaseTwoCooldownMult: 0.65
-  _bucketAttackCooldown: 2.2
-  _throwAttackCooldown: 3
-  _chargeAttackCooldown: 4.8
+  _bucketAttackCooldown: 1.45
+  _sweepAttackCooldown: 2.05
+  _throwAttackCooldown: 2.45
+  _chargeAttackCooldown: 3.8
   _bucketPrepareTime: 0.48
   _bucketStrikeTime: 0.32
+  _sweepPrepareTime: 0.24
+  _sweepAttackTime: 1.2
+  _sweepSpinTurns: 3
   _throwGrabTime: 0.52
   _throwReleaseTime: 0.42
   _chargeAlignTime: 0.2
@@ -70,12 +76,20 @@ MonoBehaviour:
   _bucketHitRadius: 2.35
   _bucketHitAngle: 95
   _bucketHitOffset: 1.35
+  _bucketShockwaveDamage: 14
+  _bucketShockwaveRadius: 2.75
+  _bucketShockwaveOffset: 0.55
   _bucketHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
   _bucketPrepareSpeedMult: 1.35
   _bucketStrikeSpeedMult: 2
   _bucketRecoverSpeedMult: 1.15
+  _sweepHitDamage: 5
+  _sweepDamageInterval: 0.22
+  _sweepHitRadius: 1.45
+  _sweepHitOffset: 0.45
+  _sweepSpinSpeed: 270
   _throwProjectileCount: 3
   _throwProjectileSpreadAngle: 18
   _throwProjectileDamage: 8
@@ -91,16 +105,14 @@ MonoBehaviour:
   _chargeHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _attackRecoveryTime: 0.35
+  _attackRecoveryTime: 0.15
   _moveOrbitTime: 0.9
-  _movePressureTime: 2
-  _moveRetreatTime: 0.55
+  _movePressureTime: 2.35
+  _moveRetreatTime: 0.35
   _moveRepositionCommitTime: 0.18
   _moveChaseCommitTime: 0.1
-  _cabinTurnSpeed: 64
+  _cabinTurnSpeed: 96
   _cabinPhaseTwoMult: 1.35
-  _throwAimHeight: 1.2
-  _throwUpwardBias: 0.35
   _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
   _armDefaultStickEuler: {x: 0, y: 0, z: 70}
   _armDefaultBucketEuler: {x: 0, y: 0, z: -25}
@@ -110,6 +122,9 @@ MonoBehaviour:
   _armBucketStrikeBoomEuler: {x: 0, y: 0, z: 10}
   _armBucketStrikeStickEuler: {x: 0, y: 0, z: -35}
   _armBucketStrikeBucketEuler: {x: 0, y: 0, z: 20}
+  _armSweepBoomEuler: {x: 0, y: 0, z: 4}
+  _armSweepStickEuler: {x: 0, y: 0, z: -12}
+  _armSweepBucketEuler: {x: 0, y: 0, z: 18}
   _armGrabScrapBoomEuler: {x: 0, y: 0, z: 35}
   _armGrabScrapStickEuler: {x: 0, y: 0, z: 55}
   _armGrabScrapBucketEuler: {x: 0, y: 0, z: -60}

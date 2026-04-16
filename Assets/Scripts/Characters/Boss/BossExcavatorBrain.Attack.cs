@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace JunkyardBoss
 {
     public sealed partial class BossExcavatorBrain
@@ -9,6 +11,13 @@ namespace JunkyardBoss
             if (CanUseBucket(targetDistance, baseAngle, cabinAngle))
             {
                 _pendingAttack = BossExcavatorAttack.BucketStrike;
+
+                return _pendingAttack;
+            }
+
+            if (CanUseSweep(targetDistance, cabinAngle))
+            {
+                _pendingAttack = BossExcavatorAttack.Sweep;
 
                 return _pendingAttack;
             }
@@ -28,6 +37,31 @@ namespace JunkyardBoss
             }
 
             return BossExcavatorAttack.None;
+        }
+
+        private bool CanUseSweep(float targetDistance, float cabinAngle)
+        {
+            if (_postAttackTimer > 0f)
+            {
+                return false;
+            }
+
+            if (_sweepCooldownTimer > 0f)
+            {
+                return false;
+            }
+
+            if (targetDistance > _boss.Config.SweepMaxDistance)
+            {
+                return false;
+            }
+
+            if (cabinAngle > _boss.Config.SweepCabinAngle)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool CanUseBucket(float targetDistance, float baseAngle, float cabinAngle)
@@ -63,6 +97,11 @@ namespace JunkyardBoss
         private bool CanUseThrow(float targetDistance, float baseAngle, float cabinAngle)
         {
             if (_postAttackTimer > 0f)
+            {
+                return false;
+            }
+
+            if (_forcedChaseTimer > 0f)
             {
                 return false;
             }
@@ -139,6 +178,13 @@ namespace JunkyardBoss
                 return;
             }
 
+            if (attack == BossExcavatorAttack.Sweep)
+            {
+                _sweepAttack.StartAttack();
+
+                return;
+            }
+
             if (attack == BossExcavatorAttack.ThrowScrap)
             {
                 _throwAttack.StartAttack();
@@ -157,6 +203,18 @@ namespace JunkyardBoss
             if (_currentAttack == BossExcavatorAttack.BucketStrike)
             {
                 if (_bucketAttack.Tick())
+                {
+                    return true;
+                }
+
+                FinishAttack();
+
+                return false;
+            }
+
+            if (_currentAttack == BossExcavatorAttack.Sweep)
+            {
+                if (_sweepAttack.Tick())
                 {
                     return true;
                 }
@@ -195,22 +253,32 @@ namespace JunkyardBoss
 
         private void FinishAttack()
         {
+            if (_currentAttack == BossExcavatorAttack.Sweep)
+            {
+                _sweepCooldownTimer = GetCooldownValue(_boss.Config.SweepAttackCooldown);
+                _postAttackTimer = GetShortPostAttackDelay();
+                _forcedChaseTimer = GetClosePressureTime();
+            }
+
             if (_currentAttack == BossExcavatorAttack.BucketStrike)
             {
                 _bucketCooldownTimer = GetCooldownValue(_boss.Config.BucketAttackCooldown);
-                _postAttackTimer = _boss.Config.AttackRecoveryTime;
+                _postAttackTimer = GetShortPostAttackDelay();
+                _forcedChaseTimer = GetClosePressureTime();
             }
 
             if (_currentAttack == BossExcavatorAttack.ThrowScrap)
             {
                 _throwCooldownTimer = GetCooldownValue(_boss.Config.ThrowAttackCooldown);
-                _postAttackTimer = _boss.Config.AttackRecoveryTime;
+                _postAttackTimer = GetShortPostAttackDelay();
+                _forcedChaseTimer = _boss.Config.MovePressureTime;
             }
 
             if (_currentAttack == BossExcavatorAttack.Charge)
             {
                 _chargeCooldownTimer = GetCooldownValue(_boss.Config.ChargeAttackCooldown);
                 _postAttackTimer = 0f;
+                _forcedChaseTimer = GetClosePressureTime();
             }
 
             ClearAttackRuntime(true);
@@ -225,6 +293,7 @@ namespace JunkyardBoss
 
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
+            _sweepAttack.Cancel(restorePose);
             _bucketAttack.Cancel(restorePose);
             _throwAttack.Cancel(restorePose);
             _chargeAttack.Cancel(restorePose);
@@ -251,6 +320,16 @@ namespace JunkyardBoss
             }
 
             return baseCooldown;
+        }
+
+        private float GetShortPostAttackDelay()
+        {
+            return Mathf.Min(_boss.Config.AttackRecoveryTime, 0.08f);
+        }
+
+        private float GetClosePressureTime()
+        {
+            return Mathf.Max(_boss.Config.MovePressureTime * 0.35f, 0.25f);
         }
     }
 }

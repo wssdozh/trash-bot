@@ -129,28 +129,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299e560cf26c448a8da4b715a48fadd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorArm
---- !u!195 &212154565948459310
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000000000000000301}
-  m_Enabled: 0
-  m_AgentTypeID: 0
-  m_Radius: 0.95
-  m_Speed: 3.1
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 120.74
-  m_StoppingDistance: 0
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 1.6
-  m_BaseOffset: 0.2
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
 --- !u!1 &1000000000000000301
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +160,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.218, z: 0}
-  m_LocalScale: {x: 1.75, y: 0.84, z: 1.75}
+  m_LocalScale: {x: 1.75, y: 0.84, z: 2.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1000000000000000002}
@@ -291,6 +269,28 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!195 &212154565948459310
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000301}
+  m_Enabled: 0
+  m_AgentTypeID: 0
+  m_Radius: 0.95
+  m_Speed: 3.1
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120.74
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.6
+  m_BaseOffset: 0.2
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &1000000000000000401
 GameObject:
   m_ObjectHideFlags: 0

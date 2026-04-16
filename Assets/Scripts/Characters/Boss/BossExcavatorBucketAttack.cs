@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace JunkyardBoss
@@ -11,6 +12,7 @@ namespace JunkyardBoss
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
         private readonly Collider[] _hitBuffer;
+        private readonly HashSet<int> _damagedHealthIds;
 
         private float _telegraphTimer;
         private float _strikeTimer;
@@ -38,6 +40,7 @@ namespace JunkyardBoss
             _boss = boss;
             _config = config;
             _hitBuffer = new Collider[HitBufferCount];
+            _damagedHealthIds = new HashSet<int>();
             Reset();
         }
 
@@ -49,6 +52,7 @@ namespace JunkyardBoss
             _isRunning = false;
             _isHitApplied = false;
             _strikeForward = Vector3.forward;
+            _damagedHealthIds.Clear();
         }
 
         public void StartAttack()
@@ -133,6 +137,7 @@ namespace JunkyardBoss
             _strikeTimer = 0f;
             _recoverTimer = 0f;
             _boss.SetAimLocked(false);
+            _damagedHealthIds.Clear();
 
             if (restoreNeutralPose)
             {
@@ -194,6 +199,7 @@ namespace JunkyardBoss
             }
 
             _isHitApplied = true;
+            _damagedHealthIds.Clear();
 
             Transform bucket = _boss.Bucket;
 
@@ -268,10 +274,14 @@ namespace JunkyardBoss
 
             if (nearestHealth == null)
             {
+                ApplyShockwave(hitCenter);
+
                 return;
             }
 
+            _damagedHealthIds.Add(nearestHealth.GetInstanceID());
             nearestHealth.Decrease(_config.BucketHitDamage);
+            ApplyShockwave(hitCenter);
         }
 
         private bool IsInsideHitSector(Vector3 hitCenter, Vector3 strikeForward, Vector3 targetPoint)
@@ -357,6 +367,52 @@ namespace JunkyardBoss
             }
 
             return Vector3.forward;
+        }
+
+        private void ApplyShockwave(Vector3 hitCenter)
+        {
+            Vector3 shockwaveCenter = hitCenter + (_strikeForward * _config.BucketShockwaveOffset);
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                shockwaveCenter,
+                _config.BucketShockwaveRadius,
+                _hitBuffer,
+                _config.BucketHitMask,
+                QueryTriggerInteraction.Ignore);
+            int hitIndex = 0;
+
+            while (hitIndex < hitCount)
+            {
+                Collider hitCollider = _hitBuffer[hitIndex];
+                _hitBuffer[hitIndex] = null;
+                hitIndex += 1;
+
+                if (hitCollider == null)
+                {
+                    continue;
+                }
+
+                if (hitCollider.transform.IsChildOf(_boss.transform))
+                {
+                    continue;
+                }
+
+                Health hitHealth = hitCollider.GetComponentInParent<Health>();
+
+                if (hitHealth == null)
+                {
+                    continue;
+                }
+
+                int healthId = hitHealth.GetInstanceID();
+
+                if (_damagedHealthIds.Contains(healthId))
+                {
+                    continue;
+                }
+
+                _damagedHealthIds.Add(healthId);
+                hitHealth.Decrease(_config.BucketShockwaveDamage);
+            }
         }
 
         private void ValidateDependencies()
