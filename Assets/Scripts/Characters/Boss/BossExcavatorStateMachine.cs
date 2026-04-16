@@ -7,6 +7,7 @@ namespace JunkyardBoss
         private readonly BossExcavator _boss;
         private BossExcavatorState _requestedState;
         private bool _phaseChangeCompleted;
+        private bool _hasManualRequest;
 
         public BossExcavatorStateMachine(BossExcavator boss)
         {
@@ -23,6 +24,7 @@ namespace JunkyardBoss
         {
             _requestedState = _boss.Config.StartState;
             _phaseChangeCompleted = false;
+            _hasManualRequest = false;
         }
 
         public void RequestState(BossExcavatorState state)
@@ -30,6 +32,22 @@ namespace JunkyardBoss
             if (state == BossExcavatorState.PhaseChange || state == BossExcavatorState.Dead)
             {
                 throw new InvalidOperationException(nameof(state));
+            }
+
+            _requestedState = state;
+            _hasManualRequest = true;
+        }
+
+        public void RequestAutoState(BossExcavatorState state)
+        {
+            if (state == BossExcavatorState.PhaseChange || state == BossExcavatorState.Dead)
+            {
+                throw new InvalidOperationException(nameof(state));
+            }
+
+            if (_hasManualRequest)
+            {
+                return;
             }
 
             _requestedState = state;
@@ -63,12 +81,7 @@ namespace JunkyardBoss
                 return;
             }
 
-            if (_boss.State == _requestedState)
-            {
-                return;
-            }
-
-            _boss.ApplyState(_requestedState);
+            ApplyRequestedState();
         }
 
         private void EnterDead()
@@ -78,6 +91,7 @@ namespace JunkyardBoss
                 return;
             }
 
+            _hasManualRequest = false;
             _boss.ApplyState(BossExcavatorState.Dead);
         }
 
@@ -95,8 +109,21 @@ namespace JunkyardBoss
             }
 
             _boss.ApplyPhase(BossExcavatorPhase.PhaseTwo);
-            _boss.ApplyState(_requestedState);
+            ApplyRequestedState();
             _phaseChangeCompleted = false;
+        }
+
+        private void ApplyRequestedState()
+        {
+            if (_boss.State != _requestedState)
+            {
+                _boss.ApplyState(_requestedState);
+            }
+
+            if (_hasManualRequest)
+            {
+                _hasManualRequest = false;
+            }
         }
     }
 }

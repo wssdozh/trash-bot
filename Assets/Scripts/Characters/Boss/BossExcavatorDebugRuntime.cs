@@ -6,13 +6,23 @@ namespace JunkyardBoss
     [DisallowMultipleComponent]
     public sealed class BossExcavatorDebugRuntime : MonoBehaviour
     {
+        [Header("Links")]
         [SerializeField] private BossExcavator _boss;
+
+        [Header("Runtime")]
+        [SerializeField] private BossExcavatorState _currentState = BossExcavatorState.Idle;
+        [SerializeField] private BossExcavatorPhase _currentPhase = BossExcavatorPhase.PhaseOne;
+        [SerializeField] private BossExcavatorAttack _currentAttack = BossExcavatorAttack.None;
+        [SerializeField] private BossExcavatorArmPose _currentArmPose = BossExcavatorArmPose.Neutral;
+
+        [Header("State Command")]
         [SerializeField] private BossExcavatorState _state = BossExcavatorState.Reposition;
         [SerializeField] private bool _chargeAlign;
         [SerializeField] private bool _aimLocked;
         [SerializeField] private bool _armLocked;
+
+        [Header("Arm Command")]
         [SerializeField] private BossExcavatorArmPose _selectedArmPose = BossExcavatorArmPose.Neutral;
-        [SerializeField] private BossExcavatorArmPose _currentArmPose = BossExcavatorArmPose.Neutral;
         [SerializeField] private bool _applyNow;
         [SerializeField] private bool _resetNow;
         [SerializeField] private bool _completePhaseNow;
@@ -26,26 +36,35 @@ namespace JunkyardBoss
 
         private void Start()
         {
+            _currentState = _boss.State;
+            _currentPhase = _boss.Phase;
             _state = _boss.State;
             _chargeAlign = false;
             _aimLocked = false;
             _armLocked = false;
             _currentArmPose = _boss.GetArmPose();
             _selectedArmPose = _currentArmPose;
+            _currentAttack = _boss.CurrentAttack;
         }
 
         private void Update()
         {
             _boss.SetAimLocked(_aimLocked);
             _boss.SetArmLocked(_armLocked);
+            _currentState = _boss.State;
+            _currentPhase = _boss.Phase;
             _currentArmPose = _boss.GetArmPose();
+            _currentAttack = _boss.CurrentAttack;
 
             if (_resetNow)
             {
                 _resetNow = false;
                 _boss.ResetBoss();
                 _state = _boss.State;
+                _currentState = _boss.State;
+                _currentPhase = _boss.Phase;
                 _currentArmPose = _boss.GetArmPose();
+                _currentAttack = _boss.CurrentAttack;
             }
 
             if (_completePhaseNow)
@@ -53,6 +72,8 @@ namespace JunkyardBoss
                 _completePhaseNow = false;
                 _boss.CompletePhaseChange();
                 _state = _boss.State;
+                _currentState = _boss.State;
+                _currentPhase = _boss.Phase;
             }
 
             if (_applyNow)

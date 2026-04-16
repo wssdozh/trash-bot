@@ -17,6 +17,7 @@ namespace JunkyardBoss
         [SerializeField] private Transform _stick;
         [SerializeField] private Transform _bucket;
 
+        private BossExcavatorBrain _brain;
         private BossExcavatorStateMachine _stateMachine;
         private float _currentHealth;
         private BossExcavatorPhase _phase;
@@ -40,6 +41,7 @@ namespace JunkyardBoss
         public float CurrentHealth => _currentHealth;
         public BossExcavatorPhase Phase => _phase;
         public BossExcavatorState State => _state;
+        public BossExcavatorAttack CurrentAttack => _brain.CurrentAttack;
         public bool IsDead => _currentHealth <= 0f;
 
         private void Awake()
@@ -51,6 +53,7 @@ namespace JunkyardBoss
                 _target = null;
             }
 
+            _brain = new BossExcavatorBrain(this);
             _stateMachine = new BossExcavatorStateMachine(this);
             _move.Setup(_config, _base, _baseRigidbody, _target);
             _aim.Setup(this, _config, _cabin, _target);
@@ -62,6 +65,7 @@ namespace JunkyardBoss
 
         private void Update()
         {
+            _brain.Tick();
             _stateMachine.Tick();
         }
 
@@ -92,12 +96,18 @@ namespace JunkyardBoss
             _aim.SetLocked(false);
             _arm.SetLocked(false);
             _arm.SetDefaultPoseImmediate();
+            _brain.Reset();
         }
 
         public void RequestState(BossExcavatorState state)
         {
             _stateMachine.RequestState(state);
             _stateMachine.Tick();
+        }
+
+        internal void RequestAutoState(BossExcavatorState state)
+        {
+            _stateMachine.RequestAutoState(state);
         }
 
         public void CompletePhaseChange()
@@ -287,7 +297,6 @@ namespace JunkyardBoss
 
             if (_state == BossExcavatorState.Chase)
             {
-                _move.SetChargeAlign(false);
                 _move.FixedTick();
 
                 return;

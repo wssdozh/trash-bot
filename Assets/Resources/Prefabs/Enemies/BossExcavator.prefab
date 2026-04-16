@@ -84,7 +84,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000000000000000001}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5f45f10fcd94b249df798a0c213c37c, type: 3}
   m_Name: 
@@ -96,6 +96,7 @@ MonoBehaviour:
   _armLocked: 0
   _selectedArmPose: 0
   _currentArmPose: 0
+  _currentAttack: 0
   _applyNow: 0
   _resetNow: 0
   _completePhaseNow: 0

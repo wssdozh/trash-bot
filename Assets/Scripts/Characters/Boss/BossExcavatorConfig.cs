@@ -92,6 +92,94 @@ namespace JunkyardBoss
         [Min(0f)]
         [SerializeField] private float _blockedPenalty = 6f;
 
+        [Header("Attack Decision")]
+        [Min(0.1f)]
+        [SerializeField] private float _attackChaseDistance = 8.8f;
+
+        [Range(5f, 90f)]
+        [SerializeField] private float _repositionBaseAngle = 68f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _bucketMaxDistance = 6.6f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _bucketBaseAngle = 34f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _bucketCabinAngle = 38f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _throwMinDistance = 6.2f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _throwMaxDistance = 14.8f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _throwBaseAngle = 32f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _throwCabinAngle = 28f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _chargeMinDistance = 8.5f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _chargeMaxDistance = 20f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _chargeBaseAngle = 14f;
+
+        [Range(0.1f, 1f)]
+        [SerializeField] private float _phaseTwoCooldownMult = 0.65f;
+
+        [Header("Attack Cooldowns")]
+        [Min(0f)]
+        [SerializeField] private float _bucketAttackCooldown = 2.2f;
+
+        [Min(0f)]
+        [SerializeField] private float _throwAttackCooldown = 3f;
+
+        [Min(0f)]
+        [SerializeField] private float _chargeAttackCooldown = 4.8f;
+
+        [Header("Attack Timing")]
+        [Min(0.05f)]
+        [SerializeField] private float _bucketPrepareTime = 0.48f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _bucketStrikeTime = 0.32f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _throwGrabTime = 0.52f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _throwReleaseTime = 0.42f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _chargeAttackTime = 1.15f;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _attackPoseSpeedMult = 1.45f;
+
+        [Min(0.05f)]
+        [SerializeField] private float _attackRecoveryTime = 0.35f;
+
+        [Header("Move Rhythm")]
+        [Min(0.1f)]
+        [SerializeField] private float _moveOrbitTime = 0.9f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _movePressureTime = 2f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _moveRetreatTime = 0.55f;
+
+        [Min(0f)]
+        [SerializeField] private float _moveRepositionCommitTime = 0.35f;
+
+        [Min(0f)]
+        [SerializeField] private float _moveChaseCommitTime = 0.25f;
+
         [Header("Aim")]
         [Min(1f)]
         [SerializeField] private float _cabinTurnSpeed = 58f;
@@ -180,6 +268,34 @@ namespace JunkyardBoss
         public float WallPenalty => _wallPenalty;
         public float CornerPenalty => _cornerPenalty;
         public float BlockedPenalty => _blockedPenalty;
+        public float AttackChaseDistance => _attackChaseDistance;
+        public float RepositionBaseAngle => _repositionBaseAngle;
+        public float BucketMaxDistance => _bucketMaxDistance;
+        public float BucketBaseAngle => _bucketBaseAngle;
+        public float BucketCabinAngle => _bucketCabinAngle;
+        public float ThrowMinDistance => _throwMinDistance;
+        public float ThrowMaxDistance => Mathf.Max(_throwMaxDistance, _throwMinDistance + 0.1f);
+        public float ThrowBaseAngle => _throwBaseAngle;
+        public float ThrowCabinAngle => _throwCabinAngle;
+        public float ChargeMinDistance => _chargeMinDistance;
+        public float ChargeMaxDistance => Mathf.Max(_chargeMaxDistance, _chargeMinDistance + 0.1f);
+        public float ChargeBaseAngle => _chargeBaseAngle;
+        public float PhaseTwoCooldownMult => _phaseTwoCooldownMult;
+        public float BucketAttackCooldown => _bucketAttackCooldown;
+        public float ThrowAttackCooldown => _throwAttackCooldown;
+        public float ChargeAttackCooldown => _chargeAttackCooldown;
+        public float BucketPrepareTime => _bucketPrepareTime;
+        public float BucketStrikeTime => _bucketStrikeTime;
+        public float ThrowGrabTime => _throwGrabTime;
+        public float ThrowReleaseTime => _throwReleaseTime;
+        public float ChargeAttackTime => _chargeAttackTime;
+        public float AttackPoseSpeedMult => _attackPoseSpeedMult;
+        public float AttackRecoveryTime => _attackRecoveryTime;
+        public float MoveOrbitTime => _moveOrbitTime;
+        public float MovePressureTime => _movePressureTime;
+        public float MoveRetreatTime => _moveRetreatTime;
+        public float MoveRepositionCommitTime => _moveRepositionCommitTime;
+        public float MoveChaseCommitTime => _moveChaseCommitTime;
         public float CabinTurnSpeed => _cabinTurnSpeed;
         public float CabinPhaseTwoMult => _cabinPhaseTwoMult;
         public Vector3 ArmNeutralBoomEuler => _armDefaultBoomEuler;
