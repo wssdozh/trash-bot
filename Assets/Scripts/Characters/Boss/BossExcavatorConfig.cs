@@ -94,13 +94,13 @@ namespace JunkyardBoss
 
         [Header("Attack Decision")]
         [Min(0.1f)]
-        [SerializeField] private float _attackChaseDistance = 6.2f;
+        [SerializeField] private float _attackChaseDistance = 5.45f;
 
         [Range(5f, 90f)]
         [SerializeField] private float _repositionBaseAngle = 86f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketMaxDistance = 5.9f;
+        [SerializeField] private float _bucketMaxDistance = 5.1f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _bucketBaseAngle = 50f;
@@ -109,16 +109,16 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketCabinAngle = 58f;
 
         [Min(0.1f)]
-        [SerializeField] private float _sweepMaxDistance = 3.4f;
+        [SerializeField] private float _sweepMaxDistance = 2.9f;
 
         [Range(1f, 180f)]
         [SerializeField] private float _sweepCabinAngle = 115f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwMinDistance = 5.7f;
+        [SerializeField] private float _throwMinDistance = 5.15f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwMaxDistance = 9.1f;
+        [SerializeField] private float _throwMaxDistance = 8.3f;
 
         [Range(1f, 90f)]
         [SerializeField] private float _throwBaseAngle = 52f;
@@ -193,13 +193,13 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketHitDamage = 24f;
 
         [Min(0.1f)]
-        [SerializeField] private float _bucketHitRadius = 2.35f;
+        [SerializeField] private float _bucketHitRadius = 2.05f;
 
         [Range(1f, 180f)]
         [SerializeField] private float _bucketHitAngle = 95f;
 
         [Min(0f)]
-        [SerializeField] private float _bucketHitOffset = 1.35f;
+        [SerializeField] private float _bucketHitOffset = 0.95f;
 
         [Min(0.1f)]
         [SerializeField] private float _bucketShockwaveDamage = 12f;
@@ -208,7 +208,7 @@ namespace JunkyardBoss
         [SerializeField] private float _bucketShockwaveRadius = 2.75f;
 
         [Min(0f)]
-        [SerializeField] private float _bucketShockwaveOffset = 0.2f;
+        [SerializeField] private float _bucketShockwaveOffset = 0.1f;
 
         [SerializeField] private LayerMask _bucketHitMask = ~0;
 
@@ -232,7 +232,7 @@ namespace JunkyardBoss
         [SerializeField] private float _sweepHitRadius = 1.45f;
 
         [Min(0f)]
-        [SerializeField] private float _sweepHitOffset = 0.45f;
+        [SerializeField] private float _sweepHitOffset = 0.25f;
 
         [Min(1f)]
         [SerializeField] private float _sweepSpinSpeed = 270f;
@@ -251,7 +251,7 @@ namespace JunkyardBoss
         [SerializeField] private float _throwProjectileSpeedMult = 1.15f;
 
         [Min(0f)]
-        [SerializeField] private float _throwSpawnOffset = 0.8f;
+        [SerializeField] private float _throwSpawnOffset = 0.5f;
 
         [SerializeField] private LayerMask _throwHitMask = ~0;
 
