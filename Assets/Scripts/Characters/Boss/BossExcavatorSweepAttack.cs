@@ -57,9 +57,9 @@ namespace JunkyardBoss
         {
             ValidateDependencies();
 
-            _prepareTimer = _config.SweepPrepareTime;
+            _prepareTimer = GetPrepareTime();
             _attackTimer = GetAttackDuration();
-            _recoverTimer = _config.AttackRecoveryTime;
+            _recoverTimer = GetRecoverTime();
             _damageTickTimer = 0f;
             _spinDirectionSign = ResolveSpinDirectionSign();
             _isRunning = true;
@@ -164,12 +164,12 @@ namespace JunkyardBoss
                 _config.ArmSweepBoomEuler,
                 _config.ArmSweepStickEuler,
                 _config.ArmSweepBucketEuler,
-                _config.AttackPoseSpeedMult);
+                GetAttackPoseSpeedMult());
         }
 
         private void SetRecoverPose()
         {
-            _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
         }
 
         private void RotateCabin(float deltaTime)
@@ -181,14 +181,14 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(cabin));
             }
 
-            float spinAngle = _config.SweepSpinSpeed * _spinDirectionSign * deltaTime;
+            float spinAngle = GetSweepSpinSpeed() * _spinDirectionSign * deltaTime;
             Quaternion spinRotation = Quaternion.AngleAxis(spinAngle, Vector3.up);
             cabin.rotation = spinRotation * cabin.rotation;
         }
 
         private void TickDamage(float deltaTime)
         {
-            float interval = Mathf.Max(_config.SweepDamageInterval, 0.05f);
+            float interval = Mathf.Max(_config.SweepDamageInterval / GetPhaseAttackSpeedMult(), 0.05f);
             _damageTickTimer -= deltaTime;
 
             while (_damageTickTimer <= 0f)
@@ -256,7 +256,7 @@ namespace JunkyardBoss
                 }
 
                 _hitHealthIds.Add(healthId);
-                hitHealth.Decrease(_config.SweepHitDamage);
+                hitHealth.Decrease(_config.SweepHitDamage * GetPhaseDamageMult());
             }
         }
 
@@ -364,14 +364,62 @@ namespace JunkyardBoss
 
         private float GetAttackDuration()
         {
-            float spinDuration = (360f * _config.SweepSpinTurns) / Mathf.Max(_config.SweepSpinSpeed, 1f);
+            float attackTime = _config.SweepAttackTime / GetPhaseAttackSpeedMult();
+            float spinDuration = (360f * _config.SweepSpinTurns) / Mathf.Max(GetSweepSpinSpeed(), 1f);
 
-            if (spinDuration > _config.SweepAttackTime)
+            if (spinDuration > attackTime)
             {
                 return spinDuration;
             }
 
-            return _config.SweepAttackTime;
+            return attackTime;
+        }
+
+        private float GetPhaseAttackSpeedMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoAttackSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetPhaseDamageMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoDamageMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetAttackPoseSpeedMult()
+        {
+            return _config.AttackPoseSpeedMult * GetPhaseAttackSpeedMult();
+        }
+
+        private float GetSweepSpinSpeed()
+        {
+            float spinSpeed = _config.SweepSpinSpeed;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                spinSpeed *= _config.PhaseTwoSweepSpinSpeedMult;
+            }
+
+            return spinSpeed;
+        }
+
+        private float GetPrepareTime()
+        {
+            return _config.SweepPrepareTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetRecoverTime()
+        {
+            return _config.AttackRecoveryTime / GetPhaseAttackSpeedMult();
         }
     }
 }

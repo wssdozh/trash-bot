@@ -15,14 +15,18 @@ namespace JunkyardBoss
         private readonly BossExcavatorConfig _config;
         private readonly Collider[] _hitBuffer;
         private readonly HashSet<int> _hitHealthIds;
+        private readonly HashSet<int> _comboHitHealthIds;
 
         private float _alignTimer;
         private float _telegraphTimer;
         private float _dashTimer;
         private float _recoverTimer;
+        private float _comboDamageTickTimer;
+        private float _spinDirectionSign;
         private Vector3 _chargeDirection;
         private bool _isRunning;
         private bool _isRecovering;
+        private bool _isComboSweep;
 
         public bool IsRunning => _isRunning;
 
@@ -42,6 +46,7 @@ namespace JunkyardBoss
             _config = config;
             _hitBuffer = new Collider[HitBufferCount];
             _hitHealthIds = new HashSet<int>();
+            _comboHitHealthIds = new HashSet<int>();
             Reset();
         }
 
@@ -51,29 +56,37 @@ namespace JunkyardBoss
             _telegraphTimer = 0f;
             _dashTimer = 0f;
             _recoverTimer = 0f;
+            _comboDamageTickTimer = 0f;
+            _spinDirectionSign = 1f;
             _chargeDirection = Vector3.forward;
             _isRunning = false;
             _isRecovering = false;
+            _isComboSweep = false;
             _hitHealthIds.Clear();
+            _comboHitHealthIds.Clear();
         }
 
-        public void StartAttack()
+        public void StartAttack(bool isComboSweep)
         {
             ValidateDependencies();
 
-            _alignTimer = _config.ChargeAlignTime;
-            _telegraphTimer = _config.ChargeTelegraphTime;
-            _dashTimer = _config.ChargeAttackTime;
-            _recoverTimer = _config.ChargeRecoveryTime;
+            _alignTimer = GetAlignTime();
+            _telegraphTimer = GetTelegraphTime();
+            _dashTimer = GetDashTime();
+            _recoverTimer = GetRecoverTime();
+            _comboDamageTickTimer = 0f;
+            _spinDirectionSign = 1f;
             _chargeDirection = ResolveTargetDirection();
             _isRunning = true;
             _isRecovering = false;
+            _isComboSweep = isComboSweep;
             _hitHealthIds.Clear();
+            _comboHitHealthIds.Clear();
 
             _boss.SetChargeAlign(false);
             _boss.SetAimLocked(true);
             _boss.SetArmLocked(false);
-            _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
         }
 
         public bool Tick()
@@ -99,6 +112,7 @@ namespace JunkyardBoss
 
             if (_dashTimer > 0f)
             {
+                TickDash(Time.deltaTime);
                 _dashTimer = Mathf.Max(0f, _dashTimer - Time.deltaTime);
 
                 if (_dashTimer <= 0f)
@@ -153,14 +167,17 @@ namespace JunkyardBoss
             _telegraphTimer = 0f;
             _dashTimer = 0f;
             _recoverTimer = 0f;
+            _comboDamageTickTimer = 0f;
             _isRecovering = false;
+            _isComboSweep = false;
             _hitHealthIds.Clear();
+            _comboHitHealthIds.Clear();
             _boss.SetAimLocked(false);
             ResetPlanarVelocity();
 
             if (restoreNeutralPose)
             {
-                _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+                _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
             }
         }
 
@@ -212,6 +229,13 @@ namespace JunkyardBoss
             {
                 _chargeDirection = ResolveTargetDirection();
             }
+
+            if (_isComboSweep)
+            {
+                _comboDamageTickTimer = 0f;
+                _spinDirectionSign = ResolveSpinDirectionSign();
+                SetComboSweepPose();
+            }
         }
 
         private void BeginRecover()
@@ -224,8 +248,10 @@ namespace JunkyardBoss
             _isRecovering = true;
             _dashTimer = 0f;
             _boss.SetAimLocked(false);
-            _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
             _boss.Move.InvalidatePath();
+            _comboDamageTickTimer = 0f;
+            _comboHitHealthIds.Clear();
             ResetPlanarVelocity();
         }
 
@@ -233,8 +259,22 @@ namespace JunkyardBoss
         {
             _isRunning = false;
             _isRecovering = false;
+            _isComboSweep = false;
+            _comboDamageTickTimer = 0f;
+            _comboHitHealthIds.Clear();
             _boss.SetAimLocked(false);
             ResetPlanarVelocity();
+        }
+
+        private void TickDash(float deltaTime)
+        {
+            if (_isComboSweep == false)
+            {
+                return;
+            }
+
+            RotateCabin(deltaTime);
+            TickComboDamage(deltaTime);
         }
 
         private void MoveCharge(float deltaTime)
@@ -252,7 +292,7 @@ namespace JunkyardBoss
             moveDirection.Normalize();
             RotateBaseTowards(moveDirection, deltaTime);
 
-            float stepDistance = _config.ChargeSpeed * deltaTime;
+            float stepDistance = GetChargeSpeed() * deltaTime;
 
             if (stepDistance <= 0f)
             {
@@ -289,6 +329,20 @@ namespace JunkyardBoss
             {
                 BeginRecover();
             }
+        }
+
+        private void RotateCabin(float deltaTime)
+        {
+            Transform cabin = _boss.Cabin;
+
+            if (cabin == null)
+            {
+                throw new InvalidOperationException(nameof(cabin));
+            }
+
+            float spinAngle = GetComboSweepSpinSpeed() * _spinDirectionSign * deltaTime;
+            Quaternion spinRotation = Quaternion.AngleAxis(spinAngle, Vector3.up);
+            cabin.rotation = spinRotation * cabin.rotation;
         }
 
         private void ApplyChargeDamage(Vector3 position, Vector3 moveDirection)
@@ -333,7 +387,81 @@ namespace JunkyardBoss
                 }
 
                 _hitHealthIds.Add(healthId);
-                hitHealth.Decrease(_config.ChargeHitDamage);
+                hitHealth.Decrease(_config.ChargeHitDamage * GetPhaseDamageMult());
+            }
+        }
+
+        private void TickComboDamage(float deltaTime)
+        {
+            float interval = Mathf.Max(_config.SweepDamageInterval / GetPhaseAttackSpeedMult(), 0.05f);
+            _comboDamageTickTimer -= deltaTime;
+
+            while (_comboDamageTickTimer <= 0f)
+            {
+                ApplyComboDamagePulse();
+                _comboDamageTickTimer += interval;
+            }
+        }
+
+        private void ApplyComboDamagePulse()
+        {
+            Transform bucket = _boss.Bucket;
+
+            if (bucket == null)
+            {
+                throw new InvalidOperationException(nameof(bucket));
+            }
+
+            Vector3 hitForward = ResolveSweepHitForward();
+            Vector3 hitCenter = bucket.position + hitForward * _config.SweepHitOffset;
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                hitCenter,
+                _config.SweepHitRadius,
+                _hitBuffer,
+                _config.BucketHitMask,
+                QueryTriggerInteraction.Ignore);
+
+            if (hitCount <= 0)
+            {
+                return;
+            }
+
+            _comboHitHealthIds.Clear();
+
+            int hitIndex = 0;
+
+            while (hitIndex < hitCount)
+            {
+                Collider hitCollider = _hitBuffer[hitIndex];
+                _hitBuffer[hitIndex] = null;
+                hitIndex += 1;
+
+                if (hitCollider == null)
+                {
+                    continue;
+                }
+
+                if (hitCollider.transform.IsChildOf(_boss.transform))
+                {
+                    continue;
+                }
+
+                Health hitHealth = hitCollider.GetComponentInParent<Health>();
+
+                if (hitHealth == null)
+                {
+                    continue;
+                }
+
+                int healthId = hitHealth.GetInstanceID();
+
+                if (_comboHitHealthIds.Contains(healthId))
+                {
+                    continue;
+                }
+
+                _comboHitHealthIds.Add(healthId);
+                hitHealth.Decrease(_config.SweepHitDamage * GetPhaseDamageMult());
             }
         }
 
@@ -376,6 +504,37 @@ namespace JunkyardBoss
             return baseForward.normalized;
         }
 
+        private Vector3 ResolveSweepHitForward()
+        {
+            Transform bucket = _boss.Bucket;
+
+            if (bucket != null)
+            {
+                Vector3 bucketForward = bucket.forward;
+                bucketForward.y = 0f;
+
+                if (bucketForward.sqrMagnitude > MinDirectionSqr)
+                {
+                    return bucketForward.normalized;
+                }
+            }
+
+            Transform cabin = _boss.Cabin;
+
+            if (cabin != null)
+            {
+                Vector3 cabinForward = cabin.forward;
+                cabinForward.y = 0f;
+
+                if (cabinForward.sqrMagnitude > MinDirectionSqr)
+                {
+                    return cabinForward.normalized;
+                }
+            }
+
+            return GetBaseForward();
+        }
+
         private float GetAngleToDirection(Vector3 direction)
         {
             Vector3 baseForward = GetBaseForward();
@@ -403,7 +562,7 @@ namespace JunkyardBoss
             Quaternion nextRotation = Quaternion.RotateTowards(
                 currentRotation,
                 targetRotation,
-                _config.BaseTurnSpeed * deltaTime);
+                _config.BaseTurnSpeed * GetPhaseAttackSpeedMult() * deltaTime);
 
             _boss.BaseRigidbody.MoveRotation(nextRotation);
         }
@@ -414,6 +573,60 @@ namespace JunkyardBoss
             currentVelocity.x = 0f;
             currentVelocity.z = 0f;
             _boss.BaseRigidbody.linearVelocity = currentVelocity;
+        }
+
+        private void SetComboSweepPose()
+        {
+            _boss.SetArmPose(
+                _config.ArmSweepBoomEuler,
+                _config.ArmSweepStickEuler,
+                _config.ArmSweepBucketEuler,
+                GetAttackPoseSpeedMult());
+        }
+
+        private float ResolveSpinDirectionSign()
+        {
+            Transform cabin = _boss.Cabin;
+            Transform target = _boss.Target;
+
+            if (cabin == null)
+            {
+                return 1f;
+            }
+
+            if (target == null)
+            {
+                return 1f;
+            }
+
+            Vector3 cabinForward = cabin.forward;
+            cabinForward.y = 0f;
+            Vector3 targetDirection = target.position - cabin.position;
+            targetDirection.y = 0f;
+
+            if (cabinForward.sqrMagnitude <= MinDirectionSqr)
+            {
+                return 1f;
+            }
+
+            if (targetDirection.sqrMagnitude <= MinDirectionSqr)
+            {
+                return 1f;
+            }
+
+            float signedAngle = Vector3.SignedAngle(cabinForward.normalized, targetDirection.normalized, Vector3.up);
+
+            if (Mathf.Abs(signedAngle) <= 1f)
+            {
+                return 1f;
+            }
+
+            if (signedAngle < 0f)
+            {
+                return -1f;
+            }
+
+            return 1f;
         }
 
         private void ValidateDependencies()
@@ -432,6 +645,74 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_boss.Move));
             }
+        }
+
+        private float GetPhaseAttackSpeedMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoAttackSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetPhaseDamageMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoDamageMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetAttackPoseSpeedMult()
+        {
+            return _config.AttackPoseSpeedMult * GetPhaseAttackSpeedMult();
+        }
+
+        private float GetChargeSpeed()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.ChargeSpeed * _config.PhaseTwoChargeSpeedMult;
+            }
+
+            return _config.ChargeSpeed;
+        }
+
+        private float GetAlignTime()
+        {
+            return _config.ChargeAlignTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetTelegraphTime()
+        {
+            return _config.ChargeTelegraphTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetDashTime()
+        {
+            return _config.ChargeAttackTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetRecoverTime()
+        {
+            return _config.ChargeRecoveryTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetComboSweepSpinSpeed()
+        {
+            float spinSpeed = _config.SweepSpinSpeed;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                spinSpeed *= _config.PhaseTwoSweepSpinSpeedMult;
+                spinSpeed *= _config.PhaseTwoComboSweepSpinSpeedMult;
+            }
+
+            return spinSpeed;
         }
     }
 }

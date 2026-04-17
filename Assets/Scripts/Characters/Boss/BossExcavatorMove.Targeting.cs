@@ -75,7 +75,7 @@ namespace JunkyardBoss
 
         private bool ShouldUseCenter(float targetDistance)
         {
-            if (targetDistance > GetAttackChaseDistance())
+            if (targetDistance > GetPressureCenterDistance())
             {
                 return true;
             }
@@ -587,19 +587,19 @@ namespace JunkyardBoss
 
         private float GetCenterHoldDistance()
         {
-            return GetAttackChaseDistance() - GetDistanceHysteresis();
+            return GetPressureCenterDistance() - GetDistanceHysteresis();
         }
 
         private float GetCenterDistance(Vector3 currentPoint, Vector3 targetPoint)
         {
-            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+            return GetPressureCenterDistance();
+        }
 
-            if (targetDistance > GetCenterHoldDistance())
-            {
-                return GetAttackChaseDistance();
-            }
+        private float GetPressureCenterDistance()
+        {
+            float pressureDistance = _config.BucketMaxDistance - (GetDistanceTolerance() * 0.2f);
 
-            return GetMediumDistance();
+            return Mathf.Max(GetMinMoveDistance(), pressureDistance);
         }
 
         private float GetClosePressureDistance()

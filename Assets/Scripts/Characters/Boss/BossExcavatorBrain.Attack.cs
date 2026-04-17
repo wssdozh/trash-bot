@@ -101,11 +101,6 @@ namespace JunkyardBoss
                 return false;
             }
 
-            if (_forcedChaseTimer > 0f)
-            {
-                return false;
-            }
-
             if (_throwCooldownTimer > 0f)
             {
                 return false;
@@ -194,7 +189,7 @@ namespace JunkyardBoss
 
             if (attack == BossExcavatorAttack.Charge)
             {
-                _chargeAttack.StartAttack();
+                _chargeAttack.StartAttack(ShouldUseChargeSweepCombo());
             }
         }
 
@@ -324,12 +319,29 @@ namespace JunkyardBoss
 
         private float GetShortPostAttackDelay()
         {
-            return Mathf.Min(_boss.Config.AttackRecoveryTime, 0.08f);
+            float postAttackDelay = _boss.Config.AttackRecoveryTime;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                postAttackDelay /= _boss.Config.PhaseTwoAttackSpeedMult;
+            }
+
+            return Mathf.Min(postAttackDelay, 0.08f);
         }
 
         private float GetClosePressureTime()
         {
             return Mathf.Max(_boss.Config.MovePressureTime * 0.35f, 0.25f);
+        }
+
+        private bool ShouldUseChargeSweepCombo()
+        {
+            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

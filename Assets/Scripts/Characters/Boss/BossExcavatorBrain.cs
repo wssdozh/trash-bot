@@ -20,9 +20,11 @@ namespace JunkyardBoss
         private float _postAttackTimer;
         private float _forcedChaseTimer;
         private float _moveStateTimer;
+        private float _phaseChangeTimer;
         private BossExcavatorAttack _currentAttack;
         private BossExcavatorAttack _pendingAttack;
         private BossExcavatorState _moveState;
+        private bool _isPhaseChangeActive;
 
         public BossExcavatorAttack CurrentAttack => _currentAttack;
 
@@ -51,9 +53,11 @@ namespace JunkyardBoss
             _postAttackTimer = 0f;
             _forcedChaseTimer = 0f;
             _moveStateTimer = 0f;
+            _phaseChangeTimer = 0f;
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
             _moveState = BossExcavatorState.Chase;
+            _isPhaseChangeActive = false;
             _sweepAttack.Reset();
             _bucketAttack.Reset();
             _throwAttack.Reset();
@@ -66,6 +70,7 @@ namespace JunkyardBoss
             if (_boss.IsDead)
             {
                 ClearAttackRuntime(false);
+                ResetPhaseChangeRuntime();
 
                 return;
             }
@@ -73,8 +78,14 @@ namespace JunkyardBoss
             if (_boss.State == BossExcavatorState.PhaseChange)
             {
                 ClearAttackRuntime(false);
+                TickPhaseChange();
 
                 return;
+            }
+
+            if (_isPhaseChangeActive)
+            {
+                ResetPhaseChangeRuntime();
             }
 
             UpdateTimers();
@@ -160,6 +171,35 @@ namespace JunkyardBoss
             }
 
             return Vector3.Angle(pivot.forward, lookDirection.normalized);
+        }
+
+        private void TickPhaseChange()
+        {
+            if (_isPhaseChangeActive == false)
+            {
+                _isPhaseChangeActive = true;
+                _phaseChangeTimer = _boss.Config.PhaseChangeDuration;
+                _boss.SetAimLocked(false);
+                _boss.SetArmLocked(false);
+                _boss.SetChargeAlign(false);
+                _boss.SetArmPose(BossExcavatorArmPose.BucketPrepare, _boss.Config.AttackPoseSpeedMult);
+            }
+
+            _phaseChangeTimer = Mathf.Max(0f, _phaseChangeTimer - Time.deltaTime);
+
+            if (_phaseChangeTimer > 0f)
+            {
+                return;
+            }
+
+            ResetPhaseChangeRuntime();
+            _boss.CompletePhaseChange();
+        }
+
+        private void ResetPhaseChangeRuntime()
+        {
+            _isPhaseChangeActive = false;
+            _phaseChangeTimer = 0f;
         }
     }
 }

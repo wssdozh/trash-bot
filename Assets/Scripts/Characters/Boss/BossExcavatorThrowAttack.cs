@@ -52,16 +52,16 @@ namespace JunkyardBoss
         {
             ValidateDependencies();
 
-            _grabTimer = _config.ThrowGrabTime;
-            _throwTimer = _config.ThrowReleaseTime;
-            _recoverTimer = _config.AttackRecoveryTime;
+            _grabTimer = GetGrabTime();
+            _throwTimer = GetThrowTime();
+            _recoverTimer = GetRecoverTime();
             _isRunning = true;
             _isProjectileLaunched = false;
 
             _boss.SetChargeAlign(false);
             _boss.SetAimLocked(false);
             _boss.SetArmLocked(false);
-            _boss.SetArmPose(BossExcavatorArmPose.GrabScrap, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.GrabScrap, GetAttackPoseSpeedMult());
         }
 
         public bool Tick()
@@ -132,20 +132,20 @@ namespace JunkyardBoss
 
             if (restoreNeutralPose)
             {
-                _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+                _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
             }
         }
 
         private void BeginThrow()
         {
             _boss.SetAimLocked(true);
-            _boss.SetArmPose(BossExcavatorArmPose.ThrowScrap, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.ThrowScrap, GetAttackPoseSpeedMult());
         }
 
         private void BeginRecover()
         {
             _boss.SetAimLocked(false);
-            _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
+            _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
         }
 
         private void EndAttack()
@@ -172,7 +172,7 @@ namespace JunkyardBoss
                 _scrapCubeSpawner.Spawn(
                     spawnPosition,
                     projectileDirection,
-                    _config.ThrowProjectileDamage,
+                    _config.ThrowProjectileDamage * GetPhaseDamageMult(),
                     _config.ThrowProjectileSpeedMult,
                     _config.ThrowHitMask,
                     _boss.transform);
@@ -307,6 +307,46 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_scrapCubeSpawner));
             }
+        }
+
+        private float GetPhaseAttackSpeedMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoAttackSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetPhaseDamageMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoDamageMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetAttackPoseSpeedMult()
+        {
+            return _config.AttackPoseSpeedMult * GetPhaseAttackSpeedMult();
+        }
+
+        private float GetGrabTime()
+        {
+            return _config.ThrowGrabTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetThrowTime()
+        {
+            return _config.ThrowReleaseTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetRecoverTime()
+        {
+            return _config.AttackRecoveryTime / GetPhaseAttackSpeedMult();
         }
     }
 }
