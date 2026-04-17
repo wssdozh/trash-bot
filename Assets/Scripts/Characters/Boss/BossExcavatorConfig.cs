@@ -11,6 +11,25 @@ namespace JunkyardBoss
         [Range(0.05f, 0.95f)]
         [SerializeField] private float _phaseTwoRatio = 0.5f;
 
+        [Header("Phase Two")]
+        [Min(0.05f)]
+        [SerializeField] private float _phaseChangeDuration = 0.9f;
+
+        [Range(1f, 3f)]
+        [SerializeField] private float _phaseTwoAttackSpeedMult = 1.25f;
+
+        [Range(1f, 3f)]
+        [SerializeField] private float _phaseTwoDamageMult = 1.32f;
+
+        [Range(1f, 3f)]
+        [SerializeField] private float _phaseTwoChargeSpeedMult = 1.18f;
+
+        [Range(1f, 3f)]
+        [SerializeField] private float _phaseTwoSweepSpinSpeedMult = 1.38f;
+
+        [Range(1f, 3f)]
+        [SerializeField] private float _phaseTwoComboSweepSpinSpeedMult = 2.15f;
+
         [SerializeField] private BossExcavatorState _startState = BossExcavatorState.Idle;
 
         [Header("Move")]
@@ -94,7 +113,7 @@ namespace JunkyardBoss
 
         [Header("Attack Decision")]
         [Min(0.1f)]
-        [SerializeField] private float _attackChaseDistance = 5.45f;
+        [SerializeField] private float _attackChaseDistance = 4.95f;
 
         [Range(5f, 90f)]
         [SerializeField] private float _repositionBaseAngle = 86f;
@@ -115,7 +134,7 @@ namespace JunkyardBoss
         [SerializeField] private float _sweepCabinAngle = 115f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwMinDistance = 5.15f;
+        [SerializeField] private float _throwMinDistance = 4.6f;
 
         [Min(0.1f)]
         [SerializeField] private float _throwMaxDistance = 8.3f;
@@ -127,7 +146,7 @@ namespace JunkyardBoss
         [SerializeField] private float _throwCabinAngle = 46f;
 
         [Min(0.1f)]
-        [SerializeField] private float _chargeMinDistance = 5.3f;
+        [SerializeField] private float _chargeMinDistance = 4.85f;
 
         [Min(0.1f)]
         [SerializeField] private float _chargeMaxDistance = 13f;
@@ -136,7 +155,7 @@ namespace JunkyardBoss
         [SerializeField] private float _chargeBaseAngle = 36f;
 
         [Range(0.1f, 1f)]
-        [SerializeField] private float _phaseTwoCooldownMult = 0.65f;
+        [SerializeField] private float _phaseTwoCooldownMult = 0.55f;
 
         [Header("Attack Cooldowns")]
         [Min(0f)]
@@ -356,6 +375,12 @@ namespace JunkyardBoss
 
         public float MaxHealth => _maxHealth;
         public float PhaseTwoRatio => _phaseTwoRatio;
+        public float PhaseChangeDuration => _phaseChangeDuration;
+        public float PhaseTwoAttackSpeedMult => _phaseTwoAttackSpeedMult;
+        public float PhaseTwoDamageMult => _phaseTwoDamageMult;
+        public float PhaseTwoChargeSpeedMult => _phaseTwoChargeSpeedMult;
+        public float PhaseTwoSweepSpinSpeedMult => _phaseTwoSweepSpinSpeedMult;
+        public float PhaseTwoComboSweepSpinSpeedMult => _phaseTwoComboSweepSpinSpeedMult;
         public BossExcavatorState StartState => _startState;
         public float BaseMoveSpeed => _baseMoveSpeed;
         public float BaseTurnSpeed => _baseTurnSpeed;

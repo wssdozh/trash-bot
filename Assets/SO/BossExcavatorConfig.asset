@@ -14,6 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorConfig
   _maxHealth: 280
   _phaseTwoRatio: 0.5
+  _phaseChangeDuration: 0.9
+  _phaseTwoAttackSpeedMult: 1.25
+  _phaseTwoDamageMult: 1.32
+  _phaseTwoChargeSpeedMult: 1.18
+  _phaseTwoSweepSpinSpeedMult: 1.38
+  _phaseTwoComboSweepSpinSpeedMult: 2.15
   _startState: 2
   _baseMoveSpeed: 2
   _baseTurnSpeed: 150
@@ -41,21 +47,21 @@ MonoBehaviour:
   _wallPenalty: 4.5
   _cornerPenalty: 8
   _blockedPenalty: 6
-  _attackChaseDistance: 5.45
+  _attackChaseDistance: 4.95
   _repositionBaseAngle: 86
   _bucketMaxDistance: 5.1
   _bucketBaseAngle: 50
   _bucketCabinAngle: 58
   _sweepMaxDistance: 2.9
   _sweepCabinAngle: 115
-  _throwMinDistance: 5.15
+  _throwMinDistance: 4.6
   _throwMaxDistance: 8.3
   _throwBaseAngle: 52
   _throwCabinAngle: 46
-  _chargeMinDistance: 5.3
+  _chargeMinDistance: 4.85
   _chargeMaxDistance: 13
   _chargeBaseAngle: 36
-  _phaseTwoCooldownMult: 0.65
+  _phaseTwoCooldownMult: 0.55
   _bucketAttackCooldown: 1.45
   _sweepAttackCooldown: 2.05
   _throwAttackCooldown: 2.45

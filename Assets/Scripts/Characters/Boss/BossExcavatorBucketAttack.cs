@@ -23,7 +23,7 @@ namespace JunkyardBoss
 
         public bool IsRunning => _isRunning;
 
-        public float Duration => _config.BucketPrepareTime + _config.BucketStrikeTime + _config.AttackRecoveryTime;
+        public float Duration => GetBucketPrepareTime() + GetBucketStrikeTime() + GetRecoverTime();
 
         public BossExcavatorBucketAttack(BossExcavator boss, BossExcavatorConfig config)
         {
@@ -59,9 +59,9 @@ namespace JunkyardBoss
         {
             ValidateDependencies();
 
-            _telegraphTimer = _config.BucketPrepareTime;
-            _strikeTimer = _config.BucketStrikeTime;
-            _recoverTimer = _config.AttackRecoveryTime;
+            _telegraphTimer = GetBucketPrepareTime();
+            _strikeTimer = GetBucketStrikeTime();
+            _recoverTimer = GetRecoverTime();
             _isRunning = true;
             _isHitApplied = false;
             _strikeForward = ResolveStrikeForward();
@@ -170,7 +170,7 @@ namespace JunkyardBoss
                 _config.ArmBucketPrepareBoomEuler,
                 _config.ArmBucketPrepareStickEuler,
                 _config.ArmBucketPrepareBucketEuler,
-                _config.BucketPrepareSpeedMult);
+                _config.BucketPrepareSpeedMult * GetPhaseAttackSpeedMult());
         }
 
         private void SetStrikePose()
@@ -179,7 +179,7 @@ namespace JunkyardBoss
                 _config.ArmBucketStrikeBoomEuler,
                 _config.ArmBucketStrikeStickEuler,
                 _config.ArmBucketStrikeBucketEuler,
-                _config.BucketStrikeSpeedMult);
+                _config.BucketStrikeSpeedMult * GetPhaseAttackSpeedMult());
         }
 
         private void SetRecoverPose()
@@ -188,7 +188,7 @@ namespace JunkyardBoss
                 _config.ArmNeutralBoomEuler,
                 _config.ArmNeutralStickEuler,
                 _config.ArmNeutralBucketEuler,
-                _config.BucketRecoverSpeedMult);
+                _config.BucketRecoverSpeedMult * GetPhaseAttackSpeedMult());
         }
 
         private void TryApplyHit()
@@ -280,7 +280,7 @@ namespace JunkyardBoss
             }
 
             _damagedHealthIds.Add(nearestHealth.GetInstanceID());
-            nearestHealth.Decrease(_config.BucketHitDamage);
+            nearestHealth.Decrease(_config.BucketHitDamage * GetPhaseDamageMult());
             ApplyShockwave(hitCenter);
         }
 
@@ -411,7 +411,7 @@ namespace JunkyardBoss
                 }
 
                 _damagedHealthIds.Add(healthId);
-                hitHealth.Decrease(_config.BucketShockwaveDamage);
+                hitHealth.Decrease(_config.BucketShockwaveDamage * GetPhaseDamageMult());
             }
         }
 
@@ -445,6 +445,41 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_boss.Stick));
             }
+        }
+
+        private float GetPhaseAttackSpeedMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoAttackSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetPhaseDamageMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoDamageMult;
+            }
+
+            return 1f;
+        }
+
+        private float GetBucketPrepareTime()
+        {
+            return _config.BucketPrepareTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetBucketStrikeTime()
+        {
+            return _config.BucketStrikeTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetRecoverTime()
+        {
+            return _config.AttackRecoveryTime / GetPhaseAttackSpeedMult();
         }
     }
 }
