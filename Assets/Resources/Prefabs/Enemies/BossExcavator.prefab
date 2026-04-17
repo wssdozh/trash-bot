@@ -14,6 +14,14 @@ GameObject:
   - component: {fileID: 1000000000000000005}
   - component: {fileID: 1000000000000000006}
   - component: {fileID: 1000000000000000007}
+  - component: {fileID: 1000000000000000008}
+  - component: {fileID: 1000000000000000009}
+  - component: {fileID: 1000000000000000010}
+  - component: {fileID: 1000000000000000011}
+  - component: {fileID: 1000000000000000012}
+  - component: {fileID: 1000000000000000013}
+  - component: {fileID: 1000000000000000014}
+  - component: {fileID: 1000000000000000015}
   m_Layer: 0
   m_Name: BossExcavator
   m_TagString: Untagged
@@ -78,6 +86,7 @@ MonoBehaviour:
   _boom: {fileID: 1000000000000000502}
   _stick: {fileID: 1000000000000000602}
   _bucket: {fileID: 1000000000000000702}
+  _health: {fileID: 1000000000000000008}
 --- !u!114 &1000000000000000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129,6 +138,142 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 299e560cf26c448a8da4b715a48fadd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorArm
+--- !u!114 &1000000000000000008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  _minValue: 0
+  _maxValue: 280
+  _value: 280
+  _autoRegen: 0
+  _regenPerSecond: 2
+  _regenDelay: 3
+  _regenTick: 0.1
+--- !u!114 &1000000000000000009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd9b653faa459ea419a1f6b07999c8f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HealthFeedbackTrigger
+  _health: {fileID: 1000000000000000008}
+  _feedbackGroup: {fileID: 1000000000000000010}
+--- !u!114 &1000000000000000010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d98ea429bafeed948a99f099b1b686ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FeedbackGroup
+  _feedbacks:
+  - {fileID: 1000000000000000011}
+  - {fileID: 1000000000000000012}
+  - {fileID: 1000000000000000013}
+  - {fileID: 1000000000000000014}
+  - {fileID: 1000000000000000015}
+--- !u!114 &1000000000000000011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17467e4a3a9eda241beb9e7a817c9fed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorEmissionFeedback
+  _renderer: {fileID: 1085927224533853660}
+  _flashColor: {r: 0.5450981, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+  _intensity: 3
+--- !u!114 &1000000000000000012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17467e4a3a9eda241beb9e7a817c9fed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorEmissionFeedback
+  _renderer: {fileID: 1370203678779000628}
+  _flashColor: {r: 0.5450981, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+  _intensity: 3
+--- !u!114 &1000000000000000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17467e4a3a9eda241beb9e7a817c9fed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorEmissionFeedback
+  _renderer: {fileID: 1000000000000000804}
+  _flashColor: {r: 0.5450981, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+  _intensity: 3
+--- !u!114 &1000000000000000014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17467e4a3a9eda241beb9e7a817c9fed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorEmissionFeedback
+  _renderer: {fileID: 1000000000000000904}
+  _flashColor: {r: 0.5450981, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+  _intensity: 3
+--- !u!114 &1000000000000000015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17467e4a3a9eda241beb9e7a817c9fed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ColorEmissionFeedback
+  _renderer: {fileID: 1000000000000001104}
+  _flashColor: {r: 0.5450981, g: 0, b: 0, a: 1}
+  _flashDuration: 0.2
+  _returnDuration: 0.4
+  _intensity: 3
 --- !u!1 &1000000000000000301
 GameObject:
   m_ObjectHideFlags: 0

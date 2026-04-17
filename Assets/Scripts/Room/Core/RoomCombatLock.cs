@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JunkyardBoss;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -13,6 +14,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private readonly List<Enemy> _enemies = new List<Enemy>(16);
     private readonly List<Turret> _turrets = new List<Turret>(8);
+    private readonly List<BossExcavator> _bosses = new List<BossExcavator>(4);
     private readonly List<RoomDoorGate> _doorGates = new List<RoomDoorGate>(4);
     private readonly List<RoomEnterTrigger> _roomEnterTriggers = new List<RoomEnterTrigger>(4);
 
@@ -20,6 +22,8 @@ public sealed class RoomCombatLock : MonoBehaviour
     private float _blockSize = 1f;
     private bool _isLocked;
     private bool _isCleared;
+
+    public bool IsLocked => _isLocked;
 
     private void Awake()
     {
@@ -201,6 +205,7 @@ public sealed class RoomCombatLock : MonoBehaviour
         UnsubscribeThreats();
         _enemies.Clear();
         _turrets.Clear();
+        _bosses.Clear();
 
         Enemy[] roomEnemies = GetComponentsInChildren<Enemy>(true);
 
@@ -231,6 +236,21 @@ public sealed class RoomCombatLock : MonoBehaviour
             _turrets.Add(turret);
             turret.Died += OnThreatDied;
         }
+
+        BossExcavator[] roomBosses = GetComponentsInChildren<BossExcavator>(true);
+
+        for (int bossIndex = 0; bossIndex < roomBosses.Length; bossIndex++)
+        {
+            BossExcavator boss = roomBosses[bossIndex];
+
+            if (boss == null)
+            {
+                continue;
+            }
+
+            _bosses.Add(boss);
+            boss.Died += OnThreatDied;
+        }
     }
 
     private void UnsubscribeThreats()
@@ -257,6 +277,18 @@ public sealed class RoomCombatLock : MonoBehaviour
             }
 
             turret.Died -= OnThreatDied;
+        }
+
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            BossExcavator boss = _bosses[bossIndex];
+
+            if (boss == null)
+            {
+                continue;
+            }
+
+            boss.Died -= OnThreatDied;
         }
     }
 
@@ -287,6 +319,21 @@ public sealed class RoomCombatLock : MonoBehaviour
             }
 
             if (turret.IsDead == false)
+            {
+                return true;
+            }
+        }
+
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            BossExcavator boss = _bosses[bossIndex];
+
+            if (boss == null)
+            {
+                continue;
+            }
+
+            if (boss.IsDead == false)
             {
                 return true;
             }
