@@ -15,8 +15,8 @@ MonoBehaviour:
   _maxHealth: 280
   _phaseTwoRatio: 0.5
   _startState: 2
-  _baseMoveSpeed: 4.6
-  _baseTurnSpeed: 185
+  _baseMoveSpeed: 2
+  _baseTurnSpeed: 150
   _moveStartAngle: 10
   _moveStopAngle: 36
   _stopDistance: 0.55
@@ -98,7 +98,7 @@ MonoBehaviour:
   _throwHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _chargeSpeed: 12.5
+  _chargeSpeed: 7.7
   _chargeHitDamage: 28
   _chargeHitRadius: 1.4
   _chargeHitOffset: 1.1
@@ -111,7 +111,7 @@ MonoBehaviour:
   _moveRetreatTime: 0.35
   _moveRepositionCommitTime: 0.18
   _moveChaseCommitTime: 0.1
-  _cabinTurnSpeed: 96
+  _cabinTurnSpeed: 88
   _cabinPhaseTwoMult: 1.35
   _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
   _armDefaultStickEuler: {x: 0, y: 0, z: 70}

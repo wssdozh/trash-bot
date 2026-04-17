@@ -15,10 +15,10 @@ namespace JunkyardBoss
 
         [Header("Move")]
         [Min(0.1f)]
-        [SerializeField] private float _baseMoveSpeed = 4.6f;
+        [SerializeField] private float _baseMoveSpeed = 4.15f;
 
         [Min(1f)]
-        [SerializeField] private float _baseTurnSpeed = 185f;
+        [SerializeField] private float _baseTurnSpeed = 168f;
 
         [Range(1f, 45f)]
         [SerializeField] private float _moveStartAngle = 10f;
@@ -257,7 +257,7 @@ namespace JunkyardBoss
 
         [Header("Charge Attack")]
         [Min(0.1f)]
-        [SerializeField] private float _chargeSpeed = 12.5f;
+        [SerializeField] private float _chargeSpeed = 11.2f;
 
         [Min(0.1f)]
         [SerializeField] private float _chargeHitDamage = 28f;
@@ -291,7 +291,7 @@ namespace JunkyardBoss
 
         [Header("Aim")]
         [Min(1f)]
-        [SerializeField] private float _cabinTurnSpeed = 96f;
+        [SerializeField] private float _cabinTurnSpeed = 88f;
 
         [Range(1f, 3f)]
         [SerializeField] private float _cabinPhaseTwoMult = 1.35f;

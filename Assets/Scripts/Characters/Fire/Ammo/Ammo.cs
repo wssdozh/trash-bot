@@ -110,10 +110,13 @@ public abstract class Ammo : MonoBehaviour
         if (IsIgnoredRoot(other))
             return;
 
-        bool isTargetLayer = IsInTargetLayers(other.gameObject.layer);
-
         if (other.isTrigger)
             return;
+
+        if (ShouldIgnoreCollision(other))
+            return;
+
+        bool isTargetLayer = IsInTargetLayers(other.gameObject.layer);
 
         if (isTargetLayer)
         {
@@ -158,6 +161,11 @@ public abstract class Ammo : MonoBehaviour
 
     protected virtual void OnLifeEnding()
     {
+    }
+
+    protected virtual bool ShouldIgnoreCollision(Collider other)
+    {
+        return false;
     }
 
     protected bool IsPlayerOwned()
