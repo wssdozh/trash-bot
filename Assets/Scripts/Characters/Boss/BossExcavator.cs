@@ -16,10 +16,10 @@ namespace JunkyardBoss
         [SerializeField] private Transform _boom;
         [SerializeField] private Transform _stick;
         [SerializeField] private Transform _bucket;
+        [SerializeField] private Health _health;
 
         private BossExcavatorBrain _brain;
         private BossExcavatorStateMachine _stateMachine;
-        private float _currentHealth;
         private BossExcavatorPhase _phase;
         private BossExcavatorState _state;
 
@@ -38,11 +38,12 @@ namespace JunkyardBoss
         public Transform Boom => _boom;
         public Transform Stick => _stick;
         public Transform Bucket => _bucket;
-        public float CurrentHealth => _currentHealth;
+        public Health Health => _health;
+        public float CurrentHealth => _health.Value;
         public BossExcavatorPhase Phase => _phase;
         public BossExcavatorState State => _state;
         public BossExcavatorAttack CurrentAttack => _brain.CurrentAttack;
-        public bool IsDead => _currentHealth <= 0f;
+        public bool IsDead => CurrentHealth <= _health.MinValue;
 
         private void Awake()
         {
@@ -61,6 +62,16 @@ namespace JunkyardBoss
             TryResolveTarget();
 
             ResetBoss();
+        }
+
+        private void OnEnable()
+        {
+            _health.Ended += OnHealthEnded;
+        }
+
+        private void OnDisable()
+        {
+            _health.Ended -= OnHealthEnded;
         }
 
         private void Update()
@@ -88,7 +99,7 @@ namespace JunkyardBoss
 
         public void ResetBoss()
         {
-            _currentHealth = _config.MaxHealth;
+            ResetHealth();
             _phase = BossExcavatorPhase.PhaseOne;
 
             _stateMachine.Reset();
@@ -222,13 +233,13 @@ namespace JunkyardBoss
                 return;
             }
 
-            _currentHealth = Mathf.Max(0f, _currentHealth - damage);
+            _health.Decrease(damage);
             _stateMachine.Tick();
         }
 
         public float GetHealthRatio()
         {
-            return _currentHealth / _config.MaxHealth;
+            return CurrentHealth / _config.MaxHealth;
         }
 
         internal bool ShouldStartPhaseChange()
@@ -374,6 +385,28 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_bucket));
             }
+
+            if (_health == null)
+            {
+                throw new InvalidOperationException(nameof(_health));
+            }
+        }
+
+        private void ResetHealth()
+        {
+            _health.SetAutoRegen(false);
+            _health.SetMaxValue(_config.MaxHealth);
+            _health.Fill();
+        }
+
+        private void OnHealthEnded()
+        {
+            if (_stateMachine == null)
+            {
+                return;
+            }
+
+            _stateMachine.Tick();
         }
 
         private bool CanUseTarget()

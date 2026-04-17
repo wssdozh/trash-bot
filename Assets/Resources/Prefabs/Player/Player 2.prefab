@@ -3113,6 +3113,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
   _health: {fileID: 4803709847974141177}
+  _uiCanvas: {fileID: 6991555498756221239}
+  _uiFontAsset: {fileID: 11400000, guid: 3ba07809029c8e7449ef45a7ccacfe4e, type: 2}
   _movement: {fileID: 3268437074613135805}
   _combat: {fileID: 1509442326114603394}
   _inventory: {fileID: 6095665340522347987}

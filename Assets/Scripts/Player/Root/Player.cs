@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,6 +7,8 @@ public class Player : MonoBehaviour
 {
     [Header("Зависимости")]
     [SerializeField] private Health _health;
+    [SerializeField] private RectTransform _uiCanvas;
+    [SerializeField] private TMP_FontAsset _uiFontAsset;
 
     [Header("Модули")]
     [SerializeField] private PlayerMovement _movement;
@@ -15,12 +18,30 @@ public class Player : MonoBehaviour
     [SerializeField] private PlayerPause _pause;
 
     private PlayerInputActions _inputs;
+    private BossHealthOverlay _bossHealthOverlay;
 
     public event Action Died;
 
     private void Awake()
     {
+        if (_health == null)
+        {
+            throw new InvalidOperationException(nameof(_health));
+        }
+
+        if (_uiCanvas == null)
+        {
+            throw new InvalidOperationException(nameof(_uiCanvas));
+        }
+
+        if (_uiFontAsset == null)
+        {
+            throw new InvalidOperationException(nameof(_uiFontAsset));
+        }
+
         _inputs = new PlayerInputActions();
+        _bossHealthOverlay = gameObject.AddComponent<BossHealthOverlay>();
+        _bossHealthOverlay.Initialize(_uiCanvas, _uiFontAsset);
         SubscribeInput();
     }
 
