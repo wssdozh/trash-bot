@@ -803,6 +803,8 @@ namespace JunkyardBoss
 
             if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
             {
+                ResetPlanarVelocity();
+
                 return;
             }
 
@@ -825,7 +827,16 @@ namespace JunkyardBoss
             Vector3 nextPosition = new Vector3(nextPlanarPosition.x, _baseRigidbody.position.y, nextPlanarPosition.z);
 
             _baseRigidbody.MovePosition(nextPosition);
+            ResetPlanarVelocity();
             _navMeshAgent.nextPosition = GetPlanarPosition(nextPosition);
+        }
+
+        private void ResetPlanarVelocity()
+        {
+            Vector3 currentVelocity = _baseRigidbody.linearVelocity;
+            currentVelocity.x = 0f;
+            currentVelocity.z = 0f;
+            _baseRigidbody.linearVelocity = currentVelocity;
         }
 
         private float GetPathTurnSpeedFactor(Vector3 currentPoint, Vector3 moveDirection)

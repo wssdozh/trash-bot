@@ -156,6 +156,7 @@ namespace JunkyardBoss
             _isRecovering = false;
             _hitHealthIds.Clear();
             _boss.SetAimLocked(false);
+            ResetPlanarVelocity();
 
             if (restoreNeutralPose)
             {
@@ -225,6 +226,7 @@ namespace JunkyardBoss
             _boss.SetAimLocked(false);
             _boss.SetArmPose(BossExcavatorArmPose.Neutral, _config.AttackPoseSpeedMult);
             _boss.Move.InvalidatePath();
+            ResetPlanarVelocity();
         }
 
         private void EndAttack()
@@ -232,6 +234,7 @@ namespace JunkyardBoss
             _isRunning = false;
             _isRecovering = false;
             _boss.SetAimLocked(false);
+            ResetPlanarVelocity();
         }
 
         private void MoveCharge(float deltaTime)
@@ -278,6 +281,7 @@ namespace JunkyardBoss
                 Vector3 nextPosition = currentPosition + moveDirection * stepDistance;
 
                 _boss.BaseRigidbody.MovePosition(nextPosition);
+                ResetPlanarVelocity();
                 ApplyChargeDamage(nextPosition, moveDirection);
             }
 
@@ -402,6 +406,14 @@ namespace JunkyardBoss
                 _config.BaseTurnSpeed * deltaTime);
 
             _boss.BaseRigidbody.MoveRotation(nextRotation);
+        }
+
+        private void ResetPlanarVelocity()
+        {
+            Vector3 currentVelocity = _boss.BaseRigidbody.linearVelocity;
+            currentVelocity.x = 0f;
+            currentVelocity.z = 0f;
+            _boss.BaseRigidbody.linearVelocity = currentVelocity;
         }
 
         private void ValidateDependencies()

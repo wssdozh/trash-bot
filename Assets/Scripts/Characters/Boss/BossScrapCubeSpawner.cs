@@ -41,9 +41,10 @@ namespace JunkyardBoss
             projectile.transform.SetPositionAndRotation(position, Quaternion.LookRotation(planarDirection.normalized, Vector3.up));
             projectile.SetLayers(hitMask);
             projectile.SetIgnoredRoot(ignoredRoot);
+            GetAmmoReturner(projectile).Initialize(this);
+            projectile.gameObject.SetActive(true);
             projectile.SetDamage(damage);
             projectile.SetSpeedMultiplier(speedMultiplier);
-            GetAmmoReturner(projectile).Initialize(this);
 
             return projectile;
         }
@@ -108,6 +109,15 @@ namespace JunkyardBoss
             _returnersByProjectileId[projectileId] = ammoReturner;
 
             return ammoReturner;
+        }
+
+        protected override void ActionOnGet(BossScrapCubeProjectile projectile)
+        {
+        }
+
+        protected override void ActionOnRelease(BossScrapCubeProjectile projectile)
+        {
+            projectile.gameObject.SetActive(false);
         }
     }
 }
