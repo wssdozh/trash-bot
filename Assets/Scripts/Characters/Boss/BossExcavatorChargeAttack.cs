@@ -10,6 +10,7 @@ namespace JunkyardBoss
         private const float AlignFinishAngle = 4f;
         private const float ChargeSkin = 0.05f;
         private const int HitBufferCount = 24;
+        private const float InnerSweepRadiusFactor = 0.72f;
         private const float PhaseTwoAlignTimeMult = 0.2f;
         private const float PhaseTwoTelegraphTimeMult = 0.3f;
 
@@ -74,7 +75,7 @@ namespace JunkyardBoss
 
             _alignTimer = GetAlignTime();
             _telegraphTimer = GetTelegraphTime();
-            _dashTimer = GetDashTime();
+            _dashTimer = 0f;
             _recoverTimer = GetRecoverTime();
             _comboDamageTickTimer = 0f;
             _spinDirectionSign = 1f;
@@ -115,12 +116,6 @@ namespace JunkyardBoss
             if (_dashTimer > 0f)
             {
                 TickDash(Time.deltaTime);
-                _dashTimer = Mathf.Max(0f, _dashTimer - Time.deltaTime);
-
-                if (_dashTimer <= 0f)
-                {
-                    BeginRecover();
-                }
 
                 return true;
             }
@@ -222,6 +217,7 @@ namespace JunkyardBoss
         private void BeginDash()
         {
             _chargeDirection = ResolveChargeDashDirection();
+            _dashTimer = 1f;
 
             if (_isComboSweep)
             {
@@ -406,9 +402,11 @@ namespace JunkyardBoss
             }
 
             Vector3 hitForward = ResolveSweepHitForward();
-            Vector3 hitCenter = bucket.position + hitForward * _config.SweepHitOffset;
-            int hitCount = Physics.OverlapSphereNonAlloc(
-                hitCenter,
+            Vector3 outerHitCenter = bucket.position + hitForward * _config.SweepHitOffset;
+            Vector3 innerHitCenter = ResolveComboInnerHitCenter(outerHitCenter);
+            int hitCount = Physics.OverlapCapsuleNonAlloc(
+                innerHitCenter,
+                outerHitCenter,
                 _config.SweepHitRadius,
                 _hitBuffer,
                 _config.BucketHitMask,
@@ -456,6 +454,29 @@ namespace JunkyardBoss
                 _comboHitHealthIds.Add(healthId);
                 hitHealth.Decrease(_config.SweepHitDamage * GetPhaseDamageMult());
             }
+        }
+
+        private Vector3 ResolveComboInnerHitCenter(Vector3 outerHitCenter)
+        {
+            Transform cabin = _boss.Cabin;
+
+            if (cabin == null)
+            {
+                return outerHitCenter;
+            }
+
+            Vector3 innerHitCenter = cabin.position;
+            innerHitCenter.y = outerHitCenter.y;
+
+            Vector3 toOuter = outerHitCenter - innerHitCenter;
+            toOuter.y = 0f;
+
+            if (toOuter.sqrMagnitude <= MinDirectionSqr)
+            {
+                return outerHitCenter;
+            }
+
+            return innerHitCenter + toOuter * InnerSweepRadiusFactor;
         }
 
         private Vector3 ResolveTargetDirection()
@@ -736,11 +757,6 @@ namespace JunkyardBoss
             }
 
             return telegraphTime;
-        }
-
-        private float GetDashTime()
-        {
-            return _config.ChargeAttackTime / GetPhaseAttackSpeedMult();
         }
 
         private float GetRecoverTime()
