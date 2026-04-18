@@ -628,7 +628,7 @@ namespace JunkyardBoss
                 return moveDirection;
             }
 
-            if (ShouldUseTargetFacing())
+            if (ShouldUseTargetFacing(targetPointType))
             {
                 if (targetDirection.sqrMagnitude > MinSqrMagnitude)
                 {
@@ -639,14 +639,29 @@ namespace JunkyardBoss
             return Vector3.zero;
         }
 
-        private bool ShouldUseTargetFacing()
+        private bool ShouldUseTargetFacing(BossExcavatorTargetPoint targetPointType)
         {
+            if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                return true;
+            }
+
             if (_attackIntent == BossExcavatorAttack.BucketStrike)
             {
                 return true;
             }
 
             if (_attackIntent == BossExcavatorAttack.Sweep)
+            {
+                return true;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.ThrowScrap)
+            {
+                return true;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.Charge)
             {
                 return true;
             }
