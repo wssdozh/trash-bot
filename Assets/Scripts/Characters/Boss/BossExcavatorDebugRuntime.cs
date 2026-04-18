@@ -13,6 +13,7 @@ namespace JunkyardBoss
         [SerializeField] private BossExcavatorState _currentState = BossExcavatorState.Idle;
         [SerializeField] private BossExcavatorPhase _currentPhase = BossExcavatorPhase.PhaseOne;
         [SerializeField] private BossExcavatorAttack _currentAttack = BossExcavatorAttack.None;
+        [SerializeField] private BossExcavatorAttack _targetAttack = BossExcavatorAttack.None;
         [SerializeField] private BossExcavatorArmPose _currentArmPose = BossExcavatorArmPose.Neutral;
 
         [Header("State Command")]
@@ -45,6 +46,7 @@ namespace JunkyardBoss
             _currentArmPose = _boss.GetArmPose();
             _selectedArmPose = _currentArmPose;
             _currentAttack = _boss.CurrentAttack;
+            _targetAttack = _boss.TargetAttack;
         }
 
         private void Update()
@@ -55,6 +57,7 @@ namespace JunkyardBoss
             _currentPhase = _boss.Phase;
             _currentArmPose = _boss.GetArmPose();
             _currentAttack = _boss.CurrentAttack;
+            _targetAttack = _boss.TargetAttack;
 
             if (_resetNow)
             {
@@ -65,6 +68,7 @@ namespace JunkyardBoss
                 _currentPhase = _boss.Phase;
                 _currentArmPose = _boss.GetArmPose();
                 _currentAttack = _boss.CurrentAttack;
+                _targetAttack = _boss.TargetAttack;
             }
 
             if (_completePhaseNow)

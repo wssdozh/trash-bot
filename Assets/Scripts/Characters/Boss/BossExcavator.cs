@@ -43,6 +43,7 @@ namespace JunkyardBoss
         public BossExcavatorPhase Phase => _phase;
         public BossExcavatorState State => _state;
         public BossExcavatorAttack CurrentAttack => _brain.CurrentAttack;
+        public BossExcavatorAttack TargetAttack => _brain.TargetAttack;
         public bool IsDead => CurrentHealth <= _health.MinValue;
 
         private void Awake()

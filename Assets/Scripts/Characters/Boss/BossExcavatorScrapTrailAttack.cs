@@ -125,9 +125,14 @@ namespace JunkyardBoss
                 }
             }
 
+            Quaternion spawnRotation = Quaternion.Euler(
+                UnityEngine.Random.Range(0f, 360f),
+                UnityEngine.Random.Range(0f, 360f),
+                UnityEngine.Random.Range(0f, 360f));
+
             _scrapTrailBlockSpawner.Spawn(
                 spawnPoint,
-                Quaternion.identity,
+                spawnRotation,
                 _config.ScrapTrailBlockSize,
                 _config.ScrapTrailBlockLifetime,
                 _boss.Move.BodyColliders);
@@ -182,29 +187,19 @@ namespace JunkyardBoss
                 }
 
                 spawnPoint = groundHit.point;
-                spawnPoint.y += _config.ScrapTrailBlockSize.y * 0.5f;
 
                 return true;
             }
 
             spawnPoint = bucketPoint;
             spawnPoint.y = _boss.Base.position.y;
-            spawnPoint.y += _config.ScrapTrailBlockSize.y * 0.5f;
 
             return true;
         }
 
         private Vector3 GetMoveDirection()
         {
-            Rigidbody baseRigidbody = _boss.BaseRigidbody;
-
-            if (baseRigidbody == null)
-            {
-                throw new InvalidOperationException(nameof(baseRigidbody));
-            }
-
-            Vector3 moveDirection = baseRigidbody.linearVelocity;
-            moveDirection.y = 0f;
+            Vector3 moveDirection = _boss.Move.CurrentMoveDirection;
 
             if (moveDirection.sqrMagnitude <= MinDirectionSqr)
             {

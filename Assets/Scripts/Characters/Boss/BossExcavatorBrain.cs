@@ -35,6 +35,7 @@ namespace JunkyardBoss
         private bool _isPhaseChangeActive;
 
         public BossExcavatorAttack CurrentAttack => _currentAttack;
+        public BossExcavatorAttack TargetAttack => GetTargetAttack();
 
         public BossExcavatorBrain(BossExcavator boss)
         {
@@ -224,6 +225,26 @@ namespace JunkyardBoss
         {
             _isPhaseChangeActive = false;
             _phaseChangeTimer = 0f;
+        }
+
+        private BossExcavatorAttack GetTargetAttack()
+        {
+            if (_currentAttack != BossExcavatorAttack.None)
+            {
+                return _currentAttack;
+            }
+
+            if (_queuedAttack != BossExcavatorAttack.None)
+            {
+                return _queuedAttack;
+            }
+
+            if (CanUseCombatData() == false)
+            {
+                return BossExcavatorAttack.None;
+            }
+
+            return GetStagingAttackIntent(GetTargetDistance());
         }
     }
 }

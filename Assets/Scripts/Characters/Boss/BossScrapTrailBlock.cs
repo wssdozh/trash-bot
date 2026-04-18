@@ -7,14 +7,21 @@ namespace JunkyardBoss
     [DisallowMultipleComponent]
     public sealed class BossScrapTrailBlock : MonoBehaviour
     {
+        private const float SinkDuration = 1.15f;
+        private const float SinkDistanceFactor = 1.35f;
+
         [SerializeField] private BoxCollider _boxCollider;
 
         private readonly List<Collider> _ignoredColliders = new List<Collider>(16);
 
         private BossScrapTrailBlockSpawner _spawner;
         private float _lifetimeTimer;
+        private float _sinkTimer;
+        private Vector3 _sinkStartPoint;
+        private Vector3 _sinkEndPoint;
         private bool _isActive;
         private bool _isReturned;
+        private bool _isSinking;
 
         public void BindSpawner(BossScrapTrailBlockSpawner spawner)
         {
@@ -46,8 +53,13 @@ namespace JunkyardBoss
             transform.SetPositionAndRotation(position, rotation);
             transform.localScale = size;
             _lifetimeTimer = lifetime;
+            _sinkTimer = 0f;
+            _sinkStartPoint = position;
+            _sinkEndPoint = position;
             _isActive = true;
             _isReturned = false;
+            _isSinking = false;
+            _boxCollider.enabled = true;
 
             ApplyIgnoredCollisions(ignoredColliders);
         }
@@ -67,6 +79,13 @@ namespace JunkyardBoss
                 return;
             }
 
+            if (_isSinking)
+            {
+                TickSink();
+
+                return;
+            }
+
             _lifetimeTimer -= Time.deltaTime;
 
             if (_lifetimeTimer > 0f)
@@ -74,13 +93,16 @@ namespace JunkyardBoss
                 return;
             }
 
-            ReturnToPool();
+            StartSink();
         }
 
         private void OnDisable()
         {
             _isActive = false;
             _lifetimeTimer = 0f;
+            _sinkTimer = 0f;
+            _isSinking = false;
+            _boxCollider.enabled = true;
             RestoreIgnoredCollisions();
         }
 
@@ -150,6 +172,40 @@ namespace JunkyardBoss
             _isReturned = true;
             _isActive = false;
             _spawner.Despawn(this);
+        }
+
+        private void StartSink()
+        {
+            if (_isSinking)
+            {
+                return;
+            }
+
+            _isSinking = true;
+            _sinkTimer = 0f;
+            _sinkStartPoint = transform.position;
+            _sinkEndPoint = _sinkStartPoint + (Vector3.down * GetSinkDistance());
+            _boxCollider.enabled = false;
+        }
+
+        private void TickSink()
+        {
+            _sinkTimer += Time.deltaTime;
+
+            float sinkProgress = Mathf.Clamp01(_sinkTimer / SinkDuration);
+            transform.position = Vector3.Lerp(_sinkStartPoint, _sinkEndPoint, sinkProgress);
+
+            if (sinkProgress < 1f)
+            {
+                return;
+            }
+
+            ReturnToPool();
+        }
+
+        private float GetSinkDistance()
+        {
+            return Mathf.Max(transform.localScale.y * SinkDistanceFactor, 0.25f);
         }
     }
 }

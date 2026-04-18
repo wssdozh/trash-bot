@@ -66,7 +66,7 @@ MonoBehaviour:
   _sweepAttackCooldown: 2.05
   _throwAttackCooldown: 2.45
   _chargeAttackCooldown: 3.8
-  _scrapTrailCooldown: 4.6
+  _scrapTrailCooldown: 4.2
   _bucketPrepareTime: 0.48
   _bucketStrikeTime: 0.32
   _sweepPrepareTime: 0.24
@@ -79,17 +79,17 @@ MonoBehaviour:
   _chargeAttackTime: 1.15
   _chargeRecoveryTime: 0.7
   _attackPoseSpeedMult: 1.45
-  _scrapTrailMinDistance: 3.9
-  _scrapTrailMaxDistance: 8.8
+  _scrapTrailMinDistance: 3.1
+  _scrapTrailMaxDistance: 10.8
   _scrapTrailBaseAngle: 78
-  _scrapTrailDuration: 1.85
+  _scrapTrailDuration: 2.2
   _scrapTrailMinMoveSpeed: 0.65
-  _scrapTrailSpawnSpacing: 0.95
+  _scrapTrailSpawnSpacing: 0.78
   _scrapTrailSpawnBackOffset: 0.8
   _scrapTrailGroundProbeHeight: 2.4
   _scrapTrailGroundProbeDistance: 4.2
   _scrapTrailBlockLifetime: 10
-  _scrapTrailBlockSize: {x: 1.25, y: 1.2, z: 1.25}
+  _scrapTrailBlockSize: {x: 0.475, y: 0.45, z: 0.475}
   _scrapTrailGroundMask:
     serializedVersion: 2
     m_Bits: 393

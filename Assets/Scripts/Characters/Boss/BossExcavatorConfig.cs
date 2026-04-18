@@ -212,22 +212,22 @@ namespace JunkyardBoss
 
         [Header("Scrap Trail")]
         [Min(0.1f)]
-        [SerializeField] private float _scrapTrailMinDistance = 3.8f;
+        [SerializeField] private float _scrapTrailMinDistance = 3.2f;
 
         [Min(0.1f)]
-        [SerializeField] private float _scrapTrailMaxDistance = 8.8f;
+        [SerializeField] private float _scrapTrailMaxDistance = 10.8f;
 
         [Range(1f, 120f)]
         [SerializeField] private float _scrapTrailBaseAngle = 72f;
 
         [Min(0.1f)]
-        [SerializeField] private float _scrapTrailDuration = 1.9f;
+        [SerializeField] private float _scrapTrailDuration = 2.15f;
 
         [Min(0.1f)]
         [SerializeField] private float _scrapTrailMinMoveSpeed = 1.15f;
 
         [Min(0.1f)]
-        [SerializeField] private float _scrapTrailSpawnSpacing = 1.15f;
+        [SerializeField] private float _scrapTrailSpawnSpacing = 0.9f;
 
         [Min(0f)]
         [SerializeField] private float _scrapTrailSpawnBackOffset = 0.85f;
@@ -241,7 +241,7 @@ namespace JunkyardBoss
         [Min(0.1f)]
         [SerializeField] private float _scrapTrailBlockLifetime = 9f;
 
-        [SerializeField] private Vector3 _scrapTrailBlockSize = new Vector3(1.15f, 1.15f, 1.15f);
+        [SerializeField] private Vector3 _scrapTrailBlockSize = new Vector3(0.475f, 0.45f, 0.475f);
 
         [SerializeField] private LayerMask _scrapTrailGroundMask = ~0;
 

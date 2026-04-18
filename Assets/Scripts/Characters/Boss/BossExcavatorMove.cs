@@ -55,8 +55,10 @@ namespace JunkyardBoss
         private float _flankSwitchTimer;
         private float _targetSwitchTimer;
         private float _combatTargetTimer;
+        private float _currentPlanarSpeed;
         private int _flankSign = 1;
         private Vector3 _lastNavPoint;
+        private Vector3 _currentMoveDirection;
         private Vector3 _smoothedLookDirection;
         private Vector3 _smoothedMoveDirection;
         private bool _hasLastNavPoint;
@@ -71,6 +73,8 @@ namespace JunkyardBoss
         public float AttackChaseDistance => GetAttackChaseDistance();
         public LayerMask ObstacleMask => _obstacleMask;
         public Collider[] BodyColliders => _bodyColliders;
+        public float CurrentPlanarSpeed => _currentPlanarSpeed;
+        public Vector3 CurrentMoveDirection => _currentMoveDirection;
 
         private void Awake()
         {
@@ -120,10 +124,12 @@ namespace JunkyardBoss
             _targetSwitchTimer = 0f;
             _flankSwitchTimer = 0f;
             _combatTargetTimer = 0f;
+            _currentPlanarSpeed = 0f;
             _flankSign = 1;
             _fallbackArenaCenter = _desiredPoint;
             _hasFallbackArenaCenter = true;
             _lastNavPoint = Vector3.zero;
+            _currentMoveDirection = Vector3.zero;
             _smoothedLookDirection = GetPlanarForward(_base != null ? _base.forward : transform.forward);
             _smoothedMoveDirection = _smoothedLookDirection;
             _hasLastNavPoint = false;
@@ -174,6 +180,8 @@ namespace JunkyardBoss
             }
 
             _hasPathTarget = false;
+            _currentPlanarSpeed = 0f;
+            _currentMoveDirection = Vector3.zero;
 
             if (_baseRigidbody != null)
             {
@@ -830,6 +838,8 @@ namespace JunkyardBoss
 
             if (targetDistance <= stopDistance)
             {
+                _currentPlanarSpeed = 0f;
+                _currentMoveDirection = Vector3.zero;
                 Vector3 currentVelocity = _baseRigidbody.linearVelocity;
                 currentVelocity.x = 0f;
                 currentVelocity.z = 0f;
@@ -840,6 +850,8 @@ namespace JunkyardBoss
 
             if (moveDirection.sqrMagnitude <= MinSqrMagnitude)
             {
+                _currentPlanarSpeed = 0f;
+                _currentMoveDirection = Vector3.zero;
                 ResetPlanarVelocity();
 
                 return;
@@ -857,12 +869,16 @@ namespace JunkyardBoss
 
             if (moveDistance <= 0f)
             {
+                _currentPlanarSpeed = 0f;
+                _currentMoveDirection = Vector3.zero;
                 return;
             }
 
             Vector3 nextPlanarPosition = currentPoint + driveDirection * moveDistance;
             Vector3 nextPosition = new Vector3(nextPlanarPosition.x, _baseRigidbody.position.y, nextPlanarPosition.z);
 
+            _currentPlanarSpeed = moveDistance / Time.fixedDeltaTime;
+            _currentMoveDirection = driveDirection;
             _baseRigidbody.MovePosition(nextPosition);
             ResetPlanarVelocity();
             _navMeshAgent.nextPosition = GetPlanarPosition(nextPosition);

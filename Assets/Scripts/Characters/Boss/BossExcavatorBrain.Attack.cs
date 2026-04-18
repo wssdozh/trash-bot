@@ -815,15 +815,6 @@ namespace JunkyardBoss
                 return false;
             }
 
-            Rigidbody baseRigidbody = _boss.BaseRigidbody;
-
-            if (baseRigidbody == null)
-            {
-                throw new InvalidOperationException(nameof(baseRigidbody));
-            }
-
-            Vector3 planarVelocity = baseRigidbody.linearVelocity;
-            planarVelocity.y = 0f;
             float requiredMoveSpeed = _boss.Config.ScrapTrailMinMoveSpeed;
 
             if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
@@ -831,7 +822,7 @@ namespace JunkyardBoss
                 requiredMoveSpeed *= 0.3f;
             }
 
-            if (planarVelocity.magnitude < requiredMoveSpeed)
+            if (_boss.Move.CurrentPlanarSpeed < requiredMoveSpeed)
             {
                 return false;
             }
