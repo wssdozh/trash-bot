@@ -7,6 +7,7 @@ namespace JunkyardBoss
     {
         private const float MinDirectionSqr = 0.0001f;
         private const float AttackQueueCommitTime = 0.18f;
+        private const float PhaseTwoDecisionSpeedMult = 4f;
         private const float PreviousAttackRepeatPenalty = 1.4f;
 
         private readonly BossExcavator _boss;
@@ -15,6 +16,7 @@ namespace JunkyardBoss
         private readonly BossExcavatorChargeAttack _chargeAttack;
         private readonly BossExcavatorSweepAttack _sweepAttack;
         private readonly BossExcavatorScrapTrailAttack _scrapTrailAttack;
+        private readonly RoomCombatLock _roomCombatLock;
 
         private float _sweepCooldownTimer;
         private float _bucketCooldownTimer;
@@ -50,6 +52,7 @@ namespace JunkyardBoss
             _chargeAttack = new BossExcavatorChargeAttack(_boss, _boss.Config);
             _sweepAttack = new BossExcavatorSweepAttack(_boss, _boss.Config);
             _scrapTrailAttack = new BossExcavatorScrapTrailAttack(_boss, _boss.Config);
+            _roomCombatLock = ResolveRoomCombatLock();
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
         }
@@ -156,16 +159,27 @@ namespace JunkyardBoss
         private void UpdateTimers()
         {
             float deltaTime = Time.deltaTime;
+            float decisionDeltaTime = deltaTime * GetDecisionSpeedMult();
 
             _sweepCooldownTimer = Mathf.Max(0f, _sweepCooldownTimer - deltaTime);
             _bucketCooldownTimer = Mathf.Max(0f, _bucketCooldownTimer - deltaTime);
             _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - deltaTime);
             _chargeCooldownTimer = Mathf.Max(0f, _chargeCooldownTimer - deltaTime);
             _scrapTrailCooldownTimer = Mathf.Max(0f, _scrapTrailCooldownTimer - deltaTime);
-            _postAttackTimer = Mathf.Max(0f, _postAttackTimer - deltaTime);
-            _forcedChaseTimer = Mathf.Max(0f, _forcedChaseTimer - deltaTime);
-            _moveStateTimer = Mathf.Max(0f, _moveStateTimer - deltaTime);
-            _queuedAttackTimer = Mathf.Max(0f, _queuedAttackTimer - deltaTime);
+            _postAttackTimer = Mathf.Max(0f, _postAttackTimer - decisionDeltaTime);
+            _forcedChaseTimer = Mathf.Max(0f, _forcedChaseTimer - decisionDeltaTime);
+            _moveStateTimer = Mathf.Max(0f, _moveStateTimer - decisionDeltaTime);
+            _queuedAttackTimer = Mathf.Max(0f, _queuedAttackTimer - decisionDeltaTime);
+        }
+
+        private float GetDecisionSpeedMult()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return PhaseTwoDecisionSpeedMult;
+            }
+
+            return 1f;
         }
 
         private float GetTargetDistance()
@@ -245,6 +259,31 @@ namespace JunkyardBoss
             }
 
             return GetStagingAttackIntent(GetTargetDistance());
+        }
+
+        private RoomCombatLock ResolveRoomCombatLock()
+        {
+            if (_boss.Base != null)
+            {
+                RoomCombatLock baseRoomCombatLock = _boss.Base.GetComponentInParent<RoomCombatLock>();
+
+                if (baseRoomCombatLock != null)
+                {
+                    return baseRoomCombatLock;
+                }
+            }
+
+            return _boss.GetComponentInParent<RoomCombatLock>();
+        }
+
+        private bool IsCombatRoomActive()
+        {
+            if (_roomCombatLock == null)
+            {
+                return true;
+            }
+
+            return _roomCombatLock.IsLocked;
         }
     }
 }

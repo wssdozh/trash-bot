@@ -141,62 +141,29 @@ namespace JunkyardBoss
 
         private BossExcavatorAttack GetPreferredRhythmAttack(float targetDistance)
         {
-            if (_lastAttack == BossExcavatorAttack.ThrowScrap)
+            if (IsClosePriorityDistance(targetDistance))
             {
-                return BossExcavatorAttack.Sweep;
+                return GetClosePriorityAttack();
             }
 
-            if (_lastAttack == BossExcavatorAttack.Sweep)
-            {
-                return BossExcavatorAttack.Charge;
-            }
-
-            if (_lastAttack == BossExcavatorAttack.Charge)
-            {
-                return BossExcavatorAttack.BucketStrike;
-            }
-
-            if (_lastAttack == BossExcavatorAttack.BucketStrike)
-            {
-                return BossExcavatorAttack.ThrowScrap;
-            }
-
-            if (targetDistance <= GetCloseQueuePressureDistance())
-            {
-                return BossExcavatorAttack.BucketStrike;
-            }
-
-            return BossExcavatorAttack.ThrowScrap;
+            return GetFarPriorityAttack();
         }
 
         private BossExcavatorAttack GetSecondaryRhythmAttack(BossExcavatorAttack preferredAttack, float targetDistance)
         {
-            if (preferredAttack == BossExcavatorAttack.ThrowScrap)
+            BossExcavatorAttack pairedAttack = GetPairedPriorityAttack(preferredAttack);
+
+            if (pairedAttack != BossExcavatorAttack.None)
             {
-                return BossExcavatorAttack.Charge;
+                return pairedAttack;
             }
 
-            if (preferredAttack == BossExcavatorAttack.Charge)
-            {
-                return BossExcavatorAttack.ThrowScrap;
-            }
-
-            if (preferredAttack == BossExcavatorAttack.BucketStrike)
+            if (IsClosePriorityDistance(targetDistance))
             {
                 return BossExcavatorAttack.Sweep;
             }
 
-            if (preferredAttack == BossExcavatorAttack.Sweep)
-            {
-                return BossExcavatorAttack.BucketStrike;
-            }
-
-            if (targetDistance <= GetCloseQueuePressureDistance())
-            {
-                return BossExcavatorAttack.Sweep;
-            }
-
-            return BossExcavatorAttack.Charge;
+            return BossExcavatorAttack.ThrowScrap;
         }
 
         private BossExcavatorAttack SelectRhythmAttackCandidate(
@@ -274,6 +241,7 @@ namespace JunkyardBoss
         private float GetAttackQueueScore(BossExcavatorAttack attack, float targetDistance)
         {
             float score = GetAttackRangeScore(attack, targetDistance);
+            bool isClosePriorityDistance = IsClosePriorityDistance(targetDistance);
 
             if (attack == _previousAttack)
             {
@@ -304,9 +272,7 @@ namespace JunkyardBoss
                 }
             }
 
-            float closePressureDistance = GetCloseQueuePressureDistance();
-
-            if (targetDistance <= closePressureDistance)
+            if (isClosePriorityDistance)
             {
                 if (attack == BossExcavatorAttack.BucketStrike)
                 {
@@ -329,11 +295,70 @@ namespace JunkyardBoss
                 }
             }
 
+            else
+            {
+                if (attack == BossExcavatorAttack.Charge)
+                {
+                    score += 3.15f;
+                }
+
+                if (attack == BossExcavatorAttack.ThrowScrap)
+                {
+                    score += 2.45f;
+                }
+
+                if (attack == BossExcavatorAttack.BucketStrike)
+                {
+                    score -= 3.2f;
+                }
+
+                if (attack == BossExcavatorAttack.Sweep)
+                {
+                    score -= 3.8f;
+                }
+            }
+
             return score;
         }
 
         private BossExcavatorAttack SelectOpportunisticAttack(float targetDistance, float baseAngle, float cabinAngle)
         {
+            if (IsClosePriorityDistance(targetDistance))
+            {
+                if (CanUseBucket(targetDistance, baseAngle, cabinAngle))
+                {
+                    return BossExcavatorAttack.BucketStrike;
+                }
+
+                if (CanUseSweep(targetDistance, cabinAngle))
+                {
+                    return BossExcavatorAttack.Sweep;
+                }
+            }
+
+            else
+            {
+                if (CanUseCharge(targetDistance, baseAngle))
+                {
+                    return BossExcavatorAttack.Charge;
+                }
+
+                if (CanUsePhaseTwoRangedBucket(targetDistance, baseAngle, cabinAngle))
+                {
+                    return BossExcavatorAttack.BucketStrike;
+                }
+
+                if (CanUseThrow(targetDistance, baseAngle, cabinAngle))
+                {
+                    return BossExcavatorAttack.ThrowScrap;
+                }
+            }
+
+            if (_queuedAttack != BossExcavatorAttack.None)
+            {
+                return BossExcavatorAttack.None;
+            }
+
             if (CanUseBucket(targetDistance, baseAngle, cabinAngle))
             {
                 return BossExcavatorAttack.BucketStrike;
@@ -342,11 +367,6 @@ namespace JunkyardBoss
             if (CanUseSweep(targetDistance, cabinAngle))
             {
                 return BossExcavatorAttack.Sweep;
-            }
-
-            if (_queuedAttack != BossExcavatorAttack.None)
-            {
-                return BossExcavatorAttack.None;
             }
 
             if (CanUseCharge(targetDistance, baseAngle))
@@ -547,7 +567,7 @@ namespace JunkyardBoss
                 return;
             }
 
-            _queuedAttackTimer = AttackQueueCommitTime;
+            _queuedAttackTimer = AttackQueueCommitTime / GetDecisionSpeedMult();
         }
 
         private void ClearQueuedAttack()
@@ -583,17 +603,35 @@ namespace JunkyardBoss
 
         private bool CanUseBucket(float targetDistance, float baseAngle, float cabinAngle)
         {
+            if (CanUseBucketCore(baseAngle, cabinAngle) == false)
+            {
+                return false;
+            }
+
+            if (targetDistance <= GetBucketAttackStartDistance())
+            {
+                return true;
+            }
+
+            return CanUsePhaseTwoRangedBucket(targetDistance, baseAngle, cabinAngle);
+        }
+
+        private float GetBucketAttackStartDistance()
+        {
+            float bucketAttackDistance = _boss.Config.BucketMaxDistance * 0.82f;
+            float minBucketAttackDistance = _boss.Config.StopDistance + 1.35f;
+
+            return Mathf.Max(minBucketAttackDistance, bucketAttackDistance);
+        }
+
+        private bool CanUseBucketCore(float baseAngle, float cabinAngle)
+        {
             if (_postAttackTimer > 0f)
             {
                 return false;
             }
 
             if (_bucketCooldownTimer > 0f)
-            {
-                return false;
-            }
-
-            if (targetDistance > GetBucketAttackStartDistance())
             {
                 return false;
             }
@@ -611,12 +649,37 @@ namespace JunkyardBoss
             return true;
         }
 
-        private float GetBucketAttackStartDistance()
+        private bool CanUsePhaseTwoRangedBucket(float targetDistance, float baseAngle, float cabinAngle)
         {
-            float bucketAttackDistance = _boss.Config.BucketMaxDistance * 0.82f;
-            float minBucketAttackDistance = _boss.Config.StopDistance + 1.35f;
+            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            {
+                return false;
+            }
 
-            return Mathf.Max(minBucketAttackDistance, bucketAttackDistance);
+            if (CanUseBucketCore(baseAngle, cabinAngle) == false)
+            {
+                return false;
+            }
+
+            if (targetDistance <= GetCloseQueuePressureDistance())
+            {
+                return false;
+            }
+
+            if (targetDistance > GetPhaseTwoRangedBucketMaxDistance())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private float GetPhaseTwoRangedBucketMaxDistance()
+        {
+            float rangedBucketMaxDistance = Mathf.Min(_boss.Config.ThrowMaxDistance, _boss.Config.ScrapTrailMaxDistance);
+            float minRangedBucketMaxDistance = GetCloseQueuePressureDistance() + 0.5f;
+
+            return Mathf.Max(minRangedBucketMaxDistance, rangedBucketMaxDistance);
         }
 
         private bool CanUseThrow(float targetDistance, float baseAngle, float cabinAngle)
@@ -676,12 +739,94 @@ namespace JunkyardBoss
                 return false;
             }
 
-            if (baseAngle > _boss.Config.ChargeBaseAngle)
+            if (baseAngle > GetChargeStartAngle())
             {
                 return false;
             }
 
             return true;
+        }
+
+        private float GetChargeStartAngle()
+        {
+            float chargeStartAngle = _boss.Config.ChargeBaseAngle;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                chargeStartAngle = Mathf.Max(chargeStartAngle, _boss.Config.RepositionBaseAngle);
+            }
+
+            return chargeStartAngle;
+        }
+
+        private bool IsClosePriorityDistance(float targetDistance)
+        {
+            return targetDistance <= GetCloseQueuePressureDistance();
+        }
+
+        private BossExcavatorAttack GetClosePriorityAttack()
+        {
+            if (_lastAttack == BossExcavatorAttack.BucketStrike)
+            {
+                return BossExcavatorAttack.Sweep;
+            }
+
+            if (_lastAttack == BossExcavatorAttack.Sweep)
+            {
+                return BossExcavatorAttack.BucketStrike;
+            }
+
+            if (_previousAttack == BossExcavatorAttack.BucketStrike)
+            {
+                return BossExcavatorAttack.Sweep;
+            }
+
+            return BossExcavatorAttack.BucketStrike;
+        }
+
+        private BossExcavatorAttack GetFarPriorityAttack()
+        {
+            if (_lastAttack == BossExcavatorAttack.Charge)
+            {
+                return BossExcavatorAttack.ThrowScrap;
+            }
+
+            if (_lastAttack == BossExcavatorAttack.ThrowScrap)
+            {
+                return BossExcavatorAttack.Charge;
+            }
+
+            if (_previousAttack == BossExcavatorAttack.Charge)
+            {
+                return BossExcavatorAttack.ThrowScrap;
+            }
+
+            return BossExcavatorAttack.Charge;
+        }
+
+        private BossExcavatorAttack GetPairedPriorityAttack(BossExcavatorAttack attack)
+        {
+            if (attack == BossExcavatorAttack.BucketStrike)
+            {
+                return BossExcavatorAttack.Sweep;
+            }
+
+            if (attack == BossExcavatorAttack.Sweep)
+            {
+                return BossExcavatorAttack.BucketStrike;
+            }
+
+            if (attack == BossExcavatorAttack.Charge)
+            {
+                return BossExcavatorAttack.ThrowScrap;
+            }
+
+            if (attack == BossExcavatorAttack.ThrowScrap)
+            {
+                return BossExcavatorAttack.Charge;
+            }
+
+            return BossExcavatorAttack.None;
         }
 
         private void StartAttack(BossExcavatorAttack attack)

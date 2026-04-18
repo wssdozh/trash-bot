@@ -10,6 +10,8 @@ namespace JunkyardBoss
         private const float AlignFinishAngle = 4f;
         private const float ChargeSkin = 0.05f;
         private const int HitBufferCount = 24;
+        private const float PhaseTwoAlignTimeMult = 0.2f;
+        private const float PhaseTwoTelegraphTimeMult = 0.3f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
@@ -202,16 +204,12 @@ namespace JunkyardBoss
 
         private void BeginTelegraph()
         {
-            _chargeDirection = GetBaseForward();
-
-            if (_chargeDirection.sqrMagnitude <= MinDirectionSqr)
-            {
-                _chargeDirection = ResolveTargetDirection();
-            }
+            _chargeDirection = ResolveChargeDashDirection();
         }
 
         private void TickTelegraph()
         {
+            _chargeDirection = ResolveChargeDashDirection();
             RotateBaseTowards(_chargeDirection, Time.deltaTime);
             _telegraphTimer = Mathf.Max(0f, _telegraphTimer - Time.deltaTime);
 
@@ -223,12 +221,7 @@ namespace JunkyardBoss
 
         private void BeginDash()
         {
-            _chargeDirection = GetBaseForward();
-
-            if (_chargeDirection.sqrMagnitude <= MinDirectionSqr)
-            {
-                _chargeDirection = ResolveTargetDirection();
-            }
+            _chargeDirection = ResolveChargeDashDirection();
 
             if (_isComboSweep)
             {
@@ -481,7 +474,46 @@ namespace JunkyardBoss
                 }
             }
 
+            Vector3 moveDirection = ResolveMovementDirection();
+
+            if (moveDirection.sqrMagnitude > MinDirectionSqr)
+            {
+                return moveDirection;
+            }
+
             return GetBaseForward();
+        }
+
+        private Vector3 ResolveChargeDashDirection()
+        {
+            Vector3 targetDirection = ResolveTargetDirection();
+
+            if (targetDirection.sqrMagnitude > MinDirectionSqr)
+            {
+                return targetDirection;
+            }
+
+            Vector3 moveDirection = ResolveMovementDirection();
+
+            if (moveDirection.sqrMagnitude > MinDirectionSqr)
+            {
+                return moveDirection;
+            }
+
+            return GetBaseForward();
+        }
+
+        private Vector3 ResolveMovementDirection()
+        {
+            Vector3 moveDirection = _boss.Move.CurrentMoveDirection;
+            moveDirection.y = 0f;
+
+            if (moveDirection.sqrMagnitude <= MinDirectionSqr)
+            {
+                return Vector3.zero;
+            }
+
+            return moveDirection.normalized;
         }
 
         private Vector3 GetBaseForward()
@@ -684,12 +716,26 @@ namespace JunkyardBoss
 
         private float GetAlignTime()
         {
-            return _config.ChargeAlignTime / GetPhaseAttackSpeedMult();
+            float alignTime = _config.ChargeAlignTime / GetPhaseAttackSpeedMult();
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                alignTime *= PhaseTwoAlignTimeMult;
+            }
+
+            return alignTime;
         }
 
         private float GetTelegraphTime()
         {
-            return _config.ChargeTelegraphTime / GetPhaseAttackSpeedMult();
+            float telegraphTime = _config.ChargeTelegraphTime / GetPhaseAttackSpeedMult();
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                telegraphTime *= PhaseTwoTelegraphTimeMult;
+            }
+
+            return telegraphTime;
         }
 
         private float GetDashTime()

@@ -629,7 +629,7 @@ namespace JunkyardBoss
                 }
             }
 
-            if (_attackIntent == BossExcavatorAttack.BucketStrike)
+            if (ShouldUseTargetFacing(targetPointType))
             {
                 if (targetDirection.sqrMagnitude > MinSqrMagnitude)
                 {
@@ -637,44 +637,27 @@ namespace JunkyardBoss
                 }
             }
 
-            if (navigationLookDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return targetDirection;
-            }
-
-            if (ShouldBlendLookWithTarget(targetPointType) == false)
+            if (navigationLookDirection.sqrMagnitude > MinSqrMagnitude)
             {
                 return navigationLookDirection;
             }
 
-            float targetDistance = Vector3.Distance(currentPoint, targetPoint);
-
-            return GetMovementLookDirection(navigationLookDirection, targetDirection, targetDistance);
+            return targetDirection;
         }
 
-        private bool ShouldBlendLookWithTarget(BossExcavatorTargetPoint targetPointType)
+        private bool ShouldUseTargetFacing(BossExcavatorTargetPoint targetPointType)
         {
-            if (targetPointType == BossExcavatorTargetPoint.PlayerLeft)
-            {
-                return true;
-            }
-
-            if (targetPointType == BossExcavatorTargetPoint.PlayerRight)
-            {
-                return true;
-            }
-
-            if (targetPointType == BossExcavatorTargetPoint.PlayerCenter)
-            {
-                return true;
-            }
-
-            if (targetPointType == BossExcavatorTargetPoint.PlayerBack)
-            {
-                return true;
-            }
-
             if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                return true;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.BucketStrike)
+            {
+                return true;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.Sweep)
             {
                 return true;
             }
@@ -682,52 +665,13 @@ namespace JunkyardBoss
             return false;
         }
 
-        private Vector3 GetMovementLookDirection(Vector3 moveDirection, Vector3 targetDirection, float targetDistance)
+        private Vector3 GetNavigationLookDirection(Vector3 currentPoint, Vector3 moveDirection)
         {
-            if (targetDirection.sqrMagnitude <= MinSqrMagnitude)
+            if (moveDirection.sqrMagnitude > MinSqrMagnitude)
             {
                 return moveDirection;
             }
 
-            float moveAngle = Vector3.Angle(moveDirection, targetDirection);
-            float attackDistance = GetAttackChaseDistance() + GetDistanceTolerance();
-            float distanceBlend = 0f;
-
-            if (targetDistance <= attackDistance)
-            {
-                float nearDistance = GetMinMoveDistance();
-
-                if (attackDistance <= nearDistance)
-                {
-                    distanceBlend = 1f;
-                }
-
-                else
-                {
-                    distanceBlend = 1f - Mathf.InverseLerp(nearDistance, attackDistance, targetDistance);
-                }
-            }
-
-            if (distanceBlend <= 0f)
-            {
-                if (moveAngle >= _config.MoveStartAngle)
-                {
-                    return moveDirection;
-                }
-            }
-
-            float angleBlend = 1f - Mathf.InverseLerp(0f, Mathf.Max(_config.MoveStopAngle, _config.MoveStartAngle + 1f), moveAngle);
-            angleBlend = Mathf.Clamp01(angleBlend);
-            float blendProgress = Mathf.Max(distanceBlend, angleBlend);
-            float lookBlend = Mathf.Lerp(MoveLookBlend, PressureLookBlend, blendProgress);
-            Vector3 blendedDirection = moveDirection * (1f - lookBlend);
-            blendedDirection += targetDirection * lookBlend;
-
-            return GetPlanarDirection(blendedDirection);
-        }
-
-        private Vector3 GetNavigationLookDirection(Vector3 currentPoint, Vector3 moveDirection)
-        {
             Vector3 steeringDirection = Vector3.zero;
 
             if (_navMeshAgent != null)
@@ -741,7 +685,7 @@ namespace JunkyardBoss
                 return steeringDirection;
             }
 
-            return moveDirection;
+            return Vector3.zero;
         }
 
         private Vector3 GetSmoothedLookDirection(Vector3 desiredLookDirection)

@@ -98,7 +98,7 @@ namespace JunkyardBoss
                 return true;
             }
 
-            float alignAngle = _boss.Config.ChargeBaseAngle + 10f;
+            float alignAngle = GetChargeStartAngle() + 10f;
 
             if (baseAngle > alignAngle)
             {
@@ -296,14 +296,14 @@ namespace JunkyardBoss
 
             if (moveState == BossExcavatorState.Reposition)
             {
-                _moveStateTimer = _boss.Config.MoveRepositionCommitTime;
+                _moveStateTimer = _boss.Config.MoveRepositionCommitTime / GetDecisionSpeedMult();
 
                 return;
             }
 
             if (moveState == BossExcavatorState.Chase)
             {
-                _moveStateTimer = _boss.Config.MoveChaseCommitTime;
+                _moveStateTimer = _boss.Config.MoveChaseCommitTime / GetDecisionSpeedMult();
 
                 return;
             }
@@ -333,6 +333,11 @@ namespace JunkyardBoss
 
         private bool CanUseCombatData()
         {
+            if (IsCombatRoomActive() == false)
+            {
+                return false;
+            }
+
             if (_boss.Target == null)
             {
                 return false;
@@ -376,32 +381,26 @@ namespace JunkyardBoss
 
         private BossExcavatorAttack GetStagingAttackIntent(float targetDistance)
         {
-            if (_lastAttack == BossExcavatorAttack.ThrowScrap)
+            BossExcavatorAttack preferredAttack = GetPreferredRhythmAttack(targetDistance);
+
+            if (CanQueueAttack(preferredAttack))
             {
-                return BossExcavatorAttack.Sweep;
+                return preferredAttack;
             }
 
-            if (_lastAttack == BossExcavatorAttack.Sweep)
+            BossExcavatorAttack secondaryAttack = GetSecondaryRhythmAttack(preferredAttack, targetDistance);
+
+            if (CanQueueAttack(secondaryAttack))
             {
-                return BossExcavatorAttack.Charge;
+                return secondaryAttack;
             }
 
-            if (_lastAttack == BossExcavatorAttack.Charge)
-            {
-                return BossExcavatorAttack.BucketStrike;
-            }
-
-            if (_lastAttack == BossExcavatorAttack.BucketStrike)
-            {
-                return BossExcavatorAttack.ThrowScrap;
-            }
-
-            if (targetDistance <= GetClosePressureDistance())
+            if (IsClosePriorityDistance(targetDistance))
             {
                 return BossExcavatorAttack.BucketStrike;
             }
 
-            return BossExcavatorAttack.ThrowScrap;
+            return BossExcavatorAttack.Charge;
         }
 
         private bool ShouldUseQueuedChargeAlign()

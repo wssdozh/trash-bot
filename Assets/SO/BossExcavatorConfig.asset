@@ -82,7 +82,7 @@ MonoBehaviour:
   _scrapTrailMinDistance: 3.1
   _scrapTrailMaxDistance: 10.8
   _scrapTrailBaseAngle: 78
-  _scrapTrailDuration: 6.6
+  _scrapTrailDuration: 13.2
   _scrapTrailMinMoveSpeed: 0.65
   _scrapTrailSpawnSpacing: 0.39
   _scrapTrailSpawnBackOffset: 0.8
