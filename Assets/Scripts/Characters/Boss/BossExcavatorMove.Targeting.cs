@@ -237,6 +237,11 @@ namespace JunkyardBoss
                 return false;
             }
 
+            if (ShouldForceAttackIntentRetarget(nextTargetPoint))
+            {
+                return false;
+            }
+
             if (IsImmediatePoint(nextTargetPoint))
             {
                 return false;
@@ -264,6 +269,36 @@ namespace JunkyardBoss
             }
 
             return true;
+        }
+
+        private bool ShouldForceAttackIntentRetarget(BossExcavatorTargetPoint nextTargetPoint)
+        {
+            if (_attackIntent != BossExcavatorAttack.BucketStrike)
+            {
+                return false;
+            }
+
+            if (nextTargetPoint != BossExcavatorTargetPoint.PlayerCenter)
+            {
+                return false;
+            }
+
+            if (_targetPoint == BossExcavatorTargetPoint.PlayerLeft)
+            {
+                return true;
+            }
+
+            if (_targetPoint == BossExcavatorTargetPoint.PlayerRight)
+            {
+                return true;
+            }
+
+            if (_targetPoint == BossExcavatorTargetPoint.PlayerBack)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsCombatPoint(BossExcavatorTargetPoint targetPoint)
@@ -724,8 +759,8 @@ namespace JunkyardBoss
         {
             if (_attackIntent == BossExcavatorAttack.BucketStrike)
             {
-                float bucketIntentDistance = _config.BucketMaxDistance * 0.62f;
-                float minBucketDistance = _config.StopDistance + 0.45f;
+                float bucketIntentDistance = _config.BucketMaxDistance * 0.52f;
+                float minBucketDistance = _config.StopDistance + 0.3f;
 
                 return Mathf.Max(minBucketDistance, bucketIntentDistance);
             }

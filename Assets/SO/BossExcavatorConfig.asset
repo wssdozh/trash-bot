@@ -110,6 +110,8 @@ MonoBehaviour:
   _sweepDamageInterval: 0.22
   _sweepHitRadius: 1.45
   _sweepHitOffset: 0.25
+  _sweepPushForce: 3.2
+  _sweepPushLift: 0.18
   _sweepSpinSpeed: 270
   _throwProjectileCount: 3
   _throwProjectileSpreadAngle: 18

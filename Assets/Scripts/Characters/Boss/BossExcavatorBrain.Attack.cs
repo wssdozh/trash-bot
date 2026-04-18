@@ -492,7 +492,7 @@ namespace JunkyardBoss
                 return false;
             }
 
-            if (targetDistance > _boss.Config.BucketMaxDistance)
+            if (targetDistance > GetBucketAttackStartDistance())
             {
                 return false;
             }
@@ -508,6 +508,14 @@ namespace JunkyardBoss
             }
 
             return true;
+        }
+
+        private float GetBucketAttackStartDistance()
+        {
+            float bucketAttackDistance = _boss.Config.BucketMaxDistance * 0.82f;
+            float minBucketAttackDistance = _boss.Config.StopDistance + 1.35f;
+
+            return Mathf.Max(minBucketAttackDistance, bucketAttackDistance);
         }
 
         private bool CanUseThrow(float targetDistance, float baseAngle, float cabinAngle)
