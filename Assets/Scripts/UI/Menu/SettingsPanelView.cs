@@ -22,6 +22,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
     [SerializeField] private Button _windowButton;
     [SerializeField] private Button _screenButton;
+    [SerializeField] private Button _vSyncOffButton;
+    [SerializeField] private Button _vSyncOnButton;
     [SerializeField] private Button _lowQualityButton;
     [SerializeField] private Button _mediumQualityButton;
     [SerializeField] private Button _highQualityButton;
@@ -42,6 +44,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
     private Image _windowImage;
     private Image _screenImage;
+    private Image _vSyncOffImage;
+    private Image _vSyncOnImage;
     private Image _lowQualityImage;
     private Image _mediumQualityImage;
     private Image _highQualityImage;
@@ -54,6 +58,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
     private TMP_Text _windowText;
     private TMP_Text _screenText;
+    private TMP_Text _vSyncOffText;
+    private TMP_Text _vSyncOnText;
     private TMP_Text _lowQualityText;
     private TMP_Text _mediumQualityText;
     private TMP_Text _highQualityText;
@@ -78,6 +84,7 @@ public sealed class SettingsPanelView : MonoBehaviour
     public event Action<float> MusicChanged;
     public event Action<float> EffectsChanged;
     public event Action<bool> FullScreenChanged;
+    public event Action<bool> VSyncChanged;
     public event Action<int> QualityChanged;
     public event Action<bool> InfiniteHealthChanged;
     public event Action<bool> InfiniteDamageChanged;
@@ -128,6 +135,7 @@ public sealed class SettingsPanelView : MonoBehaviour
         UpdateSliderValue(_effectsValue, settingsData.EffectsVolume);
 
         UpdateFullScreenState(settingsData.IsFullScreen);
+        UpdateVSyncState(settingsData.IsVSyncEnabled);
         UpdateQualityState(settingsData.QualityLevel);
         UpdateHealthState(settingsData.IsInfiniteHealth);
         UpdateDamageState(settingsData.IsInfiniteDamage);
@@ -147,6 +155,8 @@ public sealed class SettingsPanelView : MonoBehaviour
         ValidateReference(_effectsValue, nameof(_effectsValue));
         ValidateReference(_windowButton, nameof(_windowButton));
         ValidateReference(_screenButton, nameof(_screenButton));
+        ValidateReference(_vSyncOffButton, nameof(_vSyncOffButton));
+        ValidateReference(_vSyncOnButton, nameof(_vSyncOnButton));
         ValidateReference(_lowQualityButton, nameof(_lowQualityButton));
         ValidateReference(_mediumQualityButton, nameof(_mediumQualityButton));
         ValidateReference(_highQualityButton, nameof(_highQualityButton));
@@ -171,6 +181,8 @@ public sealed class SettingsPanelView : MonoBehaviour
     {
         _windowImage = GetButtonImage(_windowButton);
         _screenImage = GetButtonImage(_screenButton);
+        _vSyncOffImage = GetButtonImage(_vSyncOffButton);
+        _vSyncOnImage = GetButtonImage(_vSyncOnButton);
         _lowQualityImage = GetButtonImage(_lowQualityButton);
         _mediumQualityImage = GetButtonImage(_mediumQualityButton);
         _highQualityImage = GetButtonImage(_highQualityButton);
@@ -183,6 +195,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
         _windowText = GetButtonText(_windowButton);
         _screenText = GetButtonText(_screenButton);
+        _vSyncOffText = GetButtonText(_vSyncOffButton);
+        _vSyncOnText = GetButtonText(_vSyncOnButton);
         _lowQualityText = GetButtonText(_lowQualityButton);
         _mediumQualityText = GetButtonText(_mediumQualityButton);
         _highQualityText = GetButtonText(_highQualityButton);
@@ -235,6 +249,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
         _windowButton.onClick.AddListener(OnWindowClicked);
         _screenButton.onClick.AddListener(OnScreenClicked);
+        _vSyncOffButton.onClick.AddListener(OnVSyncOffClicked);
+        _vSyncOnButton.onClick.AddListener(OnVSyncOnClicked);
         _lowQualityButton.onClick.AddListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.AddListener(OnMediumQualityClicked);
         _highQualityButton.onClick.AddListener(OnHighQualityClicked);
@@ -254,6 +270,8 @@ public sealed class SettingsPanelView : MonoBehaviour
 
         RemoveButtonListener(_windowButton, OnWindowClicked);
         RemoveButtonListener(_screenButton, OnScreenClicked);
+        RemoveButtonListener(_vSyncOffButton, OnVSyncOffClicked);
+        RemoveButtonListener(_vSyncOnButton, OnVSyncOnClicked);
         RemoveButtonListener(_lowQualityButton, OnLowQualityClicked);
         RemoveButtonListener(_mediumQualityButton, OnMediumQualityClicked);
         RemoveButtonListener(_highQualityButton, OnHighQualityClicked);
@@ -296,6 +314,12 @@ public sealed class SettingsPanelView : MonoBehaviour
     {
         UpdateButtonState(_windowImage, _windowText, isFullScreen == false);
         UpdateButtonState(_screenImage, _screenText, isFullScreen);
+    }
+
+    private void UpdateVSyncState(bool isEnabled)
+    {
+        UpdateButtonState(_vSyncOffImage, _vSyncOffText, isEnabled == false);
+        UpdateButtonState(_vSyncOnImage, _vSyncOnText, isEnabled);
     }
 
     private void UpdateQualityState(int qualityLevel)
@@ -358,6 +382,18 @@ public sealed class SettingsPanelView : MonoBehaviour
     {
         if (_isSyncing == false)
             FullScreenChanged?.Invoke(true);
+    }
+
+    private void OnVSyncOffClicked()
+    {
+        if (_isSyncing == false)
+            VSyncChanged?.Invoke(false);
+    }
+
+    private void OnVSyncOnClicked()
+    {
+        if (_isSyncing == false)
+            VSyncChanged?.Invoke(true);
     }
 
     private void OnLowQualityClicked()

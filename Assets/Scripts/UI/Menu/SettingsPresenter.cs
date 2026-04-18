@@ -27,6 +27,7 @@ internal sealed class SettingsPresenter
     private int _highQualityLevel;
 
     private bool _defaultFullScreen;
+    private bool _defaultVSyncEnabled;
 
     public SettingsPresenter(SettingsPanelView view, AudioMixer audioMixer, SettingsSave settingsSave)
     {
@@ -40,11 +41,13 @@ internal sealed class SettingsPresenter
         CacheQualityLevels();
 
         _defaultFullScreen = Screen.fullScreen;
+        _defaultVSyncEnabled = QualitySettings.vSyncCount > 0;
 
         _view.MasterChanged += OnMasterChanged;
         _view.MusicChanged += OnMusicChanged;
         _view.EffectsChanged += OnEffectsChanged;
         _view.FullScreenChanged += OnFullScreenChanged;
+        _view.VSyncChanged += OnVSyncChanged;
         _view.QualityChanged += OnQualityChanged;
         _view.InfiniteHealthChanged += OnInfiniteHealthChanged;
         _view.InfiniteDamageChanged += OnInfiniteDamageChanged;
@@ -52,7 +55,7 @@ internal sealed class SettingsPresenter
 
         _view.SetQualityLevels(_lowQualityLevel, _mediumQualityLevel, _highQualityLevel);
 
-        _settingsData = _settingsSave.Load(_highQualityLevel, _defaultFullScreen);
+        _settingsData = _settingsSave.Load(_highQualityLevel, _defaultFullScreen, _defaultVSyncEnabled);
         _settingsData = NormalizeData(_settingsData);
 
         ApplyData();
@@ -65,6 +68,7 @@ internal sealed class SettingsPresenter
         _view.MusicChanged -= OnMusicChanged;
         _view.EffectsChanged -= OnEffectsChanged;
         _view.FullScreenChanged -= OnFullScreenChanged;
+        _view.VSyncChanged -= OnVSyncChanged;
         _view.QualityChanged -= OnQualityChanged;
         _view.InfiniteHealthChanged -= OnInfiniteHealthChanged;
         _view.InfiniteDamageChanged -= OnInfiniteDamageChanged;
@@ -108,6 +112,15 @@ internal sealed class SettingsPresenter
         _settingsData.QualityLevel = NormalizeQualityLevel(qualityLevel);
 
         ApplyQuality(_settingsData.QualityLevel);
+        ApplyVSync(_settingsData.IsVSyncEnabled);
+        SaveAndRefresh();
+    }
+
+    private void OnVSyncChanged(bool isEnabled)
+    {
+        _settingsData.IsVSyncEnabled = isEnabled;
+
+        ApplyVSync(_settingsData.IsVSyncEnabled);
         SaveAndRefresh();
     }
 
@@ -146,6 +159,7 @@ internal sealed class SettingsPresenter
         ApplyVolume(EffectsParameterName, _settingsData.EffectsVolume);
         ApplyFullScreen(_settingsData.IsFullScreen);
         ApplyQuality(_settingsData.QualityLevel);
+        ApplyVSync(_settingsData.IsVSyncEnabled);
     }
 
     private void ApplyVolume(string parameterName, float linearValue)
@@ -170,6 +184,11 @@ internal sealed class SettingsPresenter
         QualitySettings.SetQualityLevel(qualityLevel, true);
     }
 
+    private void ApplyVSync(bool isEnabled)
+    {
+        QualitySettings.vSyncCount = isEnabled ? 1 : 0;
+    }
+
     private SettingsData NormalizeData(SettingsData settingsData)
     {
         settingsData.MasterVolume = Mathf.Clamp01(settingsData.MasterVolume);
@@ -182,7 +201,7 @@ internal sealed class SettingsPresenter
 
     private SettingsData CreateDefaultData()
     {
-        return new SettingsData(1.0f, 1.0f, 1.0f, _defaultFullScreen, _highQualityLevel, false, false);
+        return new SettingsData(1.0f, 1.0f, 1.0f, _defaultFullScreen, _defaultVSyncEnabled, _highQualityLevel, false, false);
     }
 
     private int NormalizeQualityLevel(int qualityLevel)
