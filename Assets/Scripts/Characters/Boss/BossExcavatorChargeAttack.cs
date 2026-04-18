@@ -9,6 +9,9 @@ namespace JunkyardBoss
         private const float MinDirectionSqr = 0.0001f;
         private const float AlignFinishAngle = 4f;
         private const float ChargeSkin = 0.05f;
+        private const float ChargeCatchRadiusPadding = 1.55f;
+        private const float ChargeSideCatchMinLateralFactor = 0.35f;
+        private const float ChargeSideCatchForwardPadding = 0.65f;
         private const int HitBufferCount = 24;
         private const float InnerSweepRadiusFactor = 0.72f;
         private const float PhaseTwoAlignTimeMult = 0.2f;
@@ -307,17 +310,79 @@ namespace JunkyardBoss
 
             if (stepDistance > 0f)
             {
+                Vector3 catchStopPosition;
+
+                if (TryResolveTargetCatchStop(currentPosition, moveDirection, stepDistance, out catchStopPosition))
+                {
+                    MoveChargeTo(catchStopPosition, moveDirection);
+                    BeginRecover();
+
+                    return;
+                }
+
                 Vector3 nextPosition = currentPosition + moveDirection * stepDistance;
 
-                _boss.BaseRigidbody.MovePosition(nextPosition);
-                ResetPlanarVelocity();
-                ApplyChargeDamage(nextPosition, moveDirection);
+                MoveChargeTo(nextPosition, moveDirection);
             }
 
             if (isObstacleHit)
             {
                 BeginRecover();
             }
+        }
+
+        private bool TryResolveTargetCatchStop(Vector3 currentPosition, Vector3 moveDirection, float stepDistance, out Vector3 stopPosition)
+        {
+            stopPosition = currentPosition;
+
+            Transform target = _boss.Target;
+
+            if (target == null)
+            {
+                return false;
+            }
+
+            Vector3 targetPoint = target.position;
+            targetPoint.y = currentPosition.y;
+            Vector3 toTarget = targetPoint - currentPosition;
+            float forwardDistance = Vector3.Dot(toTarget, moveDirection);
+
+            if (forwardDistance < 0f)
+            {
+                return false;
+            }
+
+            if (forwardDistance > stepDistance + ChargeSideCatchForwardPadding)
+            {
+                return false;
+            }
+
+            float closestDistanceAlongPath = Mathf.Clamp(forwardDistance, 0f, stepDistance);
+            Vector3 closestPoint = currentPosition + moveDirection * closestDistanceAlongPath;
+            float catchRadius = _config.ChargeHitRadius + ChargeCatchRadiusPadding;
+            float lateralDistance = Vector3.Distance(closestPoint, targetPoint);
+            float minSideCatchDistance = _config.ChargeHitRadius * ChargeSideCatchMinLateralFactor;
+
+            if (lateralDistance > catchRadius)
+            {
+                return false;
+            }
+
+            if (lateralDistance < minSideCatchDistance)
+            {
+                return false;
+            }
+
+            stopPosition = closestPoint;
+
+            return true;
+        }
+
+        private void MoveChargeTo(Vector3 nextPosition, Vector3 moveDirection)
+        {
+            _boss.BaseRigidbody.MovePosition(nextPosition);
+            ResetPlanarVelocity();
+            ApplyChargeDamage(nextPosition, moveDirection);
         }
 
         private void RotateCabin(float deltaTime)

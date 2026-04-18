@@ -354,11 +354,6 @@ namespace JunkyardBoss
                 }
             }
 
-            if (_queuedAttack != BossExcavatorAttack.None)
-            {
-                return BossExcavatorAttack.None;
-            }
-
             if (CanUseBucket(targetDistance, baseAngle, cabinAngle))
             {
                 return BossExcavatorAttack.BucketStrike;
