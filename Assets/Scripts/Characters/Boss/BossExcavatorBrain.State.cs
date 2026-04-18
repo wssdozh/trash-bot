@@ -119,8 +119,9 @@ namespace JunkyardBoss
             }
 
             float alignAngle = GetChargeStartAngle() + 10f;
+            float chargeApproachAngle = GetChargeApproachAngle(baseAngle);
 
-            if (baseAngle > alignAngle)
+            if (chargeApproachAngle > alignAngle)
             {
                 if (targetDistance <= _boss.Config.ChargeMaxDistance)
                 {
@@ -595,7 +596,7 @@ namespace JunkyardBoss
 
             float aggressiveChargeAngle = Mathf.Max(GetChargeStartAngle(), _boss.Config.RepositionBaseAngle);
 
-            if (baseAngle > aggressiveChargeAngle)
+            if (GetChargeApproachAngle(baseAngle) > aggressiveChargeAngle)
             {
                 return false;
             }

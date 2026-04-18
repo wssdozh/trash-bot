@@ -604,7 +604,7 @@ namespace JunkyardBoss
 
             Vector3 launchForward = ResolveAttackForward();
             Vector3 spawnPosition = ResolveThrowSpawnPosition(_bucket.position, launchForward);
-            int projectileCount = Mathf.Max(_config.ThrowProjectileCount, 1);
+            int projectileCount = GetCurrentThrowProjectileCount();
             int projectileIndex = 0;
 
             Gizmos.color = new Color(0.35f, 1f, 0.35f, 0.92f);
@@ -704,7 +704,7 @@ namespace JunkyardBoss
                 return 0f;
             }
 
-            float spreadAngle = _config.ThrowProjectileSpreadAngle;
+            float spreadAngle = GetCurrentThrowProjectileSpreadAngle();
             float step = spreadAngle / (projectileCount - 1);
             float minAngle = spreadAngle * -0.5f;
 
@@ -744,6 +744,26 @@ namespace JunkyardBoss
             }
 
             return attackTime;
+        }
+
+        private int GetCurrentThrowProjectileCount()
+        {
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoThrowProjectileCount;
+            }
+
+            return _config.ThrowProjectileCount;
+        }
+
+        private float GetCurrentThrowProjectileSpreadAngle()
+        {
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoThrowProjectileSpreadAngle;
+            }
+
+            return _config.ThrowProjectileSpreadAngle;
         }
     }
 }

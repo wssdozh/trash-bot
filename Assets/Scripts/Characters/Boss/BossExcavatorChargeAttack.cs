@@ -16,6 +16,7 @@ namespace JunkyardBoss
         private const float InnerSweepRadiusFactor = 0.72f;
         private const float PhaseTwoAlignTimeMult = 0.2f;
         private const float PhaseTwoTelegraphTimeMult = 0.3f;
+        private const float PhaseTwoCabinSpinSlowdown = 1.5f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
@@ -30,6 +31,7 @@ namespace JunkyardBoss
         private float _comboDamageTickTimer;
         private float _spinDirectionSign;
         private Vector3 _chargeDirection;
+        private bool _isReverseChargeFacing;
         private bool _isRunning;
         private bool _isRecovering;
         private bool _isComboSweep;
@@ -65,6 +67,7 @@ namespace JunkyardBoss
             _comboDamageTickTimer = 0f;
             _spinDirectionSign = 1f;
             _chargeDirection = Vector3.forward;
+            _isReverseChargeFacing = false;
             _isRunning = false;
             _isRecovering = false;
             _isComboSweep = false;
@@ -83,6 +86,7 @@ namespace JunkyardBoss
             _comboDamageTickTimer = 0f;
             _spinDirectionSign = 1f;
             _chargeDirection = ResolveTargetDirection();
+            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
             _isRunning = true;
             _isRecovering = false;
             _isComboSweep = isComboSweep;
@@ -184,9 +188,10 @@ namespace JunkyardBoss
         private void TickAlign()
         {
             _chargeDirection = ResolveTargetDirection();
+            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
             RotateBaseTowards(_chargeDirection, Time.deltaTime);
 
-            float angleToCharge = GetAngleToDirection(_chargeDirection);
+            float angleToCharge = GetChargeFacingAngle(_chargeDirection);
             _alignTimer = Mathf.Max(0f, _alignTimer - Time.deltaTime);
 
             if (angleToCharge <= AlignFinishAngle)
@@ -203,11 +208,13 @@ namespace JunkyardBoss
         private void BeginTelegraph()
         {
             _chargeDirection = ResolveChargeDashDirection();
+            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
         }
 
         private void TickTelegraph()
         {
             _chargeDirection = ResolveChargeDashDirection();
+            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
             RotateBaseTowards(_chargeDirection, Time.deltaTime);
             _telegraphTimer = Mathf.Max(0f, _telegraphTimer - Time.deltaTime);
 
@@ -220,6 +227,7 @@ namespace JunkyardBoss
         private void BeginDash()
         {
             _chargeDirection = ResolveChargeDashDirection();
+            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
             _dashTimer = 1f;
 
             if (_isComboSweep)
@@ -665,6 +673,26 @@ namespace JunkyardBoss
             return Vector3.Angle(baseForward, direction.normalized);
         }
 
+        private float GetChargeFacingAngle(Vector3 direction)
+        {
+            float forwardAngle = GetAngleToDirection(direction);
+
+            return Mathf.Min(forwardAngle, 180f - forwardAngle);
+        }
+
+        private bool ShouldUseReverseChargeFacing(Vector3 direction)
+        {
+            float forwardAngle = GetAngleToDirection(direction);
+            float reverseAngle = 180f - forwardAngle;
+
+            if (reverseAngle < forwardAngle)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private void RotateBaseTowards(Vector3 direction, float deltaTime)
         {
             Vector3 planarDirection = direction;
@@ -673,6 +701,11 @@ namespace JunkyardBoss
             if (planarDirection.sqrMagnitude <= MinDirectionSqr)
             {
                 return;
+            }
+
+            if (_isReverseChargeFacing)
+            {
+                planarDirection = -planarDirection;
             }
 
             Quaternion currentRotation = _boss.BaseRigidbody.rotation;
@@ -837,6 +870,7 @@ namespace JunkyardBoss
             {
                 spinSpeed *= _config.PhaseTwoSweepSpinSpeedMult;
                 spinSpeed *= _config.PhaseTwoComboSweepSpinSpeedMult;
+                spinSpeed /= PhaseTwoCabinSpinSlowdown;
             }
 
             return spinSpeed;

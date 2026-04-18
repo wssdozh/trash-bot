@@ -21,8 +21,8 @@ namespace JunkyardBoss
         [Range(1f, 3f)]
         [SerializeField] private float _phaseTwoDamageMult = 1.32f;
 
-        [Range(1f, 3f)]
-        [SerializeField] private float _phaseTwoChargeSpeedMult = 1.18f;
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _phaseTwoChargeSpeedMult = 1f;
 
         [Range(1f, 3f)]
         [SerializeField] private float _phaseTwoSweepSpinSpeedMult = 1.38f;
@@ -38,6 +38,18 @@ namespace JunkyardBoss
 
         [Min(1f)]
         [SerializeField] private float _baseTurnSpeed = 168f;
+
+        [Min(1f)]
+        [SerializeField] private float _baseTurnAcceleration = 560f;
+
+        [Min(1f)]
+        [SerializeField] private float _baseTurnDeceleration = 760f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _baseTurnSlowAngle = 42f;
+
+        [Range(0.05f, 1f)]
+        [SerializeField] private float _baseTurnMinSpeedFactor = 0.24f;
 
         [Range(1f, 45f)]
         [SerializeField] private float _moveStartAngle = 10f;
@@ -302,16 +314,22 @@ namespace JunkyardBoss
 
         [Header("Throw Attack")]
         [Min(1)]
-        [SerializeField] private int _throwProjectileCount = 3;
+        [SerializeField] private int _throwProjectileCount = 5;
+
+        [Min(1)]
+        [SerializeField] private int _phaseTwoThrowProjectileCount = 9;
 
         [Range(0f, 90f)]
         [SerializeField] private float _throwProjectileSpreadAngle = 18f;
+
+        [Range(0f, 180f)]
+        [SerializeField] private float _phaseTwoThrowProjectileSpreadAngle = 34f;
 
         [Min(0.1f)]
         [SerializeField] private float _throwProjectileDamage = 6.5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwProjectileSpeedMult = 1.15f;
+        [SerializeField] private float _throwProjectileSpeedMult = 0.62f;
 
         [Min(0f)]
         [SerializeField] private float _throwSpawnOffset = 0.5f;
@@ -356,8 +374,20 @@ namespace JunkyardBoss
         [Min(1f)]
         [SerializeField] private float _cabinTurnSpeed = 88f;
 
-        [Range(1f, 3f)]
-        [SerializeField] private float _cabinPhaseTwoMult = 1.35f;
+        [Min(1f)]
+        [SerializeField] private float _cabinTurnAcceleration = 260f;
+
+        [Min(1f)]
+        [SerializeField] private float _cabinTurnDeceleration = 360f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _cabinTurnSlowAngle = 28f;
+
+        [Range(0.05f, 1f)]
+        [SerializeField] private float _cabinTurnMinSpeedFactor = 0.18f;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _cabinPhaseTwoMult = 0.82f;
 
         [Header("Arm")]
         [SerializeField] private Vector3 _armDefaultBoomEuler = new Vector3(0f, 0f, -35f);
@@ -423,6 +453,18 @@ namespace JunkyardBoss
         [Min(1f)]
         [SerializeField] private float _armBucketSpeed = 76f;
 
+        [Min(1f)]
+        [SerializeField] private float _armTurnAcceleration = 220f;
+
+        [Min(1f)]
+        [SerializeField] private float _armTurnDeceleration = 320f;
+
+        [Range(1f, 90f)]
+        [SerializeField] private float _armTurnSlowAngle = 18f;
+
+        [Range(0.05f, 1f)]
+        [SerializeField] private float _armTurnMinSpeedFactor = 0.16f;
+
         public float MaxHealth => _maxHealth;
         public float PhaseTwoRatio => _phaseTwoRatio;
         public float PhaseChangeDuration => _phaseChangeDuration;
@@ -434,6 +476,10 @@ namespace JunkyardBoss
         public BossExcavatorState StartState => _startState;
         public float BaseMoveSpeed => _baseMoveSpeed;
         public float BaseTurnSpeed => _baseTurnSpeed;
+        public float BaseTurnAcceleration => _baseTurnAcceleration;
+        public float BaseTurnDeceleration => _baseTurnDeceleration;
+        public float BaseTurnSlowAngle => _baseTurnSlowAngle;
+        public float BaseTurnMinSpeedFactor => _baseTurnMinSpeedFactor;
         public float MoveStartAngle => _moveStartAngle;
         public float MoveStopAngle => Mathf.Max(_moveStopAngle, _moveStartAngle);
         public float StopDistance => _stopDistance;
@@ -521,7 +567,9 @@ namespace JunkyardBoss
         public float SweepPushLift => _sweepPushLift;
         public float SweepSpinSpeed => _sweepSpinSpeed;
         public int ThrowProjectileCount => Mathf.Max(_throwProjectileCount, 1);
+        public int PhaseTwoThrowProjectileCount => Mathf.Max(_phaseTwoThrowProjectileCount, 1);
         public float ThrowProjectileSpreadAngle => _throwProjectileSpreadAngle;
+        public float PhaseTwoThrowProjectileSpreadAngle => _phaseTwoThrowProjectileSpreadAngle;
         public float ThrowProjectileDamage => _throwProjectileDamage;
         public float ThrowProjectileSpeedMult => _throwProjectileSpeedMult;
         public float ThrowSpawnOffset => _throwSpawnOffset;
@@ -538,6 +586,10 @@ namespace JunkyardBoss
         public float MoveRepositionCommitTime => _moveRepositionCommitTime;
         public float MoveChaseCommitTime => _moveChaseCommitTime;
         public float CabinTurnSpeed => _cabinTurnSpeed;
+        public float CabinTurnAcceleration => _cabinTurnAcceleration;
+        public float CabinTurnDeceleration => _cabinTurnDeceleration;
+        public float CabinTurnSlowAngle => _cabinTurnSlowAngle;
+        public float CabinTurnMinSpeedFactor => _cabinTurnMinSpeedFactor;
         public float CabinPhaseTwoMult => _cabinPhaseTwoMult;
         public Vector3 ArmNeutralBoomEuler => _armDefaultBoomEuler;
         public Vector3 ArmNeutralStickEuler => _armDefaultStickEuler;
@@ -572,6 +624,10 @@ namespace JunkyardBoss
         public float ArmBoomSpeed => _armBoomSpeed;
         public float ArmStickSpeed => _armStickSpeed;
         public float ArmBucketSpeed => _armBucketSpeed;
+        public float ArmTurnAcceleration => _armTurnAcceleration;
+        public float ArmTurnDeceleration => _armTurnDeceleration;
+        public float ArmTurnSlowAngle => _armTurnSlowAngle;
+        public float ArmTurnMinSpeedFactor => _armTurnMinSpeedFactor;
         public float MinMoveDistance => _mediumDistance - _distanceTolerance;
         public float MaxMoveDistance => _mediumDistance + _distanceTolerance;
     }
