@@ -264,9 +264,11 @@ namespace JunkyardBoss
             }
 
             Transform projectileTransform = projectile.transform;
-            float rollAngle = UnityEngine.Random.Range(0f, 360f);
-            Quaternion rollRotation = Quaternion.AngleAxis(rollAngle, projectileTransform.forward);
-            projectileTransform.rotation = rollRotation * projectileTransform.rotation;
+            Vector3 randomEuler = new Vector3(
+                UnityEngine.Random.Range(0f, 360f),
+                UnityEngine.Random.Range(0f, 360f),
+                UnityEngine.Random.Range(0f, 360f));
+            projectileTransform.rotation = Quaternion.Euler(randomEuler);
         }
 
         private Vector3 ResolveLaunchForward()

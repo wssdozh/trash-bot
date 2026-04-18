@@ -329,7 +329,7 @@ namespace JunkyardBoss
         [SerializeField] private float _throwProjectileDamage = 6.5f;
 
         [Min(0.1f)]
-        [SerializeField] private float _throwProjectileSpeedMult = 0.62f;
+        [SerializeField] private float _throwProjectileSpeedMult = 0.58f;
 
         [Min(0f)]
         [SerializeField] private float _throwSpawnOffset = 0.5f;

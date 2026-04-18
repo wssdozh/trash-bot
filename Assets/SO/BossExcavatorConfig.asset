@@ -116,7 +116,7 @@ MonoBehaviour:
   _throwProjectileCount: 3
   _throwProjectileSpreadAngle: 18
   _throwProjectileDamage: 6.5
-  _throwProjectileSpeedMult: 1.15
+  _throwProjectileSpeedMult: 0.58
   _throwSpawnOffset: 0.5
   _throwHitMask:
     serializedVersion: 2
