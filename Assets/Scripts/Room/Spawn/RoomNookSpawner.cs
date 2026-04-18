@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JunkyardBoss;
 using Unity.AI.Navigation;
 using UnityEngine;
 
@@ -145,6 +146,7 @@ public sealed class RoomNookSpawner : MonoBehaviour
             instance.transform.localRotation = Quaternion.identity;
             ApplyOriginalWorldScale(instance.transform);
             AddNavModifier(instance);
+            ApplySpecialRuntime(instance);
 
             MarkFootprintOccupied(chosenCell, config.FootprintRadiusInCells, roomSizeInBlocks, floorOccupancy);
             placed.Add(new PlacedNook(configIndex, chosenCell));
@@ -195,6 +197,23 @@ public sealed class RoomNookSpawner : MonoBehaviour
         navMeshModifier.area = NotWalkableArea;
         navMeshModifier.ignoreFromBuild = false;
         navMeshModifier.applyToChildren = true;
+    }
+
+    private void ApplySpecialRuntime(GameObject targetObject)
+    {
+        if (targetObject == null)
+        {
+            return;
+        }
+
+        BossRoomEnemySpawnPoint bossRoomEnemySpawnPoint = targetObject.GetComponent<BossRoomEnemySpawnPoint>();
+
+        if (bossRoomEnemySpawnPoint == null)
+        {
+            return;
+        }
+
+        bossRoomEnemySpawnPoint.SetBlockSize(_blockSize);
     }
 
     private List<int> BuildSpawnOrder(RoomTypeProfile roomTypeProfile, System.Random random)

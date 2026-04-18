@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace JunkyardBoss
@@ -10,6 +11,9 @@ namespace JunkyardBoss
 
         [Range(0.05f, 0.95f)]
         [SerializeField] private float _phaseTwoRatio = 0.5f;
+
+        [Range(0.01f, 0.9f)]
+        [SerializeField] private float _phaseThreeRatio = 0.22f;
 
         [Header("Phase Two")]
         [Min(0.05f)]
@@ -29,6 +33,31 @@ namespace JunkyardBoss
 
         [Range(1f, 3f)]
         [SerializeField] private float _phaseTwoComboSweepSpinSpeedMult = 2.15f;
+
+        [Range(0.2f, 10f)]
+        [SerializeField] private float _phaseThreeDecisionSpeedMult = 7f;
+
+        [Range(1f, 5f)]
+        [SerializeField] private float _phaseThreeAttackSpeedMult = 1.75f;
+
+        [Range(1f, 5f)]
+        [SerializeField] private float _phaseThreeDamageMult = 1.85f;
+
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _phaseThreeChargeSpeedMult = 1.42f;
+
+        [Range(0.1f, 1f)]
+        [SerializeField] private float _phaseThreeCooldownMult = 0.35f;
+
+        [Range(0.1f, 1f)]
+        [SerializeField] private float _phaseThreeStallRecoverTimeMult = 0.25f;
+
+        [Header("Phase Three Summons")]
+        [SerializeField] private int _phaseThreeInitialWaveSize = 3;
+
+        [SerializeField] private int _phaseThreeWaveSizeStep = 1;
+
+        [SerializeField] private List<EnemySpawnConfig> _phaseThreeEnemyPrefabs = new List<EnemySpawnConfig>();
 
         [SerializeField] private BossExcavatorState _startState = BossExcavatorState.Idle;
 
@@ -389,6 +418,9 @@ namespace JunkyardBoss
         [Range(0.1f, 3f)]
         [SerializeField] private float _cabinPhaseTwoMult = 0.82f;
 
+        [Range(0.1f, 3f)]
+        [SerializeField] private float _cabinPhaseThreeMult = 1.8f;
+
         [Header("Arm")]
         [SerializeField] private Vector3 _armDefaultBoomEuler = new Vector3(0f, 0f, -35f);
 
@@ -473,12 +505,22 @@ namespace JunkyardBoss
 
         public float MaxHealth => _maxHealth;
         public float PhaseTwoRatio => _phaseTwoRatio;
+        public float PhaseThreeRatio => Mathf.Clamp(_phaseThreeRatio, 0.01f, Mathf.Max(0.05f, _phaseTwoRatio - 0.05f));
         public float PhaseChangeDuration => _phaseChangeDuration;
+        public float PhaseThreeDecisionSpeedMult => Mathf.Max(_phaseThreeDecisionSpeedMult, 1f);
         public float PhaseTwoAttackSpeedMult => _phaseTwoAttackSpeedMult;
         public float PhaseTwoDamageMult => _phaseTwoDamageMult;
         public float PhaseTwoChargeSpeedMult => _phaseTwoChargeSpeedMult;
         public float PhaseTwoSweepSpinSpeedMult => _phaseTwoSweepSpinSpeedMult;
         public float PhaseTwoComboSweepSpinSpeedMult => _phaseTwoComboSweepSpinSpeedMult;
+        public float PhaseThreeAttackSpeedMult => _phaseThreeAttackSpeedMult;
+        public float PhaseThreeDamageMult => _phaseThreeDamageMult;
+        public float PhaseThreeChargeSpeedMult => _phaseThreeChargeSpeedMult;
+        public float PhaseThreeCooldownMult => _phaseThreeCooldownMult;
+        public float PhaseThreeStallRecoverTimeMult => _phaseThreeStallRecoverTimeMult;
+        public int PhaseThreeInitialWaveSize => Mathf.Max(_phaseThreeInitialWaveSize, 1);
+        public int PhaseThreeWaveSizeStep => Mathf.Max(_phaseThreeWaveSizeStep, 1);
+        public IReadOnlyList<EnemySpawnConfig> PhaseThreeEnemyPrefabs => _phaseThreeEnemyPrefabs;
         public BossExcavatorState StartState => _startState;
         public float BaseMoveSpeed => _baseMoveSpeed;
         public float BaseTurnSpeed => _baseTurnSpeed;
@@ -597,6 +639,7 @@ namespace JunkyardBoss
         public float CabinTurnSlowAngle => _cabinTurnSlowAngle;
         public float CabinTurnMinSpeedFactor => _cabinTurnMinSpeedFactor;
         public float CabinPhaseTwoMult => _cabinPhaseTwoMult;
+        public float CabinPhaseThreeMult => _cabinPhaseThreeMult;
         public Vector3 ArmNeutralBoomEuler => _armDefaultBoomEuler;
         public Vector3 ArmNeutralStickEuler => _armDefaultStickEuler;
         public Vector3 ArmNeutralBucketEuler => _armDefaultBucketEuler;

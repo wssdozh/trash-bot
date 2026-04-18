@@ -273,7 +273,7 @@ namespace JunkyardBoss
                 score += AttackGuaranteeScoreBonus;
             }
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 if (attack == BossExcavatorAttack.Charge)
                 {
@@ -757,7 +757,7 @@ namespace JunkyardBoss
 
         private bool CanUsePhaseTwoRangedBucket(float targetDistance, float baseAngle, float cabinAngle)
         {
-            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase == false)
             {
                 return false;
             }
@@ -862,7 +862,7 @@ namespace JunkyardBoss
         {
             float chargeStartAngle = _boss.Config.ChargeBaseAngle;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 chargeStartAngle = Mathf.Max(chargeStartAngle, _boss.Config.RepositionBaseAngle);
             }
@@ -1136,7 +1136,7 @@ namespace JunkyardBoss
         {
             if (_postAttackTimer > 0f)
             {
-                if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+                if (_boss.IsAdvancedPhase == false)
                 {
                     return false;
                 }
@@ -1151,7 +1151,7 @@ namespace JunkyardBoss
             float minDistance = _boss.Config.ScrapTrailMinDistance;
             float maxDistance = _boss.Config.ScrapTrailMaxDistance;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 minDistance = Mathf.Max(_boss.Move.MinMoveDistance, minDistance - 1.35f);
                 maxDistance += 3.4f;
@@ -1170,7 +1170,7 @@ namespace JunkyardBoss
             float baseAngle = GetTargetAngle(_boss.Base);
             float requiredBaseAngle = _boss.Config.ScrapTrailBaseAngle;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 requiredBaseAngle += 34f;
             }
@@ -1182,7 +1182,7 @@ namespace JunkyardBoss
 
             float requiredMoveSpeed = _boss.Config.ScrapTrailMinMoveSpeed;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 requiredMoveSpeed *= 0.3f;
             }
@@ -1197,7 +1197,7 @@ namespace JunkyardBoss
 
         private bool ShouldReserveWindowForScrapTrail(float targetDistance)
         {
-            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase == false)
             {
                 return false;
             }
@@ -1229,7 +1229,7 @@ namespace JunkyardBoss
 
         private void TryPrimeScrapTrailPressure()
         {
-            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase == false)
             {
                 return;
             }
@@ -1308,6 +1308,11 @@ namespace JunkyardBoss
 
         private float GetCooldownValue(float baseCooldown)
         {
+            if (_boss.Phase == BossExcavatorPhase.PhaseThree)
+            {
+                return baseCooldown * _boss.Config.PhaseThreeCooldownMult;
+            }
+
             if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
             {
                 return baseCooldown * _boss.Config.PhaseTwoCooldownMult;
@@ -1332,7 +1337,12 @@ namespace JunkyardBoss
         {
             float postAttackDelay = _boss.Config.AttackRecoveryTime;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.Phase == BossExcavatorPhase.PhaseThree)
+            {
+                postAttackDelay /= _boss.Config.PhaseThreeAttackSpeedMult;
+            }
+
+            else if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
             {
                 postAttackDelay /= _boss.Config.PhaseTwoAttackSpeedMult;
             }
@@ -1347,7 +1357,7 @@ namespace JunkyardBoss
 
         private bool ShouldUseChargeSweepCombo()
         {
-            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase == false)
             {
                 return false;
             }

@@ -241,7 +241,7 @@ namespace JunkyardBoss
         {
             float activeDuration = _config.ScrapTrailDuration;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 activeDuration *= 1.55f;
             }
@@ -253,7 +253,7 @@ namespace JunkyardBoss
         {
             float spawnSpacing = _config.ScrapTrailSpawnSpacing;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 spawnSpacing *= 0.68f;
             }
@@ -268,12 +268,7 @@ namespace JunkyardBoss
 
         private float GetPhaseAttackSpeedMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseAttackSpeedMult();
         }
     }
 }

@@ -811,22 +811,12 @@ namespace JunkyardBoss
 
         private float GetPhaseAttackSpeedMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseAttackSpeedMult();
         }
 
         private float GetPhaseDamageMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoDamageMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseDamageMult();
         }
 
         private float GetAttackPoseSpeedMult()
@@ -836,19 +826,14 @@ namespace JunkyardBoss
 
         private float GetChargeSpeed()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.ChargeSpeed * _config.PhaseTwoChargeSpeedMult;
-            }
-
-            return _config.ChargeSpeed;
+            return _config.ChargeSpeed * _boss.GetPhaseChargeSpeedMult();
         }
 
         private float GetAlignTime()
         {
             float alignTime = _config.ChargeAlignTime / GetPhaseAttackSpeedMult();
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 alignTime *= PhaseTwoAlignTimeMult;
             }
@@ -860,7 +845,7 @@ namespace JunkyardBoss
         {
             float telegraphTime = _config.ChargeTelegraphTime / GetPhaseAttackSpeedMult();
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
                 telegraphTime *= PhaseTwoTelegraphTimeMult;
             }
@@ -877,10 +862,10 @@ namespace JunkyardBoss
         {
             float spinSpeed = _config.SweepSpinSpeed;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
-                spinSpeed *= _config.PhaseTwoSweepSpinSpeedMult;
-                spinSpeed *= _config.PhaseTwoComboSweepSpinSpeedMult;
+                spinSpeed *= _boss.GetPhaseSweepSpinSpeedMult();
+                spinSpeed *= _boss.GetPhaseComboSweepSpinSpeedMult();
                 spinSpeed /= PhaseTwoCabinSpinSlowdown;
             }
 

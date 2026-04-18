@@ -7,7 +7,6 @@ namespace JunkyardBoss
     {
         private const float MinDirectionSqr = 0.0001f;
         private const float AttackQueueCommitTime = 0.18f;
-        private const float PhaseTwoDecisionSpeedMult = 4f;
         private const float PreviousAttackRepeatPenalty = 1.4f;
         private const int AttackGuaranteeThreshold = 3;
         private const float AttackGuaranteeScoreBonus = 8f;
@@ -16,7 +15,6 @@ namespace JunkyardBoss
         private const float StallMoveDistanceThreshold = 0.06f;
         private const float StallTargetDistanceThreshold = 0.1f;
         private const float StallRecoverTime = 0.55f;
-        private const float PhaseTwoStallRecoverTimeMult = 0.5f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorBucketAttack _bucketAttack;
@@ -200,9 +198,14 @@ namespace JunkyardBoss
 
         private float GetDecisionSpeedMult()
         {
+            if (_boss.Phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _boss.Config.PhaseThreeDecisionSpeedMult;
+            }
+
             if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
             {
-                return PhaseTwoDecisionSpeedMult;
+                return 4f;
             }
 
             return 1f;
@@ -324,9 +327,14 @@ namespace JunkyardBoss
         {
             float stallRecoverTime = StallRecoverTime;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.Phase == BossExcavatorPhase.PhaseThree)
             {
-                stallRecoverTime *= PhaseTwoStallRecoverTimeMult;
+                stallRecoverTime *= _boss.Config.PhaseThreeStallRecoverTimeMult;
+            }
+
+            else if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                stallRecoverTime *= 0.5f;
             }
 
             if (_queuedAttack != BossExcavatorAttack.None)

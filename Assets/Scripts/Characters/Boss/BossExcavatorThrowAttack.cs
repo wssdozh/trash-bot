@@ -374,22 +374,12 @@ namespace JunkyardBoss
 
         private float GetPhaseAttackSpeedMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseAttackSpeedMult();
         }
 
         private float GetPhaseDamageMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoDamageMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseDamageMult();
         }
 
         private float GetAttackPoseSpeedMult()
@@ -440,12 +430,7 @@ namespace JunkyardBoss
 
         private int GetProjectileCount()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoThrowProjectileCount;
-            }
-
-            return _config.ThrowProjectileCount;
+            return _boss.GetPhaseThrowProjectileCount();
         }
 
         private float GetProjectileSpeedMult()
@@ -455,12 +440,7 @@ namespace JunkyardBoss
 
         private float GetProjectileSpreadAngle()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoThrowProjectileSpreadAngle;
-            }
-
-            return _config.ThrowProjectileSpreadAngle;
+            return _boss.GetPhaseThrowProjectileSpreadAngle();
         }
     }
 }

@@ -481,22 +481,12 @@ namespace JunkyardBoss
 
         private float GetPhaseAttackSpeedMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseAttackSpeedMult();
         }
 
         private float GetPhaseDamageMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoDamageMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseDamageMult();
         }
 
         private float GetAttackPoseSpeedMult()
@@ -508,9 +498,9 @@ namespace JunkyardBoss
         {
             float spinSpeed = _config.SweepSpinSpeed;
 
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase)
             {
-                spinSpeed *= _config.PhaseTwoSweepSpinSpeedMult;
+                spinSpeed *= _boss.GetPhaseSweepSpinSpeedMult();
             }
 
             return spinSpeed;

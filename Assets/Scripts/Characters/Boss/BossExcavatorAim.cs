@@ -127,14 +127,7 @@ namespace JunkyardBoss
 
         private float GetTurnSpeed()
         {
-            float turnSpeed = _config.CabinTurnSpeed;
-
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                turnSpeed *= _config.CabinPhaseTwoMult;
-            }
-
-            return turnSpeed;
+            return _config.CabinTurnSpeed * _boss.GetPhaseCabinTurnSpeedMult();
         }
 
         private void ValidateDependencies()

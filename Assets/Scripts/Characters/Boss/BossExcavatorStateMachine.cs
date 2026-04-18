@@ -110,11 +110,26 @@ namespace JunkyardBoss
                 return;
             }
 
-            _boss.ApplyPhase(BossExcavatorPhase.PhaseTwo);
+            _boss.ApplyPhase(GetNextPhase());
             _hasManualRequest = false;
             _requestedState = BossExcavatorState.Reposition;
             _boss.ApplyState(_requestedState);
             _phaseChangeCompleted = false;
+        }
+
+        private BossExcavatorPhase GetNextPhase()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseOne)
+            {
+                return BossExcavatorPhase.PhaseTwo;
+            }
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return BossExcavatorPhase.PhaseThree;
+            }
+
+            return BossExcavatorPhase.PhaseThree;
         }
 
         private void ApplyRequestedState()

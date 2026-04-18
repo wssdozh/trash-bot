@@ -19,6 +19,7 @@ namespace JunkyardBoss
         [SerializeField] private Health _health;
 
         private BossExcavatorBrain _brain;
+        private BossExcavatorPhaseThreeController _phaseThreeController;
         private BossExcavatorStateMachine _stateMachine;
         private BossExcavatorPhase _phase;
         private BossExcavatorState _state;
@@ -56,6 +57,7 @@ namespace JunkyardBoss
             }
 
             _brain = new BossExcavatorBrain(this);
+            _phaseThreeController = new BossExcavatorPhaseThreeController(this);
             _stateMachine = new BossExcavatorStateMachine(this);
             _move.Setup(_config, _base, _baseRigidbody, _target);
             _aim.Setup(this, _config, _cabin, _target);
@@ -92,6 +94,7 @@ namespace JunkyardBoss
         {
             _brain.Tick();
             _stateMachine.Tick();
+            _phaseThreeController.Tick();
         }
 
         private void LateUpdate()
@@ -125,6 +128,7 @@ namespace JunkyardBoss
             _arm.SetLocked(false);
             _arm.SetDefaultPoseImmediate();
             _brain.Reset();
+            _phaseThreeController.Reset();
         }
 
         public void RequestState(BossExcavatorState state)
@@ -264,12 +268,148 @@ namespace JunkyardBoss
 
         internal bool ShouldStartPhaseChange()
         {
-            if (_phase != BossExcavatorPhase.PhaseOne)
+            if (_phase == BossExcavatorPhase.PhaseOne)
             {
-                return false;
+                return GetHealthRatio() <= _config.PhaseTwoRatio;
             }
 
-            return GetHealthRatio() <= _config.PhaseTwoRatio;
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return GetHealthRatio() <= _config.PhaseThreeRatio;
+            }
+
+            return false;
+        }
+
+        public bool IsAdvancedPhase
+        {
+            get
+            {
+                return _phase != BossExcavatorPhase.PhaseOne;
+            }
+        }
+
+        public bool IsFinalPhase
+        {
+            get
+            {
+                return _phase == BossExcavatorPhase.PhaseThree;
+            }
+        }
+
+        public float GetPhaseAttackSpeedMult()
+        {
+            if (_phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _config.PhaseThreeAttackSpeedMult;
+            }
+
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoAttackSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        public float GetPhaseDamageMult()
+        {
+            if (_phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _config.PhaseThreeDamageMult;
+            }
+
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoDamageMult;
+            }
+
+            return 1f;
+        }
+
+        public float GetPhaseChargeSpeedMult()
+        {
+            if (_phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _config.PhaseThreeChargeSpeedMult;
+            }
+
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoChargeSpeedMult;
+            }
+
+            return 1f;
+        }
+
+        public float GetPhaseCooldownMult()
+        {
+            if (_phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _config.PhaseThreeCooldownMult;
+            }
+
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoCooldownMult;
+            }
+
+            return 1f;
+        }
+
+        public float GetPhaseCabinTurnSpeedMult()
+        {
+            if (_phase == BossExcavatorPhase.PhaseThree)
+            {
+                return _config.CabinPhaseThreeMult;
+            }
+
+            if (_phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.CabinPhaseTwoMult;
+            }
+
+            return 1f;
+        }
+
+        public float GetPhaseSweepSpinSpeedMult()
+        {
+            if (IsAdvancedPhase == false)
+            {
+                return 1f;
+            }
+
+            return _config.PhaseTwoSweepSpinSpeedMult;
+        }
+
+        public float GetPhaseComboSweepSpinSpeedMult()
+        {
+            if (IsAdvancedPhase == false)
+            {
+                return 1f;
+            }
+
+            return _config.PhaseTwoComboSweepSpinSpeedMult;
+        }
+
+        public int GetPhaseThrowProjectileCount()
+        {
+            if (IsAdvancedPhase)
+            {
+                return _config.PhaseTwoThrowProjectileCount;
+            }
+
+            return _config.ThrowProjectileCount;
+        }
+
+        public float GetPhaseThrowProjectileSpreadAngle()
+        {
+            if (IsAdvancedPhase)
+            {
+                return _config.PhaseTwoThrowProjectileSpreadAngle;
+            }
+
+            return _config.ThrowProjectileSpreadAngle;
         }
 
         internal void ApplyState(BossExcavatorState state)
@@ -726,44 +866,22 @@ namespace JunkyardBoss
 
         private float GetCurrentChargeSpeed()
         {
-            if (_phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.ChargeSpeed * _config.PhaseTwoChargeSpeedMult;
-            }
-
-            return _config.ChargeSpeed;
+            return _config.ChargeSpeed * GetPhaseChargeSpeedMult();
         }
 
         private float GetCurrentChargeAttackTime()
         {
-            float attackTime = _config.ChargeAttackTime;
-
-            if (_phase == BossExcavatorPhase.PhaseTwo)
-            {
-                attackTime /= _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return attackTime;
+            return _config.ChargeAttackTime / GetPhaseAttackSpeedMult();
         }
 
         private int GetCurrentThrowProjectileCount()
         {
-            if (_phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoThrowProjectileCount;
-            }
-
-            return _config.ThrowProjectileCount;
+            return GetPhaseThrowProjectileCount();
         }
 
         private float GetCurrentThrowProjectileSpreadAngle()
         {
-            if (_phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoThrowProjectileSpreadAngle;
-            }
-
-            return _config.ThrowProjectileSpreadAngle;
+            return GetPhaseThrowProjectileSpreadAngle();
         }
     }
 }

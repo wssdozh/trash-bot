@@ -36,27 +36,27 @@ MonoBehaviour:
     _spawnHeight: 1.75
     _guaranteed: 0
   _nookPrefabs:
-  - _prefab: {fileID: 4886392652990026178, guid: 5ea691f870f2399428249cd4b0746cc3, type: 3}
+  - _prefab: {fileID: 8124560023412456001, guid: 6c24808e93bd469cb6bd7d30cf914c06, type: 3}
     _weight: 1
     _guaranteed: 0
-    _countRange: {x: 3, y: 6}
+    _countRange: {x: 3, y: 5}
     _minimumDistanceFromCorridorInCells: 10
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1
-    _minimumDistanceToAnyNookInCells: 7
-    _minimumDistanceToSameTypeInCells: 7
+    _minimumDistanceToAnyNookInCells: 5
+    _minimumDistanceToSameTypeInCells: 5
     _sameTypeNeighborRadiusInCells: 15
     _maximumSameTypeWithinNeighborRadius: 1
     _scatterRadiusInCells: 0
-  - _prefab: {fileID: 4886392652990026178, guid: 609a9e08e3e44b4b95ed05958bc77680, type: 3}
+  - _prefab: {fileID: 8124560023412456001, guid: 6c24808e93bd469cb6bd7d30cf914c06, type: 3}
     _weight: 1
     _guaranteed: 1
     _countRange: {x: 1, y: 1}
     _minimumDistanceFromCorridorInCells: 10
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1
-    _minimumDistanceToAnyNookInCells: 7
-    _minimumDistanceToSameTypeInCells: 7
+    _minimumDistanceToAnyNookInCells: 5
+    _minimumDistanceToSameTypeInCells: 5
     _sameTypeNeighborRadiusInCells: 15
     _maximumSameTypeWithinNeighborRadius: 1
     _scatterRadiusInCells: 0

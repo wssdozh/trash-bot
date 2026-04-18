@@ -471,7 +471,7 @@ namespace JunkyardBoss
 
         private void TrySpawnPhaseTwoMegaTrench(Vector3 bucketPosition, Vector3 strikeForward)
         {
-            if (_boss.Phase != BossExcavatorPhase.PhaseTwo)
+            if (_boss.IsAdvancedPhase == false)
             {
                 return;
             }
@@ -737,22 +737,12 @@ namespace JunkyardBoss
 
         private float GetPhaseAttackSpeedMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoAttackSpeedMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseAttackSpeedMult();
         }
 
         private float GetPhaseDamageMult()
         {
-            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
-            {
-                return _config.PhaseTwoDamageMult;
-            }
-
-            return 1f;
+            return _boss.GetPhaseDamageMult();
         }
 
         private float GetBucketPrepareTime()
