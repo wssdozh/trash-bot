@@ -9,6 +9,9 @@ namespace JunkyardBoss
         private const float AttackQueueCommitTime = 0.18f;
         private const float PhaseTwoDecisionSpeedMult = 4f;
         private const float PreviousAttackRepeatPenalty = 1.4f;
+        private const int AttackGuaranteeThreshold = 3;
+        private const float AttackGuaranteeScoreBonus = 8f;
+        private const float AttackUsageScoreBonusStep = 0.65f;
         private const float StallSpeedThreshold = 0.12f;
         private const float StallMoveDistanceThreshold = 0.06f;
         private const float StallTargetDistanceThreshold = 0.1f;
@@ -38,6 +41,10 @@ namespace JunkyardBoss
         private BossExcavatorAttack _queuedAttack;
         private BossExcavatorAttack _lastAttack;
         private BossExcavatorAttack _previousAttack;
+        private int _attacksSinceBucketStrike;
+        private int _attacksSinceThrowScrap;
+        private int _attacksSinceCharge;
+        private int _attacksSinceSweep;
         private BossExcavatorState _moveState;
         private bool _isPhaseChangeActive;
         private bool _hasStallSample;
@@ -83,6 +90,10 @@ namespace JunkyardBoss
             _queuedAttack = BossExcavatorAttack.None;
             _lastAttack = BossExcavatorAttack.None;
             _previousAttack = BossExcavatorAttack.None;
+            _attacksSinceBucketStrike = 0;
+            _attacksSinceThrowScrap = 0;
+            _attacksSinceCharge = 0;
+            _attacksSinceSweep = 0;
             _moveState = BossExcavatorState.Chase;
             _isPhaseChangeActive = false;
             _hasStallSample = false;

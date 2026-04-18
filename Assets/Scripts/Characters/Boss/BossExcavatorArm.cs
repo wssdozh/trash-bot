@@ -13,6 +13,9 @@ namespace JunkyardBoss
         private Quaternion _boomTarget;
         private Quaternion _stickTarget;
         private Quaternion _bucketTarget;
+        private float _boomTurnSpeed;
+        private float _stickTurnSpeed;
+        private float _bucketTurnSpeed;
         private float _poseSpeedMult;
         private bool _isLocked;
         private BossExcavatorArmPose _currentPose;
@@ -55,6 +58,7 @@ namespace JunkyardBoss
             _poseSpeedMult = 1f;
             _isLocked = false;
             _currentPose = BossExcavatorArmPose.Custom;
+            ResetTurnSpeeds();
             CacheCurrentPose();
         }
 
@@ -64,23 +68,32 @@ namespace JunkyardBoss
 
             if (_isLocked)
             {
+                ResetTurnSpeeds();
+
                 return;
             }
 
             if (_boss.IsDead)
             {
+                ResetTurnSpeeds();
+
                 return;
             }
 
             float deltaTime = Time.deltaTime;
-            RotatePart(_boom, _boomTarget, _config.ArmBoomSpeed * _poseSpeedMult, deltaTime);
-            RotatePart(_stick, _stickTarget, _config.ArmStickSpeed * _poseSpeedMult, deltaTime);
-            RotatePart(_bucket, _bucketTarget, _config.ArmBucketSpeed * _poseSpeedMult, deltaTime);
+            RotatePart(_boom, _boomTarget, _config.ArmBoomSpeed * _poseSpeedMult, ref _boomTurnSpeed, deltaTime);
+            RotatePart(_stick, _stickTarget, _config.ArmStickSpeed * _poseSpeedMult, ref _stickTurnSpeed, deltaTime);
+            RotatePart(_bucket, _bucketTarget, _config.ArmBucketSpeed * _poseSpeedMult, ref _bucketTurnSpeed, deltaTime);
         }
 
         public void SetLocked(bool isLocked)
         {
             _isLocked = isLocked;
+
+            if (isLocked)
+            {
+                ResetTurnSpeeds();
+            }
         }
 
         public void SetDefaultPose()
@@ -207,9 +220,9 @@ namespace JunkyardBoss
             Quaternion boomTarget = BuildJointRotation(boomLocalEuler, _config.ArmBoomAxis, _config.ArmBoomAxisInvert);
             Quaternion stickTarget = BuildJointRotation(stickLocalEuler, _config.ArmStickAxis, _config.ArmStickAxisInvert);
             Quaternion bucketTarget = BuildJointRotation(bucketLocalEuler, _config.ArmBucketAxis, _config.ArmBucketAxisInvert);
-            float boomTime = GetJointTravelTime(_boom.localRotation, boomTarget, _config.ArmBoomSpeed * poseSpeedMult);
-            float stickTime = GetJointTravelTime(_stick.localRotation, stickTarget, _config.ArmStickSpeed * poseSpeedMult);
-            float bucketTime = GetJointTravelTime(_bucket.localRotation, bucketTarget, _config.ArmBucketSpeed * poseSpeedMult);
+            float boomTime = GetJointTravelTime(_boom.localRotation, boomTarget, _boomTurnSpeed, _config.ArmBoomSpeed * poseSpeedMult);
+            float stickTime = GetJointTravelTime(_stick.localRotation, stickTarget, _stickTurnSpeed, _config.ArmStickSpeed * poseSpeedMult);
+            float bucketTime = GetJointTravelTime(_bucket.localRotation, bucketTarget, _bucketTurnSpeed, _config.ArmBucketSpeed * poseSpeedMult);
 
             return Mathf.Max(boomTime, Mathf.Max(stickTime, bucketTime));
         }
@@ -278,6 +291,7 @@ namespace JunkyardBoss
             _boom.localRotation = _boomTarget;
             _stick.localRotation = _stickTarget;
             _bucket.localRotation = _bucketTarget;
+            ResetTurnSpeeds();
         }
 
         private Quaternion BuildJointRotation(Vector3 sourceEuler, BossExcavatorAxis axis, bool isInverted)
@@ -334,28 +348,47 @@ namespace JunkyardBoss
             return Vector3.forward;
         }
 
-        private void RotatePart(Transform part, Quaternion targetRotation, float turnSpeed, float deltaTime)
+        private void RotatePart(
+            Transform part,
+            Quaternion targetRotation,
+            float turnSpeed,
+            ref float currentTurnSpeed,
+            float deltaTime)
         {
             Quaternion currentRotation = part.localRotation;
-            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, turnSpeed * deltaTime);
+            Quaternion nextRotation = BossExcavatorMotionProfile.StepRotation(
+                currentRotation,
+                targetRotation,
+                ref currentTurnSpeed,
+                turnSpeed,
+                _config.ArmTurnAcceleration,
+                _config.ArmTurnDeceleration,
+                _config.ArmTurnSlowAngle,
+                _config.ArmTurnMinSpeedFactor,
+                deltaTime);
             part.localRotation = nextRotation;
         }
 
-        private float GetJointTravelTime(Quaternion currentRotation, Quaternion targetRotation, float turnSpeed)
+        private float GetJointTravelTime(
+            Quaternion currentRotation,
+            Quaternion targetRotation,
+            float currentTurnSpeed,
+            float turnSpeed)
         {
             if (turnSpeed <= 0f)
             {
                 throw new InvalidOperationException(nameof(turnSpeed));
             }
 
-            float angle = Quaternion.Angle(currentRotation, targetRotation);
-
-            if (angle <= 0f)
-            {
-                return 0f;
-            }
-
-            return angle / turnSpeed;
+            return BossExcavatorMotionProfile.EstimateTravelTime(
+                currentRotation,
+                targetRotation,
+                currentTurnSpeed,
+                turnSpeed,
+                _config.ArmTurnAcceleration,
+                _config.ArmTurnDeceleration,
+                _config.ArmTurnSlowAngle,
+                _config.ArmTurnMinSpeedFactor);
         }
 
         private void CacheCurrentPose()
@@ -363,6 +396,13 @@ namespace JunkyardBoss
             _boomTarget = _boom.localRotation;
             _stickTarget = _stick.localRotation;
             _bucketTarget = _bucket.localRotation;
+        }
+
+        private void ResetTurnSpeeds()
+        {
+            _boomTurnSpeed = 0f;
+            _stickTurnSpeed = 0f;
+            _bucketTurnSpeed = 0f;
         }
 
         private void ValidateDependencies()

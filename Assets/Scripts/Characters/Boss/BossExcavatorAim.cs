@@ -12,6 +12,7 @@ namespace JunkyardBoss
         private Transform _pivot;
         private Transform _target;
         private Vector3 _basePivotLocalPosition;
+        private float _currentTurnSpeed;
         private bool _isLocked;
 
         public bool IsLocked => _isLocked;
@@ -46,6 +47,7 @@ namespace JunkyardBoss
             }
 
             _basePivotLocalPosition = baseTransform.InverseTransformPoint(_pivot.position);
+            _currentTurnSpeed = 0f;
             _isLocked = false;
         }
 
@@ -62,6 +64,11 @@ namespace JunkyardBoss
         public void SetLocked(bool isLocked)
         {
             _isLocked = isLocked;
+
+            if (isLocked)
+            {
+                _currentTurnSpeed = 0f;
+            }
         }
 
         public void Tick()
@@ -71,16 +78,22 @@ namespace JunkyardBoss
 
             if (_isLocked)
             {
+                _currentTurnSpeed = 0f;
+
                 return;
             }
 
             if (_boss.IsDead)
             {
+                _currentTurnSpeed = 0f;
+
                 return;
             }
 
             if (_target == null)
             {
+                _currentTurnSpeed = 0f;
+
                 return;
             }
 
@@ -91,13 +104,23 @@ namespace JunkyardBoss
 
             if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
+                _currentTurnSpeed = 0f;
+
                 return;
             }
 
             Quaternion currentRotation = _pivot.rotation;
             Quaternion targetRotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
-            float maxTurnStep = GetTurnSpeed() * Time.deltaTime;
-            Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, maxTurnStep);
+            Quaternion nextRotation = BossExcavatorMotionProfile.StepRotation(
+                currentRotation,
+                targetRotation,
+                ref _currentTurnSpeed,
+                GetTurnSpeed(),
+                _config.CabinTurnAcceleration,
+                _config.CabinTurnDeceleration,
+                _config.CabinTurnSlowAngle,
+                _config.CabinTurnMinSpeedFactor,
+                Time.deltaTime);
 
             _pivot.rotation = nextRotation;
         }

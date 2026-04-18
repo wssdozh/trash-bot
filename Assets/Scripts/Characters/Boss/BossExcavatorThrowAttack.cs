@@ -161,21 +161,21 @@ namespace JunkyardBoss
             Transform bucket = _boss.Bucket;
             Vector3 launchForward = ResolveLaunchForward();
             Vector3 spawnPosition = ResolveSpawnPosition(bucket.position, launchForward);
-            int projectileCount = _config.ThrowProjectileCount;
+            int projectileCount = GetProjectileCount();
             int projectileIndex = 0;
 
             while (projectileIndex < projectileCount)
             {
                 float angleOffset = GetProjectileAngleOffset(projectileIndex, projectileCount);
                 Vector3 projectileDirection = RotateDirection(launchForward, angleOffset);
-
-                _scrapCubeSpawner.Spawn(
+                BossScrapCubeProjectile projectile = _scrapCubeSpawner.Spawn(
                     spawnPosition,
                     projectileDirection,
                     _config.ThrowProjectileDamage * GetPhaseDamageMult(),
-                    _config.ThrowProjectileSpeedMult,
+                    GetProjectileSpeedMult(),
                     _config.ThrowHitMask,
                     _boss.transform);
+                ApplyRandomProjectileRotation(projectile);
 
                 projectileIndex += 1;
             }
@@ -201,11 +201,24 @@ namespace JunkyardBoss
                 return 0f;
             }
 
-            float spreadAngle = _config.ThrowProjectileSpreadAngle;
+            float spreadAngle = GetProjectileSpreadAngle();
             float step = spreadAngle / (projectileCount - 1);
             float minAngle = spreadAngle * -0.5f;
 
             return minAngle + step * projectileIndex;
+        }
+
+        private void ApplyRandomProjectileRotation(BossScrapCubeProjectile projectile)
+        {
+            if (projectile == null)
+            {
+                throw new InvalidOperationException(nameof(projectile));
+            }
+
+            Transform projectileTransform = projectile.transform;
+            float rollAngle = UnityEngine.Random.Range(0f, 360f);
+            Quaternion rollRotation = Quaternion.AngleAxis(rollAngle, projectileTransform.forward);
+            projectileTransform.rotation = rollRotation * projectileTransform.rotation;
         }
 
         private Vector3 ResolveLaunchForward()
@@ -347,6 +360,31 @@ namespace JunkyardBoss
         private float GetRecoverTime()
         {
             return _config.AttackRecoveryTime / GetPhaseAttackSpeedMult();
+        }
+
+        private int GetProjectileCount()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoThrowProjectileCount;
+            }
+
+            return _config.ThrowProjectileCount;
+        }
+
+        private float GetProjectileSpeedMult()
+        {
+            return _config.ThrowProjectileSpeedMult;
+        }
+
+        private float GetProjectileSpreadAngle()
+        {
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return _config.PhaseTwoThrowProjectileSpreadAngle;
+            }
+
+            return _config.ThrowProjectileSpreadAngle;
         }
     }
 }

@@ -11,6 +11,16 @@ namespace JunkyardBoss
 
             UpdateQueuedAttack(targetDistance);
 
+            BossExcavatorAttack guaranteedAttack = SelectGuaranteedExecutableAttack(targetDistance, baseAngle, cabinAngle);
+
+            if (guaranteedAttack != BossExcavatorAttack.None)
+            {
+                SetQueuedAttack(guaranteedAttack);
+                _pendingAttack = guaranteedAttack;
+
+                return _pendingAttack;
+            }
+
             if (CanExecuteAttack(_queuedAttack, targetDistance, baseAngle, cabinAngle))
             {
                 _pendingAttack = _queuedAttack;
@@ -120,6 +130,13 @@ namespace JunkyardBoss
 
         private BossExcavatorAttack SelectQueuedAttack(float targetDistance)
         {
+            BossExcavatorAttack guaranteedAttack = SelectGuaranteedQueuedAttack(targetDistance);
+
+            if (guaranteedAttack != BossExcavatorAttack.None)
+            {
+                return guaranteedAttack;
+            }
+
             BossExcavatorAttack preferredAttack = GetPreferredRhythmAttack(targetDistance);
             BossExcavatorAttack secondaryAttack = GetSecondaryRhythmAttack(preferredAttack, targetDistance);
             BossExcavatorAttack queuedAttack = SelectRhythmAttackCandidate(preferredAttack, secondaryAttack, targetDistance, false);
@@ -242,17 +259,25 @@ namespace JunkyardBoss
         {
             float score = GetAttackRangeScore(attack, targetDistance);
             bool isClosePriorityDistance = IsClosePriorityDistance(targetDistance);
+            int attacksSinceUsed = GetAttacksSinceUsed(attack);
 
             if (attack == _previousAttack)
             {
                 score -= PreviousAttackRepeatPenalty;
             }
 
+            score += attacksSinceUsed * AttackUsageScoreBonusStep;
+
+            if (IsAttackGuaranteed(attack))
+            {
+                score += AttackGuaranteeScoreBonus;
+            }
+
             if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
             {
                 if (attack == BossExcavatorAttack.Charge)
                 {
-                    score += 0.45f;
+                    score -= 0.6f;
                 }
 
                 if (attack == BossExcavatorAttack.Sweep)
@@ -319,6 +344,92 @@ namespace JunkyardBoss
             }
 
             return score;
+        }
+
+        private BossExcavatorAttack SelectGuaranteedExecutableAttack(float targetDistance, float baseAngle, float cabinAngle)
+        {
+            BossExcavatorAttack bestAttack = BossExcavatorAttack.None;
+            float bestScore = float.MinValue;
+            BossExcavatorAttack candidate = BossExcavatorAttack.BucketStrike;
+
+            while (candidate <= BossExcavatorAttack.Sweep)
+            {
+                if (IsAttackGuaranteed(candidate))
+                {
+                    if (CanExecuteAttack(candidate, targetDistance, baseAngle, cabinAngle))
+                    {
+                        float candidateScore = GetAttackQueueScore(candidate, targetDistance);
+
+                        if (candidateScore > bestScore)
+                        {
+                            bestScore = candidateScore;
+                            bestAttack = candidate;
+                        }
+                    }
+                }
+
+                candidate = (BossExcavatorAttack)((int)candidate + 1);
+            }
+
+            return bestAttack;
+        }
+
+        private BossExcavatorAttack SelectGuaranteedQueuedAttack(float targetDistance)
+        {
+            BossExcavatorAttack bestAttack = BossExcavatorAttack.None;
+            float bestScore = float.MinValue;
+            BossExcavatorAttack candidate = BossExcavatorAttack.BucketStrike;
+
+            while (candidate <= BossExcavatorAttack.Sweep)
+            {
+                if (IsAttackGuaranteed(candidate))
+                {
+                    if (CanUseAttackForQueue(candidate, false))
+                    {
+                        float candidateScore = GetAttackQueueScore(candidate, targetDistance);
+
+                        if (candidateScore > bestScore)
+                        {
+                            bestScore = candidateScore;
+                            bestAttack = candidate;
+                        }
+                    }
+                }
+
+                candidate = (BossExcavatorAttack)((int)candidate + 1);
+            }
+
+            return bestAttack;
+        }
+
+        private bool IsAttackGuaranteed(BossExcavatorAttack attack)
+        {
+            return GetAttacksSinceUsed(attack) >= AttackGuaranteeThreshold;
+        }
+
+        private int GetAttacksSinceUsed(BossExcavatorAttack attack)
+        {
+            if (attack == BossExcavatorAttack.BucketStrike)
+            {
+                return _attacksSinceBucketStrike;
+            }
+
+            if (attack == BossExcavatorAttack.ThrowScrap)
+            {
+                return _attacksSinceThrowScrap;
+            }
+
+            if (attack == BossExcavatorAttack.Charge)
+            {
+                return _attacksSinceCharge;
+            }
+
+            if (attack == BossExcavatorAttack.Sweep)
+            {
+                return _attacksSinceSweep;
+            }
+
+            return 0;
         }
 
         private BossExcavatorAttack SelectOpportunisticAttack(float targetDistance, float baseAngle, float cabinAngle)
@@ -734,12 +845,17 @@ namespace JunkyardBoss
                 return false;
             }
 
-            if (baseAngle > GetChargeStartAngle())
+            if (GetChargeApproachAngle(baseAngle) > GetChargeStartAngle())
             {
                 return false;
             }
 
             return true;
+        }
+
+        private float GetChargeApproachAngle(float baseAngle)
+        {
+            return Mathf.Min(baseAngle, 180f - baseAngle);
         }
 
         private float GetChargeStartAngle()
@@ -942,7 +1058,7 @@ namespace JunkyardBoss
 
             if (_currentAttack == BossExcavatorAttack.Charge)
             {
-                _chargeCooldownTimer = GetCooldownValue(_boss.Config.ChargeAttackCooldown);
+                _chargeCooldownTimer = GetChargeCooldownValue();
                 _postAttackTimer = 0f;
                 _forcedChaseTimer = GetClosePressureTime();
                 TryPrimeScrapTrailPressure();
@@ -1130,6 +1246,56 @@ namespace JunkyardBoss
 
             _previousAttack = _lastAttack;
             _lastAttack = attack;
+            UpdateAttackUsageRuntime(attack);
+        }
+
+        private void UpdateAttackUsageRuntime(BossExcavatorAttack attack)
+        {
+            IncrementAttackUsageCounter(BossExcavatorAttack.BucketStrike, attack);
+            IncrementAttackUsageCounter(BossExcavatorAttack.ThrowScrap, attack);
+            IncrementAttackUsageCounter(BossExcavatorAttack.Charge, attack);
+            IncrementAttackUsageCounter(BossExcavatorAttack.Sweep, attack);
+        }
+
+        private void IncrementAttackUsageCounter(BossExcavatorAttack candidate, BossExcavatorAttack usedAttack)
+        {
+            int nextValue = GetAttacksSinceUsed(candidate) + 1;
+
+            if (candidate == usedAttack)
+            {
+                nextValue = 0;
+            }
+
+            SetAttacksSinceUsed(candidate, nextValue);
+        }
+
+        private void SetAttacksSinceUsed(BossExcavatorAttack attack, int value)
+        {
+            if (attack == BossExcavatorAttack.BucketStrike)
+            {
+                _attacksSinceBucketStrike = value;
+
+                return;
+            }
+
+            if (attack == BossExcavatorAttack.ThrowScrap)
+            {
+                _attacksSinceThrowScrap = value;
+
+                return;
+            }
+
+            if (attack == BossExcavatorAttack.Charge)
+            {
+                _attacksSinceCharge = value;
+
+                return;
+            }
+
+            if (attack == BossExcavatorAttack.Sweep)
+            {
+                _attacksSinceSweep = value;
+            }
         }
 
         private void ApplyCombatDefaults()
@@ -1148,6 +1314,18 @@ namespace JunkyardBoss
             }
 
             return baseCooldown;
+        }
+
+        private float GetChargeCooldownValue()
+        {
+            float chargeCooldown = _boss.Config.ChargeAttackCooldown;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                return chargeCooldown;
+            }
+
+            return GetCooldownValue(chargeCooldown);
         }
 
         private float GetShortPostAttackDelay()
