@@ -119,6 +119,7 @@ namespace JunkyardBoss
             ApplyState(_config.StartState);
             _move.ResetRuntime();
             _move.SetChargeAlign(false);
+            _move.SetAttackIntent(BossExcavatorAttack.None);
             _aim.SetLocked(false);
             _arm.SetLocked(false);
             _arm.SetDefaultPoseImmediate();
@@ -162,6 +163,11 @@ namespace JunkyardBoss
         public void SetChargeAlign(bool isChargeAlign)
         {
             _move.SetChargeAlign(isChargeAlign);
+        }
+
+        public void SetMoveAttackIntent(BossExcavatorAttack attackIntent)
+        {
+            _move.SetAttackIntent(attackIntent);
         }
 
         public void SetAimLocked(bool isLocked)
@@ -321,7 +327,6 @@ namespace JunkyardBoss
 
             if (_state == BossExcavatorState.Reposition)
             {
-                _move.SetChargeAlign(false);
                 _move.FixedTick();
 
                 return;

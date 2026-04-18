@@ -66,6 +66,7 @@ MonoBehaviour:
   _sweepAttackCooldown: 2.05
   _throwAttackCooldown: 2.45
   _chargeAttackCooldown: 3.8
+  _scrapTrailCooldown: 4.6
   _bucketPrepareTime: 0.48
   _bucketStrikeTime: 0.32
   _sweepPrepareTime: 0.24
@@ -78,6 +79,20 @@ MonoBehaviour:
   _chargeAttackTime: 1.15
   _chargeRecoveryTime: 0.7
   _attackPoseSpeedMult: 1.45
+  _scrapTrailMinDistance: 3.9
+  _scrapTrailMaxDistance: 8.8
+  _scrapTrailBaseAngle: 78
+  _scrapTrailDuration: 1.85
+  _scrapTrailMinMoveSpeed: 0.65
+  _scrapTrailSpawnSpacing: 0.95
+  _scrapTrailSpawnBackOffset: 0.8
+  _scrapTrailGroundProbeHeight: 2.4
+  _scrapTrailGroundProbeDistance: 4.2
+  _scrapTrailBlockLifetime: 10
+  _scrapTrailBlockSize: {x: 1.25, y: 1.2, z: 1.25}
+  _scrapTrailGroundMask:
+    serializedVersion: 2
+    m_Bits: 393
   _bucketHitDamage: 24
   _bucketHitRadius: 2.05
   _bucketHitAngle: 95
@@ -137,6 +152,9 @@ MonoBehaviour:
   _armThrowScrapBoomEuler: {x: 0, y: 0, z: -15}
   _armThrowScrapStickEuler: {x: 0, y: 0, z: -25}
   _armThrowScrapBucketEuler: {x: 0, y: 0, z: 55}
+  _armTrailScrapeBoomEuler: {x: 0, y: 0, z: 24}
+  _armTrailScrapeStickEuler: {x: 0, y: 0, z: 52}
+  _armTrailScrapeBucketEuler: {x: 0, y: 0, z: -78}
   _armBoomAxis: 0
   _armStickAxis: 0
   _armBucketAxis: 0

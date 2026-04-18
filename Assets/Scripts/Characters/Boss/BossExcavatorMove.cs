@@ -41,6 +41,7 @@ namespace JunkyardBoss
         private Transform _base;
         private Rigidbody _baseRigidbody;
         private Transform _target;
+        private BossExcavatorAttack _attackIntent;
         private BossExcavatorTargetPoint _targetPoint;
         private Vector3 _desiredPoint;
         private Vector3 _pathTargetPoint;
@@ -69,6 +70,7 @@ namespace JunkyardBoss
         public float MinMoveDistance => GetMinMoveDistance();
         public float AttackChaseDistance => GetAttackChaseDistance();
         public LayerMask ObstacleMask => _obstacleMask;
+        public Collider[] BodyColliders => _bodyColliders;
 
         private void Awake()
         {
@@ -109,6 +111,7 @@ namespace JunkyardBoss
         public void ResetRuntime()
         {
             _targetPoint = BossExcavatorTargetPoint.ArenaCenter;
+            _attackIntent = BossExcavatorAttack.None;
             _desiredPoint = GetBasePoint();
             _pathTargetPoint = _desiredPoint;
             _pathStopDistance = _config != null ? _config.StopDistance : 0f;
@@ -141,6 +144,11 @@ namespace JunkyardBoss
         public void SetChargeAlign(bool isChargeAlign)
         {
             _isChargeAlign = isChargeAlign;
+        }
+
+        public void SetAttackIntent(BossExcavatorAttack attackIntent)
+        {
+            _attackIntent = attackIntent;
         }
 
         public void SetArenaCenter(Vector3 arenaCenter)
@@ -605,6 +613,22 @@ namespace JunkyardBoss
             Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
             Vector3 navigationLookDirection = GetNavigationLookDirection(currentPoint, moveDirection);
 
+            if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                if (targetDirection.sqrMagnitude > MinSqrMagnitude)
+                {
+                    return targetDirection;
+                }
+            }
+
+            if (_attackIntent == BossExcavatorAttack.BucketStrike)
+            {
+                if (targetDirection.sqrMagnitude > MinSqrMagnitude)
+                {
+                    return targetDirection;
+                }
+            }
+
             if (navigationLookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
                 return targetDirection;
@@ -779,6 +803,19 @@ namespace JunkyardBoss
                 }
 
                 pressureMultiplier = Mathf.Lerp(1f, 1.12f, distanceBlend);
+            }
+
+            if (_targetPoint == BossExcavatorTargetPoint.ChargeAlign)
+            {
+                pressureMultiplier *= 1.3f;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.BucketStrike)
+            {
+                if (targetDistance <= _config.BucketMaxDistance + GetDistanceTolerance())
+                {
+                    pressureMultiplier *= 1.18f;
+                }
             }
 
             return _config.BaseTurnSpeed * angleMultiplier * pressureMultiplier;

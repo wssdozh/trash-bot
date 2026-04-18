@@ -9,6 +9,7 @@ namespace JunkyardBoss
             if (CanUseCombatData() == false)
             {
                 _pendingAttack = BossExcavatorAttack.None;
+                ClearQueuedAttack();
 
                 return BossExcavatorState.Idle;
             }
@@ -23,13 +24,20 @@ namespace JunkyardBoss
                 return BossExcavatorState.Attack;
             }
 
-            BossExcavatorState desiredMoveState = SelectMoveState(targetDistance, baseAngle);
+            BossExcavatorState desiredMoveState = SelectMoveState(targetDistance, baseAngle, _queuedAttack);
 
             return ResolveMoveState(desiredMoveState, targetDistance, baseAngle);
         }
 
-        private BossExcavatorState SelectMoveState(float targetDistance, float baseAngle)
+        private BossExcavatorState SelectMoveState(float targetDistance, float baseAngle, BossExcavatorAttack queuedAttack)
         {
+            BossExcavatorState plannedMoveState = GetQueuedAttackMoveState(queuedAttack, targetDistance, baseAngle);
+
+            if (plannedMoveState != BossExcavatorState.Idle)
+            {
+                return plannedMoveState;
+            }
+
             if (ShouldReposition(targetDistance, baseAngle))
             {
                 return BossExcavatorState.Reposition;
@@ -46,6 +54,76 @@ namespace JunkyardBoss
             }
 
             return BossExcavatorState.Chase;
+        }
+
+        private BossExcavatorState GetQueuedAttackMoveState(BossExcavatorAttack queuedAttack, float targetDistance, float baseAngle)
+        {
+            if (queuedAttack == BossExcavatorAttack.Charge)
+            {
+                if (ShouldPrepareChargeAttack(targetDistance, baseAngle))
+                {
+                    return BossExcavatorState.Reposition;
+                }
+
+                return BossExcavatorState.Chase;
+            }
+
+            if (queuedAttack == BossExcavatorAttack.ThrowScrap)
+            {
+                if (ShouldPrepareThrowAttack(targetDistance))
+                {
+                    return BossExcavatorState.Reposition;
+                }
+
+                return BossExcavatorState.Chase;
+            }
+
+            if (queuedAttack == BossExcavatorAttack.BucketStrike || queuedAttack == BossExcavatorAttack.Sweep)
+            {
+                return BossExcavatorState.Chase;
+            }
+
+            return BossExcavatorState.Idle;
+        }
+
+        private bool ShouldPrepareChargeAttack(float targetDistance, float baseAngle)
+        {
+            if (targetDistance <= GetClosePressureDistance())
+            {
+                return false;
+            }
+
+            if (targetDistance < _boss.Config.ChargeMinDistance)
+            {
+                return true;
+            }
+
+            float alignAngle = _boss.Config.ChargeBaseAngle + 10f;
+
+            if (baseAngle > alignAngle)
+            {
+                if (targetDistance <= _boss.Config.ChargeMaxDistance)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ShouldPrepareThrowAttack(float targetDistance)
+        {
+            if (targetDistance <= GetClosePressureDistance())
+            {
+                return false;
+            }
+
+            if (targetDistance < _boss.Config.ThrowMinDistance)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private BossExcavatorState ResolveMoveState(BossExcavatorState desiredMoveState, float targetDistance, float baseAngle)
@@ -145,6 +223,18 @@ namespace JunkyardBoss
 
         private bool ShouldRecoverAttackAngle(float targetDistance, float baseAngle)
         {
+            BossExcavatorAttack moveAttackIntent = GetMoveAttackIntent();
+
+            if (moveAttackIntent == BossExcavatorAttack.BucketStrike || moveAttackIntent == BossExcavatorAttack.Sweep)
+            {
+                float meleeRecoverDistance = _boss.Config.BucketMaxDistance + (_boss.Config.DistanceTolerance * 0.55f);
+
+                if (targetDistance <= meleeRecoverDistance)
+                {
+                    return false;
+                }
+            }
+
             float recoverDistance = _boss.Config.BucketMaxDistance + _boss.Config.DistanceTolerance;
 
             if (targetDistance > recoverDistance)
@@ -171,6 +261,11 @@ namespace JunkyardBoss
             }
 
             return false;
+        }
+
+        private float GetClosePressureDistance()
+        {
+            return _boss.Config.BucketMaxDistance + (_boss.Config.DistanceTolerance * 0.35f);
         }
 
         private void SetMoveState(BossExcavatorState moveState)
@@ -236,9 +331,78 @@ namespace JunkyardBoss
 
         private void ApplyMovementCommands()
         {
+            _boss.SetMoveAttackIntent(GetMoveAttackIntent());
             _boss.SetAimLocked(false);
             _boss.SetArmLocked(false);
-            _boss.SetChargeAlign(false);
+            _boss.SetChargeAlign(ShouldUseQueuedChargeAlign());
+        }
+
+        private BossExcavatorAttack GetMoveAttackIntent()
+        {
+            if (_queuedAttack != BossExcavatorAttack.None)
+            {
+                return _queuedAttack;
+            }
+
+            if (CanUseCombatData() == false)
+            {
+                return BossExcavatorAttack.None;
+            }
+
+            return GetStagingAttackIntent(GetTargetDistance());
+        }
+
+        private BossExcavatorAttack GetStagingAttackIntent(float targetDistance)
+        {
+            if (_lastAttack == BossExcavatorAttack.ThrowScrap)
+            {
+                return BossExcavatorAttack.Sweep;
+            }
+
+            if (_lastAttack == BossExcavatorAttack.Sweep)
+            {
+                return BossExcavatorAttack.Charge;
+            }
+
+            if (_lastAttack == BossExcavatorAttack.Charge)
+            {
+                return BossExcavatorAttack.BucketStrike;
+            }
+
+            if (_lastAttack == BossExcavatorAttack.BucketStrike)
+            {
+                return BossExcavatorAttack.ThrowScrap;
+            }
+
+            if (targetDistance <= GetClosePressureDistance())
+            {
+                return BossExcavatorAttack.BucketStrike;
+            }
+
+            return BossExcavatorAttack.ThrowScrap;
+        }
+
+        private bool ShouldUseQueuedChargeAlign()
+        {
+            if (_queuedAttack != BossExcavatorAttack.Charge)
+            {
+                return false;
+            }
+
+            if (CanUseCombatData() == false)
+            {
+                return false;
+            }
+
+            float targetDistance = GetTargetDistance();
+            float baseAngle = GetTargetAngle(_boss.Base);
+
+            if (ShouldPrepareChargeAttack(targetDistance, baseAngle) == false)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

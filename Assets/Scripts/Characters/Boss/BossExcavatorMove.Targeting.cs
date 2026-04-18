@@ -39,6 +39,12 @@ namespace JunkyardBoss
             }
 
             float targetDistance = Vector3.Distance(currentPoint, targetPoint);
+            BossExcavatorTargetPoint attackIntentPoint;
+
+            if (TrySelectAttackIntentTargetPoint(currentPoint, targetPoint, targetDistance, out attackIntentPoint))
+            {
+                return attackIntentPoint;
+            }
 
             if (ShouldUseRetreat(targetDistance))
             {
@@ -53,8 +59,63 @@ namespace JunkyardBoss
             return SelectFlankPoint(currentPoint, targetPoint);
         }
 
+        private bool TrySelectAttackIntentTargetPoint(
+            Vector3 currentPoint,
+            Vector3 targetPoint,
+            float targetDistance,
+            out BossExcavatorTargetPoint attackIntentPoint)
+        {
+            attackIntentPoint = BossExcavatorTargetPoint.PlayerCenter;
+
+            if (_attackIntent == BossExcavatorAttack.None)
+            {
+                return false;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.Sweep)
+            {
+                float sweepIntentDistance = GetAttackIntentDistance();
+
+                if (targetDistance > sweepIntentDistance + GetDistanceHysteresis())
+                {
+                    attackIntentPoint = BossExcavatorTargetPoint.PlayerCenter;
+
+                    return true;
+                }
+
+                attackIntentPoint = SelectFlankPoint(currentPoint, targetPoint);
+
+                return true;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.ThrowScrap || _attackIntent == BossExcavatorAttack.Charge)
+            {
+                float rangedIntentDistance = GetAttackIntentDistance();
+
+                if (targetDistance < rangedIntentDistance - GetDistanceHysteresis())
+                {
+                    attackIntentPoint = SelectFlankPoint(currentPoint, targetPoint);
+
+                    return true;
+                }
+
+                attackIntentPoint = BossExcavatorTargetPoint.PlayerCenter;
+
+                return true;
+            }
+
+            attackIntentPoint = BossExcavatorTargetPoint.PlayerCenter;
+
+            return true;
+        }
+
         private bool ShouldUseRetreat(float targetDistance)
         {
+            if (ShouldSuppressRetreat())
+            {
+                return false;
+            }
+
             float retreatTriggerDistance = GetRetreatTriggerDistance();
 
             if (targetDistance < retreatTriggerDistance)
@@ -370,7 +431,7 @@ namespace JunkyardBoss
 
             if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
             {
-                return BuildCenterPoint(currentPoint, targetPoint, GetChargeAlignDistance());
+                return BuildCenterPoint(currentPoint, targetPoint, GetChargeAlignTargetDistance(currentPoint, targetPoint));
             }
 
             return arenaCenterPoint;
@@ -411,8 +472,17 @@ namespace JunkyardBoss
 
             else if (targetDistance < GetCloseRetreatDistance())
             {
-                ringDirection = -targetDirection;
-                ringWeight = 0.75f;
+                if (ShouldHoldOrbitPressure())
+                {
+                    ringDirection = targetDirection;
+                    ringWeight = 0.28f;
+                }
+
+                else
+                {
+                    ringDirection = -targetDirection;
+                    ringWeight = 0.75f;
+                }
             }
 
             else if (targetDistance <= GetClosePressureDistance())
@@ -579,8 +649,8 @@ namespace JunkyardBoss
 
         private float GetRetreatTriggerDistance()
         {
-            float closeDistance = _config.StopDistance + 1.25f;
-            float sweepDistance = _config.SweepMaxDistance - 0.55f;
+            float closeDistance = _config.StopDistance + 0.95f;
+            float sweepDistance = _config.SweepMaxDistance - 1.1f;
 
             return Mathf.Max(closeDistance, sweepDistance);
         }
@@ -592,6 +662,11 @@ namespace JunkyardBoss
 
         private float GetCenterDistance(Vector3 currentPoint, Vector3 targetPoint)
         {
+            if (_attackIntent != BossExcavatorAttack.None)
+            {
+                return GetAttackIntentDistance();
+            }
+
             return GetPressureCenterDistance();
         }
 
@@ -623,6 +698,84 @@ namespace JunkyardBoss
             float desiredStepDistance = distanceGap + GetDistanceTolerance();
 
             return Mathf.Clamp(desiredStepDistance, minStepDistance, maxStepDistance);
+        }
+
+        private bool ShouldSuppressRetreat()
+        {
+            if (_attackIntent == BossExcavatorAttack.None)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ShouldHoldOrbitPressure()
+        {
+            if (_attackIntent == BossExcavatorAttack.Sweep)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private float GetAttackIntentDistance()
+        {
+            if (_attackIntent == BossExcavatorAttack.BucketStrike)
+            {
+                float bucketIntentDistance = _config.BucketMaxDistance * 0.62f;
+                float minBucketDistance = _config.StopDistance + 0.45f;
+
+                return Mathf.Max(minBucketDistance, bucketIntentDistance);
+            }
+
+            if (_attackIntent == BossExcavatorAttack.Sweep)
+            {
+                float sweepIntentDistance = _config.SweepMaxDistance * 0.72f;
+                float minSweepDistance = _config.StopDistance + 0.35f;
+
+                return Mathf.Max(minSweepDistance, sweepIntentDistance);
+            }
+
+            if (_attackIntent == BossExcavatorAttack.ThrowScrap)
+            {
+                return (_config.ThrowMinDistance + _config.ThrowMaxDistance) * 0.5f;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.Charge)
+            {
+                return Mathf.Lerp(_config.ChargeMinDistance, _config.ChargeMaxDistance, 0.58f);
+            }
+
+            return GetPressureCenterDistance();
+        }
+
+        private float GetChargeAlignTargetDistance(Vector3 currentPoint, Vector3 targetPoint)
+        {
+            float currentDistance = Vector3.Distance(currentPoint, targetPoint);
+            float idealChargeDistance = GetAttackIntentDistance();
+            float minChargeDistance = _config.ChargeMinDistance + 0.35f;
+            float maxChargeDistance = _config.ChargeMaxDistance - 0.25f;
+
+            if (maxChargeDistance < minChargeDistance)
+            {
+                maxChargeDistance = minChargeDistance;
+            }
+
+            if (currentDistance < _config.ChargeMinDistance)
+            {
+                return minChargeDistance;
+            }
+
+            if (currentDistance <= _config.ChargeMaxDistance)
+            {
+                float alignedDistance = currentDistance + 0.55f;
+
+                return Mathf.Clamp(alignedDistance, minChargeDistance, maxChargeDistance);
+            }
+
+            return Mathf.Clamp(idealChargeDistance, minChargeDistance, maxChargeDistance);
         }
     }
 }

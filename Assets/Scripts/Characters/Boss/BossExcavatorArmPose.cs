@@ -7,6 +7,7 @@ namespace JunkyardBoss
         BucketStrike = 2,
         GrabScrap = 3,
         ThrowScrap = 4,
-        Custom = 5
+        TrailScrape = 5,
+        Custom = 6
     }
 }

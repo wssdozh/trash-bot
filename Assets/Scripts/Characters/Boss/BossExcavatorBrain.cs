@@ -6,23 +6,31 @@ namespace JunkyardBoss
     public sealed partial class BossExcavatorBrain
     {
         private const float MinDirectionSqr = 0.0001f;
+        private const float AttackQueueCommitTime = 0.4f;
+        private const float PreviousAttackRepeatPenalty = 1.4f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorBucketAttack _bucketAttack;
         private readonly BossExcavatorThrowAttack _throwAttack;
         private readonly BossExcavatorChargeAttack _chargeAttack;
         private readonly BossExcavatorSweepAttack _sweepAttack;
+        private readonly BossExcavatorScrapTrailAttack _scrapTrailAttack;
 
         private float _sweepCooldownTimer;
         private float _bucketCooldownTimer;
         private float _throwCooldownTimer;
         private float _chargeCooldownTimer;
+        private float _scrapTrailCooldownTimer;
         private float _postAttackTimer;
         private float _forcedChaseTimer;
         private float _moveStateTimer;
         private float _phaseChangeTimer;
+        private float _queuedAttackTimer;
         private BossExcavatorAttack _currentAttack;
         private BossExcavatorAttack _pendingAttack;
+        private BossExcavatorAttack _queuedAttack;
+        private BossExcavatorAttack _lastAttack;
+        private BossExcavatorAttack _previousAttack;
         private BossExcavatorState _moveState;
         private bool _isPhaseChangeActive;
 
@@ -40,6 +48,7 @@ namespace JunkyardBoss
             _throwAttack = new BossExcavatorThrowAttack(_boss, _boss.Config);
             _chargeAttack = new BossExcavatorChargeAttack(_boss, _boss.Config);
             _sweepAttack = new BossExcavatorSweepAttack(_boss, _boss.Config);
+            _scrapTrailAttack = new BossExcavatorScrapTrailAttack(_boss, _boss.Config);
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
         }
@@ -50,18 +59,24 @@ namespace JunkyardBoss
             _bucketCooldownTimer = 0f;
             _throwCooldownTimer = 0f;
             _chargeCooldownTimer = 0f;
+            _scrapTrailCooldownTimer = 0f;
             _postAttackTimer = 0f;
             _forcedChaseTimer = 0f;
             _moveStateTimer = 0f;
             _phaseChangeTimer = 0f;
+            _queuedAttackTimer = 0f;
             _currentAttack = BossExcavatorAttack.None;
             _pendingAttack = BossExcavatorAttack.None;
+            _queuedAttack = BossExcavatorAttack.None;
+            _lastAttack = BossExcavatorAttack.None;
+            _previousAttack = BossExcavatorAttack.None;
             _moveState = BossExcavatorState.Chase;
             _isPhaseChangeActive = false;
             _sweepAttack.Reset();
             _bucketAttack.Reset();
             _throwAttack.Reset();
             _chargeAttack.Reset();
+            _scrapTrailAttack.Reset();
             ApplyCombatDefaults();
         }
 
@@ -70,6 +85,9 @@ namespace JunkyardBoss
             if (_boss.IsDead)
             {
                 ClearAttackRuntime(false);
+                CancelScrapTrail(false);
+                ClearQueuedAttack();
+                _boss.SetMoveAttackIntent(BossExcavatorAttack.None);
                 ResetPhaseChangeRuntime();
 
                 return;
@@ -78,6 +96,9 @@ namespace JunkyardBoss
             if (_boss.State == BossExcavatorState.PhaseChange)
             {
                 ClearAttackRuntime(false);
+                CancelScrapTrail(false);
+                ClearQueuedAttack();
+                _boss.SetMoveAttackIntent(BossExcavatorAttack.None);
                 TickPhaseChange();
 
                 return;
@@ -118,6 +139,7 @@ namespace JunkyardBoss
                 return;
             }
 
+            UpdateScrapTrailRuntime(nextState);
             ApplyMovementCommands();
             _boss.RequestAutoState(nextState);
         }
@@ -138,9 +160,11 @@ namespace JunkyardBoss
             _bucketCooldownTimer = Mathf.Max(0f, _bucketCooldownTimer - deltaTime);
             _throwCooldownTimer = Mathf.Max(0f, _throwCooldownTimer - deltaTime);
             _chargeCooldownTimer = Mathf.Max(0f, _chargeCooldownTimer - deltaTime);
+            _scrapTrailCooldownTimer = Mathf.Max(0f, _scrapTrailCooldownTimer - deltaTime);
             _postAttackTimer = Mathf.Max(0f, _postAttackTimer - deltaTime);
             _forcedChaseTimer = Mathf.Max(0f, _forcedChaseTimer - deltaTime);
             _moveStateTimer = Mathf.Max(0f, _moveStateTimer - deltaTime);
+            _queuedAttackTimer = Mathf.Max(0f, _queuedAttackTimer - deltaTime);
         }
 
         private float GetTargetDistance()

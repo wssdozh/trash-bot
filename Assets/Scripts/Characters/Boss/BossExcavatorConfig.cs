@@ -170,6 +170,9 @@ namespace JunkyardBoss
         [Min(0f)]
         [SerializeField] private float _chargeAttackCooldown = 3.8f;
 
+        [Min(0f)]
+        [SerializeField] private float _scrapTrailCooldown = 4.8f;
+
         [Header("Attack Timing")]
         [Min(0.05f)]
         [SerializeField] private float _bucketPrepareTime = 0.48f;
@@ -206,6 +209,41 @@ namespace JunkyardBoss
 
         [Range(0.1f, 3f)]
         [SerializeField] private float _attackPoseSpeedMult = 1.45f;
+
+        [Header("Scrap Trail")]
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailMinDistance = 3.8f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailMaxDistance = 8.8f;
+
+        [Range(1f, 120f)]
+        [SerializeField] private float _scrapTrailBaseAngle = 72f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailDuration = 1.9f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailMinMoveSpeed = 1.15f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailSpawnSpacing = 1.15f;
+
+        [Min(0f)]
+        [SerializeField] private float _scrapTrailSpawnBackOffset = 0.85f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailGroundProbeHeight = 2.4f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailGroundProbeDistance = 4.2f;
+
+        [Min(0.1f)]
+        [SerializeField] private float _scrapTrailBlockLifetime = 9f;
+
+        [SerializeField] private Vector3 _scrapTrailBlockSize = new Vector3(1.15f, 1.15f, 1.15f);
+
+        [SerializeField] private LayerMask _scrapTrailGroundMask = ~0;
 
         [Header("Bucket Attack")]
         [Min(0.1f)]
@@ -352,6 +390,12 @@ namespace JunkyardBoss
 
         [SerializeField] private Vector3 _armThrowScrapBucketEuler = new Vector3(0f, 0f, 55f);
 
+        [SerializeField] private Vector3 _armTrailScrapeBoomEuler = new Vector3(0f, 0f, 24f);
+
+        [SerializeField] private Vector3 _armTrailScrapeStickEuler = new Vector3(0f, 0f, 52f);
+
+        [SerializeField] private Vector3 _armTrailScrapeBucketEuler = new Vector3(0f, 0f, -78f);
+
         [SerializeField] private BossExcavatorAxis _armBoomAxis = BossExcavatorAxis.X;
 
         [SerializeField] private BossExcavatorAxis _armStickAxis = BossExcavatorAxis.X;
@@ -427,6 +471,7 @@ namespace JunkyardBoss
         public float SweepAttackCooldown => _sweepAttackCooldown;
         public float ThrowAttackCooldown => _throwAttackCooldown;
         public float ChargeAttackCooldown => _chargeAttackCooldown;
+        public float ScrapTrailCooldown => _scrapTrailCooldown;
         public float BucketPrepareTime => _bucketPrepareTime;
         public float BucketStrikeTime => _bucketStrikeTime;
         public float SweepPrepareTime => _sweepPrepareTime;
@@ -439,6 +484,18 @@ namespace JunkyardBoss
         public float ChargeAttackTime => _chargeAttackTime;
         public float ChargeRecoveryTime => _chargeRecoveryTime;
         public float AttackPoseSpeedMult => _attackPoseSpeedMult;
+        public float ScrapTrailMinDistance => _scrapTrailMinDistance;
+        public float ScrapTrailMaxDistance => Mathf.Max(_scrapTrailMaxDistance, _scrapTrailMinDistance + 0.1f);
+        public float ScrapTrailBaseAngle => _scrapTrailBaseAngle;
+        public float ScrapTrailDuration => _scrapTrailDuration;
+        public float ScrapTrailMinMoveSpeed => _scrapTrailMinMoveSpeed;
+        public float ScrapTrailSpawnSpacing => _scrapTrailSpawnSpacing;
+        public float ScrapTrailSpawnBackOffset => _scrapTrailSpawnBackOffset;
+        public float ScrapTrailGroundProbeHeight => _scrapTrailGroundProbeHeight;
+        public float ScrapTrailGroundProbeDistance => _scrapTrailGroundProbeDistance;
+        public float ScrapTrailBlockLifetime => _scrapTrailBlockLifetime;
+        public Vector3 ScrapTrailBlockSize => _scrapTrailBlockSize;
+        public LayerMask ScrapTrailGroundMask => _scrapTrailGroundMask;
         public float BucketHitDamage => _bucketHitDamage;
         public float BucketHitRadius => _bucketHitRadius;
         public float BucketHitAngle => _bucketHitAngle;
@@ -492,6 +549,9 @@ namespace JunkyardBoss
         public Vector3 ArmThrowScrapBoomEuler => _armThrowScrapBoomEuler;
         public Vector3 ArmThrowScrapStickEuler => _armThrowScrapStickEuler;
         public Vector3 ArmThrowScrapBucketEuler => _armThrowScrapBucketEuler;
+        public Vector3 ArmTrailScrapeBoomEuler => _armTrailScrapeBoomEuler;
+        public Vector3 ArmTrailScrapeStickEuler => _armTrailScrapeStickEuler;
+        public Vector3 ArmTrailScrapeBucketEuler => _armTrailScrapeBucketEuler;
         public BossExcavatorAxis ArmBoomAxis => _armBoomAxis;
         public BossExcavatorAxis ArmStickAxis => _armStickAxis;
         public BossExcavatorAxis ArmBucketAxis => _armBucketAxis;

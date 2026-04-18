@@ -215,6 +215,15 @@ namespace JunkyardBoss
                 boomLocalEuler = _config.ArmThrowScrapBoomEuler;
                 stickLocalEuler = _config.ArmThrowScrapStickEuler;
                 bucketLocalEuler = _config.ArmThrowScrapBucketEuler;
+
+                return;
+            }
+
+            if (pose == BossExcavatorArmPose.TrailScrape)
+            {
+                boomLocalEuler = _config.ArmTrailScrapeBoomEuler;
+                stickLocalEuler = _config.ArmTrailScrapeStickEuler;
+                bucketLocalEuler = _config.ArmTrailScrapeBucketEuler;
             }
         }
 
