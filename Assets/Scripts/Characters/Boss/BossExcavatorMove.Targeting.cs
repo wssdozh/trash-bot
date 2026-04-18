@@ -94,7 +94,7 @@ namespace JunkyardBoss
 
                 if (targetDistance < rangedIntentDistance - GetDistanceHysteresis())
                 {
-                    attackIntentPoint = SelectFlankPoint(currentPoint, targetPoint);
+                    attackIntentPoint = BossExcavatorTargetPoint.PlayerBack;
 
                     return true;
                 }

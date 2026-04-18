@@ -9,6 +9,11 @@ namespace JunkyardBoss
         private const float AttackQueueCommitTime = 0.18f;
         private const float PhaseTwoDecisionSpeedMult = 4f;
         private const float PreviousAttackRepeatPenalty = 1.4f;
+        private const float StallSpeedThreshold = 0.12f;
+        private const float StallMoveDistanceThreshold = 0.06f;
+        private const float StallTargetDistanceThreshold = 0.1f;
+        private const float StallRecoverTime = 0.55f;
+        private const float PhaseTwoStallRecoverTimeMult = 0.5f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorBucketAttack _bucketAttack;
@@ -35,6 +40,10 @@ namespace JunkyardBoss
         private BossExcavatorAttack _previousAttack;
         private BossExcavatorState _moveState;
         private bool _isPhaseChangeActive;
+        private bool _hasStallSample;
+        private float _stallTimer;
+        private float _lastStallTargetDistance;
+        private Vector3 _lastStallBasePoint;
 
         public BossExcavatorAttack CurrentAttack => _currentAttack;
         public BossExcavatorAttack TargetAttack => GetTargetAttack();
@@ -76,6 +85,10 @@ namespace JunkyardBoss
             _previousAttack = BossExcavatorAttack.None;
             _moveState = BossExcavatorState.Chase;
             _isPhaseChangeActive = false;
+            _hasStallSample = false;
+            _stallTimer = 0f;
+            _lastStallTargetDistance = 0f;
+            _lastStallBasePoint = Vector3.zero;
             _sweepAttack.Reset();
             _bucketAttack.Reset();
             _throwAttack.Reset();
@@ -103,6 +116,7 @@ namespace JunkyardBoss
                 CancelScrapTrail(false);
                 ClearQueuedAttack();
                 _boss.SetMoveAttackIntent(BossExcavatorAttack.None);
+                ResetStallRuntime();
                 TickPhaseChange();
 
                 return;
@@ -117,6 +131,7 @@ namespace JunkyardBoss
 
             if (_currentAttack != BossExcavatorAttack.None)
             {
+                ResetStallRuntime();
                 _boss.RequestAutoState(BossExcavatorState.Attack);
 
                 if (UpdateAttackRuntime())
@@ -284,6 +299,31 @@ namespace JunkyardBoss
             }
 
             return _roomCombatLock.IsLocked;
+        }
+
+        private void ResetStallRuntime()
+        {
+            _hasStallSample = false;
+            _stallTimer = 0f;
+            _lastStallTargetDistance = 0f;
+            _lastStallBasePoint = Vector3.zero;
+        }
+
+        private float GetStallRecoverTime()
+        {
+            float stallRecoverTime = StallRecoverTime;
+
+            if (_boss.Phase == BossExcavatorPhase.PhaseTwo)
+            {
+                stallRecoverTime *= PhaseTwoStallRecoverTimeMult;
+            }
+
+            if (_queuedAttack != BossExcavatorAttack.None)
+            {
+                stallRecoverTime *= 0.75f;
+            }
+
+            return stallRecoverTime;
         }
     }
 }
