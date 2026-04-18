@@ -292,10 +292,10 @@ namespace JunkyardBoss
         [SerializeField] private float _sweepHitOffset = 0.25f;
 
         [Min(0f)]
-        [SerializeField] private float _sweepPushForce = 3.2f;
+        [SerializeField] private float _sweepPushForce = 11.35f;
 
         [Min(0f)]
-        [SerializeField] private float _sweepPushLift = 0.18f;
+        [SerializeField] private float _sweepPushLift = 0.47f;
 
         [Min(1f)]
         [SerializeField] private float _sweepSpinSpeed = 270f;

@@ -29,6 +29,9 @@ public sealed class EnemyDroneMove : MonoBehaviour
     [Header("Flight")]
     [SerializeField] private float _ceilingGap = 1.2f;
     [SerializeField] private float _floorGap = 2.4f;
+    [SerializeField] private float _combatFloorGap = 1.1f;
+    [SerializeField] private float _heightReturnSpeed = 4.8f;
+    [SerializeField] private float _heightReturnThreshold = 0.2f;
 
     [Header("Obstacle")]
     [SerializeField] private LayerMask _obstacleMask;
@@ -125,6 +128,21 @@ public sealed class EnemyDroneMove : MonoBehaviour
         if (_floorGap < 0f)
         {
             throw new InvalidOperationException(nameof(_floorGap));
+        }
+
+        if (_combatFloorGap < 0f)
+        {
+            throw new InvalidOperationException(nameof(_combatFloorGap));
+        }
+
+        if (_heightReturnSpeed <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_heightReturnSpeed));
+        }
+
+        if (_heightReturnThreshold < 0f)
+        {
+            throw new InvalidOperationException(nameof(_heightReturnThreshold));
         }
 
         if (_probeRadius <= 0f)
@@ -335,13 +353,21 @@ public sealed class EnemyDroneMove : MonoBehaviour
             }
         }
 
-        nextPoint.y = Mathf.SmoothDamp(
-            currentPoint.y,
-            targetPoint.y,
-            ref _verticalVelocity,
-            _verticalSmoothTime,
-            _heightSpeed,
-            Time.fixedDeltaTime);
+        if (currentPoint.y > targetPoint.y + _heightReturnThreshold)
+        {
+            _verticalVelocity = 0f;
+            nextPoint.y = Mathf.MoveTowards(currentPoint.y, targetPoint.y, _heightReturnSpeed * Time.fixedDeltaTime);
+        }
+        else
+        {
+            nextPoint.y = Mathf.SmoothDamp(
+                currentPoint.y,
+                targetPoint.y,
+                ref _verticalVelocity,
+                _verticalSmoothTime,
+                _heightSpeed,
+                Time.fixedDeltaTime);
+        }
 
         return nextPoint;
     }
@@ -437,26 +463,27 @@ public sealed class EnemyDroneMove : MonoBehaviour
     private float GetFlightHeight(float fallbackHeight)
     {
         EnemyRoomLock enemyRoomLock = GetRoomLock();
+        float floorGap = GetCurrentFloorGap();
 
         if (enemyRoomLock == null)
         {
             if (_hasTargetHeight)
             {
-                return Mathf.Max(_targetHeight, _floorGap);
+                return Mathf.Max(_targetHeight, floorGap);
             }
 
-            return Mathf.Max(fallbackHeight, _floorGap);
+            return Mathf.Max(fallbackHeight, floorGap);
         }
 
         float moveTop = enemyRoomLock.GetMoveTop();
         float moveBottom = enemyRoomLock.GetMoveBottom();
         float roomHeight = moveTop - moveBottom;
         float maxHeight = moveTop - _ceilingGap;
-        float minHeight = moveBottom + _floorGap;
+        float minHeight = moveBottom + floorGap;
 
-        if (roomHeight <= _ceilingGap + _floorGap + ZeroThreshold)
+        if (roomHeight <= _ceilingGap + floorGap + ZeroThreshold)
         {
-            return Mathf.Max(fallbackHeight, _floorGap);
+            return Mathf.Max(fallbackHeight, floorGap);
         }
 
         if (maxHeight < minHeight)
@@ -470,6 +497,16 @@ public sealed class EnemyDroneMove : MonoBehaviour
         }
 
         return maxHeight;
+    }
+
+    private float GetCurrentFloorGap()
+    {
+        if (_hasTargetHeight)
+        {
+            return Mathf.Min(_floorGap, _combatFloorGap);
+        }
+
+        return _floorGap;
     }
 
     private bool CanFlyAtHeight(Vector3 currentPoint, Vector3 moveDirection, float liftHeight)

@@ -8,19 +8,22 @@ public class CharacterMover : MonoBehaviour
 
     private readonly Vector3[] _wallNormals = new Vector3[WallBufferSize];
 
-    [Header("Зависимости")]
+    [Header("Р—Р°РІРёСЃРёРјРѕСЃС‚Рё")]
     [SerializeField] private Rigidbody _rigidbody;
 
-    [Header("Настройки")]
+    [Header("РќР°СЃС‚СЂРѕР№РєРё")]
     [SerializeField] private float _speed = 3f;
     [SerializeField] private float _speedSprint = 6f;
 
-    [Header("Стена")]
+    [Header("РЎС‚РµРЅР°")]
     [SerializeField] private bool _isWallSlideEnabled = true;
     [SerializeField] private float _wallNormalMaxY = 0.2f;
 
     private Vector3 _moveDirection;
+    private Vector3 _knockbackVelocity;
     private bool _isSprinting;
+    private float _knockbackTimer;
+    private float _knockbackDuration;
     private int _wallNormalCount;
 
     public float Speed => _speed;
@@ -48,9 +51,51 @@ public class CharacterMover : MonoBehaviour
         _moveDirection = Vector3.zero;
     }
 
+    public void ApplyKnockback(Vector3 direction, float speed, float duration, float lift)
+    {
+        if (_rigidbody.isKinematic)
+        {
+            return;
+        }
+
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= ZeroThreshold)
+        {
+            return;
+        }
+
+        if (speed <= 0f)
+        {
+            return;
+        }
+
+        if (duration <= 0f)
+        {
+            return;
+        }
+
+        direction.Normalize();
+        _moveDirection = Vector3.zero;
+        _knockbackVelocity = direction * speed;
+        _knockbackTimer = duration;
+        _knockbackDuration = duration;
+
+        float currentVerticalVelocity = _rigidbody.linearVelocity.y;
+        float nextVerticalVelocity = currentVerticalVelocity;
+
+        if (lift > nextVerticalVelocity)
+        {
+            nextVerticalVelocity = lift;
+        }
+
+        _rigidbody.linearVelocity = new Vector3(_knockbackVelocity.x, nextVerticalVelocity, _knockbackVelocity.z);
+    }
+
     public void ForceStop()
     {
         _moveDirection = Vector3.zero;
+        ClearKnockback();
 
         if (_rigidbody.isKinematic)
         {
@@ -130,14 +175,21 @@ public class CharacterMover : MonoBehaviour
         Vector3 clampedMoveDirection = Vector3.ClampMagnitude(_moveDirection, 1f);
         Vector3 targetVelocity = clampedMoveDirection * speed;
         Vector3 adjustedVelocity = targetVelocity;
+        Vector3 knockbackVelocity;
+
+        if (TryGetKnockbackVelocity(out knockbackVelocity))
+        {
+            adjustedVelocity = knockbackVelocity;
+        }
 
         if (_isWallSlideEnabled && _wallNormalCount > 0)
         {
-            adjustedVelocity = GetSlideVelocity(targetVelocity);
+            adjustedVelocity = GetSlideVelocity(adjustedVelocity);
         }
 
         float currentVerticalVelocity = _rigidbody.linearVelocity.y;
         _rigidbody.linearVelocity = new Vector3(adjustedVelocity.x, currentVerticalVelocity, adjustedVelocity.z);
+        TickKnockback();
     }
 
     private Vector3 GetSlideVelocity(Vector3 targetVelocity)
@@ -203,5 +255,50 @@ public class CharacterMover : MonoBehaviour
     private void ClearWallContacts()
     {
         _wallNormalCount = 0;
+    }
+
+    private bool TryGetKnockbackVelocity(out Vector3 knockbackVelocity)
+    {
+        knockbackVelocity = Vector3.zero;
+
+        if (_knockbackTimer <= 0f)
+        {
+            return false;
+        }
+
+        float knockbackFactor = 1f;
+
+        if (_knockbackDuration > 0f)
+        {
+            knockbackFactor = Mathf.Clamp01(_knockbackTimer / _knockbackDuration);
+        }
+
+        knockbackVelocity = _knockbackVelocity * knockbackFactor;
+
+        return true;
+    }
+
+    private void TickKnockback()
+    {
+        if (_knockbackTimer <= 0f)
+        {
+            return;
+        }
+
+        _knockbackTimer = Mathf.Max(0f, _knockbackTimer - Time.fixedDeltaTime);
+
+        if (_knockbackTimer > 0f)
+        {
+            return;
+        }
+
+        ClearKnockback();
+    }
+
+    private void ClearKnockback()
+    {
+        _knockbackVelocity = Vector3.zero;
+        _knockbackTimer = 0f;
+        _knockbackDuration = 0f;
     }
 }

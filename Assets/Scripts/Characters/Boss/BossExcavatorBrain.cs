@@ -6,7 +6,7 @@ namespace JunkyardBoss
     public sealed partial class BossExcavatorBrain
     {
         private const float MinDirectionSqr = 0.0001f;
-        private const float AttackQueueCommitTime = 0.4f;
+        private const float AttackQueueCommitTime = 0.18f;
         private const float PreviousAttackRepeatPenalty = 1.4f;
 
         private readonly BossExcavator _boss;

@@ -380,8 +380,14 @@ namespace JunkyardBoss
         {
             Vector3 rawPoint = BuildRawPoint(currentPoint, targetPoint, arenaCenterPoint, targetPointType);
             Vector3 resolvedPoint;
+            float stopDistance = GetStopDistance(targetPointType);
 
-            if (TryResolvePoint(currentPoint, rawPoint, out resolvedPoint))
+            if (ShouldHoldCurrentPoint(currentPoint, rawPoint, targetPointType))
+            {
+                return currentPoint;
+            }
+
+            if (TryResolvePoint(currentPoint, rawPoint, stopDistance, out resolvedPoint))
             {
                 return resolvedPoint;
             }
@@ -390,7 +396,7 @@ namespace JunkyardBoss
             {
                 Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetCenterDistance(currentPoint, targetPoint));
 
-                if (TryResolvePoint(currentPoint, centerPoint, out resolvedPoint))
+                if (TryResolvePoint(currentPoint, centerPoint, stopDistance, out resolvedPoint))
                 {
                     return resolvedPoint;
                 }
@@ -401,14 +407,14 @@ namespace JunkyardBoss
                 int oppositeRecoverSign = -GetRecoverSideSign(currentPoint, targetPoint);
                 Vector3 oppositeRecoverPoint = BuildRecoverPoint(currentPoint, targetPoint, oppositeRecoverSign);
 
-                if (TryResolvePoint(currentPoint, oppositeRecoverPoint, out resolvedPoint))
+                if (TryResolvePoint(currentPoint, oppositeRecoverPoint, stopDistance, out resolvedPoint))
                 {
                     return resolvedPoint;
                 }
 
                 Vector3 centerPoint = BuildCenterPoint(currentPoint, targetPoint, GetCenterDistance(currentPoint, targetPoint));
 
-                if (TryResolvePoint(currentPoint, centerPoint, out resolvedPoint))
+                if (TryResolvePoint(currentPoint, centerPoint, stopDistance, out resolvedPoint))
                 {
                     return resolvedPoint;
                 }
@@ -418,18 +424,41 @@ namespace JunkyardBoss
             {
                 Vector3 chasePoint = BuildCenterPoint(currentPoint, targetPoint, GetAttackChaseDistance());
 
-                if (TryResolvePoint(currentPoint, chasePoint, out resolvedPoint))
+                if (TryResolvePoint(currentPoint, chasePoint, stopDistance, out resolvedPoint))
                 {
                     return resolvedPoint;
                 }
             }
 
-            if (TryResolvePoint(currentPoint, arenaCenterPoint, out resolvedPoint))
+            if (TryResolvePoint(currentPoint, arenaCenterPoint, stopDistance, out resolvedPoint))
             {
                 return resolvedPoint;
             }
 
             return currentPoint;
+        }
+
+        private bool ShouldHoldCurrentPoint(Vector3 currentPoint, Vector3 rawPoint, BossExcavatorTargetPoint targetPointType)
+        {
+            if (targetPointType != BossExcavatorTargetPoint.PlayerCenter)
+            {
+                return false;
+            }
+
+            if (_attackIntent == BossExcavatorAttack.None)
+            {
+                return false;
+            }
+
+            Vector3 safePoint = ClampRoomPoint(rawPoint);
+            float holdDistance = GetStopDistance(targetPointType) + _config.DesiredPointDeadZone;
+
+            if (Vector3.Distance(currentPoint, safePoint) > holdDistance)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private Vector3 BuildRawPoint(Vector3 currentPoint, Vector3 targetPoint, Vector3 arenaCenterPoint, BossExcavatorTargetPoint targetPointType)
@@ -624,7 +653,7 @@ namespace JunkyardBoss
             return currentPoint + escapeDirection.normalized * escapeDistance;
         }
 
-        private bool TryResolvePoint(Vector3 currentPoint, Vector3 point, out Vector3 resolvedPoint)
+        private bool TryResolvePoint(Vector3 currentPoint, Vector3 point, float stopDistance, out Vector3 resolvedPoint)
         {
             Vector3 safePoint = ClampRoomPoint(point);
 
@@ -638,7 +667,7 @@ namespace JunkyardBoss
                 return TryGetReachPoint(currentPoint, resolvedPoint, out resolvedPoint);
             }
 
-            if (Vector3.Distance(currentPoint, resolvedPoint) <= _config.StopDistance + _config.DesiredPointDeadZone)
+            if (Vector3.Distance(currentPoint, resolvedPoint) <= stopDistance + _config.DesiredPointDeadZone)
             {
                 resolvedPoint = currentPoint;
 
@@ -652,7 +681,7 @@ namespace JunkyardBoss
         {
             Vector3 resolvedPoint;
 
-            if (TryResolvePoint(currentPoint, point, out resolvedPoint) == false)
+            if (TryResolvePoint(currentPoint, point, _config.StopDistance, out resolvedPoint) == false)
             {
                 return float.MaxValue;
             }
@@ -679,6 +708,16 @@ namespace JunkyardBoss
 
         private float GetStopDistance(BossExcavatorTargetPoint targetPoint)
         {
+            if (targetPoint == BossExcavatorTargetPoint.PlayerCenter)
+            {
+                if (_attackIntent == BossExcavatorAttack.BucketStrike)
+                {
+                    float bucketStopDistance = Mathf.Min(_config.StopDistance, _config.DistanceTolerance * 0.35f);
+
+                    return Mathf.Max(0.1f, bucketStopDistance);
+                }
+            }
+
             return _config.StopDistance;
         }
 
@@ -759,8 +798,8 @@ namespace JunkyardBoss
         {
             if (_attackIntent == BossExcavatorAttack.BucketStrike)
             {
-                float bucketIntentDistance = _config.BucketMaxDistance * 0.52f;
-                float minBucketDistance = _config.StopDistance + 0.3f;
+                float bucketIntentDistance = _config.BucketMaxDistance * 0.68f;
+                float minBucketDistance = _config.StopDistance + 0.9f;
 
                 return Mathf.Max(minBucketDistance, bucketIntentDistance);
             }

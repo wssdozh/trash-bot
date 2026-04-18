@@ -264,6 +264,17 @@ namespace JunkyardBoss
                 }
             }
 
+            if (attack == BossExcavatorAttack.Charge)
+            {
+                if (targetDistance >= _boss.Config.ChargeMinDistance)
+                {
+                    if (targetDistance <= _boss.Config.ChargeMaxDistance)
+                    {
+                        score += 0.85f;
+                    }
+                }
+            }
+
             float closePressureDistance = GetCloseQueuePressureDistance();
 
             if (targetDistance <= closePressureDistance)
@@ -309,14 +320,14 @@ namespace JunkyardBoss
                 return BossExcavatorAttack.None;
             }
 
-            if (CanUseThrow(targetDistance, baseAngle, cabinAngle))
-            {
-                return BossExcavatorAttack.ThrowScrap;
-            }
-
             if (CanUseCharge(targetDistance, baseAngle))
             {
                 return BossExcavatorAttack.Charge;
+            }
+
+            if (CanUseThrow(targetDistance, baseAngle, cabinAngle))
+            {
+                return BossExcavatorAttack.ThrowScrap;
             }
 
             return BossExcavatorAttack.None;

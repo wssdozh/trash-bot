@@ -157,7 +157,7 @@ namespace JunkyardBoss
 
         private BossExcavatorState GetRecoveryState(float targetDistance)
         {
-            if (targetDistance < _boss.Move.MinMoveDistance)
+            if (ShouldForceCloseReposition(targetDistance))
             {
                 return BossExcavatorState.Reposition;
             }
@@ -195,7 +195,7 @@ namespace JunkyardBoss
 
         private bool IsForcedReposition(float targetDistance, float baseAngle)
         {
-            if (targetDistance < _boss.Move.MinMoveDistance)
+            if (ShouldForceCloseReposition(targetDistance))
             {
                 return true;
             }
@@ -219,6 +219,28 @@ namespace JunkyardBoss
             }
 
             return false;
+        }
+
+        private bool ShouldForceCloseReposition(float targetDistance)
+        {
+            if (targetDistance >= _boss.Move.MinMoveDistance)
+            {
+                return false;
+            }
+
+            BossExcavatorAttack moveAttackIntent = GetMoveAttackIntent();
+
+            if (moveAttackIntent == BossExcavatorAttack.BucketStrike)
+            {
+                return false;
+            }
+
+            if (moveAttackIntent == BossExcavatorAttack.Sweep)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool ShouldRecoverAttackAngle(float targetDistance, float baseAngle)

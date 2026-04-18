@@ -33,7 +33,7 @@ MonoBehaviour:
   _flankAngle: 20
   _flankSwitchThreshold: 2
   _flankSwitchCooldown: 1.8
-  _targetSwitchCooldown: 0.35
+  _targetSwitchCooldown: 0.18
   _desiredPointDeadZone: 0.4
   _wallProbeDistance: 2.2
   _probeRadius: 0.75
@@ -82,9 +82,9 @@ MonoBehaviour:
   _scrapTrailMinDistance: 3.1
   _scrapTrailMaxDistance: 10.8
   _scrapTrailBaseAngle: 78
-  _scrapTrailDuration: 2.2
+  _scrapTrailDuration: 6.6
   _scrapTrailMinMoveSpeed: 0.65
-  _scrapTrailSpawnSpacing: 0.78
+  _scrapTrailSpawnSpacing: 0.39
   _scrapTrailSpawnBackOffset: 0.8
   _scrapTrailGroundProbeHeight: 2.4
   _scrapTrailGroundProbeDistance: 4.2
@@ -110,8 +110,8 @@ MonoBehaviour:
   _sweepDamageInterval: 0.22
   _sweepHitRadius: 1.45
   _sweepHitOffset: 0.25
-  _sweepPushForce: 3.2
-  _sweepPushLift: 0.18
+  _sweepPushForce: 11.35
+  _sweepPushLift: 0.47
   _sweepSpinSpeed: 270
   _throwProjectileCount: 3
   _throwProjectileSpreadAngle: 18
@@ -132,8 +132,8 @@ MonoBehaviour:
   _moveOrbitTime: 0.9
   _movePressureTime: 2.35
   _moveRetreatTime: 0.35
-  _moveRepositionCommitTime: 0.18
-  _moveChaseCommitTime: 0.1
+  _moveRepositionCommitTime: 0.08
+  _moveChaseCommitTime: 0.04
   _cabinTurnSpeed: 88
   _cabinPhaseTwoMult: 1.35
   _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
