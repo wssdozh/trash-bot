@@ -17,9 +17,6 @@ namespace JunkyardBoss
         private const float NavSnapGap = 0.35f;
         private const float PathRefreshGap = 0.5f;
         private const float PathLookDistance = 0.9f;
-        private const float MoveLookBlend = 0.2f;
-        private const float PressureLookBlend = 0.58f;
-        private const float LookSmoothTime = 0.16f;
         private const float MoveSmoothTime = 0.14f;
         private const float PathTurnSlowStartAngle = 12f;
         private const float PathTurnSlowStopAngle = 70f;
@@ -59,7 +56,6 @@ namespace JunkyardBoss
         private int _flankSign = 1;
         private Vector3 _lastNavPoint;
         private Vector3 _currentMoveDirection;
-        private Vector3 _smoothedLookDirection;
         private Vector3 _smoothedMoveDirection;
         private bool _hasLastNavPoint;
         private readonly Collider[] _overlapBuffer = new Collider[OverlapBufferCount];
@@ -130,8 +126,7 @@ namespace JunkyardBoss
             _hasFallbackArenaCenter = true;
             _lastNavPoint = Vector3.zero;
             _currentMoveDirection = Vector3.zero;
-            _smoothedLookDirection = GetPlanarForward(_base != null ? _base.forward : transform.forward);
-            _smoothedMoveDirection = _smoothedLookDirection;
+            _smoothedMoveDirection = GetPlanarForward(_base != null ? _base.forward : transform.forward);
             _hasLastNavPoint = false;
 
             Stop();
@@ -601,7 +596,7 @@ namespace JunkyardBoss
                 return;
             }
 
-            Vector3 lookDirection = GetSmoothedLookDirection(desiredLookDirection);
+            Vector3 lookDirection = desiredLookDirection;
 
             if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
@@ -619,7 +614,6 @@ namespace JunkyardBoss
         private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
             Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
-            Vector3 navigationLookDirection = GetNavigationLookDirection(currentPoint, moveDirection);
 
             if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
             {
@@ -629,7 +623,12 @@ namespace JunkyardBoss
                 }
             }
 
-            if (ShouldUseTargetFacing(targetPointType))
+            if (moveDirection.sqrMagnitude > MinSqrMagnitude)
+            {
+                return moveDirection;
+            }
+
+            if (ShouldUseTargetFacing())
             {
                 if (targetDirection.sqrMagnitude > MinSqrMagnitude)
                 {
@@ -637,21 +636,11 @@ namespace JunkyardBoss
                 }
             }
 
-            if (navigationLookDirection.sqrMagnitude > MinSqrMagnitude)
-            {
-                return navigationLookDirection;
-            }
-
-            return targetDirection;
+            return Vector3.zero;
         }
 
-        private bool ShouldUseTargetFacing(BossExcavatorTargetPoint targetPointType)
+        private bool ShouldUseTargetFacing()
         {
-            if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
-            {
-                return true;
-            }
-
             if (_attackIntent == BossExcavatorAttack.BucketStrike)
             {
                 return true;
@@ -686,29 +675,6 @@ namespace JunkyardBoss
             }
 
             return Vector3.zero;
-        }
-
-        private Vector3 GetSmoothedLookDirection(Vector3 desiredLookDirection)
-        {
-            Vector3 planarDesiredDirection = GetPlanarDirection(desiredLookDirection);
-
-            if (planarDesiredDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return Vector3.zero;
-            }
-
-            if (_smoothedLookDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                _smoothedLookDirection = planarDesiredDirection;
-
-                return _smoothedLookDirection;
-            }
-
-            float smooth = Mathf.Min(1f, Time.fixedDeltaTime / LookSmoothTime);
-            _smoothedLookDirection = Vector3.Slerp(_smoothedLookDirection, planarDesiredDirection, smooth);
-            _smoothedLookDirection = GetPlanarDirection(_smoothedLookDirection);
-
-            return _smoothedLookDirection;
         }
 
         private Vector3 GetSmoothedMoveDirection(Vector3 desiredMoveDirection)
