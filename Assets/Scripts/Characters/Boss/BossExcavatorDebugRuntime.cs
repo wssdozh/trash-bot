@@ -15,6 +15,11 @@ namespace JunkyardBoss
         [SerializeField] private BossExcavatorAttack _currentAttack = BossExcavatorAttack.None;
         [SerializeField] private BossExcavatorAttack _targetAttack = BossExcavatorAttack.None;
         [SerializeField] private BossExcavatorArmPose _currentArmPose = BossExcavatorArmPose.Neutral;
+        [SerializeField] private BossExcavatorTargetPoint _targetPoint = BossExcavatorTargetPoint.ArenaCenter;
+        [SerializeField] private float _targetDistance;
+        [SerializeField] private float _baseAngleToTarget;
+        [SerializeField] private float _cabinAngleToTarget;
+        [SerializeField] private float _currentMoveSpeed;
 
         [Header("State Command")]
         [SerializeField] private BossExcavatorState _state = BossExcavatorState.Reposition;
@@ -47,6 +52,7 @@ namespace JunkyardBoss
             _selectedArmPose = _currentArmPose;
             _currentAttack = _boss.CurrentAttack;
             _targetAttack = _boss.TargetAttack;
+            UpdateRuntimeMetrics();
         }
 
         private void Update()
@@ -58,6 +64,7 @@ namespace JunkyardBoss
             _currentArmPose = _boss.GetArmPose();
             _currentAttack = _boss.CurrentAttack;
             _targetAttack = _boss.TargetAttack;
+            UpdateRuntimeMetrics();
 
             if (_resetNow)
             {
@@ -69,6 +76,7 @@ namespace JunkyardBoss
                 _currentArmPose = _boss.GetArmPose();
                 _currentAttack = _boss.CurrentAttack;
                 _targetAttack = _boss.TargetAttack;
+                UpdateRuntimeMetrics();
             }
 
             if (_completePhaseNow)
@@ -104,6 +112,60 @@ namespace JunkyardBoss
         {
             _boss.SetChargeAlign(_chargeAlign);
             _boss.RequestState(_state);
+        }
+
+        private void UpdateRuntimeMetrics()
+        {
+            _targetPoint = _boss.Move.TargetPoint;
+            _currentMoveSpeed = _boss.Move.CurrentPlanarSpeed;
+            _targetDistance = GetTargetDistance();
+            _baseAngleToTarget = GetTargetAngle(_boss.Base);
+            _cabinAngleToTarget = GetTargetAngle(_boss.Cabin);
+        }
+
+        private float GetTargetDistance()
+        {
+            if (_boss.Target == null)
+            {
+                return 0f;
+            }
+
+            if (_boss.Base == null)
+            {
+                return 0f;
+            }
+
+            Vector3 basePosition = _boss.Base.position;
+            Vector3 targetPosition = _boss.Target.position;
+            basePosition.y = 0f;
+            targetPosition.y = 0f;
+
+            return Vector3.Distance(basePosition, targetPosition);
+        }
+
+        private float GetTargetAngle(Transform pivot)
+        {
+            if (pivot == null)
+            {
+                return 0f;
+            }
+
+            if (_boss.Target == null)
+            {
+                return 0f;
+            }
+
+            Vector3 pivotPosition = pivot.position;
+            Vector3 targetPosition = _boss.Target.position;
+            targetPosition.y = pivotPosition.y;
+            Vector3 lookDirection = targetPosition - pivotPosition;
+
+            if (lookDirection.sqrMagnitude <= 0.0001f)
+            {
+                return 0f;
+            }
+
+            return Vector3.Angle(pivot.forward, lookDirection.normalized);
         }
 
         private void ValidateDependencies()

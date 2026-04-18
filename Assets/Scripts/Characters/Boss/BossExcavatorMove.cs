@@ -17,7 +17,6 @@ namespace JunkyardBoss
         private const float NavSnapGap = 0.35f;
         private const float PathRefreshGap = 0.5f;
         private const float PathLookDistance = 0.9f;
-        private const float MoveSmoothTime = 0.14f;
         private const float PathTurnSlowStartAngle = 12f;
         private const float PathTurnSlowStopAngle = 70f;
         private const float MinPathTurnSpeedFactor = 0.78f;
@@ -56,7 +55,6 @@ namespace JunkyardBoss
         private int _flankSign = 1;
         private Vector3 _lastNavPoint;
         private Vector3 _currentMoveDirection;
-        private Vector3 _smoothedMoveDirection;
         private bool _hasLastNavPoint;
         private readonly Collider[] _overlapBuffer = new Collider[OverlapBufferCount];
         private Collider[] _bodyColliders;
@@ -126,7 +124,6 @@ namespace JunkyardBoss
             _hasFallbackArenaCenter = true;
             _lastNavPoint = Vector3.zero;
             _currentMoveDirection = Vector3.zero;
-            _smoothedMoveDirection = GetPlanarForward(_base != null ? _base.forward : transform.forward);
             _hasLastNavPoint = false;
 
             Stop();
@@ -527,10 +524,10 @@ namespace JunkyardBoss
 
             if (steerDirection.sqrMagnitude <= MinSqrMagnitude)
             {
-                return GetSmoothedMoveDirection(moveDirection);
+                return moveDirection;
             }
 
-            return GetSmoothedMoveDirection(steerDirection);
+            return steerDirection;
         }
 
         private Vector3 GetPathDirection(Vector3 currentPoint)
@@ -690,29 +687,6 @@ namespace JunkyardBoss
             }
 
             return Vector3.zero;
-        }
-
-        private Vector3 GetSmoothedMoveDirection(Vector3 desiredMoveDirection)
-        {
-            Vector3 planarDesiredDirection = GetPlanarDirection(desiredMoveDirection);
-
-            if (planarDesiredDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                return Vector3.zero;
-            }
-
-            if (_smoothedMoveDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                _smoothedMoveDirection = planarDesiredDirection;
-
-                return _smoothedMoveDirection;
-            }
-
-            float smooth = Mathf.Min(1f, Time.fixedDeltaTime / MoveSmoothTime);
-            _smoothedMoveDirection = Vector3.Slerp(_smoothedMoveDirection, planarDesiredDirection, smooth);
-            _smoothedMoveDirection = GetPlanarDirection(_smoothedMoveDirection);
-
-            return _smoothedMoveDirection;
         }
 
         private float GetTurnSpeed(Vector3 currentPoint, Vector3 targetPoint, Vector3 lookDirection)
