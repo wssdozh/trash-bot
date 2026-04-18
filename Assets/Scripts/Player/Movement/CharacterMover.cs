@@ -30,6 +30,8 @@ public class CharacterMover : MonoBehaviour
 
     public float SprintSpeed => _speedSprint;
 
+    public bool IsKnockbackActive => _knockbackTimer > 0f;
+
     private void FixedUpdate()
     {
         Move();

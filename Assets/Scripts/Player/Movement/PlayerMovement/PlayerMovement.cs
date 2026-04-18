@@ -25,6 +25,7 @@ public class PlayerMovement : MonoBehaviour
     private PlayerSprint _sprint;
     private PlayerJumpAction _jumpAction;
     private PlayerRotationByState _rotationByState;
+    private bool _needsInputRestoreAfterKnockback;
 
     public bool IsSprinting => _sprint.IsSprinting;
 
@@ -48,6 +49,7 @@ public class PlayerMovement : MonoBehaviour
             _attackMovementMultiplier);
 
         _rotationByState = new PlayerRotationByState(_rotator, _moveApplier, _attackMovementBlend);
+        _needsInputRestoreAfterKnockback = false;
     }
 
     private void OnEnable()
@@ -73,6 +75,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         _sprint.Tick(deltaTime);
+
+        TryRestoreInputAfterKnockback();
 
         if (_attackMovementBlend.IsRecoverActive)
         {
@@ -110,6 +114,7 @@ public class PlayerMovement : MonoBehaviour
         _sprint.Stop();
         _moveStopDelay.Cancel();
         _attackMovementBlend.CancelRecover();
+        _needsInputRestoreAfterKnockback = true;
         _movement.ApplyKnockback(direction, speed, duration, lift);
     }
 
@@ -156,10 +161,38 @@ public class PlayerMovement : MonoBehaviour
             _attackMovementBlend.CancelRecover();
             _moveStopDelay.Cancel();
             _sprint.Stop();
+            _needsInputRestoreAfterKnockback = false;
             return;
         }
 
         _moveStopDelay.Cancel();
         _attackMovementBlend.StartRecover();
+    }
+
+    private void TryRestoreInputAfterKnockback()
+    {
+        if (_needsInputRestoreAfterKnockback == false)
+        {
+            return;
+        }
+
+        if (_movement.IsKnockbackActive)
+        {
+            return;
+        }
+
+        _needsInputRestoreAfterKnockback = false;
+
+        if (_moveApplier.InputMoveVector == Vector2.zero)
+        {
+            return;
+        }
+
+        if (_attackMovementBlend.IsRecoverActive)
+        {
+            return;
+        }
+
+        _moveStopDelay.OnInputMove(_moveApplier.InputMoveVector);
     }
 }
