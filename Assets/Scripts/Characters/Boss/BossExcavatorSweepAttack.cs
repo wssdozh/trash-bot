@@ -257,7 +257,52 @@ namespace JunkyardBoss
 
                 _hitHealthIds.Add(healthId);
                 hitHealth.Decrease(_config.SweepHitDamage * GetPhaseDamageMult());
+                TryPushPlayer(hitCollider, hitCenter, hitForward);
             }
+        }
+
+        private void TryPushPlayer(Collider hitCollider, Vector3 hitCenter, Vector3 hitForward)
+        {
+            if (hitCollider == null)
+            {
+                return;
+            }
+
+            Player hitPlayer = hitCollider.GetComponentInParent<Player>();
+
+            if (hitPlayer == null)
+            {
+                return;
+            }
+
+            Rigidbody hitRigidbody = hitCollider.attachedRigidbody;
+
+            if (hitRigidbody == null)
+            {
+                return;
+            }
+
+            if (hitRigidbody.isKinematic)
+            {
+                return;
+            }
+
+            Vector3 pushDirection = hitRigidbody.worldCenterOfMass - hitCenter;
+            pushDirection.y = 0f;
+
+            if (pushDirection.sqrMagnitude <= MinDirectionSqr)
+            {
+                pushDirection = hitForward;
+            }
+
+            else
+            {
+                pushDirection.Normalize();
+            }
+
+            Vector3 pushImpulse = pushDirection * _config.SweepPushForce;
+            pushImpulse.y = _config.SweepPushLift;
+            hitRigidbody.AddForce(pushImpulse, ForceMode.Impulse);
         }
 
         private Vector3 ResolveHitForward()

@@ -291,6 +291,12 @@ namespace JunkyardBoss
         [Min(0f)]
         [SerializeField] private float _sweepHitOffset = 0.25f;
 
+        [Min(0f)]
+        [SerializeField] private float _sweepPushForce = 3.2f;
+
+        [Min(0f)]
+        [SerializeField] private float _sweepPushLift = 0.18f;
+
         [Min(1f)]
         [SerializeField] private float _sweepSpinSpeed = 270f;
 
@@ -511,6 +517,8 @@ namespace JunkyardBoss
         public float SweepDamageInterval => _sweepDamageInterval;
         public float SweepHitRadius => _sweepHitRadius;
         public float SweepHitOffset => _sweepHitOffset;
+        public float SweepPushForce => _sweepPushForce;
+        public float SweepPushLift => _sweepPushLift;
         public float SweepSpinSpeed => _sweepSpinSpeed;
         public int ThrowProjectileCount => Mathf.Max(_throwProjectileCount, 1);
         public float ThrowProjectileSpreadAngle => _throwProjectileSpreadAngle;
