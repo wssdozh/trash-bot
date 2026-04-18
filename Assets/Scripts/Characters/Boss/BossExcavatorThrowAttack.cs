@@ -17,6 +17,7 @@ namespace JunkyardBoss
         private float _grabTimer;
         private float _throwTimer;
         private float _recoverTimer;
+        private float _launchDelayTimer;
         private bool _isRunning;
         private bool _isProjectileLaunched;
 
@@ -44,6 +45,7 @@ namespace JunkyardBoss
             _grabTimer = 0f;
             _throwTimer = 0f;
             _recoverTimer = 0f;
+            _launchDelayTimer = 0f;
             _isRunning = false;
             _isProjectileLaunched = false;
         }
@@ -53,8 +55,9 @@ namespace JunkyardBoss
             ValidateDependencies();
 
             _grabTimer = GetGrabTime();
-            _throwTimer = GetThrowTime();
+            _throwTimer = 0f;
             _recoverTimer = GetRecoverTime();
+            _launchDelayTimer = 0f;
             _isRunning = true;
             _isProjectileLaunched = false;
 
@@ -87,7 +90,12 @@ namespace JunkyardBoss
             {
                 if (_isProjectileLaunched == false)
                 {
-                    LaunchProjectiles();
+                    _launchDelayTimer = Mathf.Max(0f, _launchDelayTimer - Time.deltaTime);
+
+                    if (_launchDelayTimer <= 0f)
+                    {
+                        LaunchProjectiles();
+                    }
                 }
 
                 _throwTimer = Mathf.Max(0f, _throwTimer - Time.deltaTime);
@@ -128,6 +136,7 @@ namespace JunkyardBoss
             _grabTimer = 0f;
             _throwTimer = 0f;
             _recoverTimer = 0f;
+            _launchDelayTimer = 0f;
             _boss.SetAimLocked(false);
 
             if (restoreNeutralPose)
@@ -138,6 +147,10 @@ namespace JunkyardBoss
 
         private void BeginThrow()
         {
+            float throwPoseTravelTime = GetThrowPoseTravelTime();
+
+            _throwTimer = Mathf.Max(GetThrowTime(), throwPoseTravelTime);
+            _launchDelayTimer = Mathf.Max(0.05f, Mathf.Min(_throwTimer * 0.6f, throwPoseTravelTime * 0.55f));
             _boss.SetAimLocked(true);
             _boss.SetArmPose(BossExcavatorArmPose.ThrowScrap, GetAttackPoseSpeedMult());
         }
@@ -184,14 +197,28 @@ namespace JunkyardBoss
         private Vector3 ResolveSpawnPosition(Vector3 bucketPosition, Vector3 launchForward)
         {
             Vector3 spawnPosition = bucketPosition + launchForward * (_config.ThrowSpawnOffset + SpawnForwardPadding);
-            float minSpawnHeight = _boss.Base.position.y + SpawnHeightOffset;
-
-            if (spawnPosition.y < minSpawnHeight)
-            {
-                spawnPosition.y = minSpawnHeight;
-            }
+            spawnPosition.y = ResolveSpawnHeight(spawnPosition.y);
 
             return spawnPosition;
+        }
+
+        private float ResolveSpawnHeight(float fallbackHeight)
+        {
+            Transform target = _boss.Target;
+
+            if (target != null)
+            {
+                return target.position.y;
+            }
+
+            float minSpawnHeight = _boss.Base.position.y + SpawnHeightOffset;
+
+            if (fallbackHeight < minSpawnHeight)
+            {
+                return minSpawnHeight;
+            }
+
+            return fallbackHeight;
         }
 
         private float GetProjectileAngleOffset(int projectileIndex, int projectileCount)
@@ -360,6 +387,11 @@ namespace JunkyardBoss
         private float GetRecoverTime()
         {
             return _config.AttackRecoveryTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetThrowPoseTravelTime()
+        {
+            return _boss.Arm.GetPoseTravelTime(BossExcavatorArmPose.ThrowScrap, GetAttackPoseSpeedMult());
         }
 
         private int GetProjectileCount()

@@ -70,7 +70,7 @@ namespace JunkyardBoss
             _boss.SetChargeAlign(false);
             _boss.SetAimLocked(true);
             _boss.SetArmLocked(false);
-            SetSweepPose();
+            SetPreparePose();
         }
 
         public bool Tick()
@@ -147,6 +147,7 @@ namespace JunkyardBoss
         private void BeginSpin()
         {
             _damageTickTimer = 0f;
+            SetSweepPose();
         }
 
         private void BeginRecover()
@@ -166,6 +167,15 @@ namespace JunkyardBoss
                 _config.ArmSweepBoomEuler,
                 _config.ArmSweepStickEuler,
                 _config.ArmSweepBucketEuler,
+                GetAttackPoseSpeedMult());
+        }
+
+        private void SetPreparePose()
+        {
+            _boss.SetArmPose(
+                _config.ArmBucketPrepareBoomEuler,
+                _config.ArmBucketPrepareStickEuler,
+                _config.ArmBucketPrepareBucketEuler,
                 GetAttackPoseSpeedMult());
         }
 
