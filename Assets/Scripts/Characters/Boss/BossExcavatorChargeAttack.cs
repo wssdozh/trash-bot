@@ -17,6 +17,9 @@ namespace JunkyardBoss
         private const float PhaseTwoAlignTimeMult = 0.2f;
         private const float PhaseTwoTelegraphTimeMult = 0.3f;
         private const float PhaseTwoCabinSpinSlowdown = 1.5f;
+        private const float ChargeDriveStartAngle = 6f;
+        private const float ChargeDriveStopAngle = 28f;
+        private const float ChargeTurnSpeedMult = 1.6f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
@@ -292,7 +295,7 @@ namespace JunkyardBoss
             moveDirection.Normalize();
             RotateBaseTowards(moveDirection, deltaTime);
 
-            float stepDistance = GetChargeSpeed() * deltaTime;
+            float stepDistance = GetChargeSpeed() * GetChargeDriveSpeedFactor(moveDirection) * deltaTime;
 
             if (stepDistance <= 0f)
             {
@@ -713,9 +716,17 @@ namespace JunkyardBoss
             Quaternion nextRotation = Quaternion.RotateTowards(
                 currentRotation,
                 targetRotation,
-                _config.BaseTurnSpeed * GetPhaseAttackSpeedMult() * deltaTime);
+                _config.BaseTurnSpeed * ChargeTurnSpeedMult * GetPhaseAttackSpeedMult() * deltaTime);
 
             _boss.BaseRigidbody.MoveRotation(nextRotation);
+        }
+
+        private float GetChargeDriveSpeedFactor(Vector3 moveDirection)
+        {
+            float facingAngle = GetChargeFacingAngle(moveDirection);
+            float driveBlend = Mathf.InverseLerp(ChargeDriveStartAngle, ChargeDriveStopAngle, facingAngle);
+
+            return 1f - driveBlend;
         }
 
         private void ResetPlanarVelocity()

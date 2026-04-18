@@ -20,11 +20,7 @@ namespace JunkyardBoss
         private const float PathTurnSlowStartAngle = 12f;
         private const float PathTurnSlowStopAngle = 70f;
         private const float MinPathTurnSpeedFactor = 0.78f;
-        private const float StationaryTurnSpeedThreshold = 0.05f;
         private const float BaseTurnSpeedScale = 0.32f;
-        private const float FacingTargetMoveWeight = 0.35f;
-        private const float FacingTargetTargetWeight = 1f;
-        private const float LookDirectionTurnSpeedFactor = 0.75f;
         private const float GizmoPointSize = 0.35f;
         private const float GizmoSmallPointSize = 0.2f;
         private const int AvoidDirectionCount = 3;
@@ -61,9 +57,7 @@ namespace JunkyardBoss
         private int _flankSign = 1;
         private Vector3 _lastNavPoint;
         private Vector3 _currentMoveDirection;
-        private Vector3 _currentLookDirection;
         private bool _hasLastNavPoint;
-        private bool _hasCurrentLookDirection;
         private readonly Collider[] _overlapBuffer = new Collider[OverlapBufferCount];
         private Collider[] _bodyColliders;
 
@@ -133,9 +127,7 @@ namespace JunkyardBoss
             _hasFallbackArenaCenter = true;
             _lastNavPoint = Vector3.zero;
             _currentMoveDirection = Vector3.zero;
-            _currentLookDirection = Vector3.zero;
             _hasLastNavPoint = false;
-            _hasCurrentLookDirection = false;
 
             Stop();
         }
@@ -597,7 +589,7 @@ namespace JunkyardBoss
 
         private void RotateBase(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
-            Vector3 desiredLookDirection = GetLookDirection(currentPoint, targetPoint, moveDirection, targetPointType);
+            Vector3 desiredLookDirection = ResolveFacingDirection(currentPoint, targetPoint, moveDirection, targetPointType);
 
             if (desiredLookDirection.sqrMagnitude <= MinSqrMagnitude)
             {
@@ -607,17 +599,8 @@ namespace JunkyardBoss
             }
 
             float turnSpeed = GetTurnSpeed(currentPoint, targetPoint, desiredLookDirection);
-            Vector3 lookDirection = GetSmoothedLookDirection(desiredLookDirection, turnSpeed, Time.fixedDeltaTime);
-
-            if (lookDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                _currentTurnSpeed = 0f;
-
-                return;
-            }
-
             Quaternion currentRotation = _baseRigidbody.rotation;
-            Quaternion targetRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+            Quaternion targetRotation = Quaternion.LookRotation(desiredLookDirection, Vector3.up);
             Quaternion nextRotation = BossExcavatorMotionProfile.StepRotation(
                 currentRotation,
                 targetRotation,
@@ -632,83 +615,46 @@ namespace JunkyardBoss
             _baseRigidbody.MoveRotation(nextRotation);
         }
 
-        private Vector3 GetLookDirection(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
+        private Vector3 ResolveFacingDirection(Vector3 currentPoint, Vector3 targetPoint, Vector3 moveDirection, BossExcavatorTargetPoint targetPointType)
         {
-            Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
-            bool shouldFaceTarget = ShouldUseTargetFacing(targetPointType);
-
-            if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
-            {
-                if (targetDirection.sqrMagnitude > MinSqrMagnitude)
-                {
-                    return targetDirection;
-                }
-            }
-
-            if (shouldFaceTarget || targetPointType == BossExcavatorTargetPoint.PlayerCenter)
-            {
-                if (targetDirection.sqrMagnitude > MinSqrMagnitude)
-                {
-                    if (moveDirection.sqrMagnitude > MinSqrMagnitude)
-                    {
-                        if (_currentPlanarSpeed > StationaryTurnSpeedThreshold)
-                        {
-                            return BlendLookDirections(moveDirection, targetDirection);
-                        }
-                    }
-
-                    return targetDirection;
-                }
-            }
-
             if (moveDirection.sqrMagnitude > MinSqrMagnitude)
             {
-                return moveDirection;
+                return ResolveTravelFacingDirection(moveDirection);
             }
+
+            Vector3 targetDirection = GetPlanarDirection(targetPoint - currentPoint);
 
             if (targetDirection.sqrMagnitude > MinSqrMagnitude)
             {
-                return targetDirection;
+                if (targetPointType == BossExcavatorTargetPoint.ChargeAlign)
+                {
+                    return targetDirection;
+                }
+
+                if (ShouldUseTargetFacing(targetPointType))
+                {
+                    return targetDirection;
+                }
             }
 
             return Vector3.zero;
         }
 
-        private Vector3 BlendLookDirections(Vector3 moveDirection, Vector3 targetDirection)
+        private Vector3 ResolveTravelFacingDirection(Vector3 desiredTravelDirection)
         {
-            Vector3 blendedDirection = (moveDirection * FacingTargetMoveWeight) + (targetDirection * FacingTargetTargetWeight);
+            Vector3 planarDirection = GetPlanarDirection(desiredTravelDirection);
 
-            return GetPlanarDirection(blendedDirection);
-        }
-
-        private Vector3 GetSmoothedLookDirection(Vector3 desiredLookDirection, float turnSpeed, float deltaTime)
-        {
-            if (_hasCurrentLookDirection == false)
+            if (planarDirection.sqrMagnitude <= MinSqrMagnitude)
             {
-                _currentLookDirection = GetPlanarForward(_base.forward);
-                _hasCurrentLookDirection = true;
+                return Vector3.zero;
             }
 
-            Vector3 currentLookDirection = _currentLookDirection;
-
-            if (currentLookDirection.sqrMagnitude <= MinSqrMagnitude)
+            if (ShouldUseReverseFacing(planarDirection))
             {
-                currentLookDirection = desiredLookDirection;
+                return planarDirection * -1f;
             }
 
-            float lookTurnSpeed = Mathf.Max(turnSpeed * LookDirectionTurnSpeedFactor, 1f);
-            float maxRadiansDelta = Mathf.Deg2Rad * lookTurnSpeed * deltaTime;
-            Vector3 nextLookDirection = Vector3.RotateTowards(currentLookDirection, desiredLookDirection, maxRadiansDelta, 0f);
-            nextLookDirection = GetPlanarDirection(nextLookDirection);
-
-            if (nextLookDirection.sqrMagnitude <= MinSqrMagnitude)
-            {
-                nextLookDirection = desiredLookDirection;
-            }
-
-            _currentLookDirection = nextLookDirection;
-
-            return nextLookDirection;
+            return planarDirection;
         }
 
         private bool ShouldUseTargetFacing(BossExcavatorTargetPoint targetPointType)
@@ -831,8 +777,21 @@ namespace JunkyardBoss
                 return;
             }
 
-            Vector3 driveDirection = moveDirection.normalized;
-            float speedFactor = GetPathTurnSpeedFactor(currentPoint, driveDirection);
+            Vector3 desiredDriveDirection = moveDirection.normalized;
+            Vector3 driveDirection = ResolveDriveAxis(desiredDriveDirection);
+            float facingAngle = GetFacingAngleToTravel(desiredDriveDirection);
+            float bodyDriveFactor = GetBodyDriveSpeedFactor(facingAngle);
+
+            if (bodyDriveFactor <= 0f)
+            {
+                _currentPlanarSpeed = 0f;
+                _currentMoveDirection = Vector3.zero;
+                ResetPlanarVelocity();
+
+                return;
+            }
+
+            float speedFactor = GetPathTurnSpeedFactor(currentPoint, desiredDriveDirection) * bodyDriveFactor;
             float moveDistance = _config.BaseMoveSpeed * speedFactor * Time.fixedDeltaTime;
             float maxDistance = Mathf.Max(0f, targetDistance - stopDistance);
 
@@ -879,6 +838,47 @@ namespace JunkyardBoss
             float turnBlend = Mathf.InverseLerp(PathTurnSlowStartAngle, PathTurnSlowStopAngle, turnAngle);
 
             return Mathf.Lerp(1f, MinPathTurnSpeedFactor, turnBlend);
+        }
+
+        private Vector3 ResolveDriveAxis(Vector3 desiredDriveDirection)
+        {
+            Vector3 bodyForward = GetPlanarForward(_base.forward);
+
+            if (ShouldUseReverseFacing(desiredDriveDirection))
+            {
+                return bodyForward * -1f;
+            }
+
+            return bodyForward;
+        }
+
+        private bool ShouldUseReverseFacing(Vector3 desiredDriveDirection)
+        {
+            Vector3 bodyForward = GetPlanarForward(_base.forward);
+            float forwardAngle = Vector3.Angle(bodyForward, desiredDriveDirection);
+            float reverseAngle = Vector3.Angle(bodyForward * -1f, desiredDriveDirection);
+
+            if (reverseAngle < forwardAngle)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private float GetFacingAngleToTravel(Vector3 desiredDriveDirection)
+        {
+            Vector3 facingDirection = ResolveTravelFacingDirection(desiredDriveDirection);
+            Vector3 bodyForward = GetPlanarForward(_base.forward);
+
+            return Vector3.Angle(bodyForward, facingDirection);
+        }
+
+        private float GetBodyDriveSpeedFactor(float facingAngle)
+        {
+            float driveBlend = Mathf.InverseLerp(_config.MoveStartAngle, _config.MoveStopAngle, facingAngle);
+
+            return 1f - driveBlend;
         }
 
         private bool SyncAgent(Vector3 currentPoint)
