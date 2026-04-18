@@ -11,9 +11,9 @@ namespace JunkyardBoss
         private const int GroundHitBufferCount = 8;
         private const string ScrapTrailSpawnerKey = "BossScrapTrailBlock";
         private const float StrikePoseSnapSpeedMult = 1.65f;
-        private const float StrikeImpactDelayFactor = 0.35f;
-        private const float MinStrikeImpactDelay = 0.04f;
-        private const float MaxStrikeImpactDelay = 0.11f;
+        private const float StrikeImpactDelayFactor = 0.5f;
+        private const float MinStrikeImpactDelay = 0.1f;
+        private const float MaxStrikeImpactDelay = 0.22f;
         private const float HitStopDuration = 0.05f;
 
         private readonly BossExcavator _boss;
@@ -182,7 +182,7 @@ namespace JunkyardBoss
             _strikeForward = ResolveStrikeForward();
             float strikePoseTravelTime = GetStrikePoseTravelTime();
             _strikeTimer = Mathf.Max(GetBucketStrikeTime(), strikePoseTravelTime);
-            _hitDelayTimer = Mathf.Clamp(strikePoseTravelTime * StrikeImpactDelayFactor, MinStrikeImpactDelay, MaxStrikeImpactDelay);
+            _hitDelayTimer = Mathf.Clamp(_strikeTimer * StrikeImpactDelayFactor, MinStrikeImpactDelay, MaxStrikeImpactDelay);
             SetStrikePose();
         }
 
