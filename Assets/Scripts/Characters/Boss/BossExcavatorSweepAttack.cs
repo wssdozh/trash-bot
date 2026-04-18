@@ -8,6 +8,8 @@ namespace JunkyardBoss
     {
         private const float MinDirectionSqr = 0.0001f;
         private const int HitBufferCount = 24;
+        private const float InnerSweepRadiusFactor = 0.72f;
+        private const float SweepKnockbackDuration = 0.16f;
 
         private readonly BossExcavator _boss;
         private readonly BossExcavatorConfig _config;
@@ -209,9 +211,12 @@ namespace JunkyardBoss
 
             Vector3 hitForward = ResolveHitForward();
             Vector3 hitCenter = bucket.position + hitForward * _config.SweepHitOffset;
-            int hitCount = Physics.OverlapSphereNonAlloc(
+            Vector3 innerCenter = ResolveInnerHitCenter(hitCenter);
+            float hitRadius = GetSweepHitRadius();
+            int hitCount = Physics.OverlapCapsuleNonAlloc(
+                innerCenter,
                 hitCenter,
-                _config.SweepHitRadius,
+                hitRadius,
                 _hitBuffer,
                 _config.BucketHitMask,
                 QueryTriggerInteraction.Ignore);
@@ -257,11 +262,11 @@ namespace JunkyardBoss
 
                 _hitHealthIds.Add(healthId);
                 hitHealth.Decrease(_config.SweepHitDamage * GetPhaseDamageMult());
-                TryPushPlayer(hitCollider, hitCenter, hitForward);
+                TryPushPlayer(hitCollider, hitForward);
             }
         }
 
-        private void TryPushPlayer(Collider hitCollider, Vector3 hitCenter, Vector3 hitForward)
+        private void TryPushPlayer(Collider hitCollider, Vector3 hitForward)
         {
             if (hitCollider == null)
             {
@@ -271,6 +276,13 @@ namespace JunkyardBoss
             Player hitPlayer = hitCollider.GetComponentInParent<Player>();
 
             if (hitPlayer == null)
+            {
+                return;
+            }
+
+            PlayerMovement playerMovement = hitPlayer.Movement;
+
+            if (playerMovement == null)
             {
                 return;
             }
@@ -287,7 +299,9 @@ namespace JunkyardBoss
                 return;
             }
 
-            Vector3 pushDirection = hitRigidbody.worldCenterOfMass - hitCenter;
+            Vector3 pushOrigin = _boss.Base.position;
+            pushOrigin.y = hitRigidbody.worldCenterOfMass.y;
+            Vector3 pushDirection = hitRigidbody.worldCenterOfMass - pushOrigin;
             pushDirection.y = 0f;
 
             if (pushDirection.sqrMagnitude <= MinDirectionSqr)
@@ -300,9 +314,39 @@ namespace JunkyardBoss
                 pushDirection.Normalize();
             }
 
-            Vector3 pushImpulse = pushDirection * _config.SweepPushForce;
-            pushImpulse.y = _config.SweepPushLift;
-            hitRigidbody.AddForce(pushImpulse, ForceMode.Impulse);
+            playerMovement.ApplyKnockback(
+                pushDirection,
+                _config.SweepPushForce,
+                SweepKnockbackDuration,
+                _config.SweepPushLift);
+        }
+
+        private Vector3 ResolveInnerHitCenter(Vector3 outerHitCenter)
+        {
+            Transform cabin = _boss.Cabin;
+
+            if (cabin == null)
+            {
+                return outerHitCenter;
+            }
+
+            Vector3 innerCenter = cabin.position;
+            innerCenter.y = outerHitCenter.y;
+
+            Vector3 toOuter = outerHitCenter - innerCenter;
+            toOuter.y = 0f;
+
+            if (toOuter.sqrMagnitude <= MinDirectionSqr)
+            {
+                return outerHitCenter;
+            }
+
+            return innerCenter + toOuter * InnerSweepRadiusFactor;
+        }
+
+        private float GetSweepHitRadius()
+        {
+            return _config.SweepHitRadius;
         }
 
         private Vector3 ResolveHitForward()
@@ -404,6 +448,11 @@ namespace JunkyardBoss
             if (_boss.Bucket == null)
             {
                 throw new InvalidOperationException(nameof(_boss.Bucket));
+            }
+
+            if (_boss.Base == null)
+            {
+                throw new InvalidOperationException(nameof(_boss.Base));
             }
         }
 

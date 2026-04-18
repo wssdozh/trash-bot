@@ -542,11 +542,26 @@ namespace JunkyardBoss
                 return;
             }
 
+            if (_cabin == null)
+            {
+                return;
+            }
+
             Vector3 sweepForward = ResolveAttackForward();
             Vector3 sweepCenter = _bucket.position + sweepForward * _config.SweepHitOffset;
+            Vector3 innerSweepCenter = _cabin.position;
+            innerSweepCenter.y = sweepCenter.y;
+            Vector3 toOuter = sweepCenter - innerSweepCenter;
+            toOuter.y = 0f;
+
+            if (toOuter.sqrMagnitude > 0.0001f)
+            {
+                innerSweepCenter += toOuter * 0.72f;
+            }
 
             Gizmos.color = new Color(0.2f, 1f, 1f, 0.9f);
-            Gizmos.DrawLine(_bucket.position, sweepCenter);
+            Gizmos.DrawLine(innerSweepCenter, sweepCenter);
+            Gizmos.DrawWireSphere(innerSweepCenter, _config.SweepHitRadius);
             Gizmos.DrawWireSphere(sweepCenter, _config.SweepHitRadius);
         }
 

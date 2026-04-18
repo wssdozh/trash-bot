@@ -105,6 +105,14 @@ public class PlayerMovement : MonoBehaviour
         _jumpAction.TryJump(_movementGate.IsMovementAllowed);
     }
 
+    public void ApplyKnockback(Vector3 direction, float speed, float duration, float lift)
+    {
+        _sprint.Stop();
+        _moveStopDelay.Cancel();
+        _attackMovementBlend.CancelRecover();
+        _movement.ApplyKnockback(direction, speed, duration, lift);
+    }
+
     public void TryStartSprinting()
     {
         if (_movementGate.IsMovementAllowed == false)

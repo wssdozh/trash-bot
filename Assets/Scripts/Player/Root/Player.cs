@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
     private BossHealthOverlay _bossHealthOverlay;
 
     public event Action Died;
+    public PlayerMovement Movement => _movement;
 
     private void Awake()
     {

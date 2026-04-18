@@ -177,6 +177,43 @@ namespace JunkyardBoss
             ApplyPoseImmediate(boomLocalEuler, stickLocalEuler, bucketLocalEuler);
         }
 
+        public float GetPoseTravelTime(BossExcavatorArmPose pose, float poseSpeedMult)
+        {
+            if (poseSpeedMult <= 0f)
+            {
+                throw new InvalidOperationException(nameof(poseSpeedMult));
+            }
+
+            ValidateDependencies();
+
+            Vector3 boomLocalEuler = _config.ArmNeutralBoomEuler;
+            Vector3 stickLocalEuler = _config.ArmNeutralStickEuler;
+            Vector3 bucketLocalEuler = _config.ArmNeutralBucketEuler;
+
+            ResolvePose(pose, out boomLocalEuler, out stickLocalEuler, out bucketLocalEuler);
+
+            return GetPoseTravelTime(boomLocalEuler, stickLocalEuler, bucketLocalEuler, poseSpeedMult);
+        }
+
+        public float GetPoseTravelTime(Vector3 boomLocalEuler, Vector3 stickLocalEuler, Vector3 bucketLocalEuler, float poseSpeedMult)
+        {
+            if (poseSpeedMult <= 0f)
+            {
+                throw new InvalidOperationException(nameof(poseSpeedMult));
+            }
+
+            ValidateDependencies();
+
+            Quaternion boomTarget = BuildJointRotation(boomLocalEuler, _config.ArmBoomAxis, _config.ArmBoomAxisInvert);
+            Quaternion stickTarget = BuildJointRotation(stickLocalEuler, _config.ArmStickAxis, _config.ArmStickAxisInvert);
+            Quaternion bucketTarget = BuildJointRotation(bucketLocalEuler, _config.ArmBucketAxis, _config.ArmBucketAxisInvert);
+            float boomTime = GetJointTravelTime(_boom.localRotation, boomTarget, _config.ArmBoomSpeed * poseSpeedMult);
+            float stickTime = GetJointTravelTime(_stick.localRotation, stickTarget, _config.ArmStickSpeed * poseSpeedMult);
+            float bucketTime = GetJointTravelTime(_bucket.localRotation, bucketTarget, _config.ArmBucketSpeed * poseSpeedMult);
+
+            return Mathf.Max(boomTime, Mathf.Max(stickTime, bucketTime));
+        }
+
         private void ResolvePose(BossExcavatorArmPose pose, out Vector3 boomLocalEuler, out Vector3 stickLocalEuler, out Vector3 bucketLocalEuler)
         {
             boomLocalEuler = _config.ArmNeutralBoomEuler;
@@ -302,6 +339,23 @@ namespace JunkyardBoss
             Quaternion currentRotation = part.localRotation;
             Quaternion nextRotation = Quaternion.RotateTowards(currentRotation, targetRotation, turnSpeed * deltaTime);
             part.localRotation = nextRotation;
+        }
+
+        private float GetJointTravelTime(Quaternion currentRotation, Quaternion targetRotation, float turnSpeed)
+        {
+            if (turnSpeed <= 0f)
+            {
+                throw new InvalidOperationException(nameof(turnSpeed));
+            }
+
+            float angle = Quaternion.Angle(currentRotation, targetRotation);
+
+            if (angle <= 0f)
+            {
+                return 0f;
+            }
+
+            return angle / turnSpeed;
         }
 
         private void CacheCurrentPose()

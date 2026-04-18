@@ -17,6 +17,7 @@ namespace JunkyardBoss
         private float _telegraphTimer;
         private float _strikeTimer;
         private float _recoverTimer;
+        private float _hitDelayTimer;
         private Vector3 _strikeForward;
         private bool _isRunning;
         private bool _isHitApplied;
@@ -49,6 +50,7 @@ namespace JunkyardBoss
             _telegraphTimer = 0f;
             _strikeTimer = 0f;
             _recoverTimer = 0f;
+            _hitDelayTimer = 0f;
             _isRunning = false;
             _isHitApplied = false;
             _strikeForward = Vector3.forward;
@@ -59,9 +61,10 @@ namespace JunkyardBoss
         {
             ValidateDependencies();
 
-            _telegraphTimer = GetBucketPrepareTime();
-            _strikeTimer = GetBucketStrikeTime();
+            _telegraphTimer = Mathf.Max(GetBucketPrepareTime(), GetPreparePoseTravelTime());
+            _strikeTimer = 0f;
             _recoverTimer = GetRecoverTime();
+            _hitDelayTimer = 0f;
             _isRunning = true;
             _isHitApplied = false;
             _strikeForward = ResolveStrikeForward();
@@ -93,9 +96,14 @@ namespace JunkyardBoss
 
             if (_strikeTimer > 0f)
             {
+                _hitDelayTimer = Mathf.Max(0f, _hitDelayTimer - Time.deltaTime);
+
                 if (_isHitApplied == false)
                 {
-                    TryApplyHit();
+                    if (_hitDelayTimer <= 0f)
+                    {
+                        TryApplyHit();
+                    }
                 }
 
                 _strikeTimer = Mathf.Max(0f, _strikeTimer - Time.deltaTime);
@@ -136,6 +144,7 @@ namespace JunkyardBoss
             _telegraphTimer = 0f;
             _strikeTimer = 0f;
             _recoverTimer = 0f;
+            _hitDelayTimer = 0f;
             _boss.SetAimLocked(false);
             _damagedHealthIds.Clear();
 
@@ -149,8 +158,10 @@ namespace JunkyardBoss
         {
             _boss.SetAimLocked(false);
             _strikeForward = ResolveStrikeForward();
+            float strikePoseTravelTime = GetStrikePoseTravelTime();
+            _strikeTimer = Mathf.Max(GetBucketStrikeTime(), strikePoseTravelTime);
+            _hitDelayTimer = strikePoseTravelTime;
             SetStrikePose();
-            TryApplyHit();
         }
 
         private void BeginRecover()
@@ -441,6 +452,11 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(_boss.Boom));
             }
 
+            if (_boss.Arm == null)
+            {
+                throw new InvalidOperationException(nameof(_boss.Arm));
+            }
+
             if (_boss.Stick == null)
             {
                 throw new InvalidOperationException(nameof(_boss.Stick));
@@ -472,9 +488,31 @@ namespace JunkyardBoss
             return _config.BucketPrepareTime / GetPhaseAttackSpeedMult();
         }
 
+        private float GetPreparePoseTravelTime()
+        {
+            float poseSpeedMult = _config.BucketPrepareSpeedMult * GetPhaseAttackSpeedMult();
+
+            return _boss.Arm.GetPoseTravelTime(
+                _config.ArmBucketPrepareBoomEuler,
+                _config.ArmBucketPrepareStickEuler,
+                _config.ArmBucketPrepareBucketEuler,
+                poseSpeedMult);
+        }
+
         private float GetBucketStrikeTime()
         {
             return _config.BucketStrikeTime / GetPhaseAttackSpeedMult();
+        }
+
+        private float GetStrikePoseTravelTime()
+        {
+            float poseSpeedMult = _config.BucketStrikeSpeedMult * GetPhaseAttackSpeedMult();
+
+            return _boss.Arm.GetPoseTravelTime(
+                _config.ArmBucketStrikeBoomEuler,
+                _config.ArmBucketStrikeStickEuler,
+                _config.ArmBucketStrikeBucketEuler,
+                poseSpeedMult);
         }
 
         private float GetRecoverTime()
