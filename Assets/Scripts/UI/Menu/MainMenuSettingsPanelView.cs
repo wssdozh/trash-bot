@@ -37,6 +37,12 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     [SerializeField] private Button _screenButton;
     [SerializeField] private Image _screenButtonImage;
     [SerializeField] private TMP_Text _screenButtonText;
+    [SerializeField] private Button _vSyncOffButton;
+    [SerializeField] private Image _vSyncOffButtonImage;
+    [SerializeField] private TMP_Text _vSyncOffButtonText;
+    [SerializeField] private Button _vSyncOnButton;
+    [SerializeField] private Image _vSyncOnButtonImage;
+    [SerializeField] private TMP_Text _vSyncOnButtonText;
     [SerializeField] private Button _lowQualityButton;
     [SerializeField] private Image _lowQualityButtonImage;
     [SerializeField] private TMP_Text _lowQualityButtonText;
@@ -57,6 +63,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     private Color _inactiveColor;
 
     private bool _defaultFullScreen;
+    private bool _defaultVSyncEnabled;
     private bool _isBound;
     private bool _isSyncing;
 
@@ -68,11 +75,12 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         _buttonTextColor = _windowButtonText.color;
         _inactiveColor = _windowButtonImage.color;
         _defaultFullScreen = Screen.fullScreen;
+        _defaultVSyncEnabled = QualitySettings.vSyncCount > 0;
 
         Bind();
         _isBound = true;
 
-        _settingsData = _settingsSave.Load(_qualityLevels[HighQualityIndex], _defaultFullScreen);
+        _settingsData = _settingsSave.Load(_qualityLevels[HighQualityIndex], _defaultFullScreen, _defaultVSyncEnabled);
         _settingsData = NormalizeData(_settingsData);
 
         ApplyData();
@@ -103,6 +111,12 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         ValidateReference(_screenButton, nameof(_screenButton));
         ValidateReference(_screenButtonImage, nameof(_screenButtonImage));
         ValidateReference(_screenButtonText, nameof(_screenButtonText));
+        ValidateReference(_vSyncOffButton, nameof(_vSyncOffButton));
+        ValidateReference(_vSyncOffButtonImage, nameof(_vSyncOffButtonImage));
+        ValidateReference(_vSyncOffButtonText, nameof(_vSyncOffButtonText));
+        ValidateReference(_vSyncOnButton, nameof(_vSyncOnButton));
+        ValidateReference(_vSyncOnButtonImage, nameof(_vSyncOnButtonImage));
+        ValidateReference(_vSyncOnButtonText, nameof(_vSyncOnButtonText));
         ValidateReference(_lowQualityButton, nameof(_lowQualityButton));
         ValidateReference(_lowQualityButtonImage, nameof(_lowQualityButtonImage));
         ValidateReference(_lowQualityButtonText, nameof(_lowQualityButtonText));
@@ -130,6 +144,8 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
 
         _windowButton.onClick.AddListener(OnWindowClicked);
         _screenButton.onClick.AddListener(OnScreenClicked);
+        _vSyncOffButton.onClick.AddListener(OnVSyncOffClicked);
+        _vSyncOnButton.onClick.AddListener(OnVSyncOnClicked);
         _lowQualityButton.onClick.AddListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.AddListener(OnMediumQualityClicked);
         _highQualityButton.onClick.AddListener(OnHighQualityClicked);
@@ -143,6 +159,8 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
 
         _windowButton.onClick.RemoveListener(OnWindowClicked);
         _screenButton.onClick.RemoveListener(OnScreenClicked);
+        _vSyncOffButton.onClick.RemoveListener(OnVSyncOffClicked);
+        _vSyncOnButton.onClick.RemoveListener(OnVSyncOnClicked);
         _lowQualityButton.onClick.RemoveListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.RemoveListener(OnMediumQualityClicked);
         _highQualityButton.onClick.RemoveListener(OnHighQualityClicked);
@@ -220,6 +238,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         UpdateSliderValue(_effectsValue, _settingsData.EffectsVolume);
 
         UpdateFullScreenState(_settingsData.IsFullScreen);
+        UpdateVSyncState(_settingsData.IsVSyncEnabled);
         UpdateQualityState(_settingsData.QualityLevel);
 
         _isSyncing = false;
@@ -235,6 +254,12 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     {
         UpdateButtonState(_windowButtonImage, _windowButtonText, isFullScreen == false);
         UpdateButtonState(_screenButtonImage, _screenButtonText, isFullScreen);
+    }
+
+    private void UpdateVSyncState(bool isEnabled)
+    {
+        UpdateButtonState(_vSyncOffButtonImage, _vSyncOffButtonText, isEnabled == false);
+        UpdateButtonState(_vSyncOnButtonImage, _vSyncOnButtonText, isEnabled);
     }
 
     private void UpdateQualityState(int qualityLevel)
@@ -318,6 +343,32 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         RefreshView();
     }
 
+    private void OnVSyncOffClicked()
+    {
+        if (_isSyncing)
+        {
+            return;
+        }
+
+        _settingsData.IsVSyncEnabled = false;
+        ApplyVSync(_settingsData.IsVSyncEnabled);
+        Save();
+        RefreshView();
+    }
+
+    private void OnVSyncOnClicked()
+    {
+        if (_isSyncing)
+        {
+            return;
+        }
+
+        _settingsData.IsVSyncEnabled = true;
+        ApplyVSync(_settingsData.IsVSyncEnabled);
+        Save();
+        RefreshView();
+    }
+
     private void OnLowQualityClicked()
     {
         ApplyQualitySelection(_qualityLevels[LowQualityIndex]);
@@ -342,6 +393,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
 
         _settingsData.QualityLevel = NormalizeQualityLevel(qualityLevel);
         ApplyQuality(_settingsData.QualityLevel);
+        ApplyVSync(_settingsData.IsVSyncEnabled);
         Save();
         RefreshView();
     }
@@ -358,6 +410,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         ApplyVolume(EffectsParameterName, _settingsData.EffectsVolume);
         ApplyFullScreen(_settingsData.IsFullScreen);
         ApplyQuality(_settingsData.QualityLevel);
+        ApplyVSync(_settingsData.IsVSyncEnabled);
     }
 
     private void ApplyVolume(string parameterName, float linearValue)
@@ -380,6 +433,11 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     private void ApplyQuality(int qualityLevel)
     {
         QualitySettings.SetQualityLevel(qualityLevel, true);
+    }
+
+    private void ApplyVSync(bool isEnabled)
+    {
+        QualitySettings.vSyncCount = isEnabled ? 1 : 0;
     }
 
     private float LinearToDb(float linearValue)
