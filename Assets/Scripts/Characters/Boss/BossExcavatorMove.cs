@@ -1412,7 +1412,7 @@ namespace JunkyardBoss
                     continue;
                 }
 
-                Vector3 obstaclePoint = hitCollider.ClosestPoint(overlapPoint);
+                Vector3 obstaclePoint = GetClosestPoint(hitCollider, overlapPoint);
                 Vector3 overlapNormal = overlapPoint - obstaclePoint;
                 overlapNormal = GetPlanarDirection(overlapNormal);
 
@@ -1426,6 +1426,25 @@ namespace JunkyardBoss
 
                 return;
             }
+        }
+
+        private Vector3 GetClosestPoint(Collider hitCollider, Vector3 point)
+        {
+            if (hitCollider is BoxCollider
+                || hitCollider is SphereCollider
+                || hitCollider is CapsuleCollider)
+            {
+                return hitCollider.ClosestPoint(point);
+            }
+
+            MeshCollider meshCollider = hitCollider as MeshCollider;
+
+            if (meshCollider != null && meshCollider.convex)
+            {
+                return hitCollider.ClosestPoint(point);
+            }
+
+            return hitCollider.bounds.ClosestPoint(point);
         }
 
         private float GetClearDistance(Vector3 currentPoint, Vector3 probeDirection, float probeDistance)
