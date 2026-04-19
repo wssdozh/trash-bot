@@ -36,7 +36,7 @@ MonoBehaviour:
   _enemySpawnHeights: []
   _objectSpawnCountRange: {x: 3, y: 10}
   _objectPrefabs:
-  - _prefab: {fileID: 9099302578165322558, guid: a5dce081a04d9194890a00c14c0b1fc7, type: 3}
+  - _prefab: {fileID: 9099302578165322558, guid: c263a60feeb848cab3c5010b7fdaf761, type: 3}
     _weight: 1
     _spawnHeight: 1.75
     _guaranteed: 0
