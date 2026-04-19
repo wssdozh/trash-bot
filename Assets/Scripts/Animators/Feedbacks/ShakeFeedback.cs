@@ -24,6 +24,8 @@ public class ShakeFeedback : Feedback
     private Quaternion _initialLocalRotation;
     private bool _requiresPhysicsSync;
 
+    public override bool IsPlaying => IsShakeActive();
+
     private void Awake()
     {
         CacheInitialState();

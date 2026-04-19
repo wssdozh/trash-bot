@@ -23,10 +23,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
     private Rigidbody _notStaticRigidbody;
 
     private FeedbackGroup _notStaticFeedbackGroup;
-    private Vector3 _staticInitialLocalPosition;
-    private Quaternion _staticInitialLocalRotation;
-    private Vector3 _notStaticInitialLocalPosition;
-    private Quaternion _notStaticInitialLocalRotation;
 
     private bool _dynamicEnabled;
     private bool _isSubscribed;
@@ -93,7 +89,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         if (_dynamicEnabled == false)
             EnableDynamic();
 
-        RequestNavMeshUpdate();
         StartSink();
     }
 
@@ -132,10 +127,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         _staticRigidbody = EnsureRigidbody(_staticObject);
         _notStaticRigidbody = EnsureRigidbody(_notStaticObject);
         _notStaticFeedbackGroup = GetFeedbackGroup(_notStaticObject);
-        _staticInitialLocalPosition = _staticObject.transform.localPosition;
-        _staticInitialLocalRotation = _staticObject.transform.localRotation;
-        _notStaticInitialLocalPosition = _notStaticObject.transform.localPosition;
-        _notStaticInitialLocalRotation = _notStaticObject.transform.localRotation;
 
         _dynamicEnabled = _notStaticObject.activeSelf;
 
@@ -341,15 +332,20 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
     {
         _isSinking = true;
         Unsubscribe();
-        StopDynamicFeedback();
-        ResetVisualTransforms();
-        DisableColliders();
-        DisableRigidbodies();
         StartCoroutine(SinkCoroutine());
     }
 
     private IEnumerator SinkCoroutine()
     {
+        while (_notStaticFeedbackGroup != null && _notStaticFeedbackGroup.IsPlaying)
+        {
+            yield return null;
+        }
+
+        DisableColliders();
+        DisableRigidbodies();
+        RequestNavMeshUpdate();
+
         float delayTimer = 0f;
 
         while (delayTimer < _sinkDelay)
@@ -431,29 +427,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         Vector3 endEulerAngles = new Vector3(startEulerAngles.x + xTilt, startEulerAngles.y, startEulerAngles.z + zTilt);
 
         return Quaternion.Euler(endEulerAngles);
-    }
-
-    private void StopDynamicFeedback()
-    {
-        if (_notStaticFeedbackGroup == null)
-            return;
-
-        _notStaticFeedbackGroup.Stop();
-    }
-
-    private void ResetVisualTransforms()
-    {
-        if (_staticObject != null)
-        {
-            _staticObject.transform.localPosition = _staticInitialLocalPosition;
-            _staticObject.transform.localRotation = _staticInitialLocalRotation;
-        }
-
-        if (_notStaticObject != null)
-        {
-            _notStaticObject.transform.localPosition = _notStaticInitialLocalPosition;
-            _notStaticObject.transform.localRotation = _notStaticInitialLocalRotation;
-        }
     }
 
     private float GetSinkDistance()
