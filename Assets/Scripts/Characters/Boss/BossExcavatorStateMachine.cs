@@ -22,7 +22,7 @@ namespace JunkyardBoss
 
         public void Reset()
         {
-            _requestedState = _boss.Config.StartState;
+            _requestedState = NormalizeState(_boss.Config.StartState);
             _phaseChangeCompleted = false;
             _hasManualRequest = false;
         }
@@ -34,7 +34,7 @@ namespace JunkyardBoss
                 throw new InvalidOperationException(nameof(state));
             }
 
-            _requestedState = state;
+            _requestedState = NormalizeState(state);
             _hasManualRequest = true;
         }
 
@@ -50,7 +50,7 @@ namespace JunkyardBoss
                 return;
             }
 
-            _requestedState = state;
+            _requestedState = NormalizeState(state);
         }
 
         public void CompletePhaseChange()
@@ -99,7 +99,7 @@ namespace JunkyardBoss
         {
             _phaseChangeCompleted = false;
             _hasManualRequest = false;
-            _requestedState = BossExcavatorState.Reposition;
+            _requestedState = BossExcavatorState.Move;
             _boss.ApplyState(BossExcavatorState.PhaseChange);
         }
 
@@ -112,7 +112,7 @@ namespace JunkyardBoss
 
             _boss.ApplyPhase(GetNextPhase());
             _hasManualRequest = false;
-            _requestedState = BossExcavatorState.Reposition;
+            _requestedState = BossExcavatorState.Move;
             _boss.ApplyState(_requestedState);
             _phaseChangeCompleted = false;
         }
@@ -143,6 +143,21 @@ namespace JunkyardBoss
             {
                 _hasManualRequest = false;
             }
+        }
+
+        private BossExcavatorState NormalizeState(BossExcavatorState state)
+        {
+            if (state == BossExcavatorState.Reposition)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            if (state == BossExcavatorState.Chase)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            return state;
         }
     }
 }

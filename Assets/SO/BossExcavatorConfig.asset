@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dd3307af0debb4409591fc6d8657b17, type: 3}
   m_Name: BossExcavatorConfig
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorConfig
-  _maxHealth: 670
-  _phaseTwoRatio: 0.5
-  _phaseThreeRatio: 0.22
+  _maxHealth: 1500
+  _phaseTwoRatio: 0.7
+  _phaseThreeRatio: 0.3
   _phaseChangeDuration: 0.9
   _phaseTwoAttackSpeedMult: 1.25
   _phaseTwoDamageMult: 1.32
@@ -45,9 +45,13 @@ MonoBehaviour:
     _spawnHeight: 1.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 0}
-  _startState: 2
+  _startState: 0
   _baseMoveSpeed: 2
   _baseTurnSpeed: 150
+  _baseTurnAcceleration: 560
+  _baseTurnDeceleration: 760
+  _baseTurnSlowAngle: 42
+  _baseTurnMinSpeedFactor: 0.24
   _moveStartAngle: 10
   _moveStopAngle: 36
   _stopDistance: 0.55
@@ -139,7 +143,9 @@ MonoBehaviour:
   _sweepPushLift: 0.47
   _sweepSpinSpeed: 270
   _throwProjectileCount: 3
+  _phaseTwoThrowProjectileCount: 9
   _throwProjectileSpreadAngle: 18
+  _phaseTwoThrowProjectileSpreadAngle: 34
   _throwProjectileDamage: 6.5
   _throwProjectileSpeedMult: 0.58
   _throwSpawnOffset: 0.5
@@ -160,6 +166,10 @@ MonoBehaviour:
   _moveRepositionCommitTime: 0.08
   _moveChaseCommitTime: 0.04
   _cabinTurnSpeed: 88
+  _cabinTurnAcceleration: 260
+  _cabinTurnDeceleration: 360
+  _cabinTurnSlowAngle: 28
+  _cabinTurnMinSpeedFactor: 0.18
   _cabinPhaseTwoMult: 1.35
   _cabinPhaseThreeMult: 1.8
   _armDefaultBoomEuler: {x: 0, y: 0, z: -35}
@@ -195,3 +205,7 @@ MonoBehaviour:
   _armBoomSpeed: 38
   _armStickSpeed: 54
   _armBucketSpeed: 76
+  _armTurnAcceleration: 220
+  _armTurnDeceleration: 320
+  _armTurnSlowAngle: 18
+  _armTurnMinSpeedFactor: 0.16

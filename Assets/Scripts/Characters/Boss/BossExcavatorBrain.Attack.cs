@@ -855,7 +855,7 @@ namespace JunkyardBoss
 
         private float GetChargeApproachAngle(float baseAngle)
         {
-            return Mathf.Min(baseAngle, 180f - baseAngle);
+            return baseAngle;
         }
 
         private float GetChargeStartAngle()
@@ -1097,7 +1097,7 @@ namespace JunkyardBoss
 
         private void UpdateScrapTrailRuntime(BossExcavatorState nextState)
         {
-            if (nextState != BossExcavatorState.Chase && nextState != BossExcavatorState.Reposition)
+            if (nextState != BossExcavatorState.Move)
             {
                 CancelScrapTrail(true);
 

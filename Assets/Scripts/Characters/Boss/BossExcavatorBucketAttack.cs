@@ -10,6 +10,7 @@ namespace JunkyardBoss
         private const int HitBufferCount = 20;
         private const int GroundHitBufferCount = 8;
         private const string ScrapTrailSpawnerKey = "BossScrapTrailBlock";
+        private const float StrikeSpeedBoostMult = 5f;
         private const float StrikePoseSnapSpeedMult = 1.65f;
         private const float StrikeImpactDelayFactor = 0.5f;
         private const float MinStrikeImpactDelay = 0.1f;
@@ -182,7 +183,7 @@ namespace JunkyardBoss
             _strikeForward = ResolveStrikeForward();
             float strikePoseTravelTime = GetStrikePoseTravelTime();
             _strikeTimer = Mathf.Max(GetBucketStrikeTime(), strikePoseTravelTime);
-            _hitDelayTimer = Mathf.Clamp(_strikeTimer * StrikeImpactDelayFactor, MinStrikeImpactDelay, MaxStrikeImpactDelay);
+            _hitDelayTimer = GetStrikeImpactDelay(_strikeTimer);
             SetStrikePose();
         }
 
@@ -214,7 +215,7 @@ namespace JunkyardBoss
                 _config.ArmBucketStrikeBoomEuler,
                 _config.ArmBucketStrikeStickEuler,
                 _config.ArmBucketStrikeBucketEuler,
-                _config.BucketStrikeSpeedMult * StrikePoseSnapSpeedMult * GetPhaseAttackSpeedMult());
+                GetBucketStrikePoseSpeedMult() * StrikePoseSnapSpeedMult);
         }
 
         private void SetRecoverPose()
@@ -773,18 +774,31 @@ namespace JunkyardBoss
 
         private float GetBucketStrikeTime()
         {
-            return _config.BucketStrikeTime / GetPhaseAttackSpeedMult();
+            return _config.BucketStrikeTime / GetPhaseAttackSpeedMult() / StrikeSpeedBoostMult;
         }
 
         private float GetStrikePoseTravelTime()
         {
-            float poseSpeedMult = _config.BucketStrikeSpeedMult * GetPhaseAttackSpeedMult();
+            float poseSpeedMult = GetBucketStrikePoseSpeedMult();
 
             return _boss.Arm.GetPoseTravelTime(
                 _config.ArmBucketStrikeBoomEuler,
                 _config.ArmBucketStrikeStickEuler,
                 _config.ArmBucketStrikeBucketEuler,
                 poseSpeedMult);
+        }
+
+        private float GetBucketStrikePoseSpeedMult()
+        {
+            return _config.BucketStrikeSpeedMult * GetPhaseAttackSpeedMult() * StrikeSpeedBoostMult;
+        }
+
+        private float GetStrikeImpactDelay(float strikeTime)
+        {
+            float minStrikeImpactDelay = MinStrikeImpactDelay / StrikeSpeedBoostMult;
+            float hitDelay = Mathf.Clamp(strikeTime * StrikeImpactDelayFactor, minStrikeImpactDelay, MaxStrikeImpactDelay);
+
+            return Mathf.Min(hitDelay, strikeTime);
         }
 
         private float GetRecoverTime()

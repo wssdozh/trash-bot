@@ -149,7 +149,7 @@ namespace JunkyardBoss
                 }
             }
 
-            BossExcavatorState nextState = SelectAutoState();
+            BossExcavatorState nextState = NormalizeAutoState(SelectAutoState());
 
             if (nextState == BossExcavatorState.Attack)
             {
@@ -343,6 +343,21 @@ namespace JunkyardBoss
             }
 
             return stallRecoverTime;
+        }
+
+        private BossExcavatorState NormalizeAutoState(BossExcavatorState state)
+        {
+            if (state == BossExcavatorState.Reposition)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            if (state == BossExcavatorState.Chase)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            return state;
         }
     }
 }

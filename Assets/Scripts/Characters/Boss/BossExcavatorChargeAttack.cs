@@ -29,12 +29,13 @@ namespace JunkyardBoss
 
         private float _alignTimer;
         private float _telegraphTimer;
-        private float _dashTimer;
         private float _recoverTimer;
         private float _comboDamageTickTimer;
         private float _spinDirectionSign;
         private Vector3 _chargeDirection;
-        private bool _isReverseChargeFacing;
+        private RigidbodyConstraints _baseConstraints;
+        private bool _hasBaseConstraints;
+        private bool _isDashActive;
         private bool _isRunning;
         private bool _isRecovering;
         private bool _isComboSweep;
@@ -65,12 +66,13 @@ namespace JunkyardBoss
         {
             _alignTimer = 0f;
             _telegraphTimer = 0f;
-            _dashTimer = 0f;
             _recoverTimer = 0f;
             _comboDamageTickTimer = 0f;
             _spinDirectionSign = 1f;
             _chargeDirection = Vector3.forward;
-            _isReverseChargeFacing = false;
+            _baseConstraints = RigidbodyConstraints.None;
+            _hasBaseConstraints = false;
+            _isDashActive = false;
             _isRunning = false;
             _isRecovering = false;
             _isComboSweep = false;
@@ -84,17 +86,17 @@ namespace JunkyardBoss
 
             _alignTimer = GetAlignTime();
             _telegraphTimer = GetTelegraphTime();
-            _dashTimer = 0f;
             _recoverTimer = GetRecoverTime();
             _comboDamageTickTimer = 0f;
             _spinDirectionSign = 1f;
             _chargeDirection = ResolveTargetDirection();
-            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
+            _isDashActive = false;
             _isRunning = true;
             _isRecovering = false;
             _isComboSweep = isComboSweep;
             _hitHealthIds.Clear();
             _comboHitHealthIds.Clear();
+            CaptureBaseConstraints();
 
             _boss.SetChargeAlign(false);
             _boss.SetAimLocked(true);
@@ -123,7 +125,7 @@ namespace JunkyardBoss
                 return true;
             }
 
-            if (_dashTimer > 0f)
+            if (_isDashActive)
             {
                 TickDash(Time.deltaTime);
 
@@ -154,7 +156,21 @@ namespace JunkyardBoss
                 return;
             }
 
-            if (_dashTimer <= 0f)
+            if (_alignTimer > 0f)
+            {
+                RotateBaseTowards(_chargeDirection, Time.fixedDeltaTime);
+
+                return;
+            }
+
+            if (_telegraphTimer > 0f)
+            {
+                RotateBaseTowards(_chargeDirection, Time.fixedDeltaTime);
+
+                return;
+            }
+
+            if (_isDashActive == false)
             {
                 return;
             }
@@ -172,14 +188,15 @@ namespace JunkyardBoss
             _isRunning = false;
             _alignTimer = 0f;
             _telegraphTimer = 0f;
-            _dashTimer = 0f;
             _recoverTimer = 0f;
             _comboDamageTickTimer = 0f;
+            _isDashActive = false;
             _isRecovering = false;
             _isComboSweep = false;
             _hitHealthIds.Clear();
             _comboHitHealthIds.Clear();
             _boss.SetAimLocked(false);
+            RestoreBaseConstraints();
             ResetPlanarVelocity();
 
             if (restoreNeutralPose)
@@ -191,8 +208,6 @@ namespace JunkyardBoss
         private void TickAlign()
         {
             _chargeDirection = ResolveTargetDirection();
-            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
-            RotateBaseTowards(_chargeDirection, Time.deltaTime);
 
             float angleToCharge = GetChargeFacingAngle(_chargeDirection);
             _alignTimer = Mathf.Max(0f, _alignTimer - Time.deltaTime);
@@ -211,14 +226,11 @@ namespace JunkyardBoss
         private void BeginTelegraph()
         {
             _chargeDirection = ResolveChargeDashDirection();
-            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
         }
 
         private void TickTelegraph()
         {
             _chargeDirection = ResolveChargeDashDirection();
-            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
-            RotateBaseTowards(_chargeDirection, Time.deltaTime);
             _telegraphTimer = Mathf.Max(0f, _telegraphTimer - Time.deltaTime);
 
             if (_telegraphTimer <= 0f)
@@ -230,8 +242,7 @@ namespace JunkyardBoss
         private void BeginDash()
         {
             _chargeDirection = ResolveChargeDashDirection();
-            _isReverseChargeFacing = ShouldUseReverseChargeFacing(_chargeDirection);
-            _dashTimer = 1f;
+            _isDashActive = true;
 
             if (_isComboSweep)
             {
@@ -249,12 +260,13 @@ namespace JunkyardBoss
             }
 
             _isRecovering = true;
-            _dashTimer = 0f;
+            _isDashActive = false;
             _boss.SetAimLocked(false);
             _boss.SetArmPose(BossExcavatorArmPose.Neutral, GetAttackPoseSpeedMult());
             _boss.Move.InvalidatePath();
             _comboDamageTickTimer = 0f;
             _comboHitHealthIds.Clear();
+            RestoreBaseConstraints();
             ResetPlanarVelocity();
         }
 
@@ -265,7 +277,9 @@ namespace JunkyardBoss
             _isComboSweep = false;
             _comboDamageTickTimer = 0f;
             _comboHitHealthIds.Clear();
+            _isDashActive = false;
             _boss.SetAimLocked(false);
+            RestoreBaseConstraints();
             ResetPlanarVelocity();
         }
 
@@ -688,47 +702,13 @@ namespace JunkyardBoss
 
         private float GetChargeFacingAngle(Vector3 direction)
         {
-            float forwardAngle = GetAngleToDirection(direction);
-
-            return Mathf.Min(forwardAngle, 180f - forwardAngle);
-        }
-
-        private bool ShouldUseReverseChargeFacing(Vector3 direction)
-        {
-            float forwardAngle = GetAngleToDirection(direction);
-            float reverseAngle = 180f - forwardAngle;
-
-            if (reverseAngle < forwardAngle)
-            {
-                return true;
-            }
-
-            return false;
+            return GetAngleToDirection(direction);
         }
 
         private void RotateBaseTowards(Vector3 direction, float deltaTime)
         {
-            Vector3 planarDirection = direction;
-            planarDirection.y = 0f;
-
-            if (planarDirection.sqrMagnitude <= MinDirectionSqr)
-            {
-                return;
-            }
-
-            if (_isReverseChargeFacing)
-            {
-                planarDirection = -planarDirection;
-            }
-
-            Quaternion currentRotation = _boss.BaseRigidbody.rotation;
-            Quaternion targetRotation = Quaternion.LookRotation(planarDirection.normalized, Vector3.up);
-            Quaternion nextRotation = Quaternion.RotateTowards(
-                currentRotation,
-                targetRotation,
-                _config.BaseTurnSpeed * ChargeTurnSpeedMult * GetPhaseAttackSpeedMult() * deltaTime);
-
-            _boss.BaseRigidbody.MoveRotation(nextRotation);
+            float turnSpeed = _config.BaseTurnSpeed * ChargeTurnSpeedMult * GetPhaseAttackSpeedMult();
+            _boss.Move.RotateBaseTowardsDirection(direction, turnSpeed);
         }
 
         private float GetChargeDriveSpeedFactor(Vector3 moveDirection)
@@ -745,6 +725,33 @@ namespace JunkyardBoss
             currentVelocity.x = 0f;
             currentVelocity.z = 0f;
             _boss.BaseRigidbody.linearVelocity = currentVelocity;
+        }
+
+        private void CaptureBaseConstraints()
+        {
+            if (_hasBaseConstraints)
+            {
+                return;
+            }
+
+            _baseConstraints = _boss.BaseRigidbody.constraints;
+            RigidbodyConstraints constraints = _baseConstraints;
+            constraints |= RigidbodyConstraints.FreezeRotationX;
+            constraints |= RigidbodyConstraints.FreezeRotationZ;
+            constraints &= ~RigidbodyConstraints.FreezeRotationY;
+            _boss.BaseRigidbody.constraints = constraints;
+            _hasBaseConstraints = true;
+        }
+
+        private void RestoreBaseConstraints()
+        {
+            if (_hasBaseConstraints == false)
+            {
+                return;
+            }
+
+            _boss.BaseRigidbody.constraints = _baseConstraints;
+            _hasBaseConstraints = false;
         }
 
         private void SetComboSweepPose()

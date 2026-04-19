@@ -54,7 +54,7 @@ MonoBehaviour:
     _guaranteed: 0
     _weaponPrefab: {fileID: 1864531296725922894, guid: b63d71782bd7cc94c99fbd43145c7038, type: 3}
   - _prefab: {fileID: 3220131145214470877, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
-    _weight: 2
+    _weight: 1
     _spawnHeight: 1.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 1864531296725922894, guid: ff061cd3d36838b428759a9dd5db86da, type: 3}

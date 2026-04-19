@@ -22,7 +22,7 @@ namespace JunkyardBoss
         [SerializeField] private float _currentMoveSpeed;
 
         [Header("State Command")]
-        [SerializeField] private BossExcavatorState _state = BossExcavatorState.Reposition;
+        [SerializeField] private BossExcavatorState _state = BossExcavatorState.Move;
         [SerializeField] private bool _chargeAlign;
         [SerializeField] private bool _aimLocked;
         [SerializeField] private bool _armLocked;

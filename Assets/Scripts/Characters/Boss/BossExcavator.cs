@@ -436,6 +436,8 @@ namespace JunkyardBoss
 
         internal void ApplyState(BossExcavatorState state)
         {
+            state = NormalizeState(state);
+
             if (_state == state)
             {
                 return;
@@ -488,14 +490,7 @@ namespace JunkyardBoss
                 return;
             }
 
-            if (_state == BossExcavatorState.Reposition)
-            {
-                _move.FixedTick();
-
-                return;
-            }
-
-            if (_state == BossExcavatorState.Chase)
+            if (_state == BossExcavatorState.Move)
             {
                 _move.FixedTick();
 
@@ -571,6 +566,21 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_health));
             }
+        }
+
+        private BossExcavatorState NormalizeState(BossExcavatorState state)
+        {
+            if (state == BossExcavatorState.Reposition)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            if (state == BossExcavatorState.Chase)
+            {
+                return BossExcavatorState.Move;
+            }
+
+            return state;
         }
 
         private void ResetHealth()
