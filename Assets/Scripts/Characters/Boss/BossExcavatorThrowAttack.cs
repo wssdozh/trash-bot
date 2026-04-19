@@ -207,7 +207,6 @@ namespace JunkyardBoss
                     GetProjectileSpeedMult(),
                     _config.ThrowHitMask,
                     _boss.transform);
-                ApplyRandomProjectileRotation(projectile);
 
                 projectileIndex += 1;
             }
@@ -254,21 +253,6 @@ namespace JunkyardBoss
             float minAngle = spreadAngle * -0.5f;
 
             return minAngle + step * projectileIndex;
-        }
-
-        private void ApplyRandomProjectileRotation(BossScrapCubeProjectile projectile)
-        {
-            if (projectile == null)
-            {
-                throw new InvalidOperationException(nameof(projectile));
-            }
-
-            Transform projectileTransform = projectile.transform;
-            Vector3 randomEuler = new Vector3(
-                UnityEngine.Random.Range(0f, 360f),
-                UnityEngine.Random.Range(0f, 360f),
-                UnityEngine.Random.Range(0f, 360f));
-            projectileTransform.rotation = Quaternion.Euler(randomEuler);
         }
 
         private Vector3 ResolveLaunchForward()
