@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
@@ -5,6 +6,30 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private Inventory _inventory;
     [SerializeField] private InventoryDropper _inventoryDropper;
     [SerializeField] private CharacterEffects _effects;
+    [SerializeField] private BerryWallet _berryWallet;
+
+    private void Awake()
+    {
+        if (_inventory == null)
+        {
+            throw new InvalidOperationException(nameof(_inventory));
+        }
+
+        if (_inventoryDropper == null)
+        {
+            throw new InvalidOperationException(nameof(_inventoryDropper));
+        }
+
+        if (_effects == null)
+        {
+            throw new InvalidOperationException(nameof(_effects));
+        }
+
+        if (_berryWallet == null)
+        {
+            throw new InvalidOperationException(nameof(_berryWallet));
+        }
+    }
 
     public void Scroll(Vector2 scrollValue)
     {
@@ -31,6 +56,11 @@ public class PlayerInventory : MonoBehaviour
 
     public void TryUseActiveItem()
     {
+        if (_berryWallet.TryConsume(_effects))
+        {
+            return;
+        }
+
         InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
 
         if (activeSlot.IsEmpty())
