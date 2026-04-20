@@ -86,11 +86,11 @@ MonoBehaviour:
   _levelSeed: 434
   _generateOnAwake: 1
   _randomSeedOnAwake: 1
-  _runtimeAttempts: 12
+  _runtimeAttempts: 30
   _seedMin: 0
   _seedMax: 2147483647
   _removeLegacyEnvironment: 1
-  _generationAttempts: 10
+  _generationAttempts: 30
   _maximumRoomRegenerateAttempts: 16
   _corridorMinimumLengthInBlocks: 6
   _corridorMaximumLengthInBlocks: 20
