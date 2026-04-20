@@ -31,6 +31,11 @@ public sealed class LevelGenerator : MonoBehaviour
     [SerializeField, Min(0)] private int _seedMax = int.MaxValue;
     [SerializeField] private bool _removeLegacyEnvironment = true;
 
+    [Header("Runtime Batching")]
+    [SerializeField, Min(1)] private int _runtimeShellsPerFrame = 2;
+    [SerializeField, Min(1)] private int _runtimeCorridorsPerFrame = 2;
+    [SerializeField, Min(1)] private int _runtimeInteriorsPerFrame = 1;
+
     [Header("Room Runtime")]
     [SerializeField] private bool _streamRooms = true;
     [SerializeField] private Transform _player;
@@ -80,6 +85,7 @@ public sealed class LevelGenerator : MonoBehaviour
     private readonly LevelRoomFinalizer _roomFinalizer = new LevelRoomFinalizer();
     private Coroutine _generationCoroutine;
     private bool _isGenerating;
+    private bool _generationStepSucceeded;
 
     public bool HasGeneratedLevel => _generationContext.PlacedRooms.Count > 0;
     public bool IsGenerating => _isGenerating;
@@ -140,14 +146,10 @@ public sealed class LevelGenerator : MonoBehaviour
                 if (Application.isPlaying == true)
                 {
                     InvokeGenerationCompletedEvent();
+                    ConfigureRoomStreaming();
                 }
 
                 BuildRuntimeNavMesh();
-
-                if (Application.isPlaying == true)
-                {
-                    ConfigureRoomStreaming();
-                }
 
                 return;
             }
@@ -289,14 +291,9 @@ public sealed class LevelGenerator : MonoBehaviour
 
             yield return null;
 
-            if (_roomShellInstantiator.InstantiateRoomsShellOnly(
-                _generationContext,
-                random,
-                _roomsRoot,
-                _roomPrefabLibrary,
-                _levelSequenceProfile,
-                _maximumRoomRegenerateAttempts
-            ) == false)
+            yield return InstantiateRoomShellsRoutine(random);
+
+            if (_generationStepSucceeded == false)
             {
                 yield return null;
 
@@ -316,7 +313,9 @@ public sealed class LevelGenerator : MonoBehaviour
 
             yield return null;
 
-            if (_corridorExecutor.BuildCorridors(_generationContext, _corridorsRoot, _corridorBuilder) == false)
+            yield return BuildCorridorsRoutine();
+
+            if (_generationStepSucceeded == false)
             {
                 yield return null;
 
@@ -325,31 +324,102 @@ public sealed class LevelGenerator : MonoBehaviour
 
             yield return null;
 
-            _roomFinalizer.FinalizeInteriors(_generationContext, _enemyBorderGap);
+            yield return FinalizeInteriorsRoutine();
 
             yield return null;
 
             if (Application.isPlaying == true)
             {
                 InvokeGenerationCompletedEvent();
+                ConfigureRoomStreaming();
             }
 
             yield return null;
 
             BuildRuntimeNavMesh();
 
-            yield return null;
-
-            if (Application.isPlaying == true)
-            {
-                ConfigureRoomStreaming();
-            }
-
             yield break;
         }
 
         Clear();
         Debug.LogWarning("LevelGenerator: generation failed after all attempts.");
+    }
+
+    private IEnumerator InstantiateRoomShellsRoutine(System.Random random)
+    {
+        _generationStepSucceeded = true;
+
+        int roomsPerFrame = Mathf.Max(1, _runtimeShellsPerFrame);
+        int processedCount = 0;
+
+        for (int nodeIndex = 0; nodeIndex < _generationContext.Nodes.Count; nodeIndex++)
+        {
+            if (_roomShellInstantiator.InstantiateRoomShell(
+                _generationContext,
+                nodeIndex,
+                random,
+                _roomsRoot,
+                _roomPrefabLibrary,
+                _levelSequenceProfile,
+                _maximumRoomRegenerateAttempts
+            ) == false)
+            {
+                _generationStepSucceeded = false;
+                yield break;
+            }
+
+            processedCount += 1;
+
+            if (processedCount >= roomsPerFrame)
+            {
+                processedCount = 0;
+                yield return null;
+            }
+        }
+    }
+
+    private IEnumerator BuildCorridorsRoutine()
+    {
+        _generationStepSucceeded = true;
+        _corridorExecutor.ClearCorridors(_corridorsRoot);
+
+        int corridorsPerFrame = Mathf.Max(1, _runtimeCorridorsPerFrame);
+        int processedCount = 0;
+
+        for (int edgeIndex = 0; edgeIndex < _generationContext.Edges.Count; edgeIndex++)
+        {
+            if (_corridorExecutor.BuildCorridor(_generationContext.Edges[edgeIndex], _corridorsRoot, _corridorBuilder) == false)
+            {
+                _generationStepSucceeded = false;
+                yield break;
+            }
+
+            processedCount += 1;
+
+            if (processedCount >= corridorsPerFrame)
+            {
+                processedCount = 0;
+                yield return null;
+            }
+        }
+    }
+
+    private IEnumerator FinalizeInteriorsRoutine()
+    {
+        int roomsPerFrame = Mathf.Max(1, _runtimeInteriorsPerFrame);
+        int processedCount = 0;
+
+        for (int roomIndex = 0; roomIndex < _generationContext.PlacedRooms.Count; roomIndex++)
+        {
+            _roomFinalizer.FinalizeRoom(_generationContext, roomIndex, _enemyBorderGap);
+            processedCount += 1;
+
+            if (processedCount >= roomsPerFrame)
+            {
+                processedCount = 0;
+                yield return null;
+            }
+        }
     }
 
     private void StopRuntimeGeneration()
