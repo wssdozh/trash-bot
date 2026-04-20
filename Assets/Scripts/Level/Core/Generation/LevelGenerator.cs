@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -77,8 +78,11 @@ public sealed class LevelGenerator : MonoBehaviour
     private readonly LevelRoomPlacer _roomPlacer = new LevelRoomPlacer();
     private readonly LevelCorridorExecutor _corridorExecutor = new LevelCorridorExecutor();
     private readonly LevelRoomFinalizer _roomFinalizer = new LevelRoomFinalizer();
+    private Coroutine _generationCoroutine;
+    private bool _isGenerating;
 
     public bool HasGeneratedLevel => _generationContext.PlacedRooms.Count > 0;
+    public bool IsGenerating => _isGenerating;
 
     public event Action GenerationCompleted;
 
@@ -88,29 +92,38 @@ public sealed class LevelGenerator : MonoBehaviour
         {
             return;
         }
+    }
 
-        CleanupLegacyEnvironment();
+    private void Start()
+    {
+        if (_generateOnAwake == false)
+        {
+            return;
+        }
 
-        TryGenerateRuntime();
+        StartRuntimeGeneration();
+    }
+
+    private void OnDisable()
+    {
+        StopRuntimeGeneration();
+    }
+
+    public void StartRuntimeGeneration()
+    {
+        if (_isGenerating == true)
+        {
+            return;
+        }
+
+        _generationCoroutine = StartCoroutine(GenerateRuntimeRoutine());
     }
 
     [ContextMenu("Generate")]
     public void Generate()
     {
-        if (_roomsRoot == null)
-            throw new InvalidOperationException(nameof(_roomsRoot));
-
-        if (_corridorsRoot == null)
-            throw new InvalidOperationException(nameof(_corridorsRoot));
-
-        if (_levelSequenceProfile == null)
-            throw new InvalidOperationException(nameof(_levelSequenceProfile));
-
-        if (_roomPrefabLibrary == null)
-            throw new InvalidOperationException(nameof(_roomPrefabLibrary));
-
-        if (_corridorBuilder == null)
-            throw new InvalidOperationException(nameof(_corridorBuilder));
+        StopRuntimeGeneration();
+        ValidateGenerationDependencies();
 
         int attempts = Mathf.Clamp(_generationAttempts, 1, 64);
 
@@ -221,6 +234,178 @@ public sealed class LevelGenerator : MonoBehaviour
         }
 
         throw new InvalidOperationException(nameof(_levelSeed));
+    }
+
+    private IEnumerator GenerateRuntimeRoutine()
+    {
+        _isGenerating = true;
+        CleanupLegacyEnvironment();
+
+        yield return null;
+
+        int attempts = Mathf.Clamp(_runtimeAttempts, 1, 64);
+
+        for (int attemptIndex = 0; attemptIndex < attempts; attemptIndex++)
+        {
+            if (_randomSeedOnAwake == true)
+            {
+                _levelSeed = GetRandomSeed();
+            }
+
+            yield return GenerateRoutine();
+
+            if (_roomsRoot.childCount > 0)
+            {
+                _generationCoroutine = null;
+                _isGenerating = false;
+
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        _generationCoroutine = null;
+        _isGenerating = false;
+        throw new InvalidOperationException(nameof(_levelSeed));
+    }
+
+    private IEnumerator GenerateRoutine()
+    {
+        ValidateGenerationDependencies();
+
+        int attempts = Mathf.Clamp(_generationAttempts, 1, 64);
+
+        for (int attemptIndex = 0; attemptIndex < attempts; attemptIndex++)
+        {
+            Clear();
+
+            yield return null;
+
+            int attemptSeed = _levelSeed + (attemptIndex * 10007);
+            System.Random random = new System.Random(attemptSeed);
+            LevelTreasureRatio treasureRatio = new LevelTreasureRatio(_treasurePerCombatNumerator, _treasurePerCombatDenominator);
+            LevelNode root = _planBuilder.BuildPlan(_generationContext, random, _levelSequenceProfile, treasureRatio);
+
+            yield return null;
+
+            if (_roomShellInstantiator.InstantiateRoomsShellOnly(
+                _generationContext,
+                random,
+                _roomsRoot,
+                _roomPrefabLibrary,
+                _levelSequenceProfile,
+                _maximumRoomRegenerateAttempts
+            ) == false)
+            {
+                yield return null;
+
+                continue;
+            }
+
+            yield return null;
+
+            LevelPlacementSettings placementSettings = CreatePlacementSettings();
+
+            if (_roomPlacer.PlaceAllRooms(_generationContext, root, random, _corridorBuilder, placementSettings) == false)
+            {
+                yield return null;
+
+                continue;
+            }
+
+            yield return null;
+
+            if (_corridorExecutor.BuildCorridors(_generationContext, _corridorsRoot, _corridorBuilder) == false)
+            {
+                yield return null;
+
+                continue;
+            }
+
+            yield return null;
+
+            _roomFinalizer.FinalizeInteriors(_generationContext, _enemyBorderGap);
+
+            yield return null;
+
+            if (Application.isPlaying == true)
+            {
+                InvokeGenerationCompletedEvent();
+            }
+
+            yield return null;
+
+            BuildRuntimeNavMesh();
+
+            yield return null;
+
+            if (Application.isPlaying == true)
+            {
+                ConfigureRoomStreaming();
+            }
+
+            yield break;
+        }
+
+        Clear();
+        Debug.LogWarning("LevelGenerator: generation failed after all attempts.");
+    }
+
+    private void StopRuntimeGeneration()
+    {
+        if (_generationCoroutine != null)
+        {
+            StopCoroutine(_generationCoroutine);
+            _generationCoroutine = null;
+        }
+
+        _isGenerating = false;
+    }
+
+    private void ValidateGenerationDependencies()
+    {
+        if (_roomsRoot == null)
+        {
+            throw new InvalidOperationException(nameof(_roomsRoot));
+        }
+
+        if (_corridorsRoot == null)
+        {
+            throw new InvalidOperationException(nameof(_corridorsRoot));
+        }
+
+        if (_levelSequenceProfile == null)
+        {
+            throw new InvalidOperationException(nameof(_levelSequenceProfile));
+        }
+
+        if (_roomPrefabLibrary == null)
+        {
+            throw new InvalidOperationException(nameof(_roomPrefabLibrary));
+        }
+
+        if (_corridorBuilder == null)
+        {
+            throw new InvalidOperationException(nameof(_corridorBuilder));
+        }
+    }
+
+    private LevelPlacementSettings CreatePlacementSettings()
+    {
+        return new LevelPlacementSettings(
+            randomizeRootRotation: _randomizeRootRotation,
+            snapRoomsToGrid: _snapRoomsToGrid,
+            roomGridStepInBlocks: _roomGridStepInBlocks,
+            roomSpacingPaddingInBlocks: _roomSpacingPaddingInBlocks,
+            disallowCorridorIntersections: _disallowCorridorIntersections,
+            corridorMinimumLengthInBlocks: _corridorMinimumLengthInBlocks,
+            corridorMaximumLengthInBlocks: _corridorMaximumLengthInBlocks,
+            corridorLengthJitterInBlocks: _corridorLengthJitterInBlocks,
+            corridorWidthInBlocks: _corridorWidthInBlocks,
+            corridorCollisionExtraWidthInBlocks: _corridorCollisionExtraWidthInBlocks,
+            corridorIgnoreEndsInBlocks: _corridorIgnoreEndsInBlocks
+        );
     }
 
     private void InvokeGenerationCompletedEvent()

@@ -34,6 +34,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private Coroutine _subtitleCoroutine;
     private Tween _panelPulseTween;
     private Vector2 _shownAnchoredPosition;
+    private string _defaultSubtitleText;
     private string _subtitleBaseText;
     private bool _isLoading;
 
@@ -54,6 +55,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         ValidateReference(_subtitleText, nameof(_subtitleText));
 
         _shownAnchoredPosition = _panelTransform.anchoredPosition;
+        _defaultSubtitleText = _subtitleText.text;
         _subtitleBaseText = _subtitleText.text;
 
         DontDestroyOnLoad(gameObject);
@@ -145,6 +147,8 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         {
             yield return new WaitForSecondsRealtime(_postLoadDelaySeconds);
         }
+
+        yield return WaitForSceneReadyRoutine();
 
         yield return PlayHideRoutine();
 
@@ -276,7 +280,8 @@ public sealed class SceneLoadingScreen : MonoBehaviour
 
         if (_subtitleText != null)
         {
-            _subtitleText.text = _subtitleBaseText;
+            _subtitleBaseText = _defaultSubtitleText;
+            _subtitleText.text = _defaultSubtitleText;
         }
 
         KillPanelPulseTween();
@@ -290,6 +295,93 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         }
 
         _panelPulseTween = null;
+    }
+
+    private IEnumerator WaitForSceneReadyRoutine()
+    {
+        yield return null;
+
+        if (HasPendingSceneWork() == false)
+        {
+            yield break;
+        }
+
+        SetSubtitleBaseText("Генерируем уровень");
+
+        while (HasPendingSceneWork())
+        {
+            yield return null;
+        }
+
+        SetSubtitleBaseText(_defaultSubtitleText);
+    }
+
+    private bool HasPendingSceneWork()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+
+        if (activeScene.IsValid() == false)
+        {
+            return false;
+        }
+
+        GameObject[] rootObjects = activeScene.GetRootGameObjects();
+
+        for (int rootIndex = 0; rootIndex < rootObjects.Length; rootIndex++)
+        {
+            GameObject rootObject = rootObjects[rootIndex];
+            LevelGenerator[] levelGenerators = rootObject.GetComponentsInChildren<LevelGenerator>(true);
+
+            for (int generatorIndex = 0; generatorIndex < levelGenerators.Length; generatorIndex++)
+            {
+                LevelGenerator levelGenerator = levelGenerators[generatorIndex];
+
+                if (levelGenerator == null)
+                {
+                    continue;
+                }
+
+                if (levelGenerator.IsGenerating)
+                {
+                    return true;
+                }
+            }
+        }
+
+        for (int rootIndex = 0; rootIndex < rootObjects.Length; rootIndex++)
+        {
+            GameObject rootObject = rootObjects[rootIndex];
+            LevelRuntimeNavMesh[] navMeshes = rootObject.GetComponentsInChildren<LevelRuntimeNavMesh>(true);
+
+            for (int navMeshIndex = 0; navMeshIndex < navMeshes.Length; navMeshIndex++)
+            {
+                LevelRuntimeNavMesh navMesh = navMeshes[navMeshIndex];
+
+                if (navMesh == null)
+                {
+                    continue;
+                }
+
+                if (navMesh.IsBusy)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private void SetSubtitleBaseText(string subtitleText)
+    {
+        _subtitleBaseText = subtitleText;
+
+        if (_subtitleText == null)
+        {
+            return;
+        }
+
+        _subtitleText.text = subtitleText;
     }
 
     private IEnumerator AnimateSubtitleRoutine()
