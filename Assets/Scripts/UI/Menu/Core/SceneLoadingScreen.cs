@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -12,6 +13,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private static SceneLoadingScreen s_instance;
 
     [SerializeField] private BlurOverlay _blurOverlay;
+    [SerializeField] private DungeonSchematicView _schematicView;
     [SerializeField] private Canvas _canvas;
     [SerializeField] private CanvasGroup _panelCanvasGroup;
     [SerializeField] private RectTransform _panelTransform;
@@ -23,12 +25,12 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     [SerializeField] private float _panelHiddenOffsetY = 180.0f;
     [SerializeField] private float _panelHiddenScale = 0.88f;
     [SerializeField] private float _panelShownScale = 1.0f;
-    [SerializeField] private float _panelPulseScale = 1.02f;
-    [SerializeField] private float _panelPulseDurationSeconds = 0.65f;
     [SerializeField] private float _subtitleDotIntervalSeconds = 0.18f;
     [SerializeField] private float _postLoadDelaySeconds = 0.08f;
     [SerializeField] private float _blurHideWaitSeconds = 0.30f;
 
+    private readonly List<Vector2Int> _sceneRoomCells = new List<Vector2Int>(256);
+    private readonly List<Vector2Int> _sceneCorridorCells = new List<Vector2Int>(256);
     private Sequence _sequence;
     private Coroutine _loadCoroutine;
     private Coroutine _subtitleCoroutine;
@@ -37,6 +39,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private string _defaultSubtitleText;
     private string _subtitleBaseText;
     private bool _isLoading;
+    private bool _sceneLayoutApplied;
 
     private void Awake()
     {
@@ -49,6 +52,8 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         s_instance = this;
 
         ValidateReference(_blurOverlay, nameof(_blurOverlay));
+        ResolveSchematicView();
+        ValidateReference(_schematicView, nameof(_schematicView));
         ValidateReference(_canvas, nameof(_canvas));
         ValidateReference(_panelCanvasGroup, nameof(_panelCanvasGroup));
         ValidateReference(_panelTransform, nameof(_panelTransform));
@@ -254,6 +259,9 @@ public sealed class SceneLoadingScreen : MonoBehaviour
 
     private void StartLoadingVisuals()
     {
+        _sceneLayoutApplied = false;
+        _schematicView.PlayLoadingAnimation();
+
         if (_subtitleCoroutine != null)
         {
             StopCoroutine(_subtitleCoroutine);
@@ -262,16 +270,18 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         _subtitleCoroutine = StartCoroutine(AnimateSubtitleRoutine());
 
         KillPanelPulseTween();
-
-        _panelPulseTween = _panelTransform
-            .DOScale(_panelShownScale * _panelPulseScale, _panelPulseDurationSeconds)
-            .SetEase(Ease.InOutSine)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetUpdate(true);
+        _panelTransform.localScale = new Vector3(_panelShownScale, _panelShownScale, 1.0f);
     }
 
     private void StopLoadingVisuals()
     {
+        _sceneLayoutApplied = false;
+
+        if (_schematicView != null)
+        {
+            _schematicView.StopAnimation();
+        }
+
         if (_subtitleCoroutine != null)
         {
             StopCoroutine(_subtitleCoroutine);
@@ -301,6 +311,8 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     {
         yield return null;
 
+        TryApplySceneLayout();
+
         if (HasPendingSceneWork() == false)
         {
             yield break;
@@ -310,9 +322,11 @@ public sealed class SceneLoadingScreen : MonoBehaviour
 
         while (HasPendingSceneWork())
         {
+            TryApplySceneLayout();
             yield return null;
         }
 
+        TryApplySceneLayout();
         SetSubtitleBaseText(_defaultSubtitleText);
     }
 
@@ -382,6 +396,87 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         }
 
         _subtitleText.text = subtitleText;
+    }
+
+    private void ResolveSchematicView()
+    {
+        if (_schematicView != null)
+        {
+            return;
+        }
+
+        _schematicView = _blurOverlay.GetComponent<DungeonSchematicView>();
+
+        if (_schematicView == null)
+        {
+            _schematicView = _blurOverlay.gameObject.AddComponent<DungeonSchematicView>();
+        }
+    }
+
+    private bool TryApplySceneLayout()
+    {
+        if (_sceneLayoutApplied)
+        {
+            return true;
+        }
+
+        LevelGenerator levelGenerator = FindActiveLevelGenerator();
+
+        if (levelGenerator == null)
+        {
+            return false;
+        }
+
+        Vector2Int startCell;
+        Vector2Int exitCell;
+
+        if (levelGenerator.TryGetSchematicLayout(
+            _schematicView.GridWidth,
+            _schematicView.GridHeight,
+            _sceneRoomCells,
+            _sceneCorridorCells,
+            out startCell,
+            out exitCell
+        ) == false)
+        {
+            return false;
+        }
+
+        _schematicView.ShowLayout(_sceneRoomCells, _sceneCorridorCells, startCell, exitCell);
+        _sceneLayoutApplied = true;
+        return true;
+    }
+
+    private LevelGenerator FindActiveLevelGenerator()
+    {
+        Scene activeScene = SceneManager.GetActiveScene();
+
+        if (activeScene.IsValid() == false)
+        {
+            return null;
+        }
+
+        GameObject[] rootObjects = activeScene.GetRootGameObjects();
+
+        for (int rootIndex = 0; rootIndex < rootObjects.Length; rootIndex++)
+        {
+            GameObject rootObject = rootObjects[rootIndex];
+            LevelGenerator[] levelGenerators = rootObject.GetComponentsInChildren<LevelGenerator>(true);
+
+            for (int generatorIndex = 0; generatorIndex < levelGenerators.Length; generatorIndex++)
+            {
+                LevelGenerator levelGenerator = levelGenerators[generatorIndex];
+
+                if (levelGenerator == null)
+                {
+                    continue;
+                }
+
+                return levelGenerator;
+            }
+        }
+
+        return null;
     }
 
     private IEnumerator AnimateSubtitleRoutine()

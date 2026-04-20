@@ -844,6 +844,243 @@ public sealed class LevelGenerator : MonoBehaviour
         return entryPosition;
     }
 
+    public bool TryGetSchematicLayout(
+        int gridWidth,
+        int gridHeight,
+        List<Vector2Int> roomCells,
+        List<Vector2Int> corridorCells,
+        out Vector2Int startCell,
+        out Vector2Int exitCell
+    )
+    {
+        if (roomCells == null)
+        {
+            throw new ArgumentNullException(nameof(roomCells));
+        }
+
+        if (corridorCells == null)
+        {
+            throw new ArgumentNullException(nameof(corridorCells));
+        }
+
+        startCell = Vector2Int.zero;
+        exitCell = Vector2Int.zero;
+
+        roomCells.Clear();
+        corridorCells.Clear();
+
+        if (_generationContext.PlacedRooms.Count == 0)
+        {
+            return false;
+        }
+
+        if (gridWidth <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(gridWidth));
+        }
+
+        if (gridHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(gridHeight));
+        }
+
+        Bounds schematicBounds;
+
+        if (TryGetSchematicBounds(out schematicBounds) == false)
+        {
+            return false;
+        }
+
+        float targetSpanX = Mathf.Max(0.0f, gridWidth - 3.0f);
+        float targetSpanY = Mathf.Max(0.0f, gridHeight - 3.0f);
+        float sourceWidth = Mathf.Max(schematicBounds.size.x, 0.01f);
+        float sourceHeight = Mathf.Max(schematicBounds.size.z, 0.01f);
+        float scaleX = targetSpanX <= 0.0f ? 0.0f : targetSpanX / sourceWidth;
+        float scaleY = targetSpanY <= 0.0f ? 0.0f : targetSpanY / sourceHeight;
+        float scale = Mathf.Min(scaleX, scaleY);
+
+        if (scale <= 0.0f)
+        {
+            scale = 1.0f;
+        }
+
+        float contentSpanX = schematicBounds.size.x * scale;
+        float contentSpanY = schematicBounds.size.z * scale;
+        float offsetX = 1.0f + ((targetSpanX - contentSpanX) * 0.5f);
+        float offsetY = 1.0f + ((targetSpanY - contentSpanY) * 0.5f);
+        Dictionary<LevelNode, Vector2Int> roomCellsByNode = new Dictionary<LevelNode, Vector2Int>(_generationContext.PlacedRooms.Count);
+        HashSet<int> uniqueRoomCells = new HashSet<int>();
+        HashSet<int> uniqueCorridorCells = new HashSet<int>();
+
+        for (int roomIndex = 0; roomIndex < _generationContext.PlacedRooms.Count; roomIndex++)
+        {
+            PlacedRoomInfo placedRoomInfo = _generationContext.PlacedRooms[roomIndex];
+
+            if (placedRoomInfo == null)
+            {
+                continue;
+            }
+
+            AppendPointCell(
+                placedRoomInfo.SolidBounds.center,
+                schematicBounds.min.x,
+                schematicBounds.min.z,
+                scale,
+                offsetX,
+                offsetY,
+                gridWidth,
+                gridHeight,
+                roomCells,
+                uniqueRoomCells
+            );
+
+            if (placedRoomInfo.Node == null)
+            {
+                continue;
+            }
+
+            Vector2Int roomCell = ConvertWorldPointToCell(
+                placedRoomInfo.SolidBounds.center,
+                schematicBounds.min.x,
+                schematicBounds.min.z,
+                scale,
+                offsetX,
+                offsetY,
+                gridWidth,
+                gridHeight
+            );
+
+            if (roomCellsByNode.ContainsKey(placedRoomInfo.Node))
+            {
+                roomCellsByNode[placedRoomInfo.Node] = roomCell;
+                continue;
+            }
+
+            roomCellsByNode.Add(placedRoomInfo.Node, roomCell);
+        }
+
+        for (int edgeIndex = 0; edgeIndex < _generationContext.Edges.Count; edgeIndex++)
+        {
+            LevelEdge levelEdge = _generationContext.Edges[edgeIndex];
+
+            if (levelEdge.Parent == null)
+            {
+                continue;
+            }
+
+            if (levelEdge.Child == null)
+            {
+                continue;
+            }
+
+            if (roomCellsByNode.ContainsKey(levelEdge.Parent) == false)
+            {
+                continue;
+            }
+
+            if (roomCellsByNode.ContainsKey(levelEdge.Child) == false)
+            {
+                continue;
+            }
+
+            Vector2Int parentRoomCell = roomCellsByNode[levelEdge.Parent];
+            Vector2Int childRoomCell = roomCellsByNode[levelEdge.Child];
+            Vector2Int fromDoorCell = parentRoomCell;
+            Vector2Int toDoorCell = childRoomCell;
+
+            if (levelEdge.FromDoor != null)
+            {
+                fromDoorCell = ConvertWorldPointToCell(
+                    levelEdge.FromDoor.transform.position,
+                    schematicBounds.min.x,
+                    schematicBounds.min.z,
+                    scale,
+                    offsetX,
+                    offsetY,
+                    gridWidth,
+                    gridHeight
+                );
+            }
+
+            if (levelEdge.ToDoor != null)
+            {
+                toDoorCell = ConvertWorldPointToCell(
+                    levelEdge.ToDoor.transform.position,
+                    schematicBounds.min.x,
+                    schematicBounds.min.z,
+                    scale,
+                    offsetX,
+                    offsetY,
+                    gridWidth,
+                    gridHeight
+                );
+            }
+
+            AddLineCells(parentRoomCell, fromDoorCell, gridWidth, gridHeight, corridorCells, uniqueCorridorCells);
+            AddLineCells(fromDoorCell, toDoorCell, gridWidth, gridHeight, corridorCells, uniqueCorridorCells);
+            AddLineCells(toDoorCell, childRoomCell, gridWidth, gridHeight, corridorCells, uniqueCorridorCells);
+        }
+
+        for (int roomCellIndex = 0; roomCellIndex < roomCells.Count; roomCellIndex++)
+        {
+            Vector2Int roomCell = roomCells[roomCellIndex];
+            int corridorCellIndex = roomCell.x + (roomCell.y * gridWidth);
+
+            if (uniqueCorridorCells.Contains(corridorCellIndex))
+            {
+                uniqueCorridorCells.Remove(corridorCellIndex);
+            }
+        }
+
+        if (uniqueCorridorCells.Count != corridorCells.Count)
+        {
+            corridorCells.Clear();
+
+            foreach (int corridorCellIndex in uniqueCorridorCells)
+            {
+                int x = corridorCellIndex % gridWidth;
+                int y = corridorCellIndex / gridWidth;
+                corridorCells.Add(new Vector2Int(x, y));
+            }
+        }
+
+        PlacedRoomInfo startRoomInfo = FindRoomInfo(RoomType.Start);
+        PlacedRoomInfo exitRoomInfo = FindRoomInfo(RoomType.Boss);
+
+        if (startRoomInfo == null)
+        {
+            startRoomInfo = _generationContext.PlacedRooms[0];
+        }
+
+        if (exitRoomInfo == null)
+        {
+            exitRoomInfo = _generationContext.PlacedRooms[_generationContext.PlacedRooms.Count - 1];
+        }
+
+        startCell = ConvertWorldPointToCell(
+            startRoomInfo.SolidBounds.center,
+            schematicBounds.min.x,
+            schematicBounds.min.z,
+            scale,
+            offsetX,
+            offsetY,
+            gridWidth,
+            gridHeight
+        );
+        exitCell = ConvertWorldPointToCell(
+            exitRoomInfo.SolidBounds.center,
+            schematicBounds.min.x,
+            schematicBounds.min.z,
+            scale,
+            offsetX,
+            offsetY,
+            gridWidth,
+            gridHeight
+        );
+
+        return true;
+    }
+
     private PlacedRoomInfo FindRoomInfo(RoomType roomType)
     {
         for (int roomIndex = 0; roomIndex < _generationContext.PlacedRooms.Count; roomIndex++)
@@ -869,6 +1106,163 @@ public sealed class LevelGenerator : MonoBehaviour
         }
 
         return null;
+    }
+
+    private bool TryGetSchematicBounds(out Bounds schematicBounds)
+    {
+        schematicBounds = new Bounds();
+        bool hasBounds = false;
+
+        for (int roomIndex = 0; roomIndex < _generationContext.PlacedRooms.Count; roomIndex++)
+        {
+            PlacedRoomInfo placedRoomInfo = _generationContext.PlacedRooms[roomIndex];
+
+            if (placedRoomInfo == null)
+            {
+                continue;
+            }
+
+            EncapsulatePoint(ref schematicBounds, placedRoomInfo.SolidBounds.center, ref hasBounds);
+        }
+
+        return hasBounds;
+    }
+
+    private void EncapsulatePoint(ref Bounds targetBounds, Vector3 point, ref bool hasBounds)
+    {
+        if (hasBounds == false)
+        {
+            targetBounds = new Bounds(point, Vector3.zero);
+            hasBounds = true;
+
+            return;
+        }
+
+        targetBounds.Encapsulate(point);
+    }
+
+    private void AppendPointCell(
+        Vector3 worldPoint,
+        float worldMinX,
+        float worldMinZ,
+        float scale,
+        float offsetX,
+        float offsetY,
+        int gridWidth,
+        int gridHeight,
+        List<Vector2Int> targetCells,
+        HashSet<int> uniqueCellIndices
+    )
+    {
+        Vector2Int cell = ConvertWorldPointToCell(
+            worldPoint,
+            worldMinX,
+            worldMinZ,
+            scale,
+            offsetX,
+            offsetY,
+            gridWidth,
+            gridHeight
+        );
+        int cellIndex = cell.x + (cell.y * gridWidth);
+
+        if (uniqueCellIndices.Add(cellIndex) == false)
+        {
+            return;
+        }
+
+        targetCells.Add(cell);
+    }
+
+    private void AddLineCells(
+        Vector2Int fromCell,
+        Vector2Int toCell,
+        int gridWidth,
+        int gridHeight,
+        List<Vector2Int> targetCells,
+        HashSet<int> uniqueCellIndices
+    )
+    {
+        int x0 = fromCell.x;
+        int y0 = fromCell.y;
+        int x1 = toCell.x;
+        int y1 = toCell.y;
+        int deltaX = Mathf.Abs(x1 - x0);
+        int deltaY = Mathf.Abs(y1 - y0);
+        int stepX = x0 < x1 ? 1 : -1;
+        int stepY = y0 < y1 ? 1 : -1;
+        int error = deltaX - deltaY;
+
+        while (true)
+        {
+            AppendCell(x0, y0, gridWidth, gridHeight, targetCells, uniqueCellIndices);
+
+            if (x0 == x1 && y0 == y1)
+            {
+                break;
+            }
+
+            int doubledError = error * 2;
+
+            if (doubledError > -deltaY)
+            {
+                error -= deltaY;
+                x0 += stepX;
+            }
+
+            if (doubledError < deltaX)
+            {
+                error += deltaX;
+                y0 += stepY;
+            }
+        }
+    }
+
+    private void AppendCell(
+        int x,
+        int y,
+        int gridWidth,
+        int gridHeight,
+        List<Vector2Int> targetCells,
+        HashSet<int> uniqueCellIndices
+    )
+    {
+        if (x < 0 || y < 0)
+        {
+            return;
+        }
+
+        if (x >= gridWidth || y >= gridHeight)
+        {
+            return;
+        }
+
+        int cellIndex = x + (y * gridWidth);
+
+        if (uniqueCellIndices.Add(cellIndex) == false)
+        {
+            return;
+        }
+
+        targetCells.Add(new Vector2Int(x, y));
+    }
+
+    private Vector2Int ConvertWorldPointToCell(
+        Vector3 worldPoint,
+        float worldMinX,
+        float worldMinZ,
+        float scale,
+        float offsetX,
+        float offsetY,
+        int gridWidth,
+        int gridHeight
+    )
+    {
+        float xFloat = offsetX + ((worldPoint.x - worldMinX) * scale);
+        float yFloat = offsetY + ((worldPoint.z - worldMinZ) * scale);
+        int x = Mathf.Clamp(Mathf.RoundToInt(xFloat), 0, gridWidth - 1);
+        int y = Mathf.Clamp(Mathf.RoundToInt(yFloat), 0, gridHeight - 1);
+        return new Vector2Int(x, y);
     }
 
     private Vector3 ResolveRoomCenter(PlacedRoomInfo roomInfo)
