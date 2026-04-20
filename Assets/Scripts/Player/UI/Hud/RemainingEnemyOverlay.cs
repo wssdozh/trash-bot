@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class RemainingEnemyOverlay : MonoBehaviour
@@ -14,11 +13,9 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
     private const float ScreenTransitionViewportPadding = 0.06f;
     private const int RingTextureSize = 64;
     private const int DotTextureSize = 32;
-    private const int ArrowTextureSize = 48;
     private static readonly Color FillColor = new Color(0.28f, 0.06f, 0.06f, 0.44f);
     private static readonly Color RingColor = new Color(0.82f, 0.24f, 0.20f, 0.95f);
     private static readonly Color DotColor = new Color(0.90f, 0.40f, 0.32f, 1f);
-    private static readonly Color ArrowColor = new Color(0.82f, 0.24f, 0.20f, 0.95f);
 
     private readonly List<Transform> _threats = new List<Transform>(SearchThreatCount);
     private readonly List<RemainingEnemyIndicatorView> _indicators = new List<RemainingEnemyIndicatorView>(VisibleThreatThreshold);
@@ -32,10 +29,8 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
     private Camera _uiCamera;
     private Texture2D _ringTexture;
     private Texture2D _dotTexture;
-    private Texture2D _arrowTexture;
     private Sprite _ringSprite;
     private Sprite _dotSprite;
-    private Sprite _arrowSprite;
     private float _searchTimer;
 
     public void Initialize(Transform playerTransform, RectTransform uiRoot)
@@ -145,11 +140,11 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
 
     private RoomCombatLock FindTrackedRoomCombatLock()
     {
-        RoomCombatLock[] roomCombatLocks = FindObjectsByType<RoomCombatLock>(FindObjectsSortMode.None);
+        IReadOnlyList<RoomCombatLock> roomCombatLocks = RoomCombatLock.Instances;
         RoomCombatLock fallbackRoomCombatLock = null;
         int roomIndex = 0;
 
-        while (roomIndex < roomCombatLocks.Length)
+        while (roomIndex < roomCombatLocks.Count)
         {
             RoomCombatLock roomCombatLock = roomCombatLocks[roomIndex];
             roomIndex += 1;
@@ -258,8 +253,7 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
 
         Vector2 direction = GetScreenDirection(viewportPoint);
         Vector2 anchoredEdgePoint = GetAnchoredEdgePoint(direction);
-        float angleDegrees = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
-        indicatorView.ShowOffScreen(anchoredEdgePoint, angleDegrees);
+        indicatorView.ShowOffScreen(anchoredEdgePoint);
     }
 
     private Vector2 GetAnchoredPoint(Vector3 worldPoint)
@@ -334,7 +328,7 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
         {
             GameObject indicatorObject = new GameObject("Remaining Enemy Indicator", typeof(RectTransform), typeof(CanvasRenderer));
             RemainingEnemyIndicatorView indicatorView = indicatorObject.AddComponent<RemainingEnemyIndicatorView>();
-            indicatorView.Initialize(_overlayRoot, _ringSprite, _dotSprite, _arrowSprite, FillColor, RingColor, DotColor, ArrowColor);
+            indicatorView.Initialize(_overlayRoot, _ringSprite, _dotSprite, FillColor, RingColor, DotColor);
             _indicators.Add(indicatorView);
         }
     }
@@ -408,10 +402,8 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
 
         _ringTexture = CreateRingTexture(RingTextureSize, 0.7f);
         _dotTexture = CreateCircleTexture(DotTextureSize);
-        _arrowTexture = CreateArrowTexture(ArrowTextureSize);
         _ringSprite = CreateSprite(_ringTexture);
         _dotSprite = CreateSprite(_dotTexture);
-        _arrowSprite = CreateSprite(_arrowTexture);
     }
 
     private Texture2D CreateRingTexture(int size, float innerRadiusScale)
@@ -505,54 +497,6 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
         return texture;
     }
 
-    private Texture2D CreateArrowTexture(int size)
-    {
-        Texture2D texture = new Texture2D(size, size, TextureFormat.ARGB32, false);
-        texture.name = "RemainingEnemyArrow";
-        texture.wrapMode = TextureWrapMode.Clamp;
-        texture.filterMode = FilterMode.Bilinear;
-
-        Color32[] pixels = new Color32[size * size];
-        float centerX = (size - 1) * 0.5f;
-        float baseY = size * 0.2f;
-        float tipY = size * 0.82f;
-        float halfBaseWidth = size * 0.16f;
-        int pixelIndex = 0;
-        int y = 0;
-
-        while (y < size)
-        {
-            int x = 0;
-
-            while (x < size)
-            {
-                float progress = Mathf.InverseLerp(baseY, tipY, y);
-                float halfWidth = Mathf.Lerp(halfBaseWidth, 0f, progress);
-                bool isInsideHeight = y >= baseY && y <= tipY;
-                bool isInsideWidth = Mathf.Abs(x - centerX) <= halfWidth;
-
-                if (isInsideHeight && isInsideWidth)
-                {
-                    pixels[pixelIndex] = new Color32(255, 255, 255, 255);
-                }
-                else
-                {
-                    pixels[pixelIndex] = new Color32(255, 255, 255, 0);
-                }
-
-                pixelIndex += 1;
-                x += 1;
-            }
-
-            y += 1;
-        }
-
-        texture.SetPixels32(pixels);
-        texture.Apply();
-
-        return texture;
-    }
-
     private Sprite CreateSprite(Texture2D texture)
     {
         return Sprite.Create(
@@ -566,10 +510,8 @@ public sealed class RemainingEnemyOverlay : MonoBehaviour
     {
         DestroySprite(_ringSprite);
         DestroySprite(_dotSprite);
-        DestroySprite(_arrowSprite);
         DestroyTexture(_ringTexture);
         DestroyTexture(_dotTexture);
-        DestroyTexture(_arrowTexture);
     }
 
     private void DestroySprite(Sprite sprite)

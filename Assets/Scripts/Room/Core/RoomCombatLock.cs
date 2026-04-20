@@ -8,6 +8,7 @@ using UnityEngine;
 public sealed class RoomCombatLock : MonoBehaviour
 {
     private const float MinBlockSize = 0.0001f;
+    private static readonly List<RoomCombatLock> s_instances = new List<RoomCombatLock>(64);
 
     [SerializeField] private Transform _gatesRoot;
     [SerializeField] private Transform _enterTriggersRoot;
@@ -25,6 +26,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     public bool IsLocked => _isLocked;
     public RoomRuntimeState RoomRuntimeState => _roomRuntimeState;
+    public static IReadOnlyList<RoomCombatLock> Instances => s_instances;
 
     private void Awake()
     {
@@ -33,6 +35,11 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private void OnEnable()
     {
+        if (s_instances.Contains(this) == false)
+        {
+            s_instances.Add(this);
+        }
+
         if (_roomRuntimeState == null)
         {
             _roomRuntimeState = GetComponent<RoomRuntimeState>();
@@ -73,6 +80,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     private void OnDisable()
     {
+        s_instances.Remove(this);
         UnsubscribeEnterTriggers();
         UnsubscribeThreats();
     }
