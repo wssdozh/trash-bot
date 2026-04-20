@@ -14,70 +14,90 @@ internal sealed class LevelRoomShellInstantiator
     {
         for (int index = 0; index < generationContext.Nodes.Count; index++)
         {
-            LevelNode node = generationContext.Nodes[index];
-            RoomGenerator prefab = roomPrefabLibrary.Pick(node.RoomType, random);
-            RoomGenerator instance = UnityEngine.Object.Instantiate(prefab, roomsRoot);
-            RoomTypeProfile roomTypeProfile = GetProfileOverride(node, levelSequenceProfile);
-
-            bool needsEntrance = node.Parent != null;
-            bool needsExit = node.Children.Count > 0;
-
-            int requiredDoors = 0;
-
-            if (needsEntrance == true)
-            {
-                requiredDoors += 1;
-            }
-
-            if (needsExit == true)
-            {
-                requiredDoors += 1;
-            }
-
-            requiredDoors += Mathf.Max(0, node.Children.Count - 1);
-            requiredDoors = Mathf.Clamp(requiredDoors, 0, 4);
-
-            node.RoomInstance = instance;
-
-            if (roomTypeProfile != null)
-            {
-                instance.SetRuntimeProfile(roomTypeProfile);
-            }
-            else
-            {
-                instance.ClearRuntimeProfile();
-            }
-
-            bool ok = false;
-
-            for (int regen = 0; regen <= maximumRoomRegenerateAttempts; regen++)
-            {
-                instance.SetRuntimeSeed(LevelGeneratorUtility.NextAnyInt(random));
-                instance.SetDoorRolesEnabled(needsEntrance, needsExit);
-                instance.SetRuntimeDoorCountRange(requiredDoors, requiredDoors);
-                instance.GenerateShellOnly();
-
-                CacheDoorMarkers(node);
-
-                int requiredSideExits = Mathf.Max(0, node.Children.Count - 1);
-
-                if (ValidateMarkers(node, needsEntrance, needsExit, requiredSideExits) == true)
-                {
-                    ok = true;
-                    break;
-                }
-
-                instance.Clear();
-            }
-
-            if (ok == false)
+            if (InstantiateRoomShell(
+                generationContext,
+                index,
+                random,
+                roomsRoot,
+                roomPrefabLibrary,
+                levelSequenceProfile,
+                maximumRoomRegenerateAttempts
+            ) == false)
             {
                 return false;
             }
-
         }
 
         return true;
+    }
+
+    public bool InstantiateRoomShell(
+        LevelGenerationContext generationContext,
+        int nodeIndex,
+        System.Random random,
+        Transform roomsRoot,
+        LevelRoomPrefabLibrary roomPrefabLibrary,
+        LevelSequenceProfile levelSequenceProfile,
+        int maximumRoomRegenerateAttempts
+    )
+    {
+        LevelNode node = generationContext.Nodes[nodeIndex];
+        RoomGenerator prefab = roomPrefabLibrary.Pick(node.RoomType, random);
+        RoomGenerator instance = UnityEngine.Object.Instantiate(prefab, roomsRoot);
+        RoomTypeProfile roomTypeProfile = GetProfileOverride(node, levelSequenceProfile);
+
+        bool needsEntrance = node.Parent != null;
+        bool needsExit = node.Children.Count > 0;
+
+        int requiredDoors = 0;
+
+        if (needsEntrance == true)
+        {
+            requiredDoors += 1;
+        }
+
+        if (needsExit == true)
+        {
+            requiredDoors += 1;
+        }
+
+        requiredDoors += Mathf.Max(0, node.Children.Count - 1);
+        requiredDoors = Mathf.Clamp(requiredDoors, 0, 4);
+
+        node.RoomInstance = instance;
+
+        if (roomTypeProfile != null)
+        {
+            instance.SetRuntimeProfile(roomTypeProfile);
+        }
+        else
+        {
+            instance.ClearRuntimeProfile();
+        }
+
+        bool ok = false;
+
+        for (int regen = 0; regen <= maximumRoomRegenerateAttempts; regen++)
+        {
+            instance.SetRuntimeSeed(LevelGeneratorUtility.NextAnyInt(random));
+            instance.SetDoorRolesEnabled(needsEntrance, needsExit);
+            instance.SetRuntimeDoorCountRange(requiredDoors, requiredDoors);
+            instance.GenerateShellOnly();
+
+            CacheDoorMarkers(node);
+
+            int requiredSideExits = Mathf.Max(0, node.Children.Count - 1);
+
+            if (ValidateMarkers(node, needsEntrance, needsExit, requiredSideExits) == true)
+            {
+                ok = true;
+                break;
+            }
+
+            instance.Clear();
+        }
+
+        return ok;
     }
 
     private static RoomTypeProfile GetProfileOverride(LevelNode node, LevelSequenceProfile levelSequenceProfile)

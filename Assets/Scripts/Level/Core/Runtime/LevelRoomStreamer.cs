@@ -60,13 +60,13 @@ public sealed class LevelRoomStreamer : MonoBehaviour
                 continue;
             }
 
-            roomRuntimeState.SetRoomActive(true);
             roomIndices.Add(roomRuntimeState, _rooms.Count);
             _rooms.Add(roomRuntimeState);
         }
 
         CacheLinks(roomStreamLinks, roomIndices);
         EnsureBuffers();
+        ApplyInitialRoomState();
         enabled = _rooms.Count > 0;
 
         if (enabled)
@@ -299,6 +299,61 @@ public sealed class LevelRoomStreamer : MonoBehaviour
 
         StopCoroutine(_streamCoroutine);
         _streamCoroutine = null;
+    }
+
+    private void ApplyInitialRoomState()
+    {
+        if (_rooms.Count == 0)
+        {
+            return;
+        }
+
+        Transform player = GetPlayer();
+
+        if (player == null)
+        {
+            SetAllRoomsActive(true);
+            return;
+        }
+
+        int playerRoomIndex = FindPlayerRoomIndex(player.position);
+
+        if (playerRoomIndex < 0)
+        {
+            SetAllRoomsActive(true);
+            return;
+        }
+
+        UpdateRoomDepths(playerRoomIndex);
+
+        for (int index = 0; index < _rooms.Count; index++)
+        {
+            RoomRuntimeState roomRuntimeState = _rooms[index];
+
+            if (roomRuntimeState == null)
+            {
+                continue;
+            }
+
+            int roomDepth = _roomDepths[index];
+            bool shouldBeActive = roomDepth >= 0 && roomDepth <= _enableDepth;
+            roomRuntimeState.SetRoomActive(shouldBeActive);
+        }
+    }
+
+    private void SetAllRoomsActive(bool isActive)
+    {
+        for (int index = 0; index < _rooms.Count; index++)
+        {
+            RoomRuntimeState roomRuntimeState = _rooms[index];
+
+            if (roomRuntimeState == null)
+            {
+                continue;
+            }
+
+            roomRuntimeState.SetRoomActive(isActive);
+        }
     }
 
     private float GetUpdateInterval()

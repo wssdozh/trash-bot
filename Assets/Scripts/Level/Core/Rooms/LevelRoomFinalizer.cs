@@ -4,31 +4,36 @@ internal sealed class LevelRoomFinalizer
     {
         for (int index = 0; index < generationContext.PlacedRooms.Count; index++)
         {
-            PlacedRoomInfo placedRoomInfo = generationContext.PlacedRooms[index];
-
-            if (placedRoomInfo == null)
-            {
-                continue;
-            }
-
-            LevelNode node = placedRoomInfo.Node;
-
-            if (node == null)
-            {
-                continue;
-            }
-
-            if (node.RoomInstance == null)
-            {
-                continue;
-            }
-
-            RoomRuntimeState roomRuntimeState = GetRoomRuntimeState(node.RoomInstance);
-            int combatRoomIndex = GetCombatRoomIndex(node);
-            node.RoomInstance.SetRuntimeCombatRoomIndex(combatRoomIndex);
-            roomRuntimeState.Setup(placedRoomInfo.SolidBounds, enemyBorderGap);
-            node.RoomInstance.GenerateInteriorFromShell();
+            FinalizeRoom(generationContext, index, enemyBorderGap);
         }
+    }
+
+    public void FinalizeRoom(LevelGenerationContext generationContext, int roomIndex, float enemyBorderGap)
+    {
+        PlacedRoomInfo placedRoomInfo = generationContext.PlacedRooms[roomIndex];
+
+        if (placedRoomInfo == null)
+        {
+            return;
+        }
+
+        LevelNode node = placedRoomInfo.Node;
+
+        if (node == null)
+        {
+            return;
+        }
+
+        if (node.RoomInstance == null)
+        {
+            return;
+        }
+
+        RoomRuntimeState roomRuntimeState = GetRoomRuntimeState(node.RoomInstance);
+        int combatRoomIndex = GetCombatRoomIndex(node);
+        node.RoomInstance.SetRuntimeCombatRoomIndex(combatRoomIndex);
+        roomRuntimeState.Setup(placedRoomInfo.SolidBounds, enemyBorderGap);
+        node.RoomInstance.GenerateInteriorFromShell();
     }
 
     private int GetCombatRoomIndex(LevelNode node)

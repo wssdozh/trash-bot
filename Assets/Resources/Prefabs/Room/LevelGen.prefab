@@ -90,6 +90,15 @@ MonoBehaviour:
   _seedMin: 0
   _seedMax: 2147483647
   _removeLegacyEnvironment: 1
+  _runtimeShellsPerFrame: 2
+  _runtimeCorridorsPerFrame: 2
+  _runtimeInteriorsPerFrame: 1
+  _streamRooms: 1
+  _player: {fileID: 0}
+  _enemyBorderGap: 0.35
+  _roomEnableDepth: 1
+  _roomDisableDepth: 1
+  _roomStreamDelay: 0.5
   _generationAttempts: 30
   _maximumRoomRegenerateAttempts: 16
   _corridorMinimumLengthInBlocks: 6
