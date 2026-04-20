@@ -1,5 +1,6 @@
 using System.Collections;
 using DG.Tweening;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,6 +15,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     [SerializeField] private Canvas _canvas;
     [SerializeField] private CanvasGroup _panelCanvasGroup;
     [SerializeField] private RectTransform _panelTransform;
+    [SerializeField] private TMP_Text _subtitleText;
     [SerializeField] private float _enterDelaySeconds = 0.08f;
     [SerializeField] private float _panelFadeDurationSeconds = 0.12f;
     [SerializeField] private float _panelShowDurationSeconds = 0.28f;
@@ -21,12 +23,18 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     [SerializeField] private float _panelHiddenOffsetY = 180.0f;
     [SerializeField] private float _panelHiddenScale = 0.88f;
     [SerializeField] private float _panelShownScale = 1.0f;
+    [SerializeField] private float _panelPulseScale = 1.02f;
+    [SerializeField] private float _panelPulseDurationSeconds = 0.65f;
+    [SerializeField] private float _subtitleDotIntervalSeconds = 0.18f;
     [SerializeField] private float _postLoadDelaySeconds = 0.08f;
     [SerializeField] private float _blurHideWaitSeconds = 0.30f;
 
     private Sequence _sequence;
     private Coroutine _loadCoroutine;
+    private Coroutine _subtitleCoroutine;
+    private Tween _panelPulseTween;
     private Vector2 _shownAnchoredPosition;
+    private string _subtitleBaseText;
     private bool _isLoading;
 
     private void Awake()
@@ -43,8 +51,10 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         ValidateReference(_canvas, nameof(_canvas));
         ValidateReference(_panelCanvasGroup, nameof(_panelCanvasGroup));
         ValidateReference(_panelTransform, nameof(_panelTransform));
+        ValidateReference(_subtitleText, nameof(_subtitleText));
 
         _shownAnchoredPosition = _panelTransform.anchoredPosition;
+        _subtitleBaseText = _subtitleText.text;
 
         DontDestroyOnLoad(gameObject);
         ApplyHiddenState();
@@ -53,6 +63,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private void OnDisable()
     {
         KillSequence();
+        StopLoadingVisuals();
     }
 
     private void OnDestroy()
@@ -145,9 +156,10 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private IEnumerator PlayShowRoutine()
     {
         _canvas.enabled = true;
-        _blurOverlay.Show();
+        _blurOverlay.ShowImmediate();
 
         KillSequence();
+        StopLoadingVisuals();
 
         _panelCanvasGroup.alpha = 0.0f;
         _panelCanvasGroup.blocksRaycasts = false;
@@ -161,7 +173,11 @@ public sealed class SceneLoadingScreen : MonoBehaviour
             .Append(_panelCanvasGroup.DOFade(1.0f, _panelFadeDurationSeconds).SetEase(Ease.OutCubic))
             .Join(_panelTransform.DOAnchorPos(_shownAnchoredPosition, _panelShowDurationSeconds).SetEase(Ease.OutCubic))
             .Join(_panelTransform.DOScale(_panelShownScale, _panelShowDurationSeconds).SetEase(Ease.OutBack))
-            .OnComplete(ApplyShownState);
+            .OnComplete(() =>
+            {
+                ApplyShownState();
+                StartLoadingVisuals();
+            });
 
         yield return _sequence.WaitForCompletion();
     }
@@ -169,6 +185,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
     private IEnumerator PlayHideRoutine()
     {
         KillSequence();
+        StopLoadingVisuals();
 
         _panelCanvasGroup.blocksRaycasts = false;
         _panelCanvasGroup.interactable = false;
@@ -215,6 +232,7 @@ public sealed class SceneLoadingScreen : MonoBehaviour
 
     private void ApplyHiddenState()
     {
+        StopLoadingVisuals();
         _blurOverlay.HideImmediate();
         ApplyHiddenPanelState();
         _canvas.enabled = false;
@@ -230,9 +248,81 @@ public sealed class SceneLoadingScreen : MonoBehaviour
         _sequence = null;
     }
 
+    private void StartLoadingVisuals()
+    {
+        if (_subtitleCoroutine != null)
+        {
+            StopCoroutine(_subtitleCoroutine);
+        }
+
+        _subtitleCoroutine = StartCoroutine(AnimateSubtitleRoutine());
+
+        KillPanelPulseTween();
+
+        _panelPulseTween = _panelTransform
+            .DOScale(_panelShownScale * _panelPulseScale, _panelPulseDurationSeconds)
+            .SetEase(Ease.InOutSine)
+            .SetLoops(-1, LoopType.Yoyo)
+            .SetUpdate(true);
+    }
+
+    private void StopLoadingVisuals()
+    {
+        if (_subtitleCoroutine != null)
+        {
+            StopCoroutine(_subtitleCoroutine);
+            _subtitleCoroutine = null;
+        }
+
+        if (_subtitleText != null)
+        {
+            _subtitleText.text = _subtitleBaseText;
+        }
+
+        KillPanelPulseTween();
+    }
+
+    private void KillPanelPulseTween()
+    {
+        if (_panelPulseTween != null && _panelPulseTween.IsActive())
+        {
+            _panelPulseTween.Kill(false);
+        }
+
+        _panelPulseTween = null;
+    }
+
+    private IEnumerator AnimateSubtitleRoutine()
+    {
+        float timer = 0.0f;
+        int dotCount = 0;
+
+        while (true)
+        {
+            timer += Time.unscaledDeltaTime;
+
+            if (timer >= _subtitleDotIntervalSeconds)
+            {
+                timer = 0.0f;
+                dotCount += 1;
+
+                if (dotCount > 3)
+                {
+                    dotCount = 0;
+                }
+
+                _subtitleText.text = _subtitleBaseText + new string('.', dotCount);
+            }
+
+            yield return null;
+        }
+    }
+
     private void ValidateReference(Object target, string fieldName)
     {
         if (target == null)
+        {
             throw new MissingReferenceException(fieldName);
+        }
     }
 }

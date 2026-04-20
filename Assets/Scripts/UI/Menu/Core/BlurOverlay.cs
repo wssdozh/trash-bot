@@ -29,6 +29,18 @@ public sealed class BlurOverlay : MonoBehaviour
         Animate(1.0f, _showDurationSeconds, _showEaseCurve);
     }
 
+    public void ShowImmediate()
+    {
+        KillTween();
+
+        if (gameObject.activeSelf == false)
+        {
+            gameObject.SetActive(true);
+        }
+
+        SetState(1.0f);
+    }
+
     public void Hide()
     {
         Animate(0.0f, _hideDurationSeconds, _hideEaseCurve);

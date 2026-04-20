@@ -120,6 +120,7 @@ MonoBehaviour:
   _canvas: {fileID: 100004}
   _panelCanvasGroup: {fileID: 100204}
   _panelTransform: {fileID: 100201}
+  _subtitleText: {fileID: 100503}
   _enterDelaySeconds: 0.08
   _panelFadeDurationSeconds: 0.12
   _panelShowDurationSeconds: 0.28
@@ -127,6 +128,9 @@ MonoBehaviour:
   _panelHiddenOffsetY: 180
   _panelHiddenScale: 0.88
   _panelShownScale: 1
+  _panelPulseScale: 1.02
+  _panelPulseDurationSeconds: 0.65
+  _subtitleDotIntervalSeconds: 0.18
   _postLoadDelaySeconds: 0.08
   _blurHideWaitSeconds: 0.3
 --- !u!1 &100100
@@ -430,7 +434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.42, g: 0.56, b: 0.33, a: 1}
+  m_Color: {r: 0.42, g: 0.56, b: 0.33, a: 0}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
