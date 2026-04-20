@@ -143,9 +143,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7285996439747952689}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5105a6a6f3b37df4582dd94fae2898f1, type: 3}
+  m_Script: {fileID: 11500000, guid: 85d2d63a93c148bbb1f8433af16ef567, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BerryPickup
+  m_EditorClassIdentifier: Assembly-CSharp::ItemPickup
   _item: {fileID: 11400000, guid: 3544f38e12d237847afb7a1e9f75b9ae, type: 2}
   _amount: 1
   _pickupAnimator: {fileID: 2958621487436852649}

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 4426484305274051091}
   - component: {fileID: 8749875642096183521}
   m_Layer: 0
-  m_Name: Berry Resource
+  m_Name: Battery Resource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

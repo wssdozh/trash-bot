@@ -5911,7 +5911,7 @@ PrefabInstance:
     - target: {fileID: 7032328840281441597, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
       propertyPath: _pickupPrefab
       value: 
-      objectReference: {fileID: 1864531296725922894, guid: 58b73eaa51d56354a8064e30deba39ef, type: 3}
+      objectReference: {fileID: 1864531296725922894, guid: 57c6298d869a66042be005f933ed9f42, type: 3}
     - target: {fileID: 7892580720158080282, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
       propertyPath: m_Name
       value: DestroyTank (1)
