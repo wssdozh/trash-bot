@@ -21,6 +21,7 @@ namespace JunkyardBoss
         private BossExcavatorBrain _brain;
         private BossExcavatorPhaseThreeController _phaseThreeController;
         private BossExcavatorStateMachine _stateMachine;
+        private RoomCombatLock _roomCombatLock;
         private BossExcavatorPhase _phase;
         private BossExcavatorState _state;
 
@@ -59,6 +60,7 @@ namespace JunkyardBoss
             _brain = new BossExcavatorBrain(this);
             _phaseThreeController = new BossExcavatorPhaseThreeController(this);
             _stateMachine = new BossExcavatorStateMachine(this);
+            _roomCombatLock = ResolveRoomCombatLock();
             _move.Setup(_config, _base, _baseRigidbody, _target);
             _aim.Setup(this, _config, _cabin, _target);
             _arm.Setup(this, _config, _boom, _stick, _bucket);
@@ -92,6 +94,13 @@ namespace JunkyardBoss
 
         private void Update()
         {
+            if (ShouldHoldPreCombatIdle())
+            {
+                HoldPreCombatIdle();
+
+                return;
+            }
+
             _brain.Tick();
             _stateMachine.Tick();
             _phaseThreeController.Tick();
@@ -108,6 +117,13 @@ namespace JunkyardBoss
             if (CanUseTarget() == false)
             {
                 TryResolveTarget();
+            }
+
+            if (ShouldHoldPreCombatIdle())
+            {
+                HoldPreCombatIdle();
+
+                return;
             }
 
             _brain.FixedTick();
@@ -469,6 +485,56 @@ namespace JunkyardBoss
             {
                 throw new InvalidOperationException(nameof(_health));
             }
+        }
+
+        private bool ShouldHoldPreCombatIdle()
+        {
+            if (IsDead)
+            {
+                return false;
+            }
+
+            RoomCombatLock roomCombatLock = ResolveRoomCombatLock();
+
+            if (roomCombatLock == null)
+            {
+                return false;
+            }
+
+            return roomCombatLock.IsLocked == false;
+        }
+
+        private void HoldPreCombatIdle()
+        {
+            _move.SetChargeAlign(false);
+            _move.SetAttackIntent(BossExcavatorAttack.None);
+            _move.Stop();
+            _aim.SetLocked(false);
+            _arm.SetLocked(false);
+            _stateMachine.RequestAutoState(BossExcavatorState.Idle);
+            _stateMachine.Tick();
+        }
+
+        private RoomCombatLock ResolveRoomCombatLock()
+        {
+            if (_roomCombatLock != null)
+            {
+                return _roomCombatLock;
+            }
+
+            if (_base != null)
+            {
+                _roomCombatLock = _base.GetComponentInParent<RoomCombatLock>();
+
+                if (_roomCombatLock != null)
+                {
+                    return _roomCombatLock;
+                }
+            }
+
+            _roomCombatLock = GetComponentInParent<RoomCombatLock>();
+
+            return _roomCombatLock;
         }
 
         private BossExcavatorState NormalizeState(BossExcavatorState state)
