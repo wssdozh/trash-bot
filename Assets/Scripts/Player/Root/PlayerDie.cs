@@ -1,7 +1,6 @@
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 class PlayerDie : MonoBehaviour
@@ -20,7 +19,7 @@ class PlayerDie : MonoBehaviour
 
     private void Awake()
     {
-        _timeScale = new TimeScale(Time.fixedDeltaTime, _timeScaleSettings.MinPhysicsTimeScale);
+        _timeScale = new TimeScale(_timeScaleSettings.BaseFixedDeltaTime, _timeScaleSettings.MinPhysicsTimeScale);
     }
 
     private void OnEnable()
@@ -33,6 +32,7 @@ class PlayerDie : MonoBehaviour
     {
         _player.Died -= Die;
         _buttonRevival.onClick.RemoveListener(ReloadScene);
+        _timeScale.ResetToDefault();
     }
 
     private void Die()
@@ -70,8 +70,6 @@ class PlayerDie : MonoBehaviour
 
         _timeScale.ResetToDefault();
         DOTween.KillAll(true);
-
-        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        SceneManager.LoadScene(currentSceneIndex);
+        SceneLoadingScreen.ReloadCurrentScene();
     }
 }

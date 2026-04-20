@@ -25,6 +25,7 @@ public class TargetVision : MonoBehaviour
     private Vector3 _currentTargetPoint;
     private Transform _currentLookTarget;
     private float _distanceToTarget;
+    private float _nextScanTime;
 
     public event Action TargetDetected;
     public event Action TargetCleared;
@@ -63,10 +64,12 @@ public class TargetVision : MonoBehaviour
     private void Awake()
     {
         _scanDelay = new WaitForSeconds(GetScanInterval());
+        _nextScanTime = 0f;
     }
 
     private void OnEnable()
     {
+        _nextScanTime = 0f;
         _scanCoroutine = StartCoroutine(ScanLoop());
     }
 
@@ -81,17 +84,30 @@ public class TargetVision : MonoBehaviour
 
     public void Refresh()
     {
-        Scan();
+        TryScan();
     }
 
     private IEnumerator ScanLoop()
     {
         while (enabled)
         {
-            Scan();
+            TryScan();
 
             yield return _scanDelay;
         }
+    }
+
+    private void TryScan()
+    {
+        float currentTime = Time.time;
+
+        if (currentTime < _nextScanTime)
+        {
+            return;
+        }
+
+        Scan();
+        _nextScanTime = currentTime + GetScanInterval();
     }
 
     private void Scan()

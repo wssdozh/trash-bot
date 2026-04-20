@@ -198,7 +198,7 @@ public sealed partial class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemy
             return;
         }
 
-        UpdateLastSeenPoint();
+        UpdateLastSeenPoint(currentTarget);
 
         if (currentTarget != null)
         {

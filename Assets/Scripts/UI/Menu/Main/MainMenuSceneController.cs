@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public sealed class MainMenuSceneController : MonoBehaviour
@@ -61,7 +60,7 @@ public sealed class MainMenuSceneController : MonoBehaviour
 
     private void OnStartClicked()
     {
-        SceneManager.LoadScene(_levelSceneName);
+        SceneLoadingScreen.LoadScene(_levelSceneName);
     }
 
     private void OnSettingsClicked()

@@ -34,12 +34,20 @@ public sealed class BlurOverlay : MonoBehaviour
         Animate(0.0f, _hideDurationSeconds, _hideEaseCurve);
     }
 
+    public void HideImmediate()
+    {
+        KillTween();
+        SetState(0.0f);
+
+        if (gameObject.activeSelf)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
     private void Animate(float targetAlpha, float durationSeconds, AnimationCurve easeCurve)
     {
-        if (_tween != null && _tween.IsActive())
-        {
-            _tween.Kill(false);
-        }
+        KillTween();
 
         _tween = DOTween
             .To(() => _canvasGroup.alpha, value => _canvasGroup.alpha = value, targetAlpha, durationSeconds)
@@ -54,6 +62,14 @@ public sealed class BlurOverlay : MonoBehaviour
                     gameObject.SetActive(false);
                 }
             });
+    }
+
+    private void KillTween()
+    {
+        if (_tween != null && _tween.IsActive())
+        {
+            _tween.Kill(false);
+        }
     }
 
     private void SetState(float alpha)

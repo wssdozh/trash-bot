@@ -18,7 +18,7 @@ public sealed class PauseController : MonoBehaviour
 
     private void Awake()
     {
-        _timeScale = new TimeScale(Time.fixedDeltaTime, _timeScaleSettings.MinPhysicsTimeScale);
+        _timeScale = new TimeScale(_timeScaleSettings.BaseFixedDeltaTime, _timeScaleSettings.MinPhysicsTimeScale);
     }
 
     private void OnEnable()
@@ -31,6 +31,8 @@ public sealed class PauseController : MonoBehaviour
     {
         _pauseMenuView.Opened -= Pause;
         _pauseMenuView.Closed -= Resume;
+        _isPaused = false;
+        _timeScale.ResetToDefault();
     }
 
     public void Pause()

@@ -169,9 +169,11 @@ public sealed class RoomInteriorClusterMeshCombiner
         rootObject.transform.SetParent(_combinedRoot, false);
         rootObject.isStatic = true;
 
+        MeshCollider meshCollider = null;
+
         if (_createMeshCollider == true)
         {
-            MeshCollider meshCollider = rootObject.AddComponent<MeshCollider>();
+            meshCollider = rootObject.AddComponent<MeshCollider>();
             meshCollider.sharedMesh = finalMesh;
             meshCollider.convex = _meshColliderConvex;
             meshCollider.isTrigger = _meshColliderIsTrigger;
@@ -196,6 +198,9 @@ public sealed class RoomInteriorClusterMeshCombiner
 
         notStaticMeshFilter.sharedMesh = finalMesh;
         notStaticMeshRenderer.sharedMaterials = combinedMaterials.ToArray();
+
+        RoomInteriorCombinedMeshOwner meshOwner = rootObject.AddComponent<RoomInteriorCombinedMeshOwner>();
+        meshOwner.Initialize(finalMesh, meshCollider, staticMeshFilter, notStaticMeshFilter);
 
         bool startWithStaticActive = clusterIsStatic;
 

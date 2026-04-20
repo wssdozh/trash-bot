@@ -2,10 +2,8 @@ using UnityEngine;
 
 public sealed partial class EnemyMeleeBrain
 {
-    private void UpdateLastSeenPoint()
+    private void UpdateLastSeenPoint(Transform currentTarget)
     {
-        Transform currentTarget = GetVisibleTarget();
-
         if (currentTarget == null)
         {
             return;

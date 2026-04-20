@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public sealed class ExitButton : MonoBehaviour
@@ -20,7 +19,7 @@ public sealed class ExitButton : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(_sceneName) == false)
         {
-            SceneManager.LoadScene(_sceneName);
+            SceneLoadingScreen.LoadScene(_sceneName);
 
             return;
         }
