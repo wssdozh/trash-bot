@@ -136,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &14230278
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -602,7 +602,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &199659148
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7134,9 +7134,9 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 42
   orthographic: 0
-  orthographic size: 5
+  orthographic size: 18
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -7160,13 +7160,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1944584261}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.49120054, y: 0.2577552, z: -0.15487494, w: 0.817495}
+  m_LocalPosition: {x: -6.5, y: 21.2, z: 8.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 62, y: 35, z: 0}
 --- !u!114 &1944584265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9342,11 +9342,102 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &2048000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2048000002}
+  - component: {fileID: 2048000003}
+  m_Layer: 0
+  m_Name: MenuScrapBackground
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2048000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 18}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2048000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2048000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ec1f7b2f0c54a23b2de4c1af07d8c7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuScrapBackgroundGenerator
+  _noiseProfile: {fileID: 11400000, guid: e570205b16e869d46af52668fb5e08b4, type: 2}
+  _floorPrefab: {fileID: 5821738437956798356, guid: 804832120d9ca554aa535b58956855a2, type: 3}
+  _floorPrefabBaseSizeInUnits: {x: 10, y: 10}
+  _floorLocalOffset: {x: 0, y: 0, z: 0}
+  _fallbackJunkCubePrefab: {fileID: 3367844286714612241, guid: 26a866cda2b00fc47b4a245af02f482d, type: 3}
+  _smallPrefabs:
+  - _prefab: {fileID: 3367844286714612241, guid: 26a866cda2b00fc47b4a245af02f482d, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  - _prefab: {fileID: 3367844286714612241, guid: f48d7c4dae6fa3a4aa0da99699d67e05, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  - _prefab: {fileID: 3367844286714612241, guid: e85e37fbe5291d94eaa2c3876fc3daaf, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  _largePrefabs:
+  - _prefab: {fileID: 3367844286714612241, guid: 4a758b2fd99128645a2d126bee6e3013, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  - _prefab: {fileID: 3367844286714612241, guid: 0f72d3873d22ad440a5fd68fb00c91c7, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  - _prefab: {fileID: 3367844286714612241, guid: 087c99afad8ef3449892f612368249da, type: 3}
+    _weight: 1
+    _spawnHeight: 1.75
+    _guaranteed: 0
+  _sizeInBlocks: {x: 52, y: 34}
+  _blockFillPercent: 0.82
+  _largePileAreaPercent: 0.62
+  _minimumPileHeightInBlocks: 1
+  _maximumPileHeightInBlocks: 14
+  _heightExponent: 1.78
+  _spawnOnlyExposedSmallCubes: 1
+  _minimumSolidSmallHeightInBlocks: 1
+  _blockSize: 1
+  _randomYawRotation: 1
+  _chunkCount: 5
+  _scrollSpeed: 1.9
+  _chunkSpacingOffsetInUnits: 0
+  _seed: 56
+  _generateOnAwake: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1944584264}
   - {fileID: 1687315481}
+  - {fileID: 2048000002}
   - {fileID: 756135270}
   - {fileID: 1041065579}
