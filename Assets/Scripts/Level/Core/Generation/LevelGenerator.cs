@@ -25,7 +25,7 @@ public sealed class LevelGenerator : MonoBehaviour
     [Header("Runtime")]
     [SerializeField] private bool _generateOnAwake = true;
     [SerializeField] private bool _randomSeedOnAwake = true;
-    [SerializeField, Min(1)] private int _runtimeAttempts = 8;
+    [SerializeField, Min(1)] private int _runtimeAttempts = 30;
     [SerializeField, Min(0)] private int _seedMin = 0;
     [SerializeField, Min(0)] private int _seedMax = int.MaxValue;
     [SerializeField] private bool _removeLegacyEnvironment = true;
@@ -39,7 +39,7 @@ public sealed class LevelGenerator : MonoBehaviour
     [SerializeField, Min(0f)] private float _roomStreamDelay = 0.5f;
 
     [Header("Attempts")]
-    [SerializeField, Min(1)] private int _generationAttempts = 3;
+    [SerializeField, Min(1)] private int _generationAttempts = 30;
     [SerializeField, Min(0)] private int _maximumRoomRegenerateAttempts = 8;
 
     [Header("Corridors")]
