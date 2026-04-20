@@ -22,6 +22,24 @@ public sealed class LevelRuntimeNavMesh : MonoBehaviour
     private float _buildRequestTime;
     private float _updateRequestTime;
 
+    public bool IsBusy
+    {
+        get
+        {
+            if (_hasPendingBuild || _hasPendingUpdate)
+            {
+                return true;
+            }
+
+            if (_updateOperation != null && _updateOperation.isDone == false)
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     private void Awake()
     {
         EnsureSurface();
