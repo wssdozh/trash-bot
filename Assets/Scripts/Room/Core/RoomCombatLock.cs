@@ -24,6 +24,7 @@ public sealed class RoomCombatLock : MonoBehaviour
     private bool _isCleared;
 
     public bool IsLocked => _isLocked;
+    public RoomRuntimeState RoomRuntimeState => _roomRuntimeState;
 
     private void Awake()
     {
@@ -340,6 +341,76 @@ public sealed class RoomCombatLock : MonoBehaviour
         }
 
         return false;
+    }
+
+    public int FillAliveThreatTransforms(List<Transform> threatTransforms, int maxCount)
+    {
+        if (threatTransforms == null)
+        {
+            throw new InvalidOperationException(nameof(threatTransforms));
+        }
+
+        threatTransforms.Clear();
+
+        if (maxCount <= 0)
+        {
+            return 0;
+        }
+
+        int aliveThreatCount = 0;
+        int enemyIndex = 0;
+
+        while (enemyIndex < _enemies.Count)
+        {
+            Enemy enemy = _enemies[enemyIndex];
+            enemyIndex += 1;
+
+            if (enemy == null)
+            {
+                continue;
+            }
+
+            if (enemy.IsDead)
+            {
+                continue;
+            }
+
+            aliveThreatCount += 1;
+            threatTransforms.Add(enemy.transform);
+
+            if (aliveThreatCount >= maxCount)
+            {
+                return aliveThreatCount;
+            }
+        }
+
+        int turretIndex = 0;
+
+        while (turretIndex < _turrets.Count)
+        {
+            Turret turret = _turrets[turretIndex];
+            turretIndex += 1;
+
+            if (turret == null)
+            {
+                continue;
+            }
+
+            if (turret.IsDead)
+            {
+                continue;
+            }
+
+            aliveThreatCount += 1;
+            threatTransforms.Add(turret.transform);
+
+            if (aliveThreatCount >= maxCount)
+            {
+                return aliveThreatCount;
+            }
+        }
+
+        return aliveThreatCount;
     }
 
     private Transform GetGatesRoot()

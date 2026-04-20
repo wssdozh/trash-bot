@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
 
     private PlayerInputActions _inputs;
     private BossHealthOverlay _bossHealthOverlay;
+    private RemainingEnemyOverlay _remainingEnemyOverlay;
 
     public event Action Died;
     public PlayerMovement Movement => _movement;
@@ -42,6 +43,8 @@ public class Player : MonoBehaviour
         _inputs = new PlayerInputActions();
         _bossHealthOverlay = gameObject.AddComponent<BossHealthOverlay>();
         _bossHealthOverlay.Initialize(_uiCanvas, _bossHealthIndicatorTemplate);
+        _remainingEnemyOverlay = gameObject.AddComponent<RemainingEnemyOverlay>();
+        _remainingEnemyOverlay.Initialize(transform, _uiCanvas);
         SubscribeInput();
     }
 
