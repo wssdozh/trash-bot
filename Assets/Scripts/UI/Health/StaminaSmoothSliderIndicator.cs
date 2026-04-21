@@ -23,15 +23,21 @@ public class StaminaSmoothSliderIndicator : StatIndicatorBase<Stamina>
 
         _currentTween = _slider
             .DOValue(targetValue, _duration)
-            .SetEase(Ease.OutQuad)
-            .SetLink(_slider.gameObject);
+            .SetEase(Ease.OutQuad);
     }
 
     private void KillCurrentTween()
     {
-        if (_currentTween != null && _currentTween.IsActive())
+        if (_currentTween == null)
         {
-            _currentTween.Kill();
+            return;
         }
+
+        if (_currentTween.IsActive())
+        {
+            _currentTween.Kill(false);
+        }
+
+        _currentTween = null;
     }
 }
