@@ -128,6 +128,33 @@ public class Player : MonoBehaviour
         _inputs.Player.Pause.performed -= OnPausePerformed;
     }
 
+    private void Update()
+    {
+        Keyboard keyboard = Keyboard.current;
+
+        if (keyboard == null)
+        {
+            return;
+        }
+
+        if (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame)
+        {
+            _inventory.SetActiveSlot(0);
+            return;
+        }
+
+        if (keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame)
+        {
+            _inventory.SetActiveSlot(1);
+            return;
+        }
+
+        if (keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame)
+        {
+            _inventory.SetActiveSlot(2);
+        }
+    }
+
     private void FixedUpdate()
     {
         _movement.TickFixed(_combat.IsInBattle);

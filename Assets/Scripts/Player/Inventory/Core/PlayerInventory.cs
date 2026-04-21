@@ -44,6 +44,11 @@ public class PlayerInventory : MonoBehaviour
         }
     }
 
+    public void SetActiveSlot(int slotIndex)
+    {
+        _inventory.SetActiveIndex(slotIndex);
+    }
+
     public void DropOne()
     {
         _inventoryDropper.DropOneFromActiveSlot();
