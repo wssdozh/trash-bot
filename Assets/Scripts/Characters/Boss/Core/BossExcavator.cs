@@ -27,6 +27,7 @@ namespace JunkyardBoss
         private BossExcavatorPhase _phase;
         private BossExcavatorState _state;
 
+        public static event Action<BossExcavator> AnyDied;
         public event Action<BossExcavatorPhase, BossExcavatorPhase> PhaseChanged;
         public event Action<BossExcavatorState, BossExcavatorState> StateChanged;
         public event Action Died;
@@ -379,6 +380,7 @@ namespace JunkyardBoss
             if (_state == BossExcavatorState.Dead)
             {
                 Died?.Invoke();
+                AnyDied?.Invoke(this);
             }
         }
 
