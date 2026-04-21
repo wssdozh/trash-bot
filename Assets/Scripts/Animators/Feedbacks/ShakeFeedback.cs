@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using DG.Tweening;
 
@@ -111,6 +112,17 @@ public class ShakeFeedback : Feedback
 
         CacheInitialState();
         UpdatePhysicsSyncState();
+    }
+
+    public void SetStrengthMultiplier(float strengthMultiplier)
+    {
+        if (strengthMultiplier < 0f)
+        {
+            throw new InvalidOperationException(nameof(strengthMultiplier));
+        }
+
+        _shakePositionStrength *= strengthMultiplier;
+        _shakeRotationStrength *= strengthMultiplier;
     }
 
     private void CacheInitialState()

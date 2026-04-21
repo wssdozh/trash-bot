@@ -9,6 +9,7 @@ public sealed class RoomInteriorChunkDynamicOnDamageInstaller : ChunkRootInstall
     [SerializeField] private GameObject _feedbackPrefab;
     [SerializeField] private GameObject _popupPrefab;
     [SerializeField, Min(0f)] private float _popupOffsetY = 0.35f;
+    [SerializeField, Min(0f)] private float _shakeStrengthMultiplier = 0.4f;
 
     public override void Install(ref ChunkRootContext context)
     {
@@ -126,6 +127,7 @@ public sealed class RoomInteriorChunkDynamicOnDamageInstaller : ChunkRootInstall
         if (shakeFeedback != null)
         {
             shakeFeedback.Initialize(visualObject.transform, visualObject.transform);
+            shakeFeedback.SetStrengthMultiplier(_shakeStrengthMultiplier);
         }
 
         if (useShake && shakeFeedback != null)
