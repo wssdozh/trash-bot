@@ -311,6 +311,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   _rigidbody: {fileID: 5611463029158143350}
+  _collisionCollider: {fileID: 152883573251891985}
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961

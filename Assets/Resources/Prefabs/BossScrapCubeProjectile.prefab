@@ -155,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossScrapCubeProjectile
   _rigidbody: {fileID: 2738751371679644504}
+  _collisionCollider: {fileID: 6758687439921615407}
   _targetLayers:
     serializedVersion: 2
     m_Bits: 0
