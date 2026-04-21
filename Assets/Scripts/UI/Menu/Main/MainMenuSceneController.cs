@@ -44,7 +44,7 @@ public sealed class MainMenuSceneController : MonoBehaviour
 
     private void Start()
     {
-        Cursor.visible = true;
+        Cursor.visible = false;
         Cursor.lockState = CursorLockMode.None;
 
         if (_mainMenuView.IsOpen == false)
