@@ -7,6 +7,7 @@ public abstract class Ammo : MonoBehaviour
     private const RigidbodyInterpolation ActiveInterpolation = RigidbodyInterpolation.Interpolate;
     private const int SweepHitBufferSize = 16;
     private const float MinSweepDistance = 0.0001f;
+    private const QueryTriggerInteraction SweepTriggerInteraction = QueryTriggerInteraction.Collide;
 
     [Header("Dependencies")]
     [SerializeField] private Rigidbody _rigidbody;
@@ -279,7 +280,7 @@ public abstract class Ammo : MonoBehaviour
                 _sweepHitBuffer,
                 moveDistance,
                 Physics.AllLayers,
-                QueryTriggerInteraction.Ignore);
+                SweepTriggerInteraction);
         }
 
         BoxCollider boxCollider = _collisionCollider as BoxCollider;
@@ -297,10 +298,10 @@ public abstract class Ammo : MonoBehaviour
                 boxCollider.transform.rotation,
                 moveDistance,
                 Physics.AllLayers,
-                QueryTriggerInteraction.Ignore);
+                SweepTriggerInteraction);
         }
 
-        RaycastHit[] hits = _rigidbody.SweepTestAll(moveDirection, moveDistance, QueryTriggerInteraction.Ignore);
+        RaycastHit[] hits = _rigidbody.SweepTestAll(moveDirection, moveDistance, SweepTriggerInteraction);
         int copyCount = Mathf.Min(hits.Length, _sweepHitBuffer.Length);
 
         for (int hitIndex = 0; hitIndex < copyCount; hitIndex++)
@@ -388,7 +389,10 @@ public abstract class Ammo : MonoBehaviour
 
         if (other.isTrigger)
         {
-            return false;
+            if (CanProcessTriggerCollision(other) == false)
+            {
+                return false;
+            }
         }
 
         if (ShouldIgnoreCollision(other))
@@ -397,6 +401,18 @@ public abstract class Ammo : MonoBehaviour
         }
 
         return true;
+    }
+
+    private bool CanProcessTriggerCollision(Collider other)
+    {
+        EnemyAimCollider enemyAimCollider = other.GetComponent<EnemyAimCollider>();
+
+        if (enemyAimCollider != null)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private bool IsInTargetLayers(int layer)
