@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -14,6 +15,8 @@ public class Health : Stat
     private WaitForSecondsRealtime _regenWait;
     private float _sinceLastDamage;
     private Player _player;
+
+    public event Action<float> Damaged;
 
     public bool AutoRegen => _autoRegen;
 
@@ -41,12 +44,28 @@ public class Health : Stat
 
     public override void Decrease(float amount)
     {
+        if (amount <= 0f)
+        {
+            return;
+        }
+
+        if (Value <= MinValue)
+        {
+            return;
+        }
+
         if (CanIgnoreDamage())
         {
             return;
         }
 
         base.Decrease(amount);
+
+        if (Damaged != null)
+        {
+            Damaged.Invoke(amount);
+        }
+
         _sinceLastDamage = 0f;
         RefreshRegenState();
     }

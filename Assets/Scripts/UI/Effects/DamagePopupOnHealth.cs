@@ -8,7 +8,6 @@ public class DamagePopupOnHealth : MonoBehaviour
     [SerializeField] private GameObject _prefab;
 
     private DamagePopupSpawner _spawner;
-    private float _previousValue;
     private bool _isSubscribed;
 
     private void Start()
@@ -71,8 +70,7 @@ public class DamagePopupOnHealth : MonoBehaviour
             return;
         }
 
-        _previousValue = _health.Value;
-        _health.Changed += OnHealthChanged;
+        _health.Damaged += OnDamaged;
         _isSubscribed = true;
     }
 
@@ -90,24 +88,22 @@ public class DamagePopupOnHealth : MonoBehaviour
             return;
         }
 
-        _health.Changed -= OnHealthChanged;
+        _health.Damaged -= OnDamaged;
         _isSubscribed = false;
     }
 
-    private void OnHealthChanged()
+    private void OnDamaged(float damage)
     {
         if (_spawner == null)
         {
             return;
         }
 
-        float currentValue = _health.Value;
-        float damageDelta = _previousValue - currentValue;
-        _previousValue = currentValue;
-
-        if (damageDelta > 0f)
+        if (damage <= 0f)
         {
-            _spawner.Show(damageDelta, _spawnPoint.position);
+            return;
         }
+
+        _spawner.Show(damage, _spawnPoint.position);
     }
 }
