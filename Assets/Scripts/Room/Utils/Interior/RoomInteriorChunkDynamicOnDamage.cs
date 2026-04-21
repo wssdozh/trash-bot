@@ -8,7 +8,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
     [SerializeField, Min(0f)] private float _sinkDelay = 0.15f;
     [SerializeField, Min(0.01f)] private float _sinkDuration = 1.15f;
     [SerializeField, Min(0.1f)] private float _sinkDistanceMultiplier = 1.35f;
-    [SerializeField, Min(0f)] private float _sinkTiltMaxAngle = 10f;
 
     private ChunkVariantSwitcherBase _chunkVariantSwitcher;
     private GameObject _staticObject;
@@ -27,10 +26,15 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
     private bool _dynamicEnabled;
     private bool _isSubscribed;
     private bool _isSinking;
+    private bool _isTransformCached;
+
+    private Vector3 _cachedPosition;
+    private Quaternion _cachedRotation;
 
     public void Initialize(ChunkVariantSwitcherBase chunkVariantSwitcher)
     {
         _chunkVariantSwitcher = chunkVariantSwitcher;
+        CacheTransformState();
     }
 
     public void Initialize(ChunkVariantSwitcherBase chunkVariantSwitcher, GameObject staticObject, GameObject notStaticObject, Health health)
@@ -39,6 +43,7 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
         _staticObject = staticObject;
         _notStaticObject = notStaticObject;
         _health = health;
+        CacheTransformState();
 
         ConfigureVariants();
         Subscribe();
@@ -46,6 +51,11 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
     private void OnEnable()
     {
+        if (_dynamicEnabled == false && _isSinking == false)
+        {
+            CacheTransformState();
+        }
+
         Subscribe();
     }
 
@@ -337,11 +347,8 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
     private IEnumerator SinkCoroutine()
     {
-        while (_notStaticFeedbackGroup != null && _notStaticFeedbackGroup.IsPlaying)
-        {
-            yield return null;
-        }
-
+        StopDynamicFeedback();
+        RestoreCachedTransform();
         DisableColliders();
         DisableRigidbodies();
         RequestNavMeshUpdate();
@@ -357,8 +364,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
         Vector3 startPoint = transform.position;
         Vector3 endPoint = startPoint + (Vector3.down * GetSinkDistance());
-        Quaternion startRotation = transform.rotation;
-        Quaternion endRotation = GetSinkRotation(startRotation);
         float sinkTimer = 0f;
 
         while (sinkTimer < _sinkDuration)
@@ -367,12 +372,39 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
 
             float sinkProgress = Mathf.Clamp01(sinkTimer / _sinkDuration);
             transform.position = Vector3.Lerp(startPoint, endPoint, sinkProgress);
-            transform.rotation = Quaternion.Slerp(startRotation, endRotation, sinkProgress);
 
             yield return null;
         }
 
         Destroy(gameObject);
+    }
+
+    private void CacheTransformState()
+    {
+        _cachedPosition = transform.position;
+        _cachedRotation = transform.rotation;
+        _isTransformCached = true;
+    }
+
+    private void RestoreCachedTransform()
+    {
+        if (_isTransformCached == false)
+        {
+            return;
+        }
+
+        transform.position = _cachedPosition;
+        transform.rotation = _cachedRotation;
+    }
+
+    private void StopDynamicFeedback()
+    {
+        if (_notStaticFeedbackGroup == null)
+        {
+            return;
+        }
+
+        _notStaticFeedbackGroup.Stop();
     }
 
     private void DisableColliders()
@@ -412,21 +444,6 @@ public sealed class RoomInteriorChunkDynamicOnDamage : MonoBehaviour
             _notStaticRigidbody.useGravity = false;
             _notStaticRigidbody.isKinematic = true;
         }
-    }
-
-    private Quaternion GetSinkRotation(Quaternion startRotation)
-    {
-        if (_sinkTiltMaxAngle <= 0f)
-        {
-            return startRotation;
-        }
-
-        Vector3 startEulerAngles = startRotation.eulerAngles;
-        float xTilt = UnityEngine.Random.Range(-_sinkTiltMaxAngle, _sinkTiltMaxAngle);
-        float zTilt = UnityEngine.Random.Range(-_sinkTiltMaxAngle, _sinkTiltMaxAngle);
-        Vector3 endEulerAngles = new Vector3(startEulerAngles.x + xTilt, startEulerAngles.y, startEulerAngles.z + zTilt);
-
-        return Quaternion.Euler(endEulerAngles);
     }
 
     private float GetSinkDistance()

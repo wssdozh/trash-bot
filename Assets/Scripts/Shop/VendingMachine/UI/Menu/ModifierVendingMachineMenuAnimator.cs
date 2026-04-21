@@ -30,14 +30,19 @@ public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
 
     private void Awake()
     {
+        if (_root == null)
+        {
+            throw new InvalidOperationException(nameof(_root));
+        }
+
         if (_canvasGroup == null)
         {
-            _canvasGroup = GetComponent<CanvasGroup>();
+            throw new InvalidOperationException(nameof(_canvasGroup));
         }
 
         if (_panelTransform == null)
         {
-            _panelTransform = GetComponent<RectTransform>();
+            throw new InvalidOperationException(nameof(_panelTransform));
         }
     }
 
@@ -160,10 +165,7 @@ public sealed class ModifierVendingMachineMenuAnimator : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(rootTransform);
         }
 
-        if (_panelTransform != null)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_panelTransform);
-        }
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_panelTransform);
 
         Canvas.ForceUpdateCanvases();
     }

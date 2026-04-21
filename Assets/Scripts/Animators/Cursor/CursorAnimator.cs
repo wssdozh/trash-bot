@@ -1,6 +1,8 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
+[RequireComponent(typeof(RectTransform))]
 [DisallowMultipleComponent]
 public sealed class CursorAnimator : MonoBehaviour
 {
@@ -51,7 +53,7 @@ public sealed class CursorAnimator : MonoBehaviour
     {
         if (_visualRectTransform == null)
         {
-            _visualRectTransform = GetComponent<RectTransform>();
+            throw new InvalidOperationException(nameof(_visualRectTransform));
         }
 
         _baseScale = _visualRectTransform.localScale;
