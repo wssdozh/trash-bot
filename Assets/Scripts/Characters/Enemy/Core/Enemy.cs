@@ -18,6 +18,8 @@ public class Enemy : MonoBehaviour
     private Rigidbody[] _corpseRigidbodies;
     private bool _isSinkStarted;
 
+    public static event Action<Enemy> AnyDied;
+
     public event Action Died;
 
     public bool IsDead { get; private set; }
@@ -78,6 +80,13 @@ public class Enemy : MonoBehaviour
         if (died != null)
         {
             died.Invoke();
+        }
+
+        Action<Enemy> anyDied = AnyDied;
+
+        if (anyDied != null)
+        {
+            anyDied.Invoke(this);
         }
 
         StartSink();

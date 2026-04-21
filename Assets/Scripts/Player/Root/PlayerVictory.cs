@@ -10,8 +10,10 @@ public sealed class PlayerVictory : MonoBehaviour
     [SerializeField] private TimeScaleSettings _timeScaleSettings;
     [SerializeField] private HeldMode _heldMode;
     [SerializeField] private Player _player;
+    [SerializeField] private PlayerRoundStats _roundStats;
     [SerializeField] private BlurOverlay _blurOverlay;
     [SerializeField] private BaseMenuView _victoryMenuView;
+    [SerializeField] private VictoryRoundStatsView _roundStatsView;
     [SerializeField] private Button _restartButton;
     [SerializeField] private Button _mainMenuButton;
     [SerializeField] private string _mainMenuSceneName = "MainMenuScene";
@@ -27,6 +29,7 @@ public sealed class PlayerVictory : MonoBehaviour
         ValidateReference(_timeScaleSettings, nameof(_timeScaleSettings));
         ValidateReference(_heldMode, nameof(_heldMode));
         ValidateReference(_player, nameof(_player));
+        ValidateReference(_roundStats, nameof(_roundStats));
 
         if (string.IsNullOrWhiteSpace(_mainMenuSceneName))
         {
@@ -134,8 +137,11 @@ public sealed class PlayerVictory : MonoBehaviour
     {
         ValidateReference(_blurOverlay, nameof(_blurOverlay));
         ValidateReference(_victoryMenuView, nameof(_victoryMenuView));
+        ValidateReference(_roundStatsView, nameof(_roundStatsView));
         ValidateReference(_restartButton, nameof(_restartButton));
         ValidateReference(_mainMenuButton, nameof(_mainMenuButton));
+
+        PlayerRoundStatsSnapshot snapshot = _roundStats.CreateSnapshot();
 
         _isVictoryShown = true;
 
@@ -148,6 +154,7 @@ public sealed class PlayerVictory : MonoBehaviour
             true
         );
 
+        _roundStatsView.Render(snapshot);
         _blurOverlay.Show();
         _victoryMenuView.Show();
     }

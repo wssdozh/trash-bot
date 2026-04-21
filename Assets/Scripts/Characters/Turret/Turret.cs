@@ -36,6 +36,8 @@ public class Turret : MonoBehaviour, IEnemyAlert
     private Coroutine _fireDelayCoroutine;
     private WaitForSeconds _fireDelayWait;
 
+    public static event Action<Turret> AnyDied;
+
     public event Action Died;
 
     public bool IsDead => _isDead;
@@ -308,6 +310,13 @@ public class Turret : MonoBehaviour, IEnemyAlert
         if (died != null)
         {
             died.Invoke();
+        }
+
+        Action<Turret> anyDied = AnyDied;
+
+        if (anyDied != null)
+        {
+            anyDied.Invoke(this);
         }
 
         _headCrash.BeginSink(_sinkDelay, _sinkDuration, _sinkDistance);
