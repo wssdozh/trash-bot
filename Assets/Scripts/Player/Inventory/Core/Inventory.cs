@@ -172,12 +172,12 @@ public class Inventory : MonoBehaviour
 
         if (index < 0)
         {
-            index = _slots.Count - 1;
+            return;
         }
 
         if (index >= _slots.Count)
         {
-            index = 0;
+            return;
         }
 
         if (_activeIndex == index)
@@ -189,7 +189,7 @@ public class Inventory : MonoBehaviour
 
         if (ActiveIndexChanged != null)
         {
-            ActiveIndexChanged?.Invoke(_activeIndex);
+            ActiveIndexChanged.Invoke(_activeIndex);
         }
     }
 
@@ -243,12 +243,36 @@ public class Inventory : MonoBehaviour
 
     public void NextActiveSlot()
     {
-        SetActiveIndex(_activeIndex + 1);
+        if (_slots.Count == 0)
+        {
+            return;
+        }
+
+        int nextIndex = _activeIndex + 1;
+
+        if (nextIndex >= _slots.Count)
+        {
+            nextIndex = 0;
+        }
+
+        SetActiveIndex(nextIndex);
     }
 
     public void PreviousActiveSlot()
     {
-        SetActiveIndex(_activeIndex - 1);
+        if (_slots.Count == 0)
+        {
+            return;
+        }
+
+        int previousIndex = _activeIndex - 1;
+
+        if (previousIndex < 0)
+        {
+            previousIndex = _slots.Count - 1;
+        }
+
+        SetActiveIndex(previousIndex);
     }
 
     private void InvokeInventoryChanged()
