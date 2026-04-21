@@ -5,10 +5,13 @@ using UnityEngine;
 public sealed class ModifierVendingMachineMenuView : MonoBehaviour
 {
     private const string CoinMark = "\u00A4 ";
+    private const float DefaultTimeScale = 1.0f;
+    private const float TimeScaleThreshold = 0.0001f;
 
     [Header("UI")]
     [SerializeField] private GameObject _root;
     [SerializeField] private BlurOverlay _blurOverlay;
+    [SerializeField] private PauseController _pauseController;
     [SerializeField] private TMP_Text _coinsText;
     [SerializeField] private ModifierOfferCardView[] _cardViews;
 
@@ -21,6 +24,7 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
     private ModifierVendingMachine _machine;
     private GameObject _buyer;
     private bool _isBuyPending;
+    private bool _isPauseOwned;
 
     public bool IsOpen => _root.activeSelf;
 
@@ -40,6 +44,12 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
         for (int cardIndex = 0; cardIndex < _cardViews.Length; cardIndex++)
         {
             _cardViews[cardIndex].BuyClicked -= OnBuyClicked;
+        }
+
+        if (_isPauseOwned)
+        {
+            _pauseController.ResumeTimeOnly();
+            _isPauseOwned = false;
         }
     }
 
@@ -67,9 +77,18 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
             throw new InvalidOperationException(nameof(buyer));
         }
 
+        EnsurePauseController();
+
         _machine = machine;
         _buyer = buyer;
         _isBuyPending = false;
+        _isPauseOwned = _pauseController.IsPaused == false
+            && Mathf.Abs(Time.timeScale - DefaultTimeScale) <= TimeScaleThreshold;
+
+        if (_isPauseOwned)
+        {
+            _pauseController.PauseTimeOnly();
+        }
 
         if (_blurOverlay != null)
         {
@@ -111,6 +130,12 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
 
     public void Hide()
     {
+        if (_isPauseOwned)
+        {
+            _pauseController.ResumeTimeOnly();
+            _isPauseOwned = false;
+        }
+
         if (_blurOverlay != null)
         {
             _blurOverlay.Hide();
@@ -135,6 +160,24 @@ public sealed class ModifierVendingMachineMenuView : MonoBehaviour
         _machine = null;
         _buyer = null;
         _isBuyPending = false;
+        _isPauseOwned = false;
+    }
+
+    private void EnsurePauseController()
+    {
+        if (_pauseController != null)
+        {
+            return;
+        }
+
+        PauseController pauseController = PauseController.Instance;
+
+        if (pauseController == null)
+        {
+            throw new InvalidOperationException(nameof(pauseController));
+        }
+
+        _pauseController = pauseController;
     }
 
     private void Refresh()

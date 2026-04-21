@@ -1,6 +1,7 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public sealed class PauseController : MonoBehaviour
 {
@@ -14,10 +15,18 @@ public sealed class PauseController : MonoBehaviour
     private TimeScale _timeScale;
     private bool _isPaused;
 
+    public static PauseController Instance { get; private set; }
+
     public bool IsPaused => _isPaused;
 
     private void Awake()
     {
+        if (Instance != null && ReferenceEquals(Instance, this) == false)
+        {
+            throw new InvalidOperationException(nameof(Instance));
+        }
+
+        Instance = this;
         _timeScale = new TimeScale(_timeScaleSettings.BaseFixedDeltaTime, _timeScaleSettings.MinPhysicsTimeScale);
     }
 
@@ -33,6 +42,14 @@ public sealed class PauseController : MonoBehaviour
         _pauseMenuView.Closed -= Resume;
         _isPaused = false;
         _timeScale.ResetToDefault();
+    }
+
+    private void OnDestroy()
+    {
+        if (ReferenceEquals(Instance, this))
+        {
+            Instance = null;
+        }
     }
 
     public void Pause()
@@ -66,6 +83,26 @@ public sealed class PauseController : MonoBehaviour
         _pauseMenuView.Show();
     }
 
+    public void PauseTimeOnly()
+    {
+        if (_isPaused)
+        {
+            return;
+        }
+
+        if (_timeScale.IsAnimating)
+        {
+            return;
+        }
+
+        _timeScale.Animate(
+            _timeScaleSettings.PausedTimeScale,
+            _timeScaleSettings.PauseDurationSeconds,
+            _timeScaleSettings.PauseEaseCurve,
+            true
+        );
+    }
+
     public void Resume()
     {
         if (_isPaused == false)
@@ -89,6 +126,26 @@ public sealed class PauseController : MonoBehaviour
         _pauseMenuView.Hide();
         _pauseCameraFov.ExitPause();
         _blurOverlay.Hide();
+
+        _timeScale.Animate(
+            1.0f,
+            _timeScaleSettings.ResumeDurationSeconds,
+            _timeScaleSettings.ResumeEaseCurve,
+            true
+        );
+    }
+
+    public void ResumeTimeOnly()
+    {
+        if (_isPaused)
+        {
+            return;
+        }
+
+        if (_timeScale.IsAnimating)
+        {
+            return;
+        }
 
         _timeScale.Animate(
             1.0f,
