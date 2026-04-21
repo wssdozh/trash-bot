@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PickupReturner : MonoBehaviour, SpawnerRef
+public class PickupReturner : MonoBehaviour
 {
     [SerializeField] private BasePickup _pickup;
     private PickupSpawner _spawner;

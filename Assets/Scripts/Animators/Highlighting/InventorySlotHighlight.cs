@@ -1,6 +1,8 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
+[RequireComponent(typeof(RectTransform))]
 public class InventorySlotHighlight : MonoBehaviour
 {
     [SerializeField] private RectTransform _targetTransform;
@@ -14,7 +16,7 @@ public class InventorySlotHighlight : MonoBehaviour
     {
         if (_targetTransform == null)
         {
-            _targetTransform = GetComponent<RectTransform>();
+            throw new InvalidOperationException(nameof(_targetTransform));
         }
 
         _defaultScale = _targetTransform.localScale;
@@ -22,10 +24,7 @@ public class InventorySlotHighlight : MonoBehaviour
 
     public void SetActive(bool isActive)
     {
-        if (_scaleTween != null && _scaleTween.IsActive())
-        {
-            _scaleTween.Kill();
-        }
+        KillScaleTween();
 
         Vector3 targetScale = _defaultScale;
 
@@ -35,5 +34,13 @@ public class InventorySlotHighlight : MonoBehaviour
         }
 
         _scaleTween = _targetTransform.DOScale(targetScale, _duration);
+    }
+
+    private void KillScaleTween()
+    {
+        if (_scaleTween != null && _scaleTween.IsActive())
+        {
+            _scaleTween.Kill();
+        }
     }
 }
