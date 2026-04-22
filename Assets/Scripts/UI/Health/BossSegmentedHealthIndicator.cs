@@ -94,9 +94,7 @@ public sealed class BossSegmentedHealthIndicator : MonoBehaviour
 
     private void SetFillWidth(RectTransform fill, float width, float ratio)
     {
-        Vector2 sizeDelta = fill.sizeDelta;
-        sizeDelta.x = width * ratio;
-        fill.sizeDelta = sizeDelta;
+        fill.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width * ratio);
     }
 
     private void ResetSegments()
@@ -108,9 +106,9 @@ public sealed class BossSegmentedHealthIndicator : MonoBehaviour
 
     private void CacheWidths()
     {
-        _phaseOneWidth = _phaseOneFill.sizeDelta.x;
-        _phaseTwoWidth = _phaseTwoFill.sizeDelta.x;
-        _phaseThreeWidth = _phaseThreeFill.sizeDelta.x;
+        _phaseOneWidth = _phaseOneFill.rect.width;
+        _phaseTwoWidth = _phaseTwoFill.rect.width;
+        _phaseThreeWidth = _phaseThreeFill.rect.width;
     }
 
     private void SubscribeHealth()
