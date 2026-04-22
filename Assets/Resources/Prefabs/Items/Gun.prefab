@@ -134,6 +134,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PickupAnimator
   _moveSpeed: 5
   _stopDistance: 0.2
+  _minDuration: 0.12
+  _arcHeight: 0.25
 --- !u!114 &1864531296725922894
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,11 +184,13 @@ MonoBehaviour:
   _targetLayers:
     serializedVersion: 2
     m_Bits: 961
-  _maxAimAngleDegrees: 30
+  _maxAimAngleDegrees: 70
+  _readyAngleDegrees: 8
   _muzzle: {fileID: 4428332200358282627}
   _bulletPrefab: {fileID: 4344111331149057464, guid: 13bda12239d3d1d4a9c7ec696a064ee0, type: 3}
   _minDamage: 3
   _maxDamage: 6
+  _rocketRadiusMultiplier: 1
 --- !u!114 &7664117757775277777
 MonoBehaviour:
   m_ObjectHideFlags: 0
