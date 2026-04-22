@@ -22,6 +22,7 @@ public class CharacterMover : MonoBehaviour
     private Vector3 _moveDirection;
     private Vector3 _knockbackVelocity;
     private bool _isSprinting;
+    private bool _isWallBlocked;
     private float _knockbackTimer;
     private float _knockbackDuration;
     private int _wallNormalCount;
@@ -31,6 +32,7 @@ public class CharacterMover : MonoBehaviour
     public float SprintSpeed => _speedSprint;
 
     public bool IsKnockbackActive => _knockbackTimer > 0f;
+    public bool IsWallBlocked => _isWallBlocked;
 
     private void FixedUpdate()
     {
@@ -51,6 +53,7 @@ public class CharacterMover : MonoBehaviour
     public void StopMove()
     {
         _moveDirection = Vector3.zero;
+        _isWallBlocked = false;
     }
 
     public void ApplyKnockback(Vector3 direction, float speed, float duration, float lift)
@@ -97,6 +100,7 @@ public class CharacterMover : MonoBehaviour
     public void ForceStop()
     {
         _moveDirection = Vector3.zero;
+        _isWallBlocked = false;
         ClearKnockback();
 
         if (_rigidbody.isKinematic)
@@ -184,14 +188,37 @@ public class CharacterMover : MonoBehaviour
             adjustedVelocity = knockbackVelocity;
         }
 
+        _isWallBlocked = false;
+
         if (_isWallSlideEnabled && _wallNormalCount > 0)
         {
             adjustedVelocity = GetSlideVelocity(adjustedVelocity);
+            _isWallBlocked = IsWallBlockedBySlide(targetVelocity, adjustedVelocity, knockbackVelocity);
         }
 
         float currentVerticalVelocity = _rigidbody.linearVelocity.y;
         _rigidbody.linearVelocity = new Vector3(adjustedVelocity.x, currentVerticalVelocity, adjustedVelocity.z);
         TickKnockback();
+    }
+
+    private bool IsWallBlockedBySlide(Vector3 targetVelocity, Vector3 adjustedVelocity, Vector3 knockbackVelocity)
+    {
+        if (knockbackVelocity.sqrMagnitude > ZeroThreshold)
+        {
+            return false;
+        }
+
+        if (targetVelocity.sqrMagnitude <= ZeroThreshold)
+        {
+            return false;
+        }
+
+        if (adjustedVelocity.sqrMagnitude > ZeroThreshold)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private Vector3 GetSlideVelocity(Vector3 targetVelocity)

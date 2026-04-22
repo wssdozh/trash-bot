@@ -33,6 +33,7 @@ public sealed class EnemyMove : MonoBehaviour
     public float MoveAmount => _moveInput.magnitude;
     public bool IsRunning => _isSprintApplied;
     public bool IsRunRequested => _isRunRequested;
+    public bool IsWallBlocked => _characterMover.IsWallBlocked;
 
     private void Awake()
     {

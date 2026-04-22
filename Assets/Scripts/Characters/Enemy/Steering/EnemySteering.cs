@@ -30,6 +30,7 @@ public sealed partial class EnemySteering
     private const float MinProbeHeight = 0.18f;
     private const float MoveStuckMin = 0.01f;
     private const float MoveStuckTime = 0.3f;
+    private const float MoveWallBlockedTime = 0.12f;
     private const float NavPickAngle = 180f;
     private const float PathFallbackGap = 0.1f;
     private const float SteerFlipDot = 0.2f;
@@ -299,13 +300,28 @@ public sealed partial class EnemySteering
 
         _moveLastPoint = currentPoint;
         _moveStuckTimer += deltaTime;
+        float moveStuckTime = MoveStuckTime;
 
-        if (_moveStuckTimer < MoveStuckTime)
+        if (_enemyMove.IsWallBlocked)
+        {
+            moveStuckTime = MoveWallBlockedTime;
+        }
+
+        if (_moveStuckTimer < moveStuckTime)
         {
             return true;
         }
 
-        SetDebugStatus("MoveStuck");
+        if (_enemyMove.IsWallBlocked)
+        {
+            SetDebugStatus("MoveWallBlocked");
+        }
+
+        else
+        {
+            SetDebugStatus("MoveStuck");
+        }
+
         _moveStuckTimer = 0f;
 
         return false;
