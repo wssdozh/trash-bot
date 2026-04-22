@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public sealed partial class EnemySteering
 {
@@ -41,11 +42,14 @@ public sealed partial class EnemySteering
             desiredDirection += separationDirection * _separationWeight;
         }
 
-        Vector3 avoidDirection = GetAvoidDirection(currentPoint, baseDirection);
-
-        if (avoidDirection.sqrMagnitude > MinDistance)
+        if (ShouldUseObstacleAvoidance(currentPoint, baseDirection))
         {
-            desiredDirection += avoidDirection * _avoidWeight;
+            Vector3 avoidDirection = GetAvoidDirection(currentPoint, baseDirection);
+
+            if (avoidDirection.sqrMagnitude > MinDistance)
+            {
+                desiredDirection += avoidDirection * _avoidWeight;
+            }
         }
 
         Vector3 steerDirection = GetFlatDirection(desiredDirection);
@@ -55,7 +59,44 @@ public sealed partial class EnemySteering
             steerDirection = baseDirection;
         }
 
-        return ResolveBlockedDirection(currentPoint, baseDirection, steerDirection);
+        steerDirection = ResolveBlockedDirection(currentPoint, baseDirection, steerDirection);
+
+        return StabilizeSteerDirection(currentPoint, baseDirection, steerDirection);
+    }
+
+    private bool ShouldUseObstacleAvoidance(Vector3 currentPoint, Vector3 baseDirection)
+    {
+        if (_navMeshAgent == null)
+        {
+            return true;
+        }
+
+        if (_navMeshAgent.enabled == false)
+        {
+            return true;
+        }
+
+        if (_navMeshAgent.pathPending)
+        {
+            return true;
+        }
+
+        if (_navMeshAgent.hasPath == false)
+        {
+            return true;
+        }
+
+        if (_navMeshAgent.pathStatus != NavMeshPathStatus.PathComplete)
+        {
+            return true;
+        }
+
+        if (IsBlocked(currentPoint, baseDirection, GetResolveProbeDistance()))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private Vector3 GetAvoidDirection(Vector3 currentPoint, Vector3 moveDirection)

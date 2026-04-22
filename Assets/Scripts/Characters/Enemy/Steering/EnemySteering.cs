@@ -31,6 +31,9 @@ public sealed partial class EnemySteering
     private const float MoveStuckMin = 0.01f;
     private const float MoveStuckTime = 0.3f;
     private const float NavPickAngle = 180f;
+    private const float PathFallbackGap = 0.1f;
+    private const float SteerFlipDot = 0.2f;
+    private const float SteerBlendKeepWeight = 0.65f;
 
     private readonly Transform _root;
     private readonly EnemyMove _enemyMove;
@@ -70,9 +73,11 @@ public sealed partial class EnemySteering
     private Vector3 _debugLookPoint;
     private Vector3 _debugMoveDirection;
     private Vector3 _debugSteerDirection;
+    private Vector3 _lastSteerMoveDirection;
     private bool _hasPathTarget;
     private bool _hasLastNavPoint;
     private bool _hasMoveLastPoint;
+    private bool _hasLastSteerMoveDirection;
     private bool _hasDebugRequestedTargetPoint;
     private bool _hasDebugResolvedTargetPoint;
     private bool _hasDebugLookPoint;
@@ -257,6 +262,7 @@ public sealed partial class EnemySteering
     {
         SetDebugStatus("Stop");
         ClearPath();
+        ResetSteerDirection();
         _enemyMove.StopMove();
         ResetMoveStuck();
     }
@@ -265,6 +271,7 @@ public sealed partial class EnemySteering
     {
         SetDebugStatus("ForceStop");
         ClearPath();
+        ResetSteerDirection();
         _enemyMove.ForceStop();
         ResetMoveStuck();
     }
@@ -365,6 +372,20 @@ public sealed partial class EnemySteering
 
         if (steerDirection.sqrMagnitude <= MinDistance)
         {
+            Vector3 fallbackDirection;
+
+            if (TryGetPathFallbackDirection(currentPoint, moveDirection, out fallbackDirection))
+            {
+                Vector3 fallbackLookDirection = GetLookDirection(currentPoint, fallbackDirection, lookPoint, lookBlend);
+
+                _enemyRotator.RotateToDirection(fallbackLookDirection);
+                _enemyMove.SetDirection(fallbackDirection);
+                SetDebugMoveResult(_pathTargetPoint, moveDirection, fallbackDirection);
+                SetDebugStatus("MoveToPoint.PathFallback");
+
+                return true;
+            }
+
             SetDebugStatus("MoveToPoint.NoSteer");
             _enemyMove.StopMove();
 
@@ -672,5 +693,64 @@ public sealed partial class EnemySteering
         _hasDebugResolvedTargetPoint = true;
         _debugMoveDirection = GetFlatDirection(moveDirection);
         _debugSteerDirection = GetFlatDirection(steerDirection);
+    }
+
+    private void ResetSteerDirection()
+    {
+        _lastSteerMoveDirection = Vector3.zero;
+        _hasLastSteerMoveDirection = false;
+    }
+
+    private Vector3 StabilizeSteerDirection(Vector3 currentPoint, Vector3 baseDirection, Vector3 steerDirection)
+    {
+        Vector3 flatSteerDirection = GetFlatDirection(steerDirection);
+
+        if (flatSteerDirection.sqrMagnitude <= MinDistance)
+        {
+            ResetSteerDirection();
+
+            return Vector3.zero;
+        }
+
+        if (_hasLastSteerMoveDirection == false)
+        {
+            _lastSteerMoveDirection = flatSteerDirection;
+            _hasLastSteerMoveDirection = true;
+
+            return flatSteerDirection;
+        }
+
+        Vector3 lastSteerDirection = _lastSteerMoveDirection;
+        float steerDot = Vector3.Dot(lastSteerDirection, flatSteerDirection);
+
+        if (steerDot < SteerFlipDot)
+        {
+            float baseDot = Vector3.Dot(baseDirection, flatSteerDirection);
+            float lastBaseDot = Vector3.Dot(baseDirection, lastSteerDirection);
+
+            if (lastBaseDot > baseDot)
+            {
+                if (IsBlocked(currentPoint, lastSteerDirection, GetResolveProbeDistance()) == false)
+                {
+                    flatSteerDirection = lastSteerDirection;
+                }
+            }
+        }
+
+        else
+        {
+            Vector3 blendedDirection = (lastSteerDirection * SteerBlendKeepWeight) + (flatSteerDirection * (1f - SteerBlendKeepWeight));
+            blendedDirection = GetFlatDirection(blendedDirection);
+
+            if (blendedDirection.sqrMagnitude > MinDistance)
+            {
+                flatSteerDirection = blendedDirection;
+            }
+        }
+
+        _lastSteerMoveDirection = flatSteerDirection;
+        _hasLastSteerMoveDirection = true;
+
+        return flatSteerDirection;
     }
 }
