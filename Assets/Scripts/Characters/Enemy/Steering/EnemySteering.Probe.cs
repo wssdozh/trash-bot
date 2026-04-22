@@ -15,6 +15,8 @@ public sealed partial class EnemySteering
         float resolveDistance = Mathf.Clamp(pushDistance, ResolveMinStep, ResolveMaxStep);
         Vector3 resolveVector = (overlapPush / pushDistance) * resolveDistance;
 
+        SetDebugStatus("ResolveOverlap");
+        SetDebugMoveResult(GetFlatPoint(_root.position) + resolveVector, overlapPush, resolveVector);
         ForceStop();
         ApplyResolve(resolveVector);
         SyncAgent(GetFlatPoint(_root.position));
@@ -365,7 +367,9 @@ public sealed partial class EnemySteering
 
     private float GetNearProbeDistance()
     {
-        return Mathf.Max(_probeRadius + ProbeSkin, _probeRadius * 1.5f);
+        float minGap = _probeRadius + (ProbeSkin * NearProbeSkinScale);
+
+        return Mathf.Max(minGap, _probeRadius * NearProbeDistanceScale);
     }
 
     private float GetLowProbeHeight()

@@ -23,6 +23,8 @@ public sealed partial class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemy
     private const float SearchSideAngle = 55f;
     private const float SearchBackScale = 0.75f;
     private const float LookDistance = 2f;
+    private const float MoveWallGapScale = 0.55f;
+    private const float MoveProbeGapScale = 1f;
     private const float ForwardGizmoLength = 1.1f;
     private const float MoveGizmoLength = 1.35f;
     private const float PointGizmoSize = 0.18f;
@@ -141,6 +143,29 @@ public sealed partial class EnemyMeleeBrain : MonoBehaviour, IEnemyBrain, IEnemy
     private float _attackWindupTimer;
 
     public EnemyState State => _state;
+    public EnemySteering Steering => _enemySteering;
+    public bool DebugHasLastSeenPoint => _hasLastSeenPoint;
+    public bool DebugHasSearchPoint => _hasSearchPoint;
+    public bool DebugIsSafeMove => _isSafeMove;
+    public bool DebugIsIdleWalking => _isIdleWalking;
+    public bool DebugIsSearchIdle => _isSearchIdle;
+    public bool DebugIsAttackInProgress => _isAttackInProgress;
+    public bool DebugIsAttackWindup => _isAttackWindup;
+    public bool DebugIsCombatClockwise => _isCombatClockwise;
+    public bool DebugIsHitPending => _isHitPending;
+    public int DebugSearchStep => _searchStep;
+    public int DebugRangeMode => _rangeMode;
+    public float DebugIdleStuckTimer => _idleStuckTimer;
+    public float DebugIdleTimer => _idleTimer;
+    public float DebugRangeModeTimer => _rangeModeTimer;
+    public float DebugAttackWindupTimer => _attackWindupTimer;
+    public Vector3 DebugLastSeenPoint => _lastSeenPoint;
+    public Vector3 DebugLastSeenDirection => _lastSeenDirection;
+    public Vector3 DebugIdleDirection => _idleDirection;
+    public Vector3 DebugIdleTargetPoint => _idleTargetPoint;
+    public Vector3 DebugIdleLookPoint => _idleLookPoint;
+    public Vector3 DebugSearchTargetPoint => _searchTargetPoint;
+    public Vector3 DebugAttackDirection => _attackDirection;
 
     private void Awake()
     {

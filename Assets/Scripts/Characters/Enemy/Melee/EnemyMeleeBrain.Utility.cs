@@ -149,7 +149,7 @@ public sealed partial class EnemyMeleeBrain
 
     private float GetMoveWallGap()
     {
-        return Mathf.Max(_idleWallGap, _probeRadius * 2f);
+        return Mathf.Max(_idleWallGap * MoveWallGapScale, _probeRadius * MoveProbeGapScale);
     }
 
     private Vector3 GetMovePoint(Vector3 point)

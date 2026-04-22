@@ -23,6 +23,9 @@ public sealed partial class EnemySteering
     private const int SafePointPushCount = 4;
     private const float SlotOffsetMin = 0.01f;
     private const float ProbeSkin = 0.05f;
+    private const float NavAgentRadiusScale = 0.45f;
+    private const float NearProbeDistanceScale = 1f;
+    private const float NearProbeSkinScale = 0f;
     private const float LowProbeHeightScale = 0.45f;
     private const float MinProbeHeight = 0.18f;
     private const float MoveStuckMin = 0.01f;
@@ -62,11 +65,42 @@ public sealed partial class EnemySteering
     private float _pathStopDistance;
     private Vector3 _lastNavPoint;
     private Vector3 _moveLastPoint;
+    private Vector3 _debugRequestedTargetPoint;
+    private Vector3 _debugResolvedTargetPoint;
+    private Vector3 _debugLookPoint;
+    private Vector3 _debugMoveDirection;
+    private Vector3 _debugSteerDirection;
     private bool _hasPathTarget;
     private bool _hasLastNavPoint;
     private bool _hasMoveLastPoint;
+    private bool _hasDebugRequestedTargetPoint;
+    private bool _hasDebugResolvedTargetPoint;
+    private bool _hasDebugLookPoint;
     private EnemyRoomLock _enemyRoomLock;
     private float _moveStuckTimer;
+    private string _debugStatus = "Init";
+
+    public string DebugStatus => _debugStatus;
+    public Vector3 DebugRequestedTargetPoint => _debugRequestedTargetPoint;
+    public Vector3 DebugResolvedTargetPoint => _debugResolvedTargetPoint;
+    public Vector3 DebugLookPoint => _debugLookPoint;
+    public Vector3 DebugMoveDirection => _debugMoveDirection;
+    public Vector3 DebugSteerDirection => _debugSteerDirection;
+    public Vector3 DebugPathTargetPoint => _pathTargetPoint;
+    public Vector3 DebugLastNavPoint => _lastNavPoint;
+    public float DebugPathStopDistance => _pathStopDistance;
+    public float DebugMoveStuckTimer => _moveStuckTimer;
+    public bool HasDebugRequestedTargetPoint => _hasDebugRequestedTargetPoint;
+    public bool HasDebugResolvedTargetPoint => _hasDebugResolvedTargetPoint;
+    public bool HasDebugLookPoint => _hasDebugLookPoint;
+    public bool DebugHasPathTarget => _hasPathTarget;
+    public bool DebugHasLastNavPoint => _hasLastNavPoint;
+    public bool DebugHasNavAgent => _navMeshAgent != null;
+    public bool DebugNavAgentEnabled => _navMeshAgent != null && _navMeshAgent.enabled;
+    public bool DebugNavAgentOnNavMesh => _navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh;
+    public bool DebugNavPathPending => _navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.pathPending;
+    public bool DebugNavHasPath => _navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.hasPath;
+    public NavMeshPathStatus DebugNavPathStatus => GetDebugNavPathStatus();
 
     public EnemySteering(Transform root, EnemyMove enemyMove, EnemyRotator enemyRotator)
     {
@@ -151,6 +185,7 @@ public sealed partial class EnemySteering
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
         Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
+        SetDebugMoveRequest(flatTargetPoint, true, lookPoint);
         float safeStopDistance = Mathf.Max(stopDistance, 0.01f);
         float safeMoveSpeed = Mathf.Max(moveSpeed, 0.01f);
         float targetDistanceSqr = GetFlatDistanceSqr(currentPoint, flatTargetPoint);
@@ -158,6 +193,7 @@ public sealed partial class EnemySteering
 
         if (targetDistanceSqr <= safeStopDistanceSqr)
         {
+            SetDebugStatus("MoveDirect.Reached");
             _enemyMove.StopMove();
             SyncAgent(currentPoint);
 
@@ -168,6 +204,7 @@ public sealed partial class EnemySteering
 
         if (moveDirection.sqrMagnitude <= MinDistance)
         {
+            SetDebugStatus("MoveDirect.NoDirection");
             _enemyMove.StopMove();
             SyncAgent(currentPoint);
 
@@ -185,6 +222,7 @@ public sealed partial class EnemySteering
 
         if (stepDistance <= MinDistance)
         {
+            SetDebugStatus("MoveDirect.NoStep");
             _enemyMove.StopMove();
             SyncAgent(currentPoint);
 
@@ -200,12 +238,16 @@ public sealed partial class EnemySteering
         SnapToPoint(nextPoint);
         SyncAgent(nextPoint);
         _enemyRotator.RotateToDirection(lookDirection);
+        SetDebugMoveResult(nextPoint, moveDirection, moveDirection);
+        SetDebugStatus("MoveDirect.Step");
 
         return true;
     }
 
     public void LookToPoint(Vector3 targetPoint)
     {
+        SetDebugMoveRequest(GetFlatPoint(_root.position), true, targetPoint);
+        SetDebugStatus("LookToPoint");
         _enemyMove.StopMove();
         ResetMoveStuck();
         _enemyRotator.RotateToPoint(GetFlatPoint(targetPoint));
@@ -213,6 +255,7 @@ public sealed partial class EnemySteering
 
     public void Stop()
     {
+        SetDebugStatus("Stop");
         ClearPath();
         _enemyMove.StopMove();
         ResetMoveStuck();
@@ -220,6 +263,7 @@ public sealed partial class EnemySteering
 
     public void ForceStop()
     {
+        SetDebugStatus("ForceStop");
         ClearPath();
         _enemyMove.ForceStop();
         ResetMoveStuck();
@@ -254,6 +298,7 @@ public sealed partial class EnemySteering
             return true;
         }
 
+        SetDebugStatus("MoveStuck");
         _moveStuckTimer = 0f;
 
         return false;
@@ -285,11 +330,13 @@ public sealed partial class EnemySteering
     {
         Vector3 currentPoint = GetFlatPoint(_root.position);
         Vector3 flatTargetPoint = ClampMovePoint(targetPoint);
+        SetDebugMoveRequest(flatTargetPoint, lookBlend > 0f, lookPoint);
         float safeStopDistance = Mathf.Max(stopDistance, 0.01f);
         float safeStopDistanceSqr = safeStopDistance * safeStopDistance;
 
         if (GetFlatDistanceSqr(currentPoint, flatTargetPoint) <= safeStopDistanceSqr)
         {
+            SetDebugStatus("MoveToPoint.Reached");
             _enemyMove.StopMove();
             ClearPath();
 
@@ -298,6 +345,7 @@ public sealed partial class EnemySteering
 
         if (SyncAgent(currentPoint) == false)
         {
+            SetDebugStatus("MoveToPoint.SyncFailed");
             ClearPath();
 
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
@@ -305,6 +353,7 @@ public sealed partial class EnemySteering
 
         if (TryRefreshPath(flatTargetPoint, safeStopDistance) == false)
         {
+            SetDebugStatus("MoveToPoint.PathRefreshFailed");
             ClearPath();
 
             return TryReachMove(currentPoint, flatTargetPoint, safeStopDistance, lookBlend, lookPoint);
@@ -312,9 +361,11 @@ public sealed partial class EnemySteering
 
         Vector3 moveDirection = GetMoveDirection(currentPoint);
         Vector3 steerDirection = GetSteerDirection(currentPoint, moveDirection);
+        SetDebugMoveResult(_pathTargetPoint, moveDirection, steerDirection);
 
         if (steerDirection.sqrMagnitude <= MinDistance)
         {
+            SetDebugStatus("MoveToPoint.NoSteer");
             _enemyMove.StopMove();
 
             if (lookBlend > 0f)
@@ -334,6 +385,7 @@ public sealed partial class EnemySteering
 
         _enemyRotator.RotateToDirection(lookDirection);
         _enemyMove.SetDirection(steerDirection);
+        SetDebugStatus("MoveToPoint.Active");
 
         return true;
     }
@@ -342,6 +394,7 @@ public sealed partial class EnemySteering
     {
         if (GetFlatDistanceSqr(currentPoint, targetPoint) <= stopDistance * stopDistance)
         {
+            SetDebugStatus("DirectMove.Reached");
             _enemyMove.StopMove();
 
             return false;
@@ -349,14 +402,17 @@ public sealed partial class EnemySteering
 
         Vector3 moveDirection = GetFlatDirection(targetPoint - currentPoint);
         Vector3 steerDirection = GetSteerDirection(currentPoint, moveDirection);
+        SetDebugMoveResult(targetPoint, moveDirection, steerDirection);
 
         if (steerDirection.sqrMagnitude <= MinDistance)
         {
             steerDirection = moveDirection;
+            SetDebugMoveResult(targetPoint, moveDirection, steerDirection);
         }
 
         if (steerDirection.sqrMagnitude <= MinDistance)
         {
+            SetDebugStatus("DirectMove.NoSteer");
             _enemyMove.StopMove();
 
             if (lookBlend > 0f)
@@ -371,6 +427,7 @@ public sealed partial class EnemySteering
 
         _enemyRotator.RotateToDirection(lookDirection);
         _enemyMove.SetDirection(steerDirection);
+        SetDebugStatus("DirectMove.Active");
 
         return true;
     }
@@ -381,9 +438,11 @@ public sealed partial class EnemySteering
 
         if (TryGetReachMovePoint(currentPoint, targetPoint, stopDistance, out reachPoint))
         {
+            SetDebugStatus("ReachMove");
             return TryDirectMove(currentPoint, reachPoint, stopDistance, lookBlend, lookPoint);
         }
 
+        SetDebugStatus("ReachFailed");
         _enemyMove.ForceStop();
 
         if (lookBlend > 0f)
@@ -568,5 +627,50 @@ public sealed partial class EnemySteering
         direction.Normalize();
 
         return direction;
+    }
+
+    private NavMeshPathStatus GetDebugNavPathStatus()
+    {
+        if (_navMeshAgent == null)
+        {
+            return NavMeshPathStatus.PathInvalid;
+        }
+
+        if (_navMeshAgent.enabled == false)
+        {
+            return NavMeshPathStatus.PathInvalid;
+        }
+
+        return _navMeshAgent.pathStatus;
+    }
+
+    private void SetDebugStatus(string debugStatus)
+    {
+        _debugStatus = debugStatus;
+    }
+
+    private void SetDebugMoveRequest(Vector3 requestedTargetPoint, bool hasLookPoint, Vector3 lookPoint)
+    {
+        _debugRequestedTargetPoint = GetFlatPoint(requestedTargetPoint);
+        _hasDebugRequestedTargetPoint = true;
+
+        if (hasLookPoint)
+        {
+            _debugLookPoint = GetFlatPoint(lookPoint);
+            _hasDebugLookPoint = true;
+
+            return;
+        }
+
+        _debugLookPoint = Vector3.zero;
+        _hasDebugLookPoint = false;
+    }
+
+    private void SetDebugMoveResult(Vector3 resolvedTargetPoint, Vector3 moveDirection, Vector3 steerDirection)
+    {
+        _debugResolvedTargetPoint = GetFlatPoint(resolvedTargetPoint);
+        _hasDebugResolvedTargetPoint = true;
+        _debugMoveDirection = GetFlatDirection(moveDirection);
+        _debugSteerDirection = GetFlatDirection(steerDirection);
     }
 }

@@ -124,7 +124,7 @@ public sealed partial class EnemySteering
 
         if (_probeRadius > 0f)
         {
-            navMeshAgent.radius = Mathf.Max(_probeRadius, 0.1f);
+            navMeshAgent.radius = Mathf.Max(_probeRadius * NavAgentRadiusScale, 0.1f);
         }
 
         if (_probeHeight > 0f)
@@ -170,6 +170,7 @@ public sealed partial class EnemySteering
 
             if (_navMeshAgent == null)
             {
+                SetDebugStatus("Nav.NoAgent");
                 return false;
             }
         }
@@ -185,6 +186,7 @@ public sealed partial class EnemySteering
 
             if (TryGetRecoverPoint(currentPoint, out navPoint) == false)
             {
+                SetDebugStatus("Nav.RecoverPointFailed");
                 _navMeshAgent.enabled = false;
 
                 return false;
@@ -200,6 +202,7 @@ public sealed partial class EnemySteering
 
             if (isWarped == false)
             {
+                SetDebugStatus("Nav.WarpFailed");
                 _navMeshAgent.enabled = false;
 
                 return false;
@@ -230,6 +233,7 @@ public sealed partial class EnemySteering
 
         if (TryGetNavPoint(currentPoint, out navPoint) == false)
         {
+            SetDebugStatus("Nav.ActivateNoPoint");
             return false;
         }
 
@@ -247,6 +251,7 @@ public sealed partial class EnemySteering
 
             if (isWarped == false)
             {
+                SetDebugStatus("Nav.ActivateWarpFailed");
                 _navMeshAgent.enabled = false;
 
                 return false;
@@ -328,6 +333,7 @@ public sealed partial class EnemySteering
 
         if (TryGetNavPoint(targetPoint, NavRecoverGap, out navTargetPoint) == false)
         {
+            SetDebugStatus("Path.NoTargetPoint");
             return false;
         }
 
@@ -337,6 +343,7 @@ public sealed partial class EnemySteering
 
             if (TrySetPath(navTargetPoint) == false)
             {
+                SetDebugStatus("Path.SetFailed");
                 return false;
             }
 
@@ -347,24 +354,29 @@ public sealed partial class EnemySteering
 
         if (_navMeshAgent.pathPending)
         {
+            SetDebugStatus("Path.Pending");
             return true;
         }
 
         if (_navMeshAgent.hasPath == false)
         {
+            SetDebugStatus("Path.Empty");
             return false;
         }
 
         if (_navMeshAgent.pathStatus == NavMeshPathStatus.PathInvalid)
         {
+            SetDebugStatus("Path.Invalid");
             return false;
         }
 
         if (_navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial)
         {
+            SetDebugStatus("Path.Partial");
             return false;
         }
 
+        SetDebugStatus("Path.Ready");
         return true;
     }
 
@@ -419,11 +431,13 @@ public sealed partial class EnemySteering
 
         if (hasPath == false)
         {
+            SetDebugStatus("Path.CalculateFailed");
             return false;
         }
 
         if (_navMeshPath.status != NavMeshPathStatus.PathComplete)
         {
+            SetDebugStatus("Path.NotComplete");
             return false;
         }
 
@@ -431,11 +445,13 @@ public sealed partial class EnemySteering
 
         if (pathCorners == null)
         {
+            SetDebugStatus("Path.NoCorners");
             return false;
         }
 
         if (pathCorners.Length == 0)
         {
+            SetDebugStatus("Path.EmptyCorners");
             return false;
         }
 
