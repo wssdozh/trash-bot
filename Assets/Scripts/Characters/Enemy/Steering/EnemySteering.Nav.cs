@@ -108,7 +108,7 @@ public sealed partial class EnemySteering
         navMeshAgent.angularSpeed = 0f;
         navMeshAgent.speed = AgentSpeed;
         navMeshAgent.avoidancePriority = GetAvoidPriority();
-        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.MedQualityObstacleAvoidance;
+        navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
         ApplyAgentShape(navMeshAgent);
         navMeshAgent.enabled = false;
 
@@ -461,22 +461,13 @@ public sealed partial class EnemySteering
     private Vector3 GetMoveDirection(Vector3 currentPoint)
     {
         Vector3 pathDirection = GetPathDirection(currentPoint);
-        Vector3 moveDirection = GetFlatDirection(_navMeshAgent.desiredVelocity);
 
         if (pathDirection.sqrMagnitude > MinDistance)
         {
-            if (moveDirection.sqrMagnitude > MinDistance)
-            {
-                float directionDot = Vector3.Dot(pathDirection, moveDirection);
-
-                if (directionDot > 0f)
-                {
-                    return GetFlatDirection(pathDirection + moveDirection);
-                }
-            }
-
             return pathDirection;
         }
+
+        Vector3 moveDirection = GetFlatDirection(_navMeshAgent.desiredVelocity);
 
         if (moveDirection.sqrMagnitude > MinDistance)
         {
@@ -557,6 +548,74 @@ public sealed partial class EnemySteering
         }
 
         return GetFlatDirection(lookPoint - currentPoint);
+    }
+
+    private bool TryGetPathFallbackDirection(Vector3 currentPoint, Vector3 moveDirection, out Vector3 fallbackDirection)
+    {
+        fallbackDirection = Vector3.zero;
+
+        if (_navMeshAgent == null)
+        {
+            return false;
+        }
+
+        if (_navMeshAgent.enabled == false)
+        {
+            return false;
+        }
+
+        if (_navMeshAgent.pathPending)
+        {
+            return false;
+        }
+
+        if (_navMeshAgent.hasPath == false)
+        {
+            return false;
+        }
+
+        if (_navMeshAgent.pathStatus != NavMeshPathStatus.PathComplete)
+        {
+            return false;
+        }
+
+        if (_hasPathTarget == false)
+        {
+            return false;
+        }
+
+        float remainingDistance = Vector3.Distance(currentPoint, _pathTargetPoint);
+        float fallbackDistance = Mathf.Max(GetResolveProbeDistance() + _pathStopDistance, _pathStopDistance + PathFallbackGap);
+
+        if (remainingDistance > fallbackDistance)
+        {
+            return false;
+        }
+
+        fallbackDirection = GetFlatDirection(moveDirection);
+
+        if (fallbackDirection.sqrMagnitude > MinDistance)
+        {
+            return true;
+        }
+
+        fallbackDirection = GetPathDirection(currentPoint);
+
+        if (fallbackDirection.sqrMagnitude > MinDistance)
+        {
+            return true;
+        }
+
+        Vector3 targetDirection = GetFlatDirection(_pathTargetPoint - currentPoint);
+
+        if (targetDirection.sqrMagnitude <= MinDistance)
+        {
+            return false;
+        }
+
+        fallbackDirection = targetDirection;
+
+        return true;
     }
 
     private void ClearPath()
