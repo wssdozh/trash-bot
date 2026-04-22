@@ -20,6 +20,7 @@ public sealed class BossHealthOverlay : MonoBehaviour
     private CanvasGroup _canvasGroup;
     private HealthSmoothSliderIndicator[] _sliderIndicators;
     private HealthTextIndicator[] _textIndicators;
+    private BossSegmentedHealthIndicator[] _segmentedIndicators;
     private Sequence _visibilitySequence;
     private BossExcavator _boss;
     private Health _bossHealth;
@@ -89,6 +90,12 @@ public sealed class BossHealthOverlay : MonoBehaviour
         }
 
         _panelTransform = Instantiate(_indicatorTemplate, _uiRoot);
+
+        if (_panelTransform.gameObject.activeSelf == false)
+        {
+            _panelTransform.gameObject.SetActive(true);
+        }
+
         _panelTransform.name = "Boss Health";
         _panelTransform.SetAsLastSibling();
         _canvasGroup = _panelTransform.gameObject.AddComponent<CanvasGroup>();
@@ -150,6 +157,7 @@ public sealed class BossHealthOverlay : MonoBehaviour
     {
         _sliderIndicators = _panelTransform.GetComponentsInChildren<HealthSmoothSliderIndicator>(true);
         _textIndicators = _panelTransform.GetComponentsInChildren<HealthTextIndicator>(true);
+        _segmentedIndicators = _panelTransform.GetComponentsInChildren<BossSegmentedHealthIndicator>(true);
     }
 
     private void ClearIndicators()
@@ -183,6 +191,21 @@ public sealed class BossHealthOverlay : MonoBehaviour
 
             textIndicator.ClearStat();
         }
+
+        int segmentedIndex = 0;
+
+        while (segmentedIndex < _segmentedIndicators.Length)
+        {
+            BossSegmentedHealthIndicator segmentedIndicator = _segmentedIndicators[segmentedIndex];
+            segmentedIndex += 1;
+
+            if (segmentedIndicator == null)
+            {
+                continue;
+            }
+
+            segmentedIndicator.ClearBoss();
+        }
     }
 
     private void BindIndicators(Health health)
@@ -215,6 +238,24 @@ public sealed class BossHealthOverlay : MonoBehaviour
             }
 
             textIndicator.SetStat(health);
+        }
+    }
+
+    private void BindSegmentedIndicators(BossExcavator boss)
+    {
+        int segmentedIndex = 0;
+
+        while (segmentedIndex < _segmentedIndicators.Length)
+        {
+            BossSegmentedHealthIndicator segmentedIndicator = _segmentedIndicators[segmentedIndex];
+            segmentedIndex += 1;
+
+            if (segmentedIndicator == null)
+            {
+                continue;
+            }
+
+            segmentedIndicator.SetBoss(boss);
         }
     }
 
@@ -323,6 +364,7 @@ public sealed class BossHealthOverlay : MonoBehaviour
         _roomCombatLock = roomCombatLock;
         _bossHealth.Ended += OnBossHealthEnded;
         BindIndicators(_bossHealth);
+        BindSegmentedIndicators(_boss);
     }
 
     private void UnbindBoss()
