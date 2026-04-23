@@ -48,7 +48,7 @@ public abstract class BaseAnimatedPickup : BasePickup
         }
     }
 
-    protected virtual void OnDisable()
+    protected virtual void OnDisable() 
     {
         ResetMotion();
 

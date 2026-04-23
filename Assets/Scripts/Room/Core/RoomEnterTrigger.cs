@@ -13,7 +13,7 @@ public sealed class RoomEnterTrigger : MonoBehaviour
 
     [SerializeField, Min(0f)] private float _expandInBlocks = 0.25f;
     [SerializeField, Min(0.1f)] private float _depthInBlocks = 1f;
-    [SerializeField, Min(0f)] private float _insideOffsetInBlocks = 0.5f;
+    [SerializeField, Min(0f)] private float _insideOffsetInBlocks = 0.2f;
 
     private readonly List<Collider> _playerColliders = new List<Collider>(4);
 
@@ -162,6 +162,11 @@ public sealed class RoomEnterTrigger : MonoBehaviour
     private bool IsPlayer(Collider other)
     {
         if (other == null)
+        {
+            return false;
+        }
+
+        if (other.isTrigger)
         {
             return false;
         }
