@@ -3991,6 +3991,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ModifierVendingMachineMenuView
   _root: {fileID: 221423803}
   _blurOverlay: {fileID: 883925742}
+  _pauseController: {fileID: 0}
   _coinsText: {fileID: 778692340}
   _cardViews:
   - {fileID: 2144853092}

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: BossExcavatorConfig
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossExcavatorConfig
   _maxHealth: 1500
-  _phaseTwoRatio: 0.7
-  _phaseThreeRatio: 0.3
+  _phaseTwoRatio: 0.67
+  _phaseThreeRatio: 0.33
   _phaseChangeDuration: 0.9
   _phaseTwoAttackSpeedMult: 1.25
   _phaseTwoDamageMult: 1.32

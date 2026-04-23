@@ -23,7 +23,7 @@ public sealed partial class EnemySteering
     private const int SafePointPushCount = 4;
     private const float SlotOffsetMin = 0.01f;
     private const float ProbeSkin = 0.05f;
-    private const float NavAgentRadiusScale = 0.45f;
+    private const float NavAgentRadiusScale = 1.05f;
     private const float NearProbeDistanceScale = 1f;
     private const float NearProbeSkinScale = 0f;
     private const float LowProbeHeightScale = 0.45f;
