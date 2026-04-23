@@ -3,6 +3,7 @@ using UnityEngine;
 public class PickupTrigger : MonoBehaviour
 {
     [SerializeField] private Collider _triggerCollider;
+    [SerializeField] private LayerMask _pickupMask = ~0;
     [SerializeField] private Inventory _inventory;
     [SerializeField] private Transform _pickupTarget;
 
@@ -23,6 +24,11 @@ public class PickupTrigger : MonoBehaviour
 
     private void TryPickup(Collider other)
     {
+        if (IsLayerAllowed(other.gameObject.layer) == false)
+        {
+            return;
+        }
+
         BasePickup itemPickup = other.GetComponent<BasePickup>();
 
         if (itemPickup == null)
@@ -38,8 +44,9 @@ public class PickupTrigger : MonoBehaviour
     private GameObject GetCollector()
     {
         if (_pickupTarget != null)
-
+        {
             return _pickupTarget.gameObject;
+        }
 
         Player player = GetComponentInParent<Player>();
 
@@ -54,5 +61,12 @@ public class PickupTrigger : MonoBehaviour
         }
 
         return transform.root.gameObject;
+    }
+
+    private bool IsLayerAllowed(int layer)
+    {
+        int layerMask = 1 << layer;
+
+        return (_pickupMask.value & layerMask) != 0;
     }
 }

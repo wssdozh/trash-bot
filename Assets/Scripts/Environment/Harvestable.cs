@@ -35,7 +35,7 @@ public class Harvestable : DamageableObject
     {
         Vector3 spawnPosition = transform.position + Vector3.up * _spawnHeightOffset;
 
-        BasePickup berry = _pickupSpawner.Spawn(spawnPosition);
+        BasePickup berry = _pickupSpawner.Spawn(spawnPosition, transform.parent);
 
         berry.SetAmount(Random.Range(1, 4));
 

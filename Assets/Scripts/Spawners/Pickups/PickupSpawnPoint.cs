@@ -41,7 +41,7 @@ public class PickupSpawnPoint : MonoBehaviour
     {
         Vector3 position = _spawnTransform.position;
 
-        return _spawner.Spawn(position);
+        return _spawner.Spawn(position, transform.parent);
     }
 
     public void StartRegularSpawn()
