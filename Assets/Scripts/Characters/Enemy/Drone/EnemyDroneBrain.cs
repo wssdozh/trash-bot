@@ -135,6 +135,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
             throw new InvalidOperationException(nameof(_fireExecutor));
         }
 
+        _fireExecutor.SetIgnoredRoot(_enemy.transform);
+
         if (_fightMinDistance <= 0f)
         {
             throw new InvalidOperationException(nameof(_fightMinDistance));
