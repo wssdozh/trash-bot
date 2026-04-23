@@ -2498,7 +2498,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterMover
   _rigidbody: {fileID: 6655802807853044318}
-  _speed: 1.9
+  _speed: 2.3
   _speedSprint: 4.2
   _isWallSlideEnabled: 1
   _wallNormalMaxY: 0.2
@@ -3186,7 +3186,7 @@ MonoBehaviour:
   _sprintStaminaCostPerSecond: 5
   _moveStopDelaySeconds: 0.025
   _attackEnterSeconds: 0.2
-  _attackExitSeconds: 0.57
+  _attackExitSeconds: 0.37
   _attackMovementMultiplier: 0
 --- !u!114 &7431421974841183803
 MonoBehaviour:

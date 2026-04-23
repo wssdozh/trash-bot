@@ -184,7 +184,7 @@ public class PlayerCombat : MonoBehaviour
         _isAttackStartPending = false;
         _attackStartDelayTimerSeconds = 0f;
 
-        _combatCore.AttackStart();
+        _combatCore.StartHoldingAttack();
     }
 
     private void CancelAttackStartDelay()
