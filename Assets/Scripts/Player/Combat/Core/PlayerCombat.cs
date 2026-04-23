@@ -97,7 +97,7 @@ public class PlayerCombat : MonoBehaviour
 
         if (IsInBattle)
         {
-            return _combatCore.AttackStart();
+            return _combatCore.StartHoldingAttack();
         }
 
         if (_isAttackStartPending)
@@ -111,7 +111,7 @@ public class PlayerCombat : MonoBehaviour
 
         if (attackStartDelaySeconds <= 0f)
         {
-            return _combatCore.AttackStart();
+            return _combatCore.StartHoldingAttack();
         }
 
         _isAttackStartPending = true;
@@ -126,7 +126,7 @@ public class PlayerCombat : MonoBehaviour
 
         CancelAttackStartDelay();
 
-        _combatCore.AttackCancel();
+        _combatCore.StopHoldingAttack();
     }
 
     public void SetAimPoint(Vector3 aimPoint)

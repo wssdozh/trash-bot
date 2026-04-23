@@ -85,6 +85,31 @@ public sealed class PlayerCombatCore
         _rangedFire.SetAimPoint(aimPoint);
     }
 
+    public bool StartHoldingAttack()
+    {
+        WeaponType weaponType = _activeWeaponType.Value;
+
+        if (weaponType == WeaponType.Melee || weaponType == WeaponType.None)
+        {
+            _rangedFire.StopFiringOnly();
+
+            _meleeAttack.StartHolding();
+
+            return true;
+        }
+
+        _meleeAttack.CancelOnly();
+
+        return _rangedFire.StartFiring();
+    }
+
+    public void StopHoldingAttack()
+    {
+        _meleeAttack.StopHolding();
+
+        _rangedFire.StopFiringOnly();
+    }
+
     public void ExitBattle()
     {
         _meleeAttack.CancelOnly();

@@ -12,6 +12,7 @@ public sealed class PlayerMeleeAttack
     private bool _isAttackInProgress;
     private bool _isHitPending;
     private bool _isAttackBuffered;
+    private bool _isHoldingAttack;
 
     public PlayerMeleeAttack(
         Attacker attacker,
@@ -125,6 +126,19 @@ public sealed class PlayerMeleeAttack
             return;
         }
 
+        if (_isHoldingAttack)
+        {
+            if (_stamina.Value > 0f)
+            {
+                _isHitPending = true;
+
+                _animator.TriggerAttack();
+                _battleState.Touch();
+
+                return;
+            }
+        }
+
         if (_isAttackBuffered)
         {
             _isAttackBuffered = false;
@@ -148,6 +162,17 @@ public sealed class PlayerMeleeAttack
 
         _movementGate.AllowMovement();
         _battleState.UnlockWeaponSwitchAndRefreshAnimator();
+    }
+
+    public void StartHolding()
+    {
+        _isHoldingAttack = true;
+        StartAttack();
+    }
+
+    public void StopHolding()
+    {
+        _isHoldingAttack = false;
     }
 
     private void ResetState()
