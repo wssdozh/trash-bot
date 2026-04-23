@@ -32,6 +32,15 @@ public abstract class Spawner<T> : Spawner where T : MonoBehaviour
     }
 
     public abstract T Spawn(Vector3 position);
+
+    public virtual T Spawn(Vector3 position, Transform parent)
+    {
+        T instance = Spawn(position);
+        instance.transform.SetParent(parent, true);
+
+        return instance;
+    }
+
     public abstract void Despawn(T instance);
 
     private void InitializePool()

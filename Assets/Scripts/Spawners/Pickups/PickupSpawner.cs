@@ -20,6 +20,7 @@ public class PickupSpawner : Spawner<BasePickup>
     public override BasePickup Spawn(Vector3 position)
     {
         BasePickup pickup = Pool.Get();
+        pickup.transform.SetParent(null, true);
         pickup.transform.position = position;
         PickupReturner pickupReturner = GetPickupReturner(pickup);
         pickupReturner.SetSpawner(this);
@@ -35,6 +36,12 @@ public class PickupSpawner : Spawner<BasePickup>
 
     protected override void ActionOnGet(BasePickup pickup)
     {
+    }
+
+    protected override void ActionOnRelease(BasePickup pickup)
+    {
+        pickup.transform.SetParent(transform, true);
+        pickup.gameObject.SetActive(false);
     }
 
     private PickupReturner GetPickupReturner(BasePickup pickup)

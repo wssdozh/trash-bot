@@ -16,13 +16,19 @@ public abstract class BaseAnimatedPickup : BasePickup
     protected virtual void Awake()
     {
         if (_rigidbody == null)
+        {
             throw new InvalidOperationException(nameof(_rigidbody));
+        }
 
         if (_collider == null)
+        {
             throw new InvalidOperationException(nameof(_collider));
+        }
 
         if (_returner == null)
+        {
             throw new InvalidOperationException(nameof(_returner));
+        }
     }
 
     protected override void OnEnable()
@@ -37,7 +43,9 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
+        {
             pickupIdle.SetIdleActive(true);
+        }
     }
 
     protected virtual void OnDisable()
@@ -47,7 +55,9 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
+        {
             pickupIdle.SetIdleActive(false);
+        }
     }
 
     protected override void OnPickup(GameObject player)
@@ -55,10 +65,14 @@ public abstract class BaseAnimatedPickup : BasePickup
         PickupIdle pickupIdle = GetPickupIdle();
 
         if (pickupIdle != null)
+        {
             pickupIdle.SetIdleActive(false);
+        }
 
         if (_pickupAnimator == null)
+        {
             _pickupAnimator = GetComponent<PickupAnimator>();
+        }
 
         if (_pickupAnimator != null)
         {
@@ -104,7 +118,9 @@ public abstract class BaseAnimatedPickup : BasePickup
     private PickupIdle GetPickupIdle()
     {
         if (_pickupIdle == null)
+        {
             _pickupIdle = GetComponentInChildren<PickupIdle>(true);
+        }
 
         return _pickupIdle;
     }

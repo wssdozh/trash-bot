@@ -78,11 +78,12 @@ public sealed class CurrencyDropOnDeath : MonoBehaviour
     private void SpawnCoins()
     {
         int dropCount = UnityEngine.Random.Range(_dropCountMin, _dropCountMax + 1);
+        Transform pickupParent = transform.parent;
 
         for (int i = 0; i < dropCount; i++)
         {
             Vector3 spawnPosition = GetSpawnPosition();
-            BasePickup pickup = _pickupSpawner.Spawn(spawnPosition);
+            BasePickup pickup = _pickupSpawner.Spawn(spawnPosition, pickupParent);
             Rigidbody rigidbody = pickup.GetComponent<Rigidbody>();
             Vector3 worldImpulse = GetImpulse();
 

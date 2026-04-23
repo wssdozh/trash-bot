@@ -113,7 +113,7 @@ public sealed class PickupOnDeath : MonoBehaviour
     private void SpawnPickup()
     {
         Vector3 spawnPosition = GetSpawnPosition();
-        BasePickup pickup = _pickupSpawner.Spawn(spawnPosition);
+        BasePickup pickup = _pickupSpawner.Spawn(spawnPosition, transform.parent);
         pickup.transform.rotation = _pickupPrefab.transform.rotation;
         pickup.SetAmount(_pickupPrefab.Amount);
 
