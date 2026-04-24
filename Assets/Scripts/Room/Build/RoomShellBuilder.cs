@@ -3,6 +3,9 @@ using UnityEngine;
 
 public sealed class RoomShellBuilder : MonoBehaviour
 {
+    private const float FenceFaceYawOffset = -90f;
+    private const float FencePostFloorLiftInBlocks = 0.5f;
+
     private enum FloorBuildMode
     {
         TiledBlocks,
@@ -196,7 +199,7 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
         if (_postsEnabled == true)
         {
-            CreatePosts(postCells, floorSurfaceY);
+            CreatePosts(postCells, roomSizeInBlocks, floorSurfaceY);
         }
 
         CreateSegmentsForSide(DoorSide.North, roomSizeInBlocks, postCells, northDoorMask, floorSurfaceY);
@@ -488,11 +491,11 @@ public sealed class RoomShellBuilder : MonoBehaviour
         return true;
     }
 
-    private void CreatePosts(HashSet<Vector2Int> postCells, float floorSurfaceY)
+    private void CreatePosts(HashSet<Vector2Int> postCells, Vector3Int roomSizeInBlocks, float floorSurfaceY)
     {
         foreach (Vector2Int cell in postCells)
         {
-            CreatePost(cell, floorSurfaceY);
+            CreatePost(cell, roomSizeInBlocks, floorSurfaceY);
         }
     }
 
@@ -634,16 +637,18 @@ public sealed class RoomShellBuilder : MonoBehaviour
         return floorSurfaceY + (heightInUnits * 0.5f);
     }
 
-    private void CreatePost(Vector2Int wallCell, float floorSurfaceY)
+    private void CreatePost(Vector2Int wallCell, Vector3Int roomSizeInBlocks, float floorSurfaceY)
     {
         GameObject postInstance = Instantiate(_fencePostPrefab, _fencePostsRoot);
 
         float localPositionX = (wallCell.x + 0.5f) * _blockSize;
         float localPositionZ = (wallCell.y + 0.5f) * _blockSize;
         float localPositionY = GetFenceElementLocalPositionY(floorSurfaceY, _postHeightInBlocks, _postPivotAtBase);
+        localPositionY += FencePostFloorLiftInBlocks * _blockSize;
+        Vector3 inwardDirection = GetFencePostInwardDirection(wallCell, roomSizeInBlocks);
 
         postInstance.transform.localPosition = new Vector3(localPositionX, localPositionY, localPositionZ);
-        postInstance.transform.localRotation = Quaternion.identity;
+        postInstance.transform.localRotation = GetFenceFaceRotation(inwardDirection);
 
         float scaleX = _blockSize;
         float scaleY = _postHeightInBlocks * _blockSize;
@@ -688,19 +693,73 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
         segmentInstance.transform.localPosition = segmentPosition;
 
-        Quaternion rotation = Quaternion.identity;
-
-        if (side == DoorSide.East || side == DoorSide.West)
-        {
-            rotation = Quaternion.Euler(0f, 90f, 0f);
-        }
-
-        segmentInstance.transform.localRotation = rotation;
+        segmentInstance.transform.localRotation = GetFenceSegmentRotation(side);
 
         float heightScale = _segmentHeightInBlocks * _blockSize;
         float thicknessScale = _blockSize;
 
-        segmentInstance.transform.localScale = new Vector3(segmentLengthInUnits, heightScale, thicknessScale);
+        segmentInstance.transform.localScale = new Vector3(thicknessScale, heightScale, segmentLengthInUnits);
+    }
+
+    private Quaternion GetFenceSegmentRotation(DoorSide side)
+    {
+        Vector3 inwardDirection = GetFenceInwardDirection(side);
+
+        return GetFenceFaceRotation(inwardDirection);
+    }
+
+    private Quaternion GetFenceFaceRotation(Vector3 inwardDirection)
+    {
+        return Quaternion.LookRotation(inwardDirection, Vector3.up) * Quaternion.Euler(0f, FenceFaceYawOffset, 0f);
+    }
+
+    private Vector3 GetFencePostInwardDirection(Vector2Int wallCell, Vector3Int roomSizeInBlocks)
+    {
+        int maxX = roomSizeInBlocks.x - 1;
+        int maxZ = roomSizeInBlocks.z - 1;
+        Vector3 inwardDirection = Vector3.zero;
+
+        if (wallCell.y == maxZ)
+        {
+            inwardDirection += GetFenceInwardDirection(DoorSide.North);
+        }
+
+        if (wallCell.y == 0)
+        {
+            inwardDirection += GetFenceInwardDirection(DoorSide.South);
+        }
+
+        if (wallCell.x == maxX)
+        {
+            inwardDirection += GetFenceInwardDirection(DoorSide.East);
+        }
+
+        if (wallCell.x == 0)
+        {
+            inwardDirection += GetFenceInwardDirection(DoorSide.West);
+        }
+
+        return inwardDirection.normalized;
+    }
+
+    private Vector3 GetFenceInwardDirection(DoorSide side)
+    {
+        if (side == DoorSide.North)
+        {
+            return Vector3.back;
+        }
+
+        if (side == DoorSide.South)
+        {
+            return Vector3.forward;
+        }
+
+        if (side == DoorSide.East)
+        {
+            return Vector3.left;
+        }
+
+        return Vector3.right;
     }
 
     private Vector3 GetFenceAnchorPosition(DoorSide side, Vector3Int roomSizeInBlocks, int alongIndex)

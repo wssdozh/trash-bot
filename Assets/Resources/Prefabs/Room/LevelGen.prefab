@@ -181,9 +181,13 @@ MonoBehaviour:
   _floorPrefabSizeInUnits: {x: 10, y: 10}
   _floorLocalOffset: {x: 0, y: 0, z: 0}
   _wallPrefab: {fileID: 2152623805651872328, guid: d22b72efe69f17b45849fe7f12510ea9, type: 3}
+  _postPrefab: {fileID: 8519452763209203792, guid: 68a457e87213d194b95867fcfc048e9c, type: 3}
   _wallPrefabLengthInUnits: 1
   _wallPrefabHeightInUnits: 1
+  _postPrefabHeightInUnits: 1
   _wallHeightInUnits: 6
   _wallSideOffsetInUnits: 0
+  _postSpacingInBlocks: 6
+  _wallSegmentEndGapInBlocks: 0.5
   _wallLocalOffset: {x: 0, y: 4, z: 0}
   _enableColliders: 1

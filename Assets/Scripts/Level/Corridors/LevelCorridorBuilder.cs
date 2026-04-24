@@ -3,6 +3,9 @@ using UnityEngine;
 
 public sealed class LevelCorridorBuilder : MonoBehaviour
 {
+    private const float WallFaceYawOffset = -90f;
+    private const float MinSize = 0.01f;
+
     [Header("Grid")]
     [SerializeField, Min(0.01f)] private float _blockSize = 1f;
     [SerializeField, Min(0f)] private float _doorInsetInBlocks = 1f;
@@ -20,12 +23,16 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
 
     [Header("Walls (optional)")]
     [SerializeField] private GameObject _wallPrefab;
+    [SerializeField] private GameObject _postPrefab;
 
     [SerializeField, Min(0.01f)] private float _wallPrefabLengthInUnits = 1f;
     [SerializeField, Min(0.01f)] private float _wallPrefabHeightInUnits = 1f;
+    [SerializeField, Min(0.01f)] private float _postPrefabHeightInUnits = 1f;
 
     [SerializeField, Min(0f)] private float _wallHeightInUnits = 2f;
     [SerializeField, Min(0f)] private float _wallSideOffsetInUnits = 0f;
+    [SerializeField, Min(1)] private int _postSpacingInBlocks = 6;
+    [SerializeField, Min(0f)] private float _wallSegmentEndGapInBlocks = 0.5f;
 
     [SerializeField] private Vector3 _wallLocalOffset;
     [SerializeField] private bool _enableColliders = true;
@@ -118,7 +125,14 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
         GameObject floor = BuildFloor(corridorRoot.transform, lengthUnits, widthUnits, horizontalScale, verticalScale);
 
         if (_wallPrefab != null)
+        {
+            if (_postPrefab == null)
+            {
+                throw new InvalidOperationException(nameof(_postPrefab));
+            }
+
             BuildWalls(corridorRoot.transform, lengthUnits, widthUnits, horizontalScale, verticalScale);
+        }
 
         AlignCorridorHeight(corridorRoot.transform, floor, doorSurfaceY);
     }
@@ -212,41 +226,118 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
     private void BuildWalls(Transform corridorTransform, float lengthUnits, float widthUnits, float horizontalScale, float verticalScale)
     {
         float halfWidth = widthUnits * 0.5f;
-
         float sideOffset = halfWidth + (_wallSideOffsetInUnits * horizontalScale);
+        int segmentCount = GetWallSegmentCount(lengthUnits, horizontalScale);
 
-        BuildWall(corridorTransform, lengthUnits, sideOffset, horizontalScale, verticalScale);
+        BuildWallSide(corridorTransform, lengthUnits, sideOffset, Vector3.back, segmentCount, horizontalScale, verticalScale);
 
-        BuildWall(corridorTransform, lengthUnits, -sideOffset, horizontalScale, verticalScale);
+        BuildWallSide(corridorTransform, lengthUnits, -sideOffset, Vector3.forward, segmentCount, horizontalScale, verticalScale);
     }
 
-    private void BuildWall(Transform corridorTransform, float lengthUnits, float localZ, float horizontalScale, float verticalScale)
+    private void BuildWallSide(Transform corridorTransform, float lengthUnits, float localZ, Vector3 inwardDirection, int segmentCount, float horizontalScale, float verticalScale)
     {
-        GameObject wall = Instantiate(_wallPrefab, corridorTransform);
+        float halfLength = lengthUnits * 0.5f;
 
+        for (int postIndex = 0; postIndex <= segmentCount; postIndex++)
+        {
+            float postRatio = (float)postIndex / segmentCount;
+            float localX = Mathf.Lerp(-halfLength, halfLength, postRatio);
+
+            BuildPost(corridorTransform, localX, localZ, inwardDirection, horizontalScale, verticalScale);
+        }
+
+        for (int segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
+        {
+            float startRatio = (float)segmentIndex / segmentCount;
+            float endRatio = (float)(segmentIndex + 1) / segmentCount;
+            float startX = Mathf.Lerp(-halfLength, halfLength, startRatio);
+            float endX = Mathf.Lerp(-halfLength, halfLength, endRatio);
+
+            BuildWallSegment(corridorTransform, startX, endX, localZ, inwardDirection, horizontalScale, verticalScale);
+        }
+    }
+
+    private void BuildPost(Transform corridorTransform, float localX, float localZ, Vector3 inwardDirection, float horizontalScale, float verticalScale)
+    {
+        GameObject post = Instantiate(_postPrefab, corridorTransform);
         Vector3 wallLocalOffset = ScaleLocalOffset(_wallLocalOffset, horizontalScale, verticalScale);
-        wall.transform.localPosition = new Vector3(0f, 0f, localZ) + wallLocalOffset;
-        wall.transform.localRotation = Quaternion.identity;
+        post.transform.localPosition = new Vector3(localX, 0f, localZ) + wallLocalOffset;
+        post.transform.localRotation = GetWallRotation(inwardDirection);
+
+        Vector3 baseScale = post.transform.localScale;
+
+        float baseHeight = _postPrefabHeightInUnits;
+
+        if (baseHeight < MinSize)
+        {
+            baseHeight = MinSize;
+        }
+
+        float scaleX = _blockSize * horizontalScale;
+        float scaleY = (_wallHeightInUnits * verticalScale) / baseHeight;
+        float scaleZ = _blockSize * horizontalScale;
+
+        post.transform.localScale = new Vector3(baseScale.x * scaleX, baseScale.y * scaleY, baseScale.z * scaleZ);
+
+        EnableColliders(post);
+    }
+
+    private void BuildWallSegment(Transform corridorTransform, float startX, float endX, float localZ, Vector3 inwardDirection, float horizontalScale, float verticalScale)
+    {
+        float segmentLength = Mathf.Abs(endX - startX);
+        float endGap = _wallSegmentEndGapInBlocks * _blockSize * horizontalScale;
+        float finalLength = segmentLength - (endGap * 2f);
+
+        if (finalLength <= MinSize)
+        {
+            return;
+        }
+
+        GameObject wall = Instantiate(_wallPrefab, corridorTransform);
+        Vector3 wallLocalOffset = ScaleLocalOffset(_wallLocalOffset, horizontalScale, verticalScale);
+        float localX = (startX + endX) * 0.5f;
+
+        wall.transform.localPosition = new Vector3(localX, 0f, localZ) + wallLocalOffset;
+        wall.transform.localRotation = GetWallRotation(inwardDirection);
 
         Vector3 baseScale = wall.transform.localScale;
-
         float baseLength = _wallPrefabLengthInUnits;
         float baseHeight = _wallPrefabHeightInUnits;
 
-        if (baseLength < 0.01f)
-            baseLength = 0.01f;
+        if (baseLength < MinSize)
+        {
+            baseLength = MinSize;
+        }
 
-        if (baseHeight < 0.01f)
-            baseHeight = 0.01f;
+        if (baseHeight < MinSize)
+        {
+            baseHeight = MinSize;
+        }
 
-
-        float scaleX = lengthUnits / baseLength;
+        float scaleX = _blockSize * horizontalScale;
         float scaleY = (_wallHeightInUnits * verticalScale) / baseHeight;
-        float scaleZ = _blockSize * horizontalScale;
+        float scaleZ = finalLength / baseLength;
 
         wall.transform.localScale = new Vector3(baseScale.x * scaleX, baseScale.y * scaleY, baseScale.z * scaleZ);
 
         EnableColliders(wall);
+    }
+
+    private int GetWallSegmentCount(float lengthUnits, float horizontalScale)
+    {
+        float postSpacing = _postSpacingInBlocks * _blockSize * horizontalScale;
+
+        if (postSpacing < MinSize)
+        {
+            postSpacing = MinSize;
+        }
+
+        return Mathf.Max(1, Mathf.CeilToInt(lengthUnits / postSpacing));
+    }
+
+    private Quaternion GetWallRotation(Vector3 inwardDirection)
+    {
+        return Quaternion.LookRotation(inwardDirection, Vector3.up) * Quaternion.Euler(0f, WallFaceYawOffset, 0f);
     }
 
     private float GetHorizontalScale(Transform parent)

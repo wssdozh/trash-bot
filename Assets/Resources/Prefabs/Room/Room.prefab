@@ -257,7 +257,7 @@ MonoBehaviour:
   _postsEnabled: 1
   _totalPostCount: 20
   _minimumPostDistanceInCells: 6
-  _postHeightInBlocks: 6
+  _postHeightInBlocks: 7
   _segmentHeightInBlocks: 7
   _postPivotAtBase: 0
   _segmentPivotAtBase: 0
