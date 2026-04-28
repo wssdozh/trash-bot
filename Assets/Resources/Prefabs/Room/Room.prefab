@@ -251,7 +251,7 @@ MonoBehaviour:
   _postPlacement: 1
   _fencePostVisualPrefab: {fileID: 0}
   _fencePostVisualResourcePath: Prefabs/Room/Fences/FencePostVisual
-  _fencePostVisualHeightMultiplier: 0.75
+  _fencePostVisualHeightMultiplier: 0.825
   _fencePostVisualThicknessMultiplier: 1
   _fencePostVisualYawOffset: 0
   _fenceSegmentsRoot: {fileID: 6034161103198927398}

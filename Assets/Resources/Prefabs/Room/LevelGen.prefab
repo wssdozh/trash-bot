@@ -187,7 +187,7 @@ MonoBehaviour:
   _wallPostPlacement: 1
   _wallPostVisualPrefab: {fileID: 0}
   _wallPostVisualResourcePath: Prefabs/Room/Fences/FencePostVisual
-  _wallPostVisualHeightMultiplier: 0.75
+  _wallPostVisualHeightMultiplier: 0.825
   _wallPostVisualThicknessMultiplier: 1
   _wallPostVisualYawOffset: 0
   _wallPrefabLengthInUnits: 1

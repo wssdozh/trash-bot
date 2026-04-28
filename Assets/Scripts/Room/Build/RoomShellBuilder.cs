@@ -51,7 +51,7 @@ public sealed class RoomShellBuilder : MonoBehaviour
     [SerializeField] private FencePostPlacement _postPlacement = FencePostPlacement.CornersAndDoors;
     [SerializeField] private GameObject _fencePostVisualPrefab;
     [SerializeField] private string _fencePostVisualResourcePath;
-    [SerializeField, Min(0.01f)] private float _fencePostVisualHeightMultiplier = 0.75f;
+    [SerializeField, Min(0.01f)] private float _fencePostVisualHeightMultiplier = 0.825f;
     [SerializeField, Min(0.01f)] private float _fencePostVisualThicknessMultiplier = 1f;
     [SerializeField] private float _fencePostVisualYawOffset = 0f;
 
@@ -207,9 +207,10 @@ public sealed class RoomShellBuilder : MonoBehaviour
         bool[] westDoorMask = BuildDoorMask(DoorSide.West, roomSizeInBlocks, doorPlans);
 
         HashSet<Vector2Int> postCells = new HashSet<Vector2Int>();
+        Dictionary<Vector2Int, Vector2> postVisualPositions = new Dictionary<Vector2Int, Vector2>();
 
         AddCornerPosts(postCells, roomSizeInBlocks);
-        AddDoorEdgePosts(postCells, roomSizeInBlocks, doorPlans, northDoorMask, southDoorMask, eastDoorMask, westDoorMask);
+        AddDoorEdgePosts(postCells, postVisualPositions, roomSizeInBlocks, doorPlans, northDoorMask, southDoorMask, eastDoorMask, westDoorMask);
 
         if (_postPlacement == FencePostPlacement.EveryFenceSegment)
         {
@@ -239,13 +240,13 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
         if (ShouldCreateFencePosts() == true)
         {
-            CreatePosts(postCells, roomSizeInBlocks, floorSurfaceY);
+            CreatePosts(postCells, postVisualPositions, roomSizeInBlocks, floorSurfaceY);
         }
 
-        CreateSegmentsForSide(DoorSide.North, roomSizeInBlocks, postCells, northDoorMask, floorSurfaceY);
-        CreateSegmentsForSide(DoorSide.South, roomSizeInBlocks, postCells, southDoorMask, floorSurfaceY);
-        CreateSegmentsForSide(DoorSide.East, roomSizeInBlocks, postCells, eastDoorMask, floorSurfaceY);
-        CreateSegmentsForSide(DoorSide.West, roomSizeInBlocks, postCells, westDoorMask, floorSurfaceY);
+        CreateSegmentsForSide(DoorSide.North, roomSizeInBlocks, postCells, postVisualPositions, northDoorMask, floorSurfaceY);
+        CreateSegmentsForSide(DoorSide.South, roomSizeInBlocks, postCells, postVisualPositions, southDoorMask, floorSurfaceY);
+        CreateSegmentsForSide(DoorSide.East, roomSizeInBlocks, postCells, postVisualPositions, eastDoorMask, floorSurfaceY);
+        CreateSegmentsForSide(DoorSide.West, roomSizeInBlocks, postCells, postVisualPositions, westDoorMask, floorSurfaceY);
     }
 
     private void BuildDoorMarkers(Vector3Int roomSizeInBlocks, IReadOnlyList<RoomDoorPlan> doorPlans, float floorSurfaceY)
@@ -269,6 +270,7 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
     private void AddDoorEdgePosts(
         HashSet<Vector2Int> postCells,
+        Dictionary<Vector2Int, Vector2> postVisualPositions,
         Vector3Int roomSizeInBlocks,
         IReadOnlyList<RoomDoorPlan> doorPlans,
         bool[] northDoorMask,
@@ -283,59 +285,69 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
             if (doorPlan.Side == DoorSide.North)
             {
-                AddDoorEdgePostsOnHorizontalWall(postCells, roomSizeInBlocks, doorPlan, northDoorMask, roomSizeInBlocks.z - 1);
+                AddDoorEdgePostsOnHorizontalWall(postCells, postVisualPositions, roomSizeInBlocks, doorPlan, northDoorMask, roomSizeInBlocks.z - 1);
             }
 
             if (doorPlan.Side == DoorSide.South)
             {
-                AddDoorEdgePostsOnHorizontalWall(postCells, roomSizeInBlocks, doorPlan, southDoorMask, 0);
+                AddDoorEdgePostsOnHorizontalWall(postCells, postVisualPositions, roomSizeInBlocks, doorPlan, southDoorMask, 0);
             }
 
             if (doorPlan.Side == DoorSide.East)
             {
-                AddDoorEdgePostsOnVerticalWall(postCells, roomSizeInBlocks, doorPlan, eastDoorMask, roomSizeInBlocks.x - 1);
+                AddDoorEdgePostsOnVerticalWall(postCells, postVisualPositions, roomSizeInBlocks, doorPlan, eastDoorMask, roomSizeInBlocks.x - 1);
             }
 
             if (doorPlan.Side == DoorSide.West)
             {
-                AddDoorEdgePostsOnVerticalWall(postCells, roomSizeInBlocks, doorPlan, westDoorMask, 0);
+                AddDoorEdgePostsOnVerticalWall(postCells, postVisualPositions, roomSizeInBlocks, doorPlan, westDoorMask, 0);
             }
         }
     }
 
-    private void AddDoorEdgePostsOnHorizontalWall(HashSet<Vector2Int> postCells, Vector3Int roomSizeInBlocks, RoomDoorPlan doorPlan, bool[] doorMask, int wallZ)
+    private void AddDoorEdgePostsOnHorizontalWall(HashSet<Vector2Int> postCells, Dictionary<Vector2Int, Vector2> postVisualPositions, Vector3Int roomSizeInBlocks, RoomDoorPlan doorPlan, bool[] doorMask, int wallZ)
     {
         int width = roomSizeInBlocks.x;
 
         int leftCell = doorPlan.OpeningOffset - 1;
         int rightCell = doorPlan.OpeningOffset + doorPlan.OpeningWidthInBlocks;
+        float wallPositionZ = (wallZ + 0.5f) * _blockSize;
 
         if (leftCell >= 0 && leftCell < width && doorMask[leftCell] == false)
         {
-            postCells.Add(new Vector2Int(leftCell, wallZ));
+            Vector2Int cell = new Vector2Int(leftCell, wallZ);
+            postCells.Add(cell);
+            postVisualPositions[cell] = new Vector2(doorPlan.OpeningOffset * _blockSize, wallPositionZ);
         }
 
         if (rightCell >= 0 && rightCell < width && doorMask[rightCell] == false)
         {
-            postCells.Add(new Vector2Int(rightCell, wallZ));
+            Vector2Int cell = new Vector2Int(rightCell, wallZ);
+            postCells.Add(cell);
+            postVisualPositions[cell] = new Vector2((doorPlan.OpeningOffset + doorPlan.OpeningWidthInBlocks) * _blockSize, wallPositionZ);
         }
     }
 
-    private void AddDoorEdgePostsOnVerticalWall(HashSet<Vector2Int> postCells, Vector3Int roomSizeInBlocks, RoomDoorPlan doorPlan, bool[] doorMask, int wallX)
+    private void AddDoorEdgePostsOnVerticalWall(HashSet<Vector2Int> postCells, Dictionary<Vector2Int, Vector2> postVisualPositions, Vector3Int roomSizeInBlocks, RoomDoorPlan doorPlan, bool[] doorMask, int wallX)
     {
         int depth = roomSizeInBlocks.z;
 
         int bottomCell = doorPlan.OpeningOffset - 1;
         int topCell = doorPlan.OpeningOffset + doorPlan.OpeningWidthInBlocks;
+        float wallPositionX = (wallX + 0.5f) * _blockSize;
 
         if (bottomCell >= 0 && bottomCell < depth && doorMask[bottomCell] == false)
         {
-            postCells.Add(new Vector2Int(wallX, bottomCell));
+            Vector2Int cell = new Vector2Int(wallX, bottomCell);
+            postCells.Add(cell);
+            postVisualPositions[cell] = new Vector2(wallPositionX, doorPlan.OpeningOffset * _blockSize);
         }
 
         if (topCell >= 0 && topCell < depth && doorMask[topCell] == false)
         {
-            postCells.Add(new Vector2Int(wallX, topCell));
+            Vector2Int cell = new Vector2Int(wallX, topCell);
+            postCells.Add(cell);
+            postVisualPositions[cell] = new Vector2(wallPositionX, (doorPlan.OpeningOffset + doorPlan.OpeningWidthInBlocks) * _blockSize);
         }
     }
 
@@ -531,15 +543,15 @@ public sealed class RoomShellBuilder : MonoBehaviour
         return true;
     }
 
-    private void CreatePosts(HashSet<Vector2Int> postCells, Vector3Int roomSizeInBlocks, float floorSurfaceY)
+    private void CreatePosts(HashSet<Vector2Int> postCells, Dictionary<Vector2Int, Vector2> postVisualPositions, Vector3Int roomSizeInBlocks, float floorSurfaceY)
     {
         foreach (Vector2Int cell in postCells)
         {
-            CreatePost(cell, roomSizeInBlocks, floorSurfaceY);
+            CreatePost(cell, postVisualPositions, roomSizeInBlocks, floorSurfaceY);
         }
     }
 
-    private void CreateSegmentsForSide(DoorSide side, Vector3Int roomSizeInBlocks, HashSet<Vector2Int> postCells, bool[] doorMask, float floorSurfaceY)
+    private void CreateSegmentsForSide(DoorSide side, Vector3Int roomSizeInBlocks, HashSet<Vector2Int> postCells, Dictionary<Vector2Int, Vector2> postVisualPositions, bool[] doorMask, float floorSurfaceY)
     {
         List<int> indices = CollectPostIndicesForSide(side, roomSizeInBlocks, postCells);
 
@@ -560,7 +572,7 @@ public sealed class RoomShellBuilder : MonoBehaviour
                 continue;
             }
 
-            CreateFenceSegment(side, roomSizeInBlocks, a, b, floorSurfaceY);
+            CreateFenceSegment(side, roomSizeInBlocks, postVisualPositions, a, b, floorSurfaceY);
         }
     }
 
@@ -677,15 +689,26 @@ public sealed class RoomShellBuilder : MonoBehaviour
         return floorSurfaceY + (heightInUnits * 0.5f);
     }
 
-    private void CreatePost(Vector2Int wallCell, Vector3Int roomSizeInBlocks, float floorSurfaceY)
+    private void CreatePost(Vector2Int wallCell, Dictionary<Vector2Int, Vector2> postVisualPositions, Vector3Int roomSizeInBlocks, float floorSurfaceY)
     {
         GameObject postInstance = Instantiate(_fencePostPrefab, _fencePostsRoot);
 
         float localPositionX = (wallCell.x + 0.5f) * _blockSize;
         float localPositionZ = (wallCell.y + 0.5f) * _blockSize;
+        float visualPositionX = localPositionX;
+        float visualPositionZ = localPositionZ;
         float localPositionY = GetFenceElementLocalPositionY(floorSurfaceY, _postHeightInBlocks, _postPivotAtBase);
         localPositionY += FencePostFloorLiftInBlocks * _blockSize;
         Vector3 inwardDirection = GetFencePostInwardDirection(wallCell, roomSizeInBlocks);
+
+        Vector2 visualPosition;
+        bool hasVisualPosition = postVisualPositions.TryGetValue(wallCell, out visualPosition);
+
+        if (hasVisualPosition == true)
+        {
+            visualPositionX = visualPosition.x;
+            visualPositionZ = visualPosition.y;
+        }
 
         postInstance.transform.localPosition = new Vector3(localPositionX, localPositionY, localPositionZ);
         postInstance.transform.localRotation = GetFenceFaceRotation(inwardDirection);
@@ -700,7 +723,7 @@ public sealed class RoomShellBuilder : MonoBehaviour
         if (_resolvedFencePostVisualPrefab != null)
         {
             HideBlockRenderers(postInstance);
-            CreateFencePostVisual(localPositionX, localPositionZ, inwardDirection, floorSurfaceY);
+            CreateFencePostVisual(visualPositionX, visualPositionZ, inwardDirection, floorSurfaceY);
         }
     }
 
@@ -718,16 +741,32 @@ public sealed class RoomShellBuilder : MonoBehaviour
 
         Vector3 targetSize = GetFencePostVisualTargetSize();
         float sourceThickness = Mathf.Max(localBounds.size.x, localBounds.size.z);
+        float maximumStretch = GetFenceVisualMaximumStretch();
         float horizontalScale = GetVisualAxisScale(targetSize.x, sourceThickness);
+        float verticalScale = GetVisualAxisScale(targetSize.y, localBounds.size.y);
+        float minimumHorizontalScale = verticalScale / maximumStretch;
+        float maximumHorizontalScale = verticalScale * maximumStretch;
+
+        if (horizontalScale < minimumHorizontalScale)
+        {
+            horizontalScale = minimumHorizontalScale;
+        }
+
+        if (horizontalScale > maximumHorizontalScale)
+        {
+            horizontalScale = maximumHorizontalScale;
+        }
+
+        float visualHeight = localBounds.size.y * verticalScale;
         Vector3 axisScale = new Vector3(
             horizontalScale,
-            GetVisualAxisScale(targetSize.y, localBounds.size.y),
+            verticalScale,
             horizontalScale
         );
         Quaternion visualRotation = GetFenceFaceRotation(inwardDirection) * Quaternion.Euler(0f, _fencePostVisualYawOffset, 0f);
         Vector3 localPosition = new Vector3(
             localPositionX,
-            GetFenceVisualLocalPositionY(floorSurfaceY, targetSize.y, _postPivotAtBase),
+            GetFenceVisualLocalPositionY(floorSurfaceY, visualHeight, _postPivotAtBase),
             localPositionZ
         );
 
@@ -753,12 +792,12 @@ public sealed class RoomShellBuilder : MonoBehaviour
         }
 
         float thickness = _blockSize * thicknessMultiplier;
-        float height = _postHeightInBlocks * _blockSize * heightMultiplier;
+        float height = _segmentHeightInBlocks * _blockSize * heightMultiplier;
 
         return new Vector3(thickness, height, thickness);
     }
 
-    private void CreateFenceSegment(DoorSide side, Vector3Int roomSizeInBlocks, int indexA, int indexB, float floorSurfaceY)
+    private void CreateFenceSegment(DoorSide side, Vector3Int roomSizeInBlocks, Dictionary<Vector2Int, Vector2> postVisualPositions, int indexA, int indexB, float floorSurfaceY)
     {
         int lengthInCells = Mathf.Abs(indexB - indexA);
 
@@ -767,8 +806,8 @@ public sealed class RoomShellBuilder : MonoBehaviour
             return;
         }
 
-        Vector3 positionA = GetFenceAnchorPosition(side, roomSizeInBlocks, indexA);
-        Vector3 positionB = GetFenceAnchorPosition(side, roomSizeInBlocks, indexB);
+        Vector3 positionA = GetFenceAnchorPosition(side, roomSizeInBlocks, postVisualPositions, indexA);
+        Vector3 positionB = GetFenceAnchorPosition(side, roomSizeInBlocks, postVisualPositions, indexB);
 
         Vector3 segmentPosition = (positionA + positionB) * 0.5f;
 
@@ -1235,6 +1274,44 @@ public sealed class RoomShellBuilder : MonoBehaviour
         float localPositionZ = (z + 0.5f) * _blockSize;
 
         return new Vector3(localPositionX, 0f, localPositionZ);
+    }
+
+    private Vector3 GetFenceAnchorPosition(DoorSide side, Vector3Int roomSizeInBlocks, Dictionary<Vector2Int, Vector2> postVisualPositions, int alongIndex)
+    {
+        Vector2Int cell = GetFenceAnchorCell(side, roomSizeInBlocks, alongIndex);
+
+        Vector2 visualPosition;
+        bool hasVisualPosition = postVisualPositions.TryGetValue(cell, out visualPosition);
+
+        if (hasVisualPosition == true)
+        {
+            return new Vector3(visualPosition.x, 0f, visualPosition.y);
+        }
+
+        return GetFenceAnchorPosition(side, roomSizeInBlocks, alongIndex);
+    }
+
+    private Vector2Int GetFenceAnchorCell(DoorSide side, Vector3Int roomSizeInBlocks, int alongIndex)
+    {
+        int maxX = roomSizeInBlocks.x - 1;
+        int maxZ = roomSizeInBlocks.z - 1;
+
+        if (side == DoorSide.North)
+        {
+            return new Vector2Int(alongIndex, maxZ);
+        }
+
+        if (side == DoorSide.South)
+        {
+            return new Vector2Int(alongIndex, 0);
+        }
+
+        if (side == DoorSide.East)
+        {
+            return new Vector2Int(maxX, alongIndex);
+        }
+
+        return new Vector2Int(0, alongIndex);
     }
 
     private void CreateFloorBlock(Vector3Int blockCoordinate)

@@ -56,7 +56,7 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
     [SerializeField] private WallPostPlacement _wallPostPlacement = WallPostPlacement.CornersAndDoors;
     [SerializeField] private GameObject _wallPostVisualPrefab;
     [SerializeField] private string _wallPostVisualResourcePath;
-    [SerializeField, Min(0.01f)] private float _wallPostVisualHeightMultiplier = 0.75f;
+    [SerializeField, Min(0.01f)] private float _wallPostVisualHeightMultiplier = 0.825f;
     [SerializeField, Min(0.01f)] private float _wallPostVisualThicknessMultiplier = 1f;
     [SerializeField] private float _wallPostVisualYawOffset = 0f;
 
@@ -535,16 +535,32 @@ public sealed class LevelCorridorBuilder : MonoBehaviour
 
         Vector3 targetSize = GetWallPostVisualTargetSize(horizontalScale, verticalScale);
         float sourceThickness = Mathf.Max(localBounds.size.x, localBounds.size.z);
+        float maximumStretch = GetWallVisualMaximumStretch();
         float uniformHorizontalScale = GetVisualAxisScale(targetSize.x, sourceThickness);
+        float visualVerticalScale = GetVisualAxisScale(targetSize.y, localBounds.size.y);
+        float minimumHorizontalScale = visualVerticalScale / maximumStretch;
+        float maximumHorizontalScale = visualVerticalScale * maximumStretch;
+
+        if (uniformHorizontalScale < minimumHorizontalScale)
+        {
+            uniformHorizontalScale = minimumHorizontalScale;
+        }
+
+        if (uniformHorizontalScale > maximumHorizontalScale)
+        {
+            uniformHorizontalScale = maximumHorizontalScale;
+        }
+
+        float visualHeight = localBounds.size.y * visualVerticalScale;
         Vector3 axisScale = new Vector3(
             uniformHorizontalScale,
-            GetVisualAxisScale(targetSize.y, localBounds.size.y),
+            visualVerticalScale,
             uniformHorizontalScale
         );
         Quaternion visualRotation = GetWallRotation(inwardDirection) * Quaternion.Euler(0f, _wallPostVisualYawOffset, 0f);
         Vector3 localPosition = new Vector3(
             localX,
-            floorSurfaceY + (targetSize.y * 0.5f),
+            floorSurfaceY + (visualHeight * 0.5f),
             localZ
         );
 

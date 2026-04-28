@@ -1547,6 +1547,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 231915023}
   m_CullTransparentMesh: 1
+--- !u!114 &231915027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 231915023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eff162e9e9ad690448a024eaa4e6e243, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CursorInputHandler
+  _cursorAnimator: {fileID: 804685603}
+  _holdThresholdSeconds: 0.22
 --- !u!223 &231915028
 Canvas:
   m_ObjectHideFlags: 0
@@ -1570,20 +1584,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 10000
   m_TargetDisplay: 0
---- !u!114 &231915027
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 231915023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eff162e9e9ad690448a024eaa4e6e243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CursorInputHandler
-  _cursorAnimator: {fileID: 804685603}
-  _holdThresholdSeconds: 0.22
 --- !u!1001 &262921312
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2193,7 +2193,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e77750a9c13e2948b86d719684af654, type: 3}
   m_Name: 
@@ -2201,7 +2201,7 @@ MonoBehaviour:
   _light: {fileID: 410087040}
   _rotationAxis: {x: 0, y: -1, z: 0}
   _degreesPerSecond: 0.5
-  _isActive: 1
+  _isActive: 0
 --- !u!224 &415767021 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5128602452360976269, guid: 758573c753c79704ba53faae9d9b83b2, type: 3}
