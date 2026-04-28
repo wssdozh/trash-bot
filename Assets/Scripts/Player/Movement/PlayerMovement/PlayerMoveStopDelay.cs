@@ -22,6 +22,7 @@ public sealed class PlayerMoveStopDelay
         if (moveVector == Vector2.zero)
         {
             _moveApplier.Apply(Vector2.zero);
+            _moveApplier.SetStepSoundAllowed(false);
 
             _isActive = true;
             _timerSeconds = 0f;
@@ -35,6 +36,7 @@ public sealed class PlayerMoveStopDelay
         _isActive = false;
 
         _moveApplier.Apply(moveVector);
+        _moveApplier.SetStepSoundAllowed(true);
         _moveApplier.SetMoveState(true);
     }
 
@@ -48,12 +50,14 @@ public sealed class PlayerMoveStopDelay
         if (_moveApplier.InputMoveVector != Vector2.zero)
         {
             _isActive = false;
+            _moveApplier.SetStepSoundAllowed(true);
             return;
         }
 
         if (_moveStopDelaySeconds <= 0f)
         {
             _isActive = false;
+            _moveApplier.SetStepSoundAllowed(false);
             _moveApplier.SetWorldMoveDirection(Vector3.zero);
             _moveApplier.SetMoveState(false);
             return;
@@ -69,6 +73,7 @@ public sealed class PlayerMoveStopDelay
         }
 
         _isActive = false;
+        _moveApplier.SetStepSoundAllowed(false);
         _moveApplier.SetWorldMoveDirection(Vector3.zero);
         _moveApplier.SetMoveState(false);
     }
@@ -77,5 +82,6 @@ public sealed class PlayerMoveStopDelay
     {
         _isActive = false;
         _timerSeconds = 0f;
+        _moveApplier.SetStepSoundAllowed(false);
     }
 }

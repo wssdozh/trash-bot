@@ -45,6 +45,11 @@ public sealed class PlayerMoveApplier
         _animator.SetMoveState(isMoving);
     }
 
+    public void SetStepSoundAllowed(bool isAllowed)
+    {
+        _animator.SetStepSoundAllowed(isAllowed);
+    }
+
     public void SetWorldMoveDirection(Vector3 worldMoveDirection)
     {
         _animator.SetWorldMoveDirection(worldMoveDirection);

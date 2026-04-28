@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7384c5683bab496d8d46795469b6426b, type: 3}
+  m_Name: MeleeAttackAudioProfile
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttackAudioProfile
+  _fistClips:
+  - {fileID: 8300000, guid: f1a6f7a0de99c1e45be357ae7ff31ec6, type: 3}
+  - {fileID: 8300000, guid: dd3b2b8d49e1d8d4d84539f6b6474a71, type: 3}
+  - {fileID: 8300000, guid: 7207ff4566b186b418a8670f74b33430, type: 3}
+  - {fileID: 8300000, guid: 4ecd1b00c01b4a74a86bbb2efd8d1eb6, type: 3}
+  - {fileID: 8300000, guid: c6fc366327240984f89f18bc2682e10f, type: 3}
+  - {fileID: 8300000, guid: 371d669245c70774194f7d3e5d228895, type: 3}
+  - {fileID: 8300000, guid: 67aa0825730691b478d1bb83a44d9b64, type: 3}
+  _batonClips:
+  - {fileID: 8300000, guid: 8e6796119c3f9804fab7152a94f5749c, type: 3}
+  - {fileID: 8300000, guid: bf5ca838d7e43e649a59e7e39312ed85, type: 3}
+  - {fileID: 8300000, guid: e620f0b702dba80469ef359fd9aa622f, type: 3}
+  - {fileID: 8300000, guid: 528e8f780dfe2e0428c7bf47d5410764, type: 3}

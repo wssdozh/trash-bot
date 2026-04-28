@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class StepAnimator
@@ -10,18 +11,37 @@ public class StepAnimator
     private readonly Animator _animator;
     private readonly Transform _transform;
     private readonly float _moveDirectionDeadZoneSqr;
+    private readonly float _walkStepInterval;
+    private readonly float _runStepInterval;
+    private readonly Action<bool> _stepped;
 
     private StepDirection _currentStepDirection;
+    private float _stepTimer;
 
-    public StepAnimator(Animator animator, Transform transform, float moveDirectionDeadZone)
+    public StepAnimator(
+        Animator animator,
+        Transform transform,
+        float moveDirectionDeadZone,
+        float walkStepInterval,
+        float runStepInterval,
+        Action<bool> stepped)
     {
         _animator = animator;
         _transform = transform;
         _moveDirectionDeadZoneSqr = moveDirectionDeadZone * moveDirectionDeadZone;
+        _walkStepInterval = walkStepInterval;
+        _runStepInterval = runStepInterval;
+        _stepped = stepped;
         _currentStepDirection = StepDirection.None;
+        _stepTimer = 0f;
     }
 
-    public void UpdateStepFromMoveDirection(bool isMoving, Vector3 worldMoveDirection)
+    public void UpdateStepFromMoveDirection(
+        bool isMoving,
+        bool isSprinting,
+        bool isStepSoundAllowed,
+        Vector3 worldMoveDirection,
+        float deltaTime)
     {
         if (isMoving == false)
         {
@@ -30,6 +50,7 @@ public class StepAnimator
                 StopStep();
             }
 
+            _stepTimer = 0f;
             return;
         }
 
@@ -42,6 +63,7 @@ public class StepAnimator
                 StopStep();
             }
 
+            _stepTimer = 0f;
             return;
         }
 
@@ -49,12 +71,15 @@ public class StepAnimator
         {
             StartStep(desiredDirection);
         }
+
+        TickStep(isSprinting, isStepSoundAllowed, deltaTime);
     }
 
     public void StopStep()
     {
         SetStepBool(_currentStepDirection, false);
         _currentStepDirection = StepDirection.None;
+        _stepTimer = 0f;
     }
 
     private void StartStep(StepDirection stepDirection)
@@ -62,6 +87,33 @@ public class StepAnimator
         SetStepBool(_currentStepDirection, false);
         SetStepBool(stepDirection, true);
         _currentStepDirection = stepDirection;
+    }
+
+    private void TickStep(bool isSprinting, bool isStepSoundAllowed, float deltaTime)
+    {
+        if (isStepSoundAllowed == false)
+        {
+            _stepTimer = 0f;
+            return;
+        }
+
+        _stepTimer -= deltaTime;
+
+        if (_stepTimer > 0f)
+        {
+            return;
+        }
+
+        _stepped?.Invoke(isSprinting);
+        _stepTimer = GetStepInterval(isSprinting);
+    }
+
+    private float GetStepInterval(bool isSprinting)
+    {
+        if (isSprinting)
+            return _runStepInterval;
+
+        return _walkStepInterval;
     }
 
     private StepDirection GetStepDirection(Vector3 worldMoveDirection)

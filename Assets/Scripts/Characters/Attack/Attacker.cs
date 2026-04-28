@@ -1,5 +1,6 @@
-using UnityEngine;
+using System;
 using System.Collections;
+using UnityEngine;
 
 public class Attacker : MonoBehaviour
 {
@@ -23,6 +24,8 @@ public class Attacker : MonoBehaviour
     private float _cachedCooldownSeconds = -1f;
 
     public AttackData AttackData => _attackData;
+
+    public event Action HitPerformed;
 
     private void Awake()
     {
@@ -190,12 +193,14 @@ public class Attacker : MonoBehaviour
         }
 
         ApplyHit(targetTransform.position, targetRigidbody, targetHealth, damage);
+        InvokeHitPerformed();
     }
 
     private void PerformMultiAttack(int hitCount, float damage)
     {
         int processedCount = 0;
         int hitIndex = 0;
+        bool hasHit = false;
 
         while (hitIndex < hitCount)
         {
@@ -235,7 +240,13 @@ public class Attacker : MonoBehaviour
 
             processedCount = AddProcessedId(targetId, processedCount);
             ApplyHit(hit.transform.position, hitRigidbody, hitHealth, damage);
+            hasHit = true;
             hitIndex += 1;
+        }
+
+        if (hasHit)
+        {
+            InvokeHitPerformed();
         }
     }
 
@@ -327,6 +338,11 @@ public class Attacker : MonoBehaviour
         }
     }
 
+    private void InvokeHitPerformed()
+    {
+        HitPerformed?.Invoke();
+    }
+
     private bool IsMultiHit()
     {
         if (_weaponHolder != null)
@@ -415,7 +431,7 @@ public class Attacker : MonoBehaviour
         float damage = _attackData.GetDamage();
         damage *= weaponModifierContext.DamageMultiplier;
 
-        if (Random.value <= weaponModifierContext.CriticalChance01)
+        if (UnityEngine.Random.value <= weaponModifierContext.CriticalChance01)
         {
             damage *= weaponModifierContext.CriticalDamageMultiplier;
         }

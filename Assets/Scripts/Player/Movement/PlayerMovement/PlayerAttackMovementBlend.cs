@@ -47,6 +47,7 @@ public sealed class PlayerAttackMovementBlend
 
         Vector2 newMoveVector = MoveVectorTowards(_moveApplier.AppliedMoveVector, targetMoveVector, speed, deltaTime);
         _moveApplier.Apply(newMoveVector);
+        _moveApplier.SetStepSoundAllowed(false);
 
         if (newMoveVector == Vector2.zero)
         {
@@ -64,6 +65,7 @@ public sealed class PlayerAttackMovementBlend
 
         Vector2 newMoveVector = MoveVectorTowards(_moveApplier.AppliedMoveVector, targetMoveVector, speed, deltaTime);
         _moveApplier.Apply(newMoveVector);
+        _moveApplier.SetStepSoundAllowed(newMoveVector != Vector2.zero);
 
         if (newMoveVector == targetMoveVector)
         {

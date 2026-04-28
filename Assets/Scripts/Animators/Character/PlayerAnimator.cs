@@ -16,6 +16,8 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private float _walkMoveValue = 0.5f;
     [SerializeField] private float _runMoveValue = 1f;
     [SerializeField] private float _moveDirectionDeadZone = 0.1f;
+    [SerializeField] private float _walkStepInterval = 0.65f;
+    [SerializeField] private float _runStepInterval = 0.42f;
 
     [SerializeField] private int _attackVariantsCount = 3;
 
@@ -24,6 +26,7 @@ public class PlayerAnimator : MonoBehaviour
     private bool _isMoving;
     private bool _isSprinting;
     private bool _isFight;
+    private bool _isStepSoundAllowed = true;
 
     private Vector3 _worldMoveDirection;
 
@@ -38,6 +41,8 @@ public class PlayerAnimator : MonoBehaviour
     private bool _hasAttackIndex;
     private bool _hasTakeDamage;
 
+    public event Action<bool> Stepped;
+
     private void Awake()
     {
         if (_animator == null)
@@ -45,8 +50,25 @@ public class PlayerAnimator : MonoBehaviour
             throw new InvalidOperationException(nameof(_animator));
         }
 
+        if (_walkStepInterval <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_walkStepInterval));
+        }
+
+        if (_runStepInterval <= 0f)
+        {
+            throw new InvalidOperationException(nameof(_runStepInterval));
+        }
+
         CacheParameters();
-        _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
+        _stepAnimator = new StepAnimator(
+            _animator,
+            transform,
+            _moveDirectionDeadZone,
+            _walkStepInterval,
+            _runStepInterval,
+            InvokeStepped);
+
         _worldMoveDirection = Vector3.zero;
         _nextAttackIndex = 0;
     }
@@ -54,7 +76,12 @@ public class PlayerAnimator : MonoBehaviour
     private void Update()
     {
         UpdateMove();
-        _stepAnimator.UpdateStepFromMoveDirection(_isMoving, _worldMoveDirection);
+        _stepAnimator.UpdateStepFromMoveDirection(
+            _isMoving,
+            _isSprinting,
+            _isStepSoundAllowed,
+            _worldMoveDirection,
+            Time.deltaTime);
     }
 
     public void SetMoveState(bool isMoving)
@@ -80,6 +107,16 @@ public class PlayerAnimator : MonoBehaviour
         }
 
         _isSprinting = isSprinting;
+    }
+
+    public void SetStepSoundAllowed(bool isAllowed)
+    {
+        if (_isStepSoundAllowed == isAllowed)
+        {
+            return;
+        }
+
+        _isStepSoundAllowed = isAllowed;
     }
 
     public void SetWorldMoveDirection(Vector3 worldMoveDirection)
@@ -167,10 +204,18 @@ public class PlayerAnimator : MonoBehaviour
         _animator.Update(0f);
         ClearParameters();
         CacheParameters();
-        _stepAnimator = new StepAnimator(_animator, transform, _moveDirectionDeadZone);
+        _stepAnimator = new StepAnimator(
+            _animator,
+            transform,
+            _moveDirectionDeadZone,
+            _walkStepInterval,
+            _runStepInterval,
+            InvokeStepped);
+
         _currentMove = 0f;
         _targetMove = 0f;
         _isFight = false;
+        _isStepSoundAllowed = true;
         _nextAttackIndex = 0;
     }
 
@@ -201,6 +246,11 @@ public class PlayerAnimator : MonoBehaviour
         }
 
         return selectedAttackIndex;
+    }
+
+    private void InvokeStepped(bool isSprinting)
+    {
+        Stepped?.Invoke(isSprinting);
     }
 
     private void UpdateMove()
