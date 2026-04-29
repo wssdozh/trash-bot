@@ -169,6 +169,8 @@ GameObject:
   - component: {fileID: 7805236088490247026}
   - component: {fileID: -7173687149763491664}
   - component: {fileID: 4103623771943381378}
+  - component: {fileID: 915210000000000001}
+  - component: {fileID: 915210000000000002}
   - component: {fileID: 4756364572207795737}
   m_Layer: 10
   m_Name: Rocket
@@ -308,7 +310,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3e7da7eff58b7f4c8c318773d14aa54, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::Rocket
   _rigidbody: {fileID: 5611463029158143350}
   _collisionCollider: {fileID: 152883573251891985}
@@ -379,6 +381,121 @@ MonoBehaviour:
   _ammo: {fileID: 8755970277695282883}
   _renderers:
   - {fileID: 364756981260096295}
+--- !u!82 &915210000000000001
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8640443465732932720}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -9128716772417154909, guid: be2db87a7a4cd7441af3b219ec6d198d, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 22
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &915210000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8640443465732932720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c59c2e4f8af64f0a9bdf59c85e2a1c31, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::AmmoImpactAudio
+  _ammo: {fileID: 8755970277695282883}
+  _audioSource: {fileID: 915210000000000001}
+  _impactClips:
+  - {fileID: 8300000, guid: dc676e37b63863c4da3ec9f07da6f357, type: 3}
+  _targetImpactClips: []
+  _volumeScale: 0.9
 --- !u!114 &4756364572207795737
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,6 +13,8 @@ internal sealed class SettingsPresenter
     private const string LowQualityName = "LowQuality";
 
     private const float MinDb = -80.0f;
+    private const float MusicMaxDb = 22.0f;
+    private const float EffectsMaxDb = 8.0f;
     private const float MuteThreshold = 0.0001f;
     private const float DbMultiplier = 20.0f;
 
@@ -165,6 +167,19 @@ internal sealed class SettingsPresenter
     private void ApplyVolume(string parameterName, float linearValue)
     {
         float dbValue = LinearToDb(linearValue);
+
+        if (dbValue > MinDb)
+        {
+            if (parameterName == MusicParameterName)
+            {
+                dbValue += MusicMaxDb;
+            }
+            else if (parameterName == EffectsParameterName)
+            {
+                dbValue += EffectsMaxDb;
+            }
+        }
+
         bool isApplied = _audioMixer.SetFloat(parameterName, dbValue);
 
         if (isApplied == false)

@@ -10,8 +10,8 @@ public sealed class FootstepAudio : MonoBehaviour
     [SerializeField] private FootstepAudioProfile _profile;
 
     [Header("Settings")]
-    [SerializeField, Min(0f)] private float _walkVolumeScale = 0.75f;
-    [SerializeField, Min(0f)] private float _runVolumeScale = 0.95f;
+    [SerializeField, Min(0f)] private float _walkVolumeScale = 0.24f;
+    [SerializeField, Min(0f)] private float _runVolumeScale = 0.36f;
 
     private void Awake()
     {
@@ -86,5 +86,4 @@ public sealed class FootstepAudio : MonoBehaviour
 
         return _walkVolumeScale;
     }
-
 }

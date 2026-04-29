@@ -212,6 +212,7 @@ namespace JunkyardBoss
             }
 
             BeginReleaseHitStop();
+            _boss.NotifyScrapThrown();
         }
 
         private Vector3 ResolveSpawnPosition(Vector3 bucketPosition, Vector3 launchForward)

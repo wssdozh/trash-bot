@@ -1,11 +1,22 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 [DisallowMultipleComponent]
 public sealed class RoomDoorGate : MonoBehaviour
 {
     private const float MinSize = 0.0001f;
+    private const string MixerPath = "Audio/MainAudioMixer";
+    private const string EffectsMixerGroupName = "Effects";
+    private const string CloseClipPath = "Audio/Imported/Mechanics/IndustrialLeverSwitch/Bluezone_BC0302_industrial_lever_switch_014";
+    private const string OpenClipPath = "Audio/Imported/Mechanics/IndustrialLeverSwitch/Bluezone_BC0302_industrial_lever_switch_small_003";
+    private const float CloseVolumeScale = 0.45f;
+    private const float OpenVolumeScale = 0.35f;
+    private const float AudioMaxDistance = 12f;
+
+    private static AudioMixerGroup s_effectsMixerGroup;
+    private static bool s_isMixerResolved;
 
     [SerializeField] private float _moveTime = 0.38f;
     [SerializeField, Min(0.01f)] private float _thicknessMultiplier = 1.5f;
@@ -24,6 +35,9 @@ public sealed class RoomDoorGate : MonoBehaviour
     private float _progress;
     private float _targetProgress;
     private float _moveSpeed;
+    private AudioSource _audioSource;
+    private AudioClip _closeClip;
+    private AudioClip _openClip;
     private RoomShellBuilder _roomShellBuilder;
 
     public void Setup(RoomDoorMarker roomDoorMarker, float blockSize)
@@ -75,6 +89,7 @@ public sealed class RoomDoorGate : MonoBehaviour
             return;
         }
 
+        PlayMoveAudio(isClosed);
         enabled = true;
     }
 
@@ -443,5 +458,91 @@ public sealed class RoomDoorGate : MonoBehaviour
         }
 
         DestroyImmediate(targetObject);
+    }
+
+    private void PlayMoveAudio(bool isClosed)
+    {
+        AudioClip clip = GetMoveClip(isClosed);
+
+        if (clip == null)
+        {
+            return;
+        }
+
+        AudioSource audioSource = GetAudioSource();
+        float volumeScale = OpenVolumeScale;
+
+        if (isClosed)
+        {
+            volumeScale = CloseVolumeScale;
+        }
+
+        audioSource.PlayOneShot(clip, volumeScale);
+    }
+
+    private AudioClip GetMoveClip(bool isClosed)
+    {
+        if (isClosed)
+        {
+            if (_closeClip == null)
+            {
+                _closeClip = Resources.Load<AudioClip>(CloseClipPath);
+            }
+
+            return _closeClip;
+        }
+
+        if (_openClip == null)
+        {
+            _openClip = Resources.Load<AudioClip>(OpenClipPath);
+        }
+
+        return _openClip;
+    }
+
+    private AudioSource GetAudioSource()
+    {
+        if (_audioSource != null)
+        {
+            return _audioSource;
+        }
+
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _audioSource.loop = false;
+        _audioSource.spatialBlend = 1f;
+        _audioSource.minDistance = 1f;
+        _audioSource.maxDistance = AudioMaxDistance;
+        _audioSource.outputAudioMixerGroup = GetEffectsMixerGroup();
+
+        return _audioSource;
+    }
+
+    private static AudioMixerGroup GetEffectsMixerGroup()
+    {
+        if (s_isMixerResolved)
+        {
+            return s_effectsMixerGroup;
+        }
+
+        s_isMixerResolved = true;
+
+        AudioMixer audioMixer = Resources.Load<AudioMixer>(MixerPath);
+
+        if (audioMixer == null)
+        {
+            return null;
+        }
+
+        AudioMixerGroup[] mixerGroups = audioMixer.FindMatchingGroups(EffectsMixerGroupName);
+
+        if (mixerGroups == null || mixerGroups.Length <= 0)
+        {
+            return null;
+        }
+
+        s_effectsMixerGroup = mixerGroups[0];
+
+        return s_effectsMixerGroup;
     }
 }

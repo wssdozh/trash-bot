@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class BasePickup : MonoBehaviour
@@ -9,6 +10,8 @@ public abstract class BasePickup : MonoBehaviour
 
     public Item Item { get { return _item; } }
     public int Amount { get { return _amount; } }
+
+    public event Action PickedUp;
 
     protected virtual void OnEnable()
     {
@@ -42,6 +45,7 @@ public abstract class BasePickup : MonoBehaviour
         if (_isPickedUp == false)
         {
             _isPickedUp = true;
+            InvokePickedUp();
             OnPickup(player);
         }
     }
@@ -52,4 +56,14 @@ public abstract class BasePickup : MonoBehaviour
     }
 
     protected abstract void OnPickup(GameObject player);
+
+    private void InvokePickedUp()
+    {
+        Action pickedUp = PickedUp;
+
+        if (pickedUp != null)
+        {
+            pickedUp.Invoke();
+        }
+    }
 }

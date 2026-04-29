@@ -40,6 +40,8 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
     public event Action Died;
 
+    public event Action ShotPerformed;
+
     public bool IsDead => _isDead;
 
     public bool ApplyAlert(Vector3 point)
@@ -91,7 +93,9 @@ public class Turret : MonoBehaviour, IEnemyAlert
         }
 
         if (_fireExecutor == null)
+        {
             throw new InvalidOperationException(nameof(_fireExecutor));
+        }
 
         _fireExecutor.SetIgnoredRoot(_health.transform);
 
@@ -132,6 +136,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _health.Ended += OnDied;
         _targetVision.TargetDetected += OnTargetFound;
         _targetVision.TargetCleared += OnTargetLost;
+        _fireExecutor.ShotPerformed += OnShotPerformed;
         _isDead = false;
         ApplyNavMeshObstacle();
         SetIdleState(true);
@@ -142,6 +147,7 @@ public class Turret : MonoBehaviour, IEnemyAlert
         _health.Ended -= OnDied;
         _targetVision.TargetDetected -= OnTargetFound;
         _targetVision.TargetCleared -= OnTargetLost;
+        _fireExecutor.ShotPerformed -= OnShotPerformed;
 
         _hasAlertPoint = false;
         _alertTimer = 0f;
@@ -326,6 +332,16 @@ public class Turret : MonoBehaviour, IEnemyAlert
 
         _headCrash.BeginSink(_sinkDelay, _sinkDuration, _sinkDistance);
         StartSink();
+    }
+
+    private void OnShotPerformed()
+    {
+        Action shotPerformed = ShotPerformed;
+
+        if (shotPerformed != null)
+        {
+            shotPerformed.Invoke();
+        }
     }
 
     private void StartSink()

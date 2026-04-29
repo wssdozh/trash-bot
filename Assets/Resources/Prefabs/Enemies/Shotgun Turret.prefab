@@ -12,6 +12,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Shotgun Turret
       objectReference: {fileID: 0}
+    - target: {fileID: 913400000000000002, guid: fa4493f117e180d41826086377115b5a, type: 3}
+      propertyPath: _clip
+      value:
+      objectReference: {fileID: 8300000, guid: 4ca0ad7f278db354888ac69c2112cbb0, type: 3}
+    - target: {fileID: 913400000000000002, guid: fa4493f117e180d41826086377115b5a, type: 3}
+      propertyPath: _volumeScale
+      value: 0.75
+      objectReference: {fileID: 0}
     - target: {fileID: 3601055731436968810, guid: fa4493f117e180d41826086377115b5a, type: 3}
       propertyPath: _fireRatePerSecond
       value: 0.7

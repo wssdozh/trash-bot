@@ -243,6 +243,7 @@ namespace JunkyardBoss
         {
             _chargeDirection = ResolveChargeDashDirection();
             _isDashActive = true;
+            _boss.NotifyChargeDashed();
 
             if (_isComboSweep)
             {

@@ -28,6 +28,8 @@ public abstract class FireExecutor : MonoBehaviour
 
     protected abstract Transform Muzzle { get; }
 
+    public event Action ShotPerformed;
+
     protected abstract IShotStrategy CreateShotStrategy(FireModifierState modifierState);
 
     private void Awake()
@@ -318,6 +320,8 @@ public abstract class FireExecutor : MonoBehaviour
             _targetLayers,
             _maxAimAngleDegrees,
             _readyAngleDegrees);
+
+        _presenter.ShotPerformed += InvokeShotPerformed;
     }
 
     private Transform GetIgnoredRoot()
@@ -354,5 +358,10 @@ public abstract class FireExecutor : MonoBehaviour
 
         _presenter.OnEnable();
         _isPresenterEnabled = true;
+    }
+
+    private void InvokeShotPerformed()
+    {
+        ShotPerformed?.Invoke();
     }
 }

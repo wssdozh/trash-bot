@@ -59,6 +59,8 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
     private bool _isStrafeMove;
     private int _strafeDirection = 1;
 
+    public event Action ShotPerformed;
+
     public EnemyState State => _state;
 
     public bool ApplyAlert(Vector3 point)
@@ -225,6 +227,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemy.Died += OnEnemyDied;
         _targetVision.TargetDetected += OnTargetFound;
         _targetVision.TargetCleared += OnTargetLost;
+        _fireExecutor.ShotPerformed += OnShotPerformed;
 
         _alertTimer = 0f;
         _idlePatrolPicker.Clear();
@@ -243,6 +246,7 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemy.Died -= OnEnemyDied;
         _targetVision.TargetDetected -= OnTargetFound;
         _targetVision.TargetCleared -= OnTargetLost;
+        _fireExecutor.ShotPerformed -= OnShotPerformed;
 
         _alertTimer = 0f;
         StopAll();
@@ -695,5 +699,15 @@ public sealed class EnemyDroneBrain : MonoBehaviour, IEnemyBrain, IEnemyAlert
         _enemyMove.enabled = false;
         _enemyCrash.Crash(moveVelocity, forwardDirection);
         enabled = false;
+    }
+
+    private void OnShotPerformed()
+    {
+        Action shotPerformed = ShotPerformed;
+
+        if (shotPerformed != null)
+        {
+            shotPerformed.Invoke();
+        }
     }
 }

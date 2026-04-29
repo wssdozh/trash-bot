@@ -26,6 +26,8 @@ public sealed class FireExecutorPresenter
 
     public Vector3 AimPoint => _aimPoint;
 
+    public event Action ShotPerformed;
+
     public FireExecutorPresenter(
         Transform ownerTransform,
         Transform ignoredRoot,
@@ -124,6 +126,7 @@ public sealed class FireExecutorPresenter
 
         _lastShotSecondsPerShot = secondsPerShot;
         _nextShotTime = timeSeconds + secondsPerShot;
+        InvokeShotPerformed();
     }
 
     public float GetFireCooldown01(float timeSeconds)
@@ -246,6 +249,7 @@ public sealed class FireExecutorPresenter
 
         _lastShotSecondsPerShot = secondsPerShot;
         _nextShotTime = timeSeconds + secondsPerShot;
+        InvokeShotPerformed();
 
         return true;
     }
@@ -279,5 +283,10 @@ public sealed class FireExecutorPresenter
             _ownerTransform.root.up,
             _aimPoint,
             out muzzleRotation);
+    }
+
+    private void InvokeShotPerformed()
+    {
+        ShotPerformed?.Invoke();
     }
 }

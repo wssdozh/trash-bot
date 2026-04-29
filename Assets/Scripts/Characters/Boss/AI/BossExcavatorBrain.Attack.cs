@@ -13,6 +13,7 @@ namespace JunkyardBoss
             _boss.SetChargeAlign(false);
             _boss.SetAimLocked(false);
             _boss.SetArmLocked(false);
+            _boss.NotifyAttackStarted(attack);
 
             if (attack == BossExcavatorAttack.BucketStrike)
             {

@@ -49,6 +49,9 @@ GameObject:
   - component: {fileID: 8623145794061254303}
   - component: {fileID: 772345678901234568}
   - component: {fileID: 8623145794061254305}
+  - component: {fileID: 913500000000000001}
+  - component: {fileID: 913500000000000002}
+  - component: {fileID: 915330000000000001}
   m_Layer: 9
   m_Name: Drone Enemy
   m_TagString: Enemy
@@ -173,7 +176,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64f4d7faa1488074e9d4a320c33b66d4, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   _health: {fileID: 6483522750506240681}
   _characterDied: {fileID: 0}
@@ -271,6 +274,141 @@ MonoBehaviour:
   _forceYMax: 4.4
   _forceZMin: -1.4
   _forceZMax: 1.4
+--- !u!82 &913500000000000001
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625229030526185096}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -9128716772417154909, guid: be2db87a7a4cd7441af3b219ec6d198d, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 15
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &913500000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625229030526185096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e8dd5b115c0426b9bde45017e91ab5a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::RangedFireAudio
+  _audioSource: {fileID: 913500000000000001}
+  _fireExecutor: {fileID: 0}
+  _turret: {fileID: 0}
+  _droneBrain: {fileID: 8623145794061254303}
+  _clip: {fileID: 8300000, guid: 41f9c50c0da0fb040935c12104b38625, type: 3}
+  _volumeScale: 0.55
+--- !u!114 &915330000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625229030526185096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3b86279fcd54ef9a9556e3061c6a39c, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::HealthAudio
+  _audioSource: {fileID: 913500000000000001}
+  _health: {fileID: 6483522750506240681}
+  _damagedClips:
+  - {fileID: 8300000, guid: 93ddf1a7314c9374e8de6fc629e7bc2a, type: 3}
+  - {fileID: 8300000, guid: ec79d840c6b8379499b3a8a636122831, type: 3}
+  _endedClips: []
+  _damagedVolumeScale: 0.28
+  _endedVolumeScale: 0
 --- !u!114 &8623145794061254305
 MonoBehaviour:
   m_ObjectHideFlags: 0

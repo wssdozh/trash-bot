@@ -449,6 +449,7 @@ GameObject:
   - component: {fileID: 912200000000000001}
   - component: {fileID: 912200000000000002}
   - component: {fileID: 912200000000000003}
+  - component: {fileID: 915320000000000001}
   m_Layer: 9
   m_Name: AnimRoot
   m_TagString: Untagged
@@ -513,7 +514,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 5
+  MaxDistance: 2.75
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -603,8 +604,28 @@ MonoBehaviour:
   _audioSource: {fileID: 912200000000000001}
   _animator: {fileID: 2587704385259913141}
   _profile: {fileID: 11400000, guid: e693cd2cf4e44d7aa213330e08980871, type: 2}
-  _walkVolumeScale: 0.28
-  _runVolumeScale: 0.4
+  _walkVolumeScale: 0.09
+  _runVolumeScale: 0.14
+--- !u!114 &915320000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4185239001123456721}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3b86279fcd54ef9a9556e3061c6a39c, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::HealthAudio
+  _audioSource: {fileID: 912200000000000001}
+  _health: {fileID: 6367953433166089997}
+  _damagedClips:
+  - {fileID: 8300000, guid: 7c3a1d58a8281174bb497ba463916c11, type: 3}
+  - {fileID: 8300000, guid: ec79d840c6b8379499b3a8a636122831, type: 3}
+  _endedClips: []
+  _damagedVolumeScale: 0.28
+  _endedVolumeScale: 0
 --- !u!114 &912200000000000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,7 +642,11 @@ MonoBehaviour:
   _attacker: {fileID: 7366375601686959552}
   _weaponHolder: {fileID: 1908533539380365251}
   _profile: {fileID: 11400000, guid: 36e2c890601e43018f08e767b44ef6f0, type: 2}
-  _volumeScale: 0.55
+  _volumeScale: 0.42
+  _fistPitchMin: 0.94
+  _fistPitchMax: 1.06
+  _batonPitchMin: 0.92
+  _batonPitchMax: 1.08
 --- !u!114 &1707185457463400390
 MonoBehaviour:
   m_ObjectHideFlags: 0

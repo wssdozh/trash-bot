@@ -2414,6 +2414,8 @@ GameObject:
   - component: {fileID: 912100000000000001}
   - component: {fileID: 912100000000000002}
   - component: {fileID: 912100000000000003}
+  - component: {fileID: 915310000000000001}
+  - component: {fileID: 915310000000000002}
   m_Layer: 6
   m_Name: Body
   m_TagString: Player
@@ -2594,7 +2596,7 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 1
-  MaxDistance: 14
+  MaxDistance: 8
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -2684,8 +2686,45 @@ MonoBehaviour:
   _audioSource: {fileID: 912100000000000001}
   _animator: {fileID: 7390188348284092011}
   _profile: {fileID: 11400000, guid: e693cd2cf4e44d7aa213330e08980871, type: 2}
-  _walkVolumeScale: 0.68
-  _runVolumeScale: 0.95
+  _walkVolumeScale: 0.28
+  _runVolumeScale: 0.42
+--- !u!114 &915310000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2856562444219867965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3b86279fcd54ef9a9556e3061c6a39c, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::HealthAudio
+  _audioSource: {fileID: 912100000000000001}
+  _health: {fileID: 4803709847974141177}
+  _damagedClips:
+  - {fileID: 8300000, guid: 7c3a1d58a8281174bb497ba463916c11, type: 3}
+  - {fileID: 8300000, guid: 0ee37195847baf94785cd54781da162d, type: 3}
+  _endedClips: []
+  _damagedVolumeScale: 0.52
+  _endedVolumeScale: 0
+--- !u!114 &915310000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2856562444219867965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7e6ca11a1ad4d659f53fa496c436589, type: 3}
+  m_Name: ''
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponHolderAudio
+  _audioSource: {fileID: 912100000000000001}
+  _weaponHolder: {fileID: 1908533539380365251}
+  _equipClips:
+  - {fileID: 8300000, guid: 41b7aa4219e1cbf40bf3b6e7cd6646d0, type: 3}
+  _volumeScale: 0.48
 --- !u!114 &912100000000000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2702,7 +2741,11 @@ MonoBehaviour:
   _attacker: {fileID: 5079344321574236948}
   _weaponHolder: {fileID: 1908533539380365251}
   _profile: {fileID: 11400000, guid: 36e2c890601e43018f08e767b44ef6f0, type: 2}
-  _volumeScale: 0.9
+  _volumeScale: 0.7
+  _fistPitchMin: 0.94
+  _fistPitchMax: 1.06
+  _batonPitchMin: 0.92
+  _batonPitchMax: 1.08
 --- !u!114 &4803709847974141177
 MonoBehaviour:
   m_ObjectHideFlags: 0

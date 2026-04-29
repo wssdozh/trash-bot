@@ -13,6 +13,7 @@ namespace JunkyardBoss
             }
 
             _isHitApplied = true;
+            _boss.NotifyBucketImpacted();
             BeginHitStop();
             _damagedHealthIds.Clear();
 

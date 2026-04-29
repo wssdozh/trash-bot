@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94c6acbb5a8045a9b30e8dc89d85db40, type: 3}
-  m_Name: 
+  m_Name: ''
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardBoss.BossScrapCubeProjectile
   _rigidbody: {fileID: 2738751371679644504}
   _collisionCollider: {fileID: 6758687439921615407}
