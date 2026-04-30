@@ -183,6 +183,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ModifierVendingMachineMenuView
   _root: {fileID: 8703474018491257446}
   _blurOverlay: {fileID: 6674645359616348689}
+  _pauseController: {fileID: 0}
   _coinsText: {fileID: 4023255742387844316}
   _cardViews:
   - {fileID: 4655273076320654483}
@@ -249,7 +250,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -9.21, y: 6.8, z: -6.17}
-  m_LocalScale: {x: 0.5, y: 2, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6143389794202306846}
@@ -263,7 +264,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4886392652990026178}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -3706162539724480001, guid: 95178bddf0254dd4cba44674b6230f51, type: 3}
 --- !u!23 &8435870896354574273
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -289,7 +290,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 451bf1c2d0edfeb4b9f5703ea5eda7a4, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -363,6 +364,9 @@ MonoBehaviour:
   _highlightBase: {fileID: 2105307199381881589}
   _offerPool: {fileID: 11400000, guid: 0250e62a8ff9cb647b9663eb9b1cc312, type: 2}
   _cardCount: 3
+  _commonWeight: 10
+  _rareWeight: 3
+  _legendaryWeight: 1
   _disableColliderOnPurchase: 1
 --- !u!114 &2105307199381881589
 MonoBehaviour:
