@@ -350,16 +350,16 @@
                 { from: "Есть сохранение?", to: "Создание забега", label: "нет", arrow: true },
                 { from: "Есть сохранение?", to: "Выбор сохранения", label: "да", arrow: true, fromSide: "top", toSide: "left", via: [[428, 140]] },
                 { from: "Настройки", to: "Настройки игры", label: "", arrow: true },
-                { from: "Настройки игры", to: "Графика", label: "", arrow: true, fromSide: "bottom", toSide: "top", via: [[620, 400]] },
-                { from: "Настройки игры", to: "Звук", label: "", arrow: true, fromSide: "bottom", toSide: "left", via: [[620, 400], [500, 400], [500, 503]] },
-                { from: "Настройки игры", to: "Управление", label: "", arrow: true, fromSide: "bottom", toSide: "right", via: [[620, 400], [742, 400], [742, 565]] },
+                { from: "Настройки игры", to: "Графика", label: "", arrow: true, fromSide: "bottom", toSide: "top", via: [[620, 392]] },
+                { from: "Настройки игры", to: "Звук", label: "", arrow: true, fromSide: "bottom", toSide: "top", via: [[500, 400], [500, 503]] },
+                { from: "Настройки игры", to: "Управление", label: "", arrow: true, fromSide: "bottom", toSide: "top", via: [[742, 400], [742, 565]] },
                 { from: "Выбор сохранения", to: "Генерация свалки", label: "", arrow: true },
                 { from: "Создание забега", to: "Генерация свалки", label: "", arrow: true, via: [[810, 249], [810, 149]] },
                 { from: "Генерация свалки", to: "Стартовая комната", label: "", arrow: true, fromSide: "bottom", toSide: "top" },
                 { from: "Стартовая комната", to: "Комната с ботами", label: "", arrow: true, fromSide: "bottom", toSide: "top" },
                 { from: "Комната с ботами", to: "Сбор лута", label: "зачистка", arrow: true },
                 { from: "Сбор лута", to: "Магазин улучшений", label: "", arrow: true, fromSide: "bottom", toSide: "top" },
-                { from: "Магазин улучшений", to: "Босс-зона", label: "готовность", arrow: true, fromSide: "right", toSide: "right", via: [[1450, 459], [1450, 569]] },
+                { from: "Магазин улучшений", to: "Босс-зона", label: "готовность", arrow: true, toSide: "right", via: [[1440, 570]] },
                 { from: "Босс-зона", to: "Экран результата", label: "", arrow: true },
                 { from: "Комната с ботами", to: "Пауза", label: "", arrow: true, fromSide: "bottom", toSide: "top", via: [[1070, 642], [777, 642]] },
                 { from: "Пауза", to: "Комната с ботами", label: "продолжить", arrow: true, fromSide: "right", toSide: "bottom", via: [[1185, 712], [1185, 402]] },
@@ -471,19 +471,19 @@
                 { from: "Комната", to: "ВрагВКомнате", label: "содержит", start: "1", end: "M", fromSide: "right", toSide: "left", fromOffset: -75, toOffset: 35 },
                 { from: "ТипВрага", to: "ВрагВКомнате", label: "описывает", start: "1", end: "M", fromSide: "top", toSide: "bottom" },
                 { from: "Спавнер", to: "ТипВрага", label: "использует", start: "M", end: "1" },
-                { from: "Забег", to: "БоссЭкскаватор", label: "завершает", start: "1", end: "1", fromSide: "right", toSide: "left", via: [[350, 475], [350, 720], [1770, 720], [1770, 475]] },
+                { from: "Забег", to: "БоссЭкскаватор", label: "завершает", start: "1", end: "1", fromSide: "right", toSide: "left", via: [[350, 720], [1770, 720], [1770, 520]] },
 
                 { from: "Комната", to: "ПодбираемыйОбъект", label: "содержит", start: "1", end: "M", fromSide: "bottom", toSide: "top" },
                 { from: "ПодбираемыйОбъект", to: "Монета", label: "может быть", start: "1", end: "1", fromSide: "right", toSide: "left", fromOffset: -35 },
                 { from: "ПодбираемыйОбъект", to: "Аптечка", label: "может быть", start: "1", end: "1", fromSide: "right", toSide: "left", fromOffset: 45 },
 
-                { from: "Комната", to: "ТорговыйАвтомат", label: "может содержать", start: "1", end: "1", fromSide: "bottom", toSide: "top", via: [[905, 670], [685, 670], [685, 1110], [1045, 1110]] },
+                { from: "Комната", to: "ТорговыйАвтомат", label: "может содержать", start: "1", end: "1", fromSide: "bottom", toSide: "top", via: [[685, 670], [685, 1110], [1045, 1110]] },
                 { from: "ТорговыйАвтомат", to: "ПредложениеМагазина", label: "показывает", start: "1", end: "M" },
                 { from: "Улучшение", to: "ПредложениеМагазина", label: "продается", start: "1", end: "M", fromSide: "right", toSide: "left", via: [[820, 1248], [1240, 1248]] },
                 { from: "ПредложениеМагазина", to: "Покупка", label: "выбирается", start: "1", end: "M" },
                 { from: "Забег", to: "Покупка", label: "включает", start: "1", end: "M", fromSide: "bottom", toSide: "top", via: [[190, 1120], [1925, 1120]] },
                 { from: "Улучшение", to: "МодификаторИгрока", label: "создает", start: "1", end: "M", fromSide: "left", toSide: "right" },
-                { from: "Игрок", to: "МодификаторИгрока", label: "получает", start: "1", end: "M", fromSide: "left", toSide: "left", via: [[30, 145], [30, 1245]] }
+                { from: "Игрок", to: "МодификаторИгрока", label: "получает", start: "1", end: "M", fromSide: "left", toSide: "left", via: [[30, 1345]] }
             ]
         }
     };

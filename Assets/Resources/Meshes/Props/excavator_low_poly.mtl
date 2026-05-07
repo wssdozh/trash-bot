@@ -1,0 +1,113 @@
+# Low-poly excavator materials
+newmtl Yellow
+Ka 0.8 0.52 0.12
+Kd 0.86 0.57 0.15
+Ks 0.12 0.09 0.03
+Ns 24
+illum 2
+
+newmtl YellowDark
+Ka 0.55 0.34 0.08
+Kd 0.66 0.42 0.1
+Ks 0.08 0.06 0.02
+Ns 18
+illum 2
+
+newmtl Orange
+Ka 0.72 0.35 0.12
+Kd 0.78 0.39 0.14
+Ks 0.1 0.06 0.03
+Ns 20
+illum 2
+
+newmtl Olive
+Ka 0.32 0.32 0.24
+Kd 0.38 0.39 0.29
+Ks 0.08 0.08 0.06
+Ns 16
+illum 2
+
+newmtl FrameDark
+Ka 0.18 0.17 0.15
+Kd 0.22 0.21 0.18
+Ks 0.06 0.06 0.05
+Ns 12
+illum 2
+
+newmtl Track
+Ka 0.08 0.08 0.08
+Kd 0.1 0.1 0.1
+Ks 0.04 0.04 0.04
+Ns 10
+illum 2
+
+newmtl TreadPad
+Ka 0.18 0.18 0.17
+Kd 0.22 0.22 0.21
+Ks 0.05 0.05 0.05
+Ns 12
+illum 2
+
+newmtl WheelTan
+Ka 0.48 0.4 0.27
+Kd 0.58 0.5 0.35
+Ks 0.08 0.07 0.05
+Ns 16
+illum 2
+
+newmtl Glass
+Ka 0.48 0.56 0.58
+Kd 0.58 0.65 0.67
+Ks 0.32 0.36 0.38
+Ns 54
+d 0.72
+illum 2
+
+newmtl HydraulicDark
+Ka 0.12 0.12 0.11
+Kd 0.16 0.16 0.15
+Ks 0.08 0.08 0.07
+Ns 24
+illum 2
+
+newmtl Metal
+Ka 0.5 0.47 0.4
+Kd 0.62 0.58 0.5
+Ks 0.25 0.23 0.2
+Ns 42
+illum 2
+
+newmtl Bolt
+Ka 0.36 0.33 0.28
+Kd 0.44 0.4 0.34
+Ks 0.15 0.14 0.12
+Ns 30
+illum 2
+
+newmtl BoltHead
+Ka 0.42 0.38 0.3
+Kd 0.5 0.45 0.36
+Ks 0.18 0.16 0.13
+Ns 34
+illum 2
+
+newmtl LinkOrange
+Ka 0.62 0.31 0.12
+Kd 0.7 0.36 0.14
+Ks 0.09 0.05 0.03
+Ns 18
+illum 2
+
+newmtl Bucket
+Ka 0.2 0.2 0.19
+Kd 0.25 0.25 0.24
+Ks 0.06 0.06 0.06
+Ns 14
+illum 2
+
+newmtl BucketEdge
+Ka 0.16 0.16 0.15
+Kd 0.2 0.2 0.19
+Ks 0.05 0.05 0.05
+Ns 12
+illum 2
