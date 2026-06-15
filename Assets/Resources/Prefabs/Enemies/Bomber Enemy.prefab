@@ -40,6 +40,10 @@ PrefabInstance:
       propertyPath: _suicideAttack
       value: 
       objectReference: {fileID: 5771000000000000008}
+    - target: {fileID: 2842242119248496748, guid: 8e6817801d5b035419c449515b41f3c1, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: fe1c8a9d0d9046a5a7fbff1d99c0e7ad, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
