@@ -78,7 +78,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ded7bca5203990b49a32b1e9f1f89d83, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerPause
   _pauseController: {fileID: 0}
 --- !u!1 &780642994251547423
@@ -1207,6 +1207,80 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &910250000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 910250000000000002}
+  - component: {fileID: 910250000000000003}
+  - component: {fileID: 910250000000000004}
+  m_Layer: 6
+  m_Name: CollectiblePickupTrigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &910250000000000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910250000000000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6383786144906823391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &910250000000000003
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910250000000000001}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 2
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &910250000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 910250000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f5e3c3d4391db54d8267f0266925bde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PickupTrigger
+  _triggerCollider: {fileID: 910250000000000003}
+  _pickupMask:
+    serializedVersion: 2
+    m_Bits: 16384
+  _inventory: {fileID: 591744987671708976}
+  _pickupTarget: {fileID: 3480807702779279668}
 --- !u!1 &1206558829054942936
 GameObject:
   m_ObjectHideFlags: 0
@@ -2574,6 +2648,38 @@ MonoBehaviour:
   _walkStepInterval: 0.65
   _runStepInterval: 0.42
   _attackVariantsCount: 3
+--- !u!114 &4803709847974141177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2856562444219867965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  _minValue: 0
+  _maxValue: 100
+  _value: 100
+  _autoRegen: 0
+  _regenPerSecond: 3
+  _regenDelay: 2.5
+  _regenTick: 0.1
+--- !u!114 &4172915879953034101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2856562444219867965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2613c075e9a80c048b71b96045638ae7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurrencyWallet
+  _coins: 300
 --- !u!82 &912100000000000001
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2681,13 +2787,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 228d6a39b7364d30964c0f970533a669, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FootstepAudio
   _audioSource: {fileID: 912100000000000001}
   _animator: {fileID: 7390188348284092011}
   _profile: {fileID: 11400000, guid: e693cd2cf4e44d7aa213330e08980871, type: 2}
   _walkVolumeScale: 0.72
   _runVolumeScale: 1.05
+--- !u!114 &912100000000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2856562444219867965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a28fe4b8d25a4768bee785678b4ea037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttackAudio
+  _audioSource: {fileID: 912100000000000001}
+  _attacker: {fileID: 5079344321574236948}
+  _weaponHolder: {fileID: 1908533539380365251}
+  _profile: {fileID: 11400000, guid: 36e2c890601e43018f08e767b44ef6f0, type: 2}
+  _volumeScale: 0.7
+  _fistPitchMin: 0.94
+  _fistPitchMax: 1.06
+  _batonPitchMin: 0.92
+  _batonPitchMax: 1.08
 --- !u!114 &915310000000000001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2698,7 +2825,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3b86279fcd54ef9a9556e3061c6a39c, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealthAudio
   _audioSource: {fileID: 912100000000000001}
   _health: {fileID: 4803709847974141177}
@@ -2718,66 +2845,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7e6ca11a1ad4d659f53fa496c436589, type: 3}
-  m_Name: ''
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponHolderAudio
   _audioSource: {fileID: 912100000000000001}
   _weaponHolder: {fileID: 1908533539380365251}
   _equipClips:
   - {fileID: 8300000, guid: 41b7aa4219e1cbf40bf3b6e7cd6646d0, type: 3}
   _volumeScale: 0.48
---- !u!114 &912100000000000003
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2856562444219867965}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a28fe4b8d25a4768bee785678b4ea037, type: 3}
-  m_Name: ''
-  m_EditorClassIdentifier: Assembly-CSharp::MeleeAttackAudio
-  _audioSource: {fileID: 912100000000000001}
-  _attacker: {fileID: 5079344321574236948}
-  _weaponHolder: {fileID: 1908533539380365251}
-  _profile: {fileID: 11400000, guid: 36e2c890601e43018f08e767b44ef6f0, type: 2}
-  _volumeScale: 0.7
-  _fistPitchMin: 0.94
-  _fistPitchMax: 1.06
-  _batonPitchMin: 0.92
-  _batonPitchMax: 1.08
---- !u!114 &4803709847974141177
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2856562444219867965}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d935589debb0f4478ac73232b6a526a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Health
-  _minValue: 0
-  _maxValue: 100
-  _value: 100
-  _autoRegen: 0
-  _regenPerSecond: 3
-  _regenDelay: 2.5
-  _regenTick: 0.1
---- !u!114 &4172915879953034101
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2856562444219867965}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2613c075e9a80c048b71b96045638ae7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurrencyWallet
-  _coins: 300
 --- !u!1 &2877394526366005871
 GameObject:
   m_ObjectHideFlags: 0
@@ -4316,80 +4390,6 @@ MonoBehaviour:
     m_Bits: 4096
   _inventory: {fileID: 591744987671708976}
   _pickupTarget: {fileID: 3480807702779279668}
---- !u!1 &910250000000000001
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 910250000000000002}
-  - component: {fileID: 910250000000000003}
-  - component: {fileID: 910250000000000004}
-  m_Layer: 6
-  m_Name: CollectiblePickupTrigger
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &910250000000000002
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 910250000000000001}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6383786144906823391}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &910250000000000003
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 910250000000000001}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 2
-  m_Height: 1
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &910250000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 910250000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1f5e3c3d4391db54d8267f0266925bde, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PickupTrigger
-  _triggerCollider: {fileID: 910250000000000003}
-  _pickupMask:
-    serializedVersion: 2
-    m_Bits: 16384
-  _inventory: {fileID: 591744987671708976}
-  _pickupTarget: {fileID: 3480807702779279668}
 --- !u!1 &8076210017849464627
 GameObject:
   m_ObjectHideFlags: 0
@@ -4886,6 +4886,10 @@ PrefabInstance:
       objectReference: {fileID: 6655802807853044318}
     - target: {fileID: 2842242119248496748, guid: 54ca7254287acb340aab78e305f9c2fc, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8c5a6bc9e0e64cf8b9c09d6f1a2b3c44, type: 2}
+    - target: {fileID: 2842242119248496748, guid: 54ca7254287acb340aab78e305f9c2fc, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 8c5a6bc9e0e64cf8b9c09d6f1a2b3c44, type: 2}
     - target: {fileID: 4744880993510948495, guid: 54ca7254287acb340aab78e305f9c2fc, type: 3}

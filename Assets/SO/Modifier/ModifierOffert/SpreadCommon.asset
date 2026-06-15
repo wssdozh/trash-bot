@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: SpreadCommon
   m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
   _title: ""
-  _icon: {fileID: -1742835190, guid: 0f2b0968b62429748abfececa3a10741, type: 3}
+  _icon: {fileID: 21300000, guid: 0f2b0968b62429748abfececa3a10741, type: 3}
   _requiredItem: {fileID: 11400000, guid: 3544f38e12d237847afb7a1e9f75b9ae, type: 2}
   _rarity: 0
   _price: 25

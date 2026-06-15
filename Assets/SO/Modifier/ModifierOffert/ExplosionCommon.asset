@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ExplosionCommon
   m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
   _title: ""
-  _icon: {fileID: 884342433, guid: dbe06ff5e294b254fb6c660112b42cbe, type: 3}
+  _icon: {fileID: 21300000, guid: dbe06ff5e294b254fb6c660112b42cbe, type: 3}
   _requiredItem: {fileID: 11400000, guid: 253f48dd7269198409282386027af661, type: 2}
   _rarity: 0
   _price: 25

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FireRateRare
   m_EditorClassIdentifier: Assembly-CSharp::ModifierOffer
   _title: ""
-  _icon: {fileID: 1932712227, guid: 225900d2e7ac71c4fa51208966c221b2, type: 3}
+  _icon: {fileID: 21300000, guid: 225900d2e7ac71c4fa51208966c221b2, type: 3}
   _requiredItem: {fileID: 0}
   _rarity: 1
   _price: 55
