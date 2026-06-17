@@ -111,7 +111,7 @@ MonoBehaviour:
   _rigidbody: {fileID: 6695405994909000428}
   _speed: 2.2
   _speedSprint: 4.1
-  _isWallSlideEnabled: 0
+  _isWallSlideEnabled: 1
   _wallNormalMaxY: 0.2
 --- !u!114 &6367953433166089997
 MonoBehaviour:
@@ -240,7 +240,7 @@ MonoBehaviour:
   _allyMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  _probeRadius: 0.2
+  _probeRadius: 0.25
   _probeHeight: 0.6
   _probeDistance: 0.9
   _probeAngle: 25
