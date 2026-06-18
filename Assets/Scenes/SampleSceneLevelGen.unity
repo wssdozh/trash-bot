@@ -16847,7 +16847,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -5095300462396145474, guid: be2db87a7a4cd7441af3b219ec6d198d, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: f3eaa1aeef0c87f4baa3b4859fa33e9b, type: 3}
+  m_Resource: {fileID: 8300000, guid: e1b731c06d554a38b92725f9989f261a, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -16944,7 +16944,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -5095300462396145474, guid: be2db87a7a4cd7441af3b219ec6d198d, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 5e60184989dce0e46b589c0e62427b4c, type: 3}
+  m_Resource: {fileID: 8300000, guid: d7c8e42cf5b84f38b7c82cb1222e1a64, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0
   m_Pitch: 1
@@ -17042,10 +17042,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69df0a45f8ca4ad19f3eaf4abd765e1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatMusicAudio
-  _audioSource: {fileID: 901000000000000004}
-  _targetVolume: 0.06
+  _explorationSource: {fileID: 901000000000000003}
+  _combatSource: {fileID: 901000000000000004}
+  _explorationTargetVolume: 0.06
+  _combatTargetVolume: 0.06
   _fadeSpeed: 0.6
-  _releaseDelay: 1.2
+  _combatReleaseDelay: 1.2
 --- !u!1001 &1751371739431020652
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,40 +1,35 @@
 using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
 public sealed class CombatMusicAudio : MonoBehaviour
 {
-    [SerializeField] private AudioSource _audioSource;
-    [SerializeField, Min(0f)] private float _targetVolume = 0.14f;
+    private const float MinVolumeDelta = 0.0001f;
+
+    [SerializeField] private AudioSource _explorationSource;
+    [SerializeField] private AudioSource _combatSource;
+    [SerializeField, Min(0f)] private float _explorationTargetVolume = 0.06f;
+    [SerializeField, Min(0f)] private float _combatTargetVolume = 0.06f;
     [SerializeField, Min(0f)] private float _fadeSpeed = 0.6f;
-    [SerializeField, Min(0f)] private float _releaseDelay = 1.2f;
+    [SerializeField, Min(0f)] private float _combatReleaseDelay = 1.2f;
 
     private bool _isCombatActive;
-    private float _releaseTimer;
+    private float _combatReleaseTimer;
     private Coroutine _fadeCoroutine;
 
     private void Awake()
     {
-        if (_audioSource == null)
-            throw new InvalidOperationException(nameof(_audioSource));
+        ValidateSource(_explorationSource, nameof(_explorationSource));
+        ValidateSource(_combatSource, nameof(_combatSource));
+        ValidateNonNegative(_explorationTargetVolume, nameof(_explorationTargetVolume));
+        ValidateNonNegative(_combatTargetVolume, nameof(_combatTargetVolume));
+        ValidateNonNegative(_fadeSpeed, nameof(_fadeSpeed));
+        ValidateNonNegative(_combatReleaseDelay, nameof(_combatReleaseDelay));
 
-        if (_targetVolume < 0f)
-            throw new InvalidOperationException(nameof(_targetVolume));
-
-        if (_fadeSpeed < 0f)
-            throw new InvalidOperationException(nameof(_fadeSpeed));
-
-        if (_releaseDelay < 0f)
-            throw new InvalidOperationException(nameof(_releaseDelay));
-
-        _audioSource.playOnAwake = true;
-        _audioSource.loop = true;
-        _audioSource.volume = 0f;
-
-        if (_audioSource.isPlaying == false)
-            _audioSource.Play();
+        SetupSource(_explorationSource);
+        SetupSource(_combatSource);
     }
 
     private void OnEnable()
@@ -47,14 +42,10 @@ public sealed class CombatMusicAudio : MonoBehaviour
     {
         RoomCombatLock.StateChanged -= OnRoomCombatLockStateChanged;
         _isCombatActive = false;
-        _releaseTimer = 0f;
+        _combatReleaseTimer = 0f;
         StopFadeRoutine();
-
-        if (_audioSource != null)
-        {
-            _audioSource.volume = 0f;
-            _audioSource.Stop();
-        }
+        StopSource(_explorationSource);
+        StopSource(_combatSource);
     }
 
     private void OnRoomCombatLockStateChanged()
@@ -69,70 +60,50 @@ public sealed class CombatMusicAudio : MonoBehaviour
         if (hasActiveCombat)
         {
             _isCombatActive = true;
-            _releaseTimer = 0f;
-            EnsurePlaybackStarted();
+            _combatReleaseTimer = 0f;
             EnsureFadeRoutine();
+
             return;
         }
 
         if (_isCombatActive)
         {
             _isCombatActive = false;
-            _releaseTimer = _releaseDelay;
+            _combatReleaseTimer = _combatReleaseDelay;
             EnsureFadeRoutine();
+
             return;
         }
 
-        if (_audioSource.volume > 0f)
-        {
-            EnsureFadeRoutine();
-            return;
-        }
-
-        StopPlaybackIfSilent();
+        EnsureFadeRoutine();
     }
 
     private IEnumerator FadeRoutine()
     {
-        while (true)
+        bool shouldContinue = true;
+
+        while (shouldContinue)
         {
-            if (_isCombatActive == false && _releaseTimer > 0f)
+            if (_isCombatActive == false && _combatReleaseTimer > 0f)
             {
-                _releaseTimer = Mathf.Max(0f, _releaseTimer - Time.deltaTime);
+                _combatReleaseTimer = Mathf.Max(0f, _combatReleaseTimer - Time.deltaTime);
             }
 
-            float targetVolume = 0f;
+            bool shouldPlayCombat = _isCombatActive || _combatReleaseTimer > 0f;
+            float explorationTargetVolume = shouldPlayCombat ? 0f : _explorationTargetVolume;
+            float combatTargetVolume = shouldPlayCombat ? _combatTargetVolume : 0f;
 
-            if (_isCombatActive || _releaseTimer > 0f)
+            FadeSource(_explorationSource, explorationTargetVolume);
+            FadeSource(_combatSource, combatTargetVolume);
+            shouldContinue = ShouldContinueFade(explorationTargetVolume, combatTargetVolume);
+
+            if (shouldContinue)
             {
-                targetVolume = _targetVolume;
+                yield return null;
             }
-
-            if (targetVolume > 0f)
-            {
-                EnsurePlaybackStarted();
-            }
-
-            _audioSource.volume = Mathf.MoveTowards(_audioSource.volume, targetVolume, _fadeSpeed * Time.deltaTime);
-
-            if (Mathf.Abs(_audioSource.volume - targetVolume) <= 0.0001f)
-            {
-                _audioSource.volume = targetVolume;
-
-                if (targetVolume <= 0f)
-                {
-                    StopPlaybackIfSilent();
-                }
-
-                if (_isCombatActive == false && _releaseTimer <= 0f)
-                {
-                    _fadeCoroutine = null;
-                    yield break;
-                }
-            }
-
-            yield return null;
         }
+
+        _fadeCoroutine = null;
     }
 
     private bool HasActiveCombat()
@@ -144,35 +115,104 @@ public sealed class CombatMusicAudio : MonoBehaviour
             RoomCombatLock roomCombatLock = roomCombatLocks[i];
 
             if (roomCombatLock != null && roomCombatLock.IsLocked)
+            {
                 return true;
+            }
         }
 
         return false;
     }
 
-    private void EnsurePlaybackStarted()
+    private void ValidateSource(AudioSource source, string fieldName)
     {
-        if (_audioSource.isPlaying)
+        if (source == null)
         {
-            return;
+            throw new InvalidOperationException(fieldName);
         }
-
-        _audioSource.Play();
     }
 
-    private void StopPlaybackIfSilent()
+    private void ValidateNonNegative(float value, string fieldName)
     {
-        if (_audioSource.volume > 0f)
+        if (value < 0f)
+        {
+            throw new InvalidOperationException(fieldName);
+        }
+    }
+
+    private void SetupSource(AudioSource source)
+    {
+        source.playOnAwake = true;
+        source.loop = true;
+        source.volume = 0f;
+    }
+
+    private void FadeSource(AudioSource source, float targetVolume)
+    {
+        if (targetVolume > 0f)
+        {
+            EnsurePlaybackStarted(source);
+        }
+
+        source.volume = Mathf.MoveTowards(source.volume, targetVolume, _fadeSpeed * Time.deltaTime);
+
+        if (Mathf.Abs(source.volume - targetVolume) > MinVolumeDelta)
         {
             return;
         }
 
-        if (_audioSource.isPlaying == false)
+        source.volume = targetVolume;
+
+        if (targetVolume <= 0f)
+        {
+            StopSource(source);
+        }
+    }
+
+    private bool ShouldContinueFade(float explorationTargetVolume, float combatTargetVolume)
+    {
+        if (_combatReleaseTimer > 0f)
+        {
+            return true;
+        }
+
+        if (Mathf.Abs(_explorationSource.volume - explorationTargetVolume) > MinVolumeDelta)
+        {
+            return true;
+        }
+
+        if (Mathf.Abs(_combatSource.volume - combatTargetVolume) > MinVolumeDelta)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void EnsurePlaybackStarted(AudioSource source)
+    {
+        if (source.isPlaying)
         {
             return;
         }
 
-        _audioSource.Stop();
+        source.Play();
+    }
+
+    private void StopSource(AudioSource source)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        source.volume = 0f;
+
+        if (source.isPlaying == false)
+        {
+            return;
+        }
+
+        source.Stop();
     }
 
     private void EnsureFadeRoutine()
