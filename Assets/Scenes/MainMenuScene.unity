@@ -2178,6 +2178,9 @@ MonoBehaviour:
   _highQualityButton: {fileID: 1429331631}
   _highQualityButtonImage: {fileID: 1429331630}
   _highQualityButtonText: {fileID: 14230278}
+  _resetButton: {fileID: 1572576332}
+  _resetButtonImage: {fileID: 1572576333}
+  _resetButtonText: {fileID: 1115619209}
 --- !u!114 &718118019
 MonoBehaviour:
   m_ObjectHideFlags: 0

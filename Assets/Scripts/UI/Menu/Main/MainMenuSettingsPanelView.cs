@@ -52,6 +52,9 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     [SerializeField] private Button _highQualityButton;
     [SerializeField] private Image _highQualityButtonImage;
     [SerializeField] private TMP_Text _highQualityButtonText;
+    [SerializeField] private Button _resetButton;
+    [SerializeField] private Image _resetButtonImage;
+    [SerializeField] private TMP_Text _resetButtonText;
 
     private readonly SettingsSave _settingsSave = new SettingsSave();
     private readonly int[] _qualityLevels = new int[3];
@@ -126,6 +129,9 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         ValidateReference(_highQualityButton, nameof(_highQualityButton));
         ValidateReference(_highQualityButtonImage, nameof(_highQualityButtonImage));
         ValidateReference(_highQualityButtonText, nameof(_highQualityButtonText));
+        ValidateReference(_resetButton, nameof(_resetButton));
+        ValidateReference(_resetButtonImage, nameof(_resetButtonImage));
+        ValidateReference(_resetButtonText, nameof(_resetButtonText));
     }
 
     private void ValidateReference(UnityEngine.Object target, string fieldName)
@@ -149,6 +155,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         _lowQualityButton.onClick.AddListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.AddListener(OnMediumQualityClicked);
         _highQualityButton.onClick.AddListener(OnHighQualityClicked);
+        _resetButton.onClick.AddListener(OnResetClicked);
     }
 
     private void Unbind()
@@ -164,6 +171,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         _lowQualityButton.onClick.RemoveListener(OnLowQualityClicked);
         _mediumQualityButton.onClick.RemoveListener(OnMediumQualityClicked);
         _highQualityButton.onClick.RemoveListener(OnHighQualityClicked);
+        _resetButton.onClick.RemoveListener(OnResetClicked);
     }
 
     private void CacheQualityLevels()
@@ -267,6 +275,7 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         UpdateButtonState(_lowQualityButtonImage, _lowQualityButtonText, qualityLevel == _qualityLevels[LowQualityIndex]);
         UpdateButtonState(_mediumQualityButtonImage, _mediumQualityButtonText, qualityLevel == _qualityLevels[MediumQualityIndex]);
         UpdateButtonState(_highQualityButtonImage, _highQualityButtonText, qualityLevel == _qualityLevels[HighQualityIndex]);
+        UpdateButtonState(_resetButtonImage, _resetButtonText, false);
     }
 
     private void UpdateButtonState(Image buttonImage, TMP_Text buttonText, bool isActive)
@@ -384,6 +393,19 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
         ApplyQualitySelection(_qualityLevels[HighQualityIndex]);
     }
 
+    private void OnResetClicked()
+    {
+        if (_isSyncing)
+        {
+            return;
+        }
+
+        _settingsData = CreateDefaultData();
+        ApplyData();
+        Save();
+        RefreshView();
+    }
+
     private void ApplyQualitySelection(int qualityLevel)
     {
         if (_isSyncing)
@@ -401,6 +423,19 @@ public sealed class MainMenuSettingsPanelView : MonoBehaviour
     private void Save()
     {
         _settingsSave.Save(_settingsData);
+    }
+
+    private SettingsData CreateDefaultData()
+    {
+        return new SettingsData(
+            1.0f,
+            1.0f,
+            1.0f,
+            _defaultFullScreen,
+            _defaultVSyncEnabled,
+            _qualityLevels[HighQualityIndex],
+            false,
+            false);
     }
 
     private void ApplyData()
