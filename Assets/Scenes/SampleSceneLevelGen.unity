@@ -13774,6 +13774,8 @@ GameObject:
   - component: {fileID: 2087987352}
   - component: {fileID: 2087987353}
   - component: {fileID: 2087987354}
+  - component: {fileID: 2087987355}
+  - component: {fileID: 2087987356}
   m_Layer: 6
   m_Name: SettingsPanel
   m_TagString: Untagged
@@ -13908,6 +13910,36 @@ MonoBehaviour:
   _playerRoot: {fileID: 920821248}
   _playerBody: {fileID: 1340603249}
   _levelRoot: {fileID: 7000000000000000002}
+--- !u!114 &2087987355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087987347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 430d4a25a3074e63a4cef0882f302a9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputBindingSettingsView
+  _content: {fileID: 893505374}
+  _buttonTemplate: {fileID: 7055179668353214231, guid: 5fd958ada64e98c4091cf0cdb864a35b, type: 3}
+--- !u!114 &2087987356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087987347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cea90a9d76f4dc398f1da9c23196d6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SettingsHeaderActionsView
+  _header: {fileID: 1263907316}
+  _resetButton: {fileID: 1999018293}
+  _backButton: {fileID: 0}
+  _panelColor: {r: 0.13725491, g: 0.14117648, b: 0.13725491, a: 1}
 --- !u!114 &2087987354
 MonoBehaviour:
   m_ObjectHideFlags: 0

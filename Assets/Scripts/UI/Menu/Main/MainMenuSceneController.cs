@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public sealed class MainMenuSceneController : MonoBehaviour
@@ -10,6 +11,8 @@ public sealed class MainMenuSceneController : MonoBehaviour
     [SerializeField] private Button _exitButton;
     [SerializeField] private Button _backButton;
     [SerializeField] private string _levelSceneName = "SampleSceneLevelGen";
+
+    private PlayerInputActions _inputs;
 
     private void Awake()
     {
@@ -24,6 +27,8 @@ public sealed class MainMenuSceneController : MonoBehaviour
         {
             throw new MissingReferenceException(nameof(_levelSceneName));
         }
+
+        _inputs = new PlayerInputActions();
     }
 
     private void OnEnable()
@@ -32,14 +37,31 @@ public sealed class MainMenuSceneController : MonoBehaviour
         _settingsButton.onClick.AddListener(OnSettingsClicked);
         _exitButton.onClick.AddListener(OnExitClicked);
         _backButton.onClick.AddListener(OnBackClicked);
+
+        _inputs.UI.Cancel.performed += OnCancelPerformed;
+        _inputs.UI.Enable();
     }
 
     private void OnDisable()
     {
+        _inputs.UI.Disable();
+        _inputs.UI.Cancel.performed -= OnCancelPerformed;
+
         _startButton.onClick.RemoveListener(OnStartClicked);
         _settingsButton.onClick.RemoveListener(OnSettingsClicked);
         _exitButton.onClick.RemoveListener(OnExitClicked);
         _backButton.onClick.RemoveListener(OnBackClicked);
+    }
+
+    private void OnDestroy()
+    {
+        if (_inputs == null)
+        {
+            return;
+        }
+
+        _inputs.Dispose();
+        _inputs = null;
     }
 
     private void Start()
@@ -102,6 +124,16 @@ public sealed class MainMenuSceneController : MonoBehaviour
     private void OnExitClicked()
     {
         Application.Quit();
+    }
+
+    private void OnCancelPerformed(InputAction.CallbackContext context)
+    {
+        if (_settingsMenuView.IsOpen == false)
+        {
+            return;
+        }
+
+        OnBackClicked();
     }
 
     private void ValidateReference(Object target, string fieldName)
