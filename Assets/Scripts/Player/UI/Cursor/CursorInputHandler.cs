@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public sealed class CursorInputHandler : MonoBehaviour
 {
+    [SerializeField] private CursorManager _cursorManager;
     [SerializeField] private CursorAnimator _cursorAnimator;
     [SerializeField] private float _holdThresholdSeconds = 0.18f;
 
@@ -20,6 +21,7 @@ public sealed class CursorInputHandler : MonoBehaviour
         _inputs = new PlayerInputActions();
         PlayerInputBindingOverrideStore.Apply(_inputs);
         _holdWait = new WaitForSecondsRealtime(_holdThresholdSeconds);
+        ResolveCursorManager();
     }
 
     private void OnEnable()
@@ -63,6 +65,20 @@ public sealed class CursorInputHandler : MonoBehaviour
 
         _inputs.Dispose();
         _inputs = null;
+    }
+
+    private void LateUpdate()
+    {
+        ResolveCursorManager();
+
+        if (_cursorManager == null)
+        {
+            _cursorAnimator.SetHoverVisual(false, Color.black);
+
+            return;
+        }
+
+        _cursorAnimator.SetHoverVisual(_cursorManager.HasDamageableHit, _cursorManager.HitSurfaceColor);
     }
 
     private void OnAttackPerformed(InputAction.CallbackContext callbackContext)
@@ -152,5 +168,15 @@ public sealed class CursorInputHandler : MonoBehaviour
         _inputs.Disable();
         PlayerInputBindingOverrideStore.Apply(_inputs);
         _inputs.Enable();
+    }
+
+    private void ResolveCursorManager()
+    {
+        if (_cursorManager != null)
+        {
+            return;
+        }
+
+        _cursorManager = CursorManager.Instance;
     }
 }
