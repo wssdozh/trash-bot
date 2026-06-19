@@ -19,9 +19,14 @@ public class Player : MonoBehaviour
     private PlayerInputActions _inputs;
     private BossHealthOverlay _bossHealthOverlay;
     private RemainingEnemyOverlay _remainingEnemyOverlay;
+    private PlayerObjectiveTracker _objectiveTracker;
 
     public static Player Instance { get; private set; }
     public event Action Died;
+    public event Action<Vector2> Moved;
+    public event Action AttackStarted;
+    public event Action ItemUseRequested;
+    public event Action<Interactable> Interacted;
     public PlayerMovement Movement => _movement;
 
     private void Awake()
@@ -49,6 +54,8 @@ public class Player : MonoBehaviour
         _bossHealthOverlay.Initialize(_uiCanvas, _bossHealthIndicatorTemplate);
         _remainingEnemyOverlay = gameObject.AddComponent<RemainingEnemyOverlay>();
         _remainingEnemyOverlay.Initialize(transform, _uiCanvas);
+        _objectiveTracker = gameObject.AddComponent<PlayerObjectiveTracker>();
+        _objectiveTracker.Initialize(this, _uiCanvas);
         SubscribeInput();
     }
 
@@ -58,6 +65,7 @@ public class Player : MonoBehaviour
         PlayerInputBindingOverrideStore.Apply(_inputs);
         _inputs.Enable();
         _health.Ended += Die;
+        _interaction.Interacted += OnInteracted;
     }
 
     private void OnDisable()
@@ -65,6 +73,7 @@ public class Player : MonoBehaviour
         PlayerInputBindingOverrideStore.Changed -= OnBindingOverridesChanged;
         _inputs.Disable();
         _health.Ended -= Die;
+        _interaction.Interacted -= OnInteracted;
     }
 
     private void OnDestroy()
@@ -176,6 +185,11 @@ public class Player : MonoBehaviour
     {
         Vector2 moveVector = context.ReadValue<Vector2>();
         _movement.SetMove(moveVector);
+
+        if (Moved != null)
+        {
+            Moved.Invoke(moveVector);
+        }
     }
 
     private void OnMoveCanceled(InputAction.CallbackContext context)
@@ -206,6 +220,11 @@ public class Player : MonoBehaviour
         if (attackStarted)
         {
             _movement.StopSprinting();
+
+            if (AttackStarted != null)
+            {
+                AttackStarted.Invoke();
+            }
         }
     }
 
@@ -216,7 +235,17 @@ public class Player : MonoBehaviour
 
     private void OnUseItemPerformed(InputAction.CallbackContext context)
     {
-        _inventory.TryUseActiveItem();
+        bool isUsed = _inventory.TryUseActiveItem();
+
+        if (isUsed == false)
+        {
+            return;
+        }
+
+        if (ItemUseRequested != null)
+        {
+            ItemUseRequested.Invoke();
+        }
     }
 
     private void OnScrollPerformed(InputAction.CallbackContext context)
@@ -251,5 +280,13 @@ public class Player : MonoBehaviour
         _inputs.Disable();
         PlayerInputBindingOverrideStore.Apply(_inputs);
         _inputs.Enable();
+    }
+
+    private void OnInteracted(Interactable interactable)
+    {
+        if (Interacted != null)
+        {
+            Interacted.Invoke(interactable);
+        }
     }
 }

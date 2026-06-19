@@ -5,6 +5,14 @@ public sealed class PlayerModifierPurchase : MonoBehaviour
 {
     [SerializeField] private PlayerModifierShop _shop;
 
+    public static event Action<string> Purchased;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStaticState()
+    {
+        Purchased = null;
+    }
+
     public bool TryPurchase(int offerIndex, GameObject buyer)
     {
         if (buyer == null)
@@ -61,7 +69,26 @@ public sealed class PlayerModifierPurchase : MonoBehaviour
         }
 
         _shop.MarkPurchased();
+        InvokePurchased();
 
         return true;
+    }
+
+    private void InvokePurchased()
+    {
+        string targetId = string.Empty;
+        ObjectiveTarget objectiveTarget = _shop.GetComponent<ObjectiveTarget>();
+
+        if (objectiveTarget != null)
+        {
+            targetId = objectiveTarget.Id;
+        }
+
+        Action<string> purchased = Purchased;
+
+        if (purchased != null)
+        {
+            purchased.Invoke(targetId);
+        }
     }
 }

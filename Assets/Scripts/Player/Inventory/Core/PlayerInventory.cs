@@ -59,27 +59,29 @@ public class PlayerInventory : MonoBehaviour
         _inventoryDropper.DropAllFromActiveSlot();
     }
 
-    public void TryUseActiveItem()
+    public bool TryUseActiveItem()
     {
         if (_berryWallet.TryConsume(_effects))
         {
-            return;
+            return true;
         }
 
         InventorySlot activeSlot = _inventory.Slots[_inventory.ActiveIndex];
 
         if (activeSlot.IsEmpty())
         {
-            return;
+            return false;
         }
 
         if (activeSlot.Item.Effects.Count <= 0)
         {
-            return;
+            return false;
         }
 
         UseItem(activeSlot.Item);
         _inventory.TryRemoveFromSlot(_inventory.ActiveIndex, 1);
+
+        return true;
     }
 
     private void UseItem(Item item)
