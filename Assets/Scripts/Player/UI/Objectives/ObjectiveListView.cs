@@ -31,6 +31,7 @@ public sealed class ObjectiveListView : MonoBehaviour
     private const float MoveDuration = 0.28f;
     private const float CompleteDuration = 0.18f;
     private const float HoverDuration = 0.16f;
+    private const float CollapseDuration = 0.18f;
     private const float ReplaceDelay = 0.05f;
     private const float AppearScale = 0.96f;
     private const float CompletedScale = 0.98f;
@@ -50,8 +51,10 @@ public sealed class ObjectiveListView : MonoBehaviour
     private Button _itemTemplate;
     private ObjectiveProfile _currentProfile;
     private ObjectiveItemView _titleItem;
+    private ObjectiveItemClickHandler _titleClickHandler;
     private Sequence _sequence;
     private readonly HashSet<int> _completedStepIndices = new HashSet<int>();
+    private bool _areStepsCollapsed;
 
     public void Initialize(RectTransform uiRoot, Button itemTemplate)
     {
@@ -205,6 +208,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         ClearItems();
 
         _currentProfile = profile;
+        _areStepsCollapsed = false;
         CopySteps(steps);
         CopyCompletedSteps(completedStepIndices);
         _root.gameObject.SetActive(true);
@@ -219,6 +223,7 @@ public sealed class ObjectiveListView : MonoBehaviour
             TitleFontSize,
             FontStyles.Bold,
             s_titleColor);
+        AddTitleClickHandler(_titleItem);
         CreateStepItems();
         ApplyOrder();
         PlayAppear();
@@ -314,18 +319,27 @@ public sealed class ObjectiveListView : MonoBehaviour
         TMP_Text descriptionLabel = CreateDescriptionLabel(button.transform, label, description);
         ObjectiveItemView item = new ObjectiveItemView(
             button,
+            image,
             rectTransform,
             layoutElement,
             label,
             descriptionLabel,
             GetCanvasGroup(button),
             height,
-            expandedHeight);
+            expandedHeight,
+            string.IsNullOrWhiteSpace(description) == false);
 
         _items.Add(item);
         AddHoverHandler(item, description);
 
         return item;
+    }
+
+    private void AddTitleClickHandler(ObjectiveItemView item)
+    {
+        _titleClickHandler = item.Button.gameObject.AddComponent<ObjectiveItemClickHandler>();
+        _titleClickHandler.Clicked += OnTitleClicked;
+        item.SetPointerEnabled(true);
     }
 
     private TMP_Text CreateDescriptionLabel(Transform parent, TMP_Text template, string description)
@@ -496,6 +510,11 @@ public sealed class ObjectiveListView : MonoBehaviour
             item.SetHoverEnabled(true);
         }
 
+        if (_areStepsCollapsed)
+        {
+            item.SetListVisible(false, 0f, AppearScale);
+        }
+
         return siblingIndex + 1;
     }
 
@@ -517,6 +536,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         for (int itemIndex = 0; itemIndex < _items.Count; itemIndex++)
         {
             ObjectiveItemView item = _items[itemIndex];
+            RemoveClickHandler(item);
             RemoveHoverHandler(item);
             item.KillTweens();
 
@@ -531,8 +551,22 @@ public sealed class ObjectiveListView : MonoBehaviour
         _stepItems.Clear();
         _hoverItems.Clear();
         _titleItem = null;
+        _titleClickHandler = null;
         _currentProfile = null;
         _completedStepIndices.Clear();
+        _areStepsCollapsed = false;
+    }
+
+    private void RemoveClickHandler(ObjectiveItemView item)
+    {
+        ObjectiveItemClickHandler clickHandler = item.Button.GetComponent<ObjectiveItemClickHandler>();
+
+        if (clickHandler == null)
+        {
+            return;
+        }
+
+        clickHandler.Clicked -= OnTitleClicked;
     }
 
     private void RemoveHoverHandler(ObjectiveItemView item)
@@ -672,6 +706,45 @@ public sealed class ObjectiveListView : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(_root);
     }
 
+    private void OnTitleClicked(ObjectiveItemClickHandler clickHandler)
+    {
+        if (clickHandler != _titleClickHandler)
+        {
+            return;
+        }
+
+        SetStepsCollapsed(_areStepsCollapsed == false);
+    }
+
+    private void SetStepsCollapsed(bool isCollapsed)
+    {
+        if (_areStepsCollapsed == isCollapsed)
+        {
+            return;
+        }
+
+        KillSequence(false);
+        _areStepsCollapsed = isCollapsed;
+        _sequence = DOTween.Sequence();
+
+        foreach (KeyValuePair<int, ObjectiveItemView> stepItem in _stepItems)
+        {
+            Tween tween = stepItem.Value.BuildListVisibilityTween(
+                isCollapsed == false,
+                CollapseDuration,
+                AppearScale);
+            _sequence.Join(tween);
+        }
+
+        _sequence.OnUpdate(RebuildLayout);
+        _sequence.OnComplete(RebuildLayout);
+    }
+
+    private void RebuildLayout()
+    {
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_root);
+    }
+
     private void OnHidden()
     {
         ClearItems();
@@ -709,6 +782,7 @@ public sealed class ObjectiveListView : MonoBehaviour
     private sealed class ObjectiveItemView
     {
         public Button Button { get; }
+        public Image Image { get; }
         public RectTransform RectTransform { get; }
         public LayoutElement LayoutElement { get; }
         public TMP_Text Text { get; }
@@ -718,17 +792,23 @@ public sealed class ObjectiveListView : MonoBehaviour
         public float ExpandedHeight { get; }
         public bool CanHover { get; private set; } = true;
 
+        private readonly bool _hasDescription;
+        private float _targetScale = 1f;
+
         public ObjectiveItemView(
             Button button,
+            Image image,
             RectTransform rectTransform,
             LayoutElement layoutElement,
             TMP_Text text,
             TMP_Text descriptionText,
             CanvasGroup canvasGroup,
             float height,
-            float expandedHeight)
+            float expandedHeight,
+            bool hasDescription)
         {
             Button = button;
+            Image = image;
             RectTransform = rectTransform;
             LayoutElement = layoutElement;
             Text = text;
@@ -736,6 +816,7 @@ public sealed class ObjectiveListView : MonoBehaviour
             CanvasGroup = canvasGroup;
             Height = height;
             ExpandedHeight = expandedHeight;
+            _hasDescription = hasDescription;
         }
 
         public void PrepareAppear(float scale)
@@ -747,6 +828,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         public void SetActive(Color textColor)
         {
             Text.color = textColor;
+            _targetScale = 1f;
             RectTransform.localScale = Vector3.one;
             SetHoverEnabled(true);
         }
@@ -754,6 +836,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         public void SetCompleted(Color textColor, float scale)
         {
             Text.color = textColor;
+            _targetScale = scale;
             RectTransform.localScale = Vector3.one * scale;
             SetHoverEnabled(false);
         }
@@ -767,6 +850,7 @@ public sealed class ObjectiveListView : MonoBehaviour
             }
 
             CanHover = isEnabled;
+            SetPointerEnabled(CanHover && _hasDescription);
         }
 
         public void SetHovered(bool isHovered, float duration)
@@ -793,6 +877,105 @@ public sealed class ObjectiveListView : MonoBehaviour
 
             DOTween.To(() => LayoutElement.preferredHeight, SetHeight, targetHeight, duration).SetEase(Ease.OutCubic);
             DescriptionText.DOFade(descriptionAlpha, duration).SetEase(Ease.OutSine);
+        }
+
+        public void SetPointerEnabled(bool isEnabled)
+        {
+            if (Image == null)
+            {
+                return;
+            }
+
+            Image.raycastTarget = isEnabled;
+        }
+
+        public void SetListVisible(bool isVisible, float duration, float hiddenScale)
+        {
+            if (duration <= 0f)
+            {
+                ApplyListVisibility(isVisible, hiddenScale);
+
+                return;
+            }
+
+            BuildListVisibilityTween(isVisible, duration, hiddenScale);
+        }
+
+        public Tween BuildListVisibilityTween(bool isVisible, float duration, float hiddenScale)
+        {
+            LayoutElement.DOKill();
+            CanvasGroup.DOKill();
+            RectTransform.DOKill();
+
+            if (duration <= 0f)
+            {
+                ApplyListVisibility(isVisible, hiddenScale);
+
+                return DOTween.Sequence();
+            }
+
+            if (isVisible)
+            {
+                Button.gameObject.SetActive(true);
+                LayoutElement.ignoreLayout = false;
+                SetHeight(0f);
+                CanvasGroup.alpha = 0f;
+                RectTransform.localScale = Vector3.one * hiddenScale;
+                SetPointerEnabled(false);
+
+                Sequence showSequence = DOTween.Sequence();
+                showSequence.Join(DOTween.To(() => LayoutElement.preferredHeight, SetHeight, Height, duration)
+                    .SetEase(Ease.OutCubic));
+                showSequence.Join(CanvasGroup.DOFade(1f, duration).SetEase(Ease.OutSine));
+                showSequence.Join(RectTransform.DOScale(_targetScale, duration).SetEase(Ease.OutBack));
+                showSequence.OnComplete(() => SetPointerEnabled(CanHover && _hasDescription));
+
+                return showSequence;
+            }
+
+            SetHovered(false, 0f);
+            SetTextExpanded(false);
+            DescriptionText.alpha = 0f;
+            SetPointerEnabled(false);
+
+            Sequence hideSequence = DOTween.Sequence();
+            hideSequence.Join(DOTween.To(() => LayoutElement.preferredHeight, SetHeight, 0f, duration)
+                .SetEase(Ease.InCubic));
+            hideSequence.Join(CanvasGroup.DOFade(0f, duration).SetEase(Ease.InSine));
+            hideSequence.Join(RectTransform.DOScale(hiddenScale, duration).SetEase(Ease.InSine));
+            hideSequence.OnComplete(DisableLayout);
+
+            return hideSequence;
+        }
+
+        private void ApplyListVisibility(bool isVisible, float hiddenScale)
+        {
+            if (isVisible)
+            {
+                Button.gameObject.SetActive(true);
+                LayoutElement.ignoreLayout = false;
+                SetHeight(Height);
+                CanvasGroup.alpha = 1f;
+                RectTransform.localScale = Vector3.one * _targetScale;
+                SetPointerEnabled(CanHover && _hasDescription);
+
+                return;
+            }
+
+            SetHovered(false, 0f);
+            SetTextExpanded(false);
+            DescriptionText.alpha = 0f;
+            SetPointerEnabled(false);
+            SetHeight(0f);
+            CanvasGroup.alpha = 0f;
+            RectTransform.localScale = Vector3.one * hiddenScale;
+            DisableLayout();
+        }
+
+        private void DisableLayout()
+        {
+            LayoutElement.ignoreLayout = true;
+            Button.gameObject.SetActive(false);
         }
 
         private void SetHeight(float height)

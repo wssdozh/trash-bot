@@ -5,5 +5,7 @@ public enum ObjectiveTrigger
     TargetCompleted = 2,
     UseItem = 3,
     ExitRoom = 4,
-    Purchase = 5
+    Purchase = 5,
+    RoomCleared = 6,
+    BossDefeated = 7
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JunkyardBoss;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -25,9 +26,9 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
     private const string LeftMousePath = "<Mouse>/leftButton";
     private const string RightMousePath = "<Mouse>/rightButton";
     private const string MiddleMousePath = "<Mouse>/middleButton";
-    private const string LeftMouseLabel = "ЛКМ";
-    private const string RightMouseLabel = "ПКМ";
-    private const string MiddleMouseLabel = "СКМ";
+    private const string LeftMouseLabel = "\u041b\u041a\u041c";
+    private const string RightMouseLabel = "\u041f\u041a\u041c";
+    private const string MiddleMouseLabel = "\u0421\u041a\u041c";
     private const float MoveSqrThreshold = 0.01f;
 
     private readonly List<ObjectiveStepViewData> _stepViewData = new List<ObjectiveStepViewData>(8);
@@ -117,6 +118,8 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         _player.Interacted += OnPlayerInteracted;
         ObjectiveTarget.Completed += OnObjectiveTargetCompleted;
         PlayerModifierPurchase.Purchased += OnPlayerModifierPurchased;
+        RoomCombatLock.Cleared += OnRoomCleared;
+        BossExcavator.AnyDied += OnBossDied;
         RoomEnterTrigger.AnyEntered += OnRoomEntered;
         PlayerInputBindingOverrideStore.Changed += OnBindingOverridesChanged;
         _isSubscribed = true;
@@ -135,6 +138,8 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         _player.Interacted -= OnPlayerInteracted;
         ObjectiveTarget.Completed -= OnObjectiveTargetCompleted;
         PlayerModifierPurchase.Purchased -= OnPlayerModifierPurchased;
+        RoomCombatLock.Cleared -= OnRoomCleared;
+        BossExcavator.AnyDied -= OnBossDied;
         RoomEnterTrigger.AnyEntered -= OnRoomEntered;
         PlayerInputBindingOverrideStore.Changed -= OnBindingOverridesChanged;
         _isSubscribed = false;
@@ -451,6 +456,26 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         TryCompleteSteps(ObjectiveTrigger.Purchase, targetId);
     }
 
+    private void OnRoomCleared(RoomCombatLock roomCombatLock)
+    {
+        if (IsCurrentRoom(roomCombatLock) == false)
+        {
+            return;
+        }
+
+        TryCompleteSteps(ObjectiveTrigger.RoomCleared, string.Empty);
+    }
+
+    private void OnBossDied(BossExcavator boss)
+    {
+        if (IsCurrentRoom(boss) == false)
+        {
+            return;
+        }
+
+        TryCompleteSteps(ObjectiveTrigger.BossDefeated, string.Empty);
+    }
+
     private void OnBindingOverridesChanged()
     {
         PlayerInputBindingOverrideStore.Apply(_labelInputs);
@@ -484,5 +509,32 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         }
 
         ShowProfile(roomType);
+    }
+
+    private bool IsCurrentRoom(Component component)
+    {
+        if (component == null)
+        {
+            return false;
+        }
+
+        if (_currentProfile == null)
+        {
+            return false;
+        }
+
+        RoomGenerator roomGenerator = component.GetComponentInParent<RoomGenerator>();
+
+        if (roomGenerator == null)
+        {
+            return false;
+        }
+
+        if (roomGenerator.TryGetRoomType(out RoomType roomType) == false)
+        {
+            return false;
+        }
+
+        return _currentProfile.RoomType == roomType;
     }
 }

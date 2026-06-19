@@ -28,12 +28,14 @@ public sealed class RoomCombatLock : MonoBehaviour
     public RoomRuntimeState RoomRuntimeState => _roomRuntimeState;
     public static IReadOnlyList<RoomCombatLock> Instances => s_instances;
     public static event Action StateChanged;
+    public static event Action<RoomCombatLock> Cleared;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStaticState()
     {
         s_instances.Clear();
         StateChanged = null;
+        Cleared = null;
     }
 
     private void Awake()
@@ -103,7 +105,7 @@ public sealed class RoomCombatLock : MonoBehaviour
     {
         if (HasAliveThreats() == false)
         {
-            _isCleared = true;
+            MarkCleared(false);
 
             return;
         }
@@ -118,13 +120,13 @@ public sealed class RoomCombatLock : MonoBehaviour
         StateChanged?.Invoke();
     }
 
-    private void UnlockRoom()
+    private void UnlockRoom(bool shouldShowClearView)
     {
         _isLocked = false;
-        _isCleared = true;
         SetGatesClosed(false, false);
         UnsubscribeThreats();
         StateChanged?.Invoke();
+        MarkCleared(shouldShowClearView);
     }
 
     private void BuildEnterTriggers()
@@ -590,21 +592,33 @@ public sealed class RoomCombatLock : MonoBehaviour
 
         if (_isLocked)
         {
-            UnlockRoom();
+            UnlockRoom(isThreatDied);
 
-            if (isThreatDied)
-            {
-                ShowClearView();
-            }
+            return;
+        }
 
+        MarkCleared(isThreatDied);
+    }
+
+    private void MarkCleared(bool shouldShowClearView)
+    {
+        if (_isCleared)
+        {
             return;
         }
 
         _isCleared = true;
 
-        if (isThreatDied)
+        if (shouldShowClearView)
         {
             ShowClearView();
+        }
+
+        Action<RoomCombatLock> cleared = Cleared;
+
+        if (cleared != null)
+        {
+            cleared.Invoke(this);
         }
     }
 }
