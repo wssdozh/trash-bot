@@ -26,6 +26,7 @@ public sealed class InputBindingSettingsView : MonoBehaviour
     private const string KeyboardMouseGroupName = "Keyboard&Mouse";
 
     private const string SectionName = "InputSection";
+    private const string DeveloperSectionName = "DeveloperSection";
     private const string SectionTitle = "Управление";
     private const string MoveUpLabel = "Вперёд";
     private const string MoveDownLabel = "Назад";
@@ -154,10 +155,23 @@ public sealed class InputBindingSettingsView : MonoBehaviour
         RectTransform sectionTemplate = FindSectionTemplate();
         RectTransform section = Instantiate(sectionTemplate, _content);
         section.name = SectionName;
-        section.SetAsLastSibling();
+        PlaceSection(section);
         ClearChildren(section);
 
         return section;
+    }
+
+    private void PlaceSection(RectTransform section)
+    {
+        Transform developerSection = _content.Find(DeveloperSectionName);
+
+        if (developerSection == null)
+        {
+            section.SetAsLastSibling();
+            return;
+        }
+
+        section.SetSiblingIndex(developerSection.GetSiblingIndex());
     }
 
     private RectTransform FindSectionTemplate()

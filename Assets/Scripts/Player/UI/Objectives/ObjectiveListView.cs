@@ -11,12 +11,15 @@ public sealed class ObjectiveListView : MonoBehaviour
 {
     private const string RootName = "ObjectiveList";
     private const string TitleName = "ObjectiveTitle";
+    private const string ArrowName = "ObjectiveTitleArrow";
+    private const string ArrowLeftStrokeName = "ObjectiveTitleArrowLeft";
+    private const string ArrowRightStrokeName = "ObjectiveTitleArrowRight";
     private const string StepName = "ObjectiveStep";
-    private const float RootWidth = 430f;
-    private const float StepWidth = 382f;
+    private const float RootWidth = 400f;
+    private const float StepWidth = 352f;
     private const float RootTopOffset = -28f;
     private const float RootRightOffset = -28f;
-    private const float RootScale = 0.77f;
+    private const float RootScale = 1f;
     private const float ItemHeight = 48f;
     private const float ExpandedItemHeight = 92f;
     private const float TitleHeight = 52f;
@@ -27,8 +30,18 @@ public sealed class ObjectiveListView : MonoBehaviour
     private const float TitleFontSize = 21f;
     private const float StepFontSize = 18f;
     private const float DescriptionFontSize = 14f;
+    private const float ArrowSize = 34f;
+    private const float ArrowStrokeWidth = 16f;
+    private const float ArrowStrokeHeight = 3f;
+    private const float ArrowStrokeOffset = 5f;
+    private const float ArrowRightMargin = 22f;
+    private const float ArrowTextReserve = 58f;
+    private const float ArrowLeftRotation = -45f;
+    private const float ArrowRightRotation = 45f;
+    private const float ArrowExpandedRotation = 0f;
+    private const float ArrowCollapsedRotation = 90f;
     private const float MinFontSize = 12f;
-    private const int VisibleStepCount = 3;
+    private const int VisibleStepCount = 5;
     private const float ScrollTweenDuration = 0.18f;
     private const float ScrollWheelStep = 0.18f;
     private const float ScrollViewportHeight = ItemHeight * VisibleStepCount + ItemSpacing * (VisibleStepCount - 1);
@@ -63,6 +76,7 @@ public sealed class ObjectiveListView : MonoBehaviour
     private string _currentTitle;
     private ObjectiveItemView _titleItem;
     private ObjectiveItemClickHandler _titleClickHandler;
+    private RectTransform _titleArrow;
     private Sequence _sequence;
     private Tween _scrollTween;
     private readonly HashSet<int> _completedStepIndices = new HashSet<int>();
@@ -309,6 +323,7 @@ public sealed class ObjectiveListView : MonoBehaviour
             FontStyles.Bold,
             s_titleColor);
         AddTitleClickHandler(_titleItem);
+        CreateTitleArrow(_titleItem);
         CreateStepItems();
         ApplyOrder();
         ScrollToTop();
@@ -428,6 +443,50 @@ public sealed class ObjectiveListView : MonoBehaviour
         _titleClickHandler = item.Button.gameObject.AddComponent<ObjectiveItemClickHandler>();
         _titleClickHandler.Clicked += OnTitleClicked;
         item.SetPointerEnabled(true);
+    }
+
+    private void CreateTitleArrow(ObjectiveItemView item)
+    {
+        item.SetTextRightMargin(TextHorizontalMargin + ArrowTextReserve);
+
+        GameObject arrowObject = new GameObject(ArrowName, typeof(RectTransform));
+        arrowObject.transform.SetParent(item.Button.transform, false);
+        _titleArrow = arrowObject.GetComponent<RectTransform>();
+        _titleArrow.anchorMin = new Vector2(1f, 0.5f);
+        _titleArrow.anchorMax = new Vector2(1f, 0.5f);
+        _titleArrow.pivot = new Vector2(0.5f, 0.5f);
+        _titleArrow.anchoredPosition = new Vector2(-ArrowRightMargin, 0f);
+        _titleArrow.sizeDelta = new Vector2(ArrowSize, ArrowSize);
+        _titleArrow.localRotation = Quaternion.Euler(0f, 0f, ArrowExpandedRotation);
+
+        CreateArrowStroke(
+            _titleArrow,
+            ArrowLeftStrokeName,
+            new Vector2(-ArrowStrokeOffset, 0f),
+            ArrowLeftRotation);
+        CreateArrowStroke(
+            _titleArrow,
+            ArrowRightStrokeName,
+            new Vector2(ArrowStrokeOffset, 0f),
+            ArrowRightRotation);
+    }
+
+    private void CreateArrowStroke(Transform parent, string strokeName, Vector2 position, float rotation)
+    {
+        GameObject strokeObject = new GameObject(strokeName, typeof(RectTransform));
+        strokeObject.transform.SetParent(parent, false);
+
+        RectTransform rectTransform = strokeObject.GetComponent<RectTransform>();
+        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        rectTransform.anchoredPosition = position;
+        rectTransform.sizeDelta = new Vector2(ArrowStrokeWidth, ArrowStrokeHeight);
+        rectTransform.localRotation = Quaternion.Euler(0f, 0f, rotation);
+
+        Image image = strokeObject.AddComponent<Image>();
+        image.color = s_titleColor;
+        image.raycastTarget = false;
     }
 
     private TMP_Text CreateDescriptionLabel(Transform parent, TMP_Text template, string description)
@@ -626,6 +685,11 @@ public sealed class ObjectiveListView : MonoBehaviour
 
     private void ClearItems()
     {
+        if (_titleArrow != null)
+        {
+            _titleArrow.DOKill();
+        }
+
         for (int itemIndex = 0; itemIndex < _items.Count; itemIndex++)
         {
             ObjectiveItemView item = _items[itemIndex];
@@ -645,6 +709,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         _hoverItems.Clear();
         _titleItem = null;
         _titleClickHandler = null;
+        _titleArrow = null;
         _currentProfile = null;
         _currentTitle = null;
         _completedStepIndices.Clear();
@@ -845,6 +910,7 @@ public sealed class ObjectiveListView : MonoBehaviour
         KillSequence(false);
         _areStepsCollapsed = isCollapsed;
         _sequence = DOTween.Sequence();
+        AppendTitleArrowTween(_sequence, isCollapsed);
 
         foreach (KeyValuePair<int, ObjectiveItemView> stepItem in _stepItems)
         {
@@ -857,6 +923,20 @@ public sealed class ObjectiveListView : MonoBehaviour
 
         _sequence.OnUpdate(RebuildLayout);
         _sequence.OnComplete(RebuildLayout);
+    }
+
+    private void AppendTitleArrowTween(Sequence sequence, bool isCollapsed)
+    {
+        if (_titleArrow == null)
+        {
+            return;
+        }
+
+        float targetRotation = isCollapsed ? ArrowCollapsedRotation : ArrowExpandedRotation;
+        _titleArrow.DOKill();
+        sequence.Join(_titleArrow
+            .DOLocalRotate(new Vector3(0f, 0f, targetRotation), CollapseDuration)
+            .SetEase(Ease.OutCubic));
     }
 
     private void RebuildLayout()
@@ -1118,6 +1198,11 @@ public sealed class ObjectiveListView : MonoBehaviour
         public void SetDescription(string description)
         {
             DescriptionText.text = description;
+        }
+
+        public void SetTextRightMargin(float rightMargin)
+        {
+            Text.margin = new Vector4(TextHorizontalMargin, 0f, rightMargin, 0f);
         }
 
         public void SetListVisible(bool isVisible, float duration, float hiddenScale)
