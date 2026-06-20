@@ -44,6 +44,7 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
 
     private readonly List<ObjectiveStepViewData> _stepViewData = new List<ObjectiveStepViewData>(8);
     private readonly HashSet<int> _completedStepIndices = new HashSet<int>();
+    private readonly HashSet<RoomGenerator> _finishedRoomGenerators = new HashSet<RoomGenerator>();
     private readonly EnemyObjectiveCounters _enemyCounters = new EnemyObjectiveCounters();
 
     private ObjectiveProfile[] _profiles;
@@ -167,12 +168,19 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
 
     private void ShowProfile(RoomType roomType, RoomGenerator roomGenerator)
     {
+        if (IsFinishedRoom(roomGenerator))
+        {
+            ClearCurrentProfile();
+            _view.Hide();
+
+            return;
+        }
+
         ObjectiveProfile profile = FindProfile(roomType);
 
         if (profile == null)
         {
-            _currentProfile = null;
-            _currentRoomGenerator = null;
+            ClearCurrentProfile();
             _view.Hide();
 
             return;
@@ -183,6 +191,7 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         RefreshRuntimeState();
         _completedStepIndices.Clear();
         CompleteAbsentEnemyTypeSteps();
+        CompleteAlreadyClearedRoomSteps();
         RenderProfile();
     }
 
@@ -537,6 +546,46 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
         }
     }
 
+    private void CompleteAlreadyClearedRoomSteps()
+    {
+        if (_currentProfile == null)
+        {
+            return;
+        }
+
+        if (_currentProfile.Steps == null)
+        {
+            return;
+        }
+
+        if (IsRoomCleared(_currentRoomGenerator) == false)
+        {
+            return;
+        }
+
+        for (int stepIndex = 0; stepIndex < _currentProfile.Steps.Count; stepIndex++)
+        {
+            ObjectiveStepDefinition step = _currentProfile.Steps[stepIndex];
+
+            if (step == null)
+            {
+                continue;
+            }
+
+            if (step.Trigger == ObjectiveTrigger.RoomCleared)
+            {
+                _completedStepIndices.Add(stepIndex);
+
+                continue;
+            }
+
+            if (step.Trigger == ObjectiveTrigger.EnemyTypeCleared)
+            {
+                _completedStepIndices.Add(stepIndex);
+            }
+        }
+    }
+
     private string GetMoveKeys()
     {
         string upKey = GetBindingDisplay(MoveActionName, UpPartName);
@@ -720,7 +769,7 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
 
         if (_currentProfile != null)
         {
-            TryCompleteSteps(ObjectiveTrigger.ExitRoom, string.Empty);
+            CompleteCurrentRoomExitSteps();
         }
 
         ShowProfile(roomType, roomGenerator);
@@ -748,12 +797,60 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
 
     private void CompleteCurrentRoomExit()
     {
+        CompleteCurrentRoomExitSteps();
+        ClearCurrentProfile();
+        _view.Hide();
+    }
+
+    private void CompleteCurrentRoomExitSteps()
+    {
         TryCompleteSteps(ObjectiveTrigger.ExitRoom, string.Empty);
+        MarkCurrentRoomFinished();
+    }
+
+    private void MarkCurrentRoomFinished()
+    {
+        if (_currentRoomGenerator == null)
+        {
+            return;
+        }
+
+        _finishedRoomGenerators.Add(_currentRoomGenerator);
+    }
+
+    private void ClearCurrentProfile()
+    {
         _currentProfile = null;
         _currentRoomGenerator = null;
         _completedStepIndices.Clear();
         _enemyCounters.Clear();
-        _view.Hide();
+    }
+
+    private bool IsFinishedRoom(RoomGenerator roomGenerator)
+    {
+        if (roomGenerator == null)
+        {
+            return false;
+        }
+
+        return _finishedRoomGenerators.Contains(roomGenerator);
+    }
+
+    private bool IsRoomCleared(RoomGenerator roomGenerator)
+    {
+        if (roomGenerator == null)
+        {
+            return false;
+        }
+
+        RoomCombatLock roomCombatLock = roomGenerator.GetComponentInChildren<RoomCombatLock>(true);
+
+        if (roomCombatLock == null)
+        {
+            return false;
+        }
+
+        return roomCombatLock.IsCleared;
     }
 
     private string GetEnemyType(Enemy enemy)

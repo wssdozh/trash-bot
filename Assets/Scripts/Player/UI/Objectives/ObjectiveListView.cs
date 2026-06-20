@@ -45,8 +45,9 @@ public sealed class ObjectiveListView : MonoBehaviour
     private const float ScrollTweenDuration = 0.18f;
     private const float ScrollWheelStep = 0.18f;
     private const float ScrollViewportHeight = ItemHeight * VisibleStepCount + ItemSpacing * (VisibleStepCount - 1);
-    private const float AppearDuration = 0.18f;
-    private const float HideDuration = 0.14f;
+    private const float AppearDuration = 0.26f;
+    private const float HideDuration = 0.22f;
+    private const float ItemStaggerDuration = 0.035f;
     private const float MoveDuration = 0.28f;
     private const float CompleteDuration = 0.18f;
     private const float HoverDuration = 0.16f;
@@ -165,7 +166,9 @@ public sealed class ObjectiveListView : MonoBehaviour
         for (int itemIndex = 0; itemIndex < _items.Count; itemIndex++)
         {
             ObjectiveItemView item = _items[itemIndex];
-            _sequence.Join(item.BuildHideTween(HideDuration, AppearScale));
+            _sequence.Insert(
+                itemIndex * ItemStaggerDuration,
+                item.BuildHideTween(HideDuration, AppearScale));
         }
 
         _sequence.OnComplete(OnHidden);
@@ -288,7 +291,9 @@ public sealed class ObjectiveListView : MonoBehaviour
         for (int itemIndex = 0; itemIndex < _items.Count; itemIndex++)
         {
             ObjectiveItemView item = _items[itemIndex];
-            _sequence.Join(item.BuildHideTween(HideDuration, AppearScale));
+            _sequence.Insert(
+                itemIndex * ItemStaggerDuration,
+                item.BuildHideTween(HideDuration, AppearScale));
         }
 
         _sequence.AppendInterval(ReplaceDelay);
@@ -679,7 +684,9 @@ public sealed class ObjectiveListView : MonoBehaviour
         {
             ObjectiveItemView item = _items[itemIndex];
             item.PrepareAppear(AppearScale);
-            _sequence.Join(item.BuildAppearTween(AppearDuration));
+            _sequence.Insert(
+                itemIndex * ItemStaggerDuration,
+                item.BuildAppearTween(AppearDuration));
         }
     }
 

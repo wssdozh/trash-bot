@@ -25,6 +25,7 @@ public sealed class RoomCombatLock : MonoBehaviour
     private bool _isCleared;
 
     public bool IsLocked => _isLocked;
+    public bool IsCleared => _isCleared;
     public RoomRuntimeState RoomRuntimeState => _roomRuntimeState;
     public static IReadOnlyList<RoomCombatLock> Instances => s_instances;
     public static event Action StateChanged;
