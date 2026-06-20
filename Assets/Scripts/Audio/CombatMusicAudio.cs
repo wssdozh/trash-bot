@@ -8,73 +8,77 @@ public sealed class CombatMusicAudio : MonoBehaviour
 {
     private const float MinVolumeDelta = 0.0001f;
 
-    [SerializeField] private AudioSource _explorationSource;
-    [SerializeField] private AudioSource _combatSource;
-    [SerializeField, Min(0f)] private float _explorationTargetVolume = 0.06f;
-    [SerializeField, Min(0f)] private float _combatTargetVolume = 0.06f;
+    [SerializeField] private AudioSource _defaultSource;
+    [SerializeField] private AudioSource _bossSource;
+    [SerializeField, Min(0f)] private float _defaultTargetVolume = 0.06f;
+    [SerializeField, Min(0f)] private float _bossTargetVolume = 0.06f;
     [SerializeField, Min(0f)] private float _fadeSpeed = 0.6f;
-    [SerializeField, Min(0f)] private float _combatReleaseDelay = 1.2f;
+    [SerializeField, Min(0f)] private float _bossReleaseDelay = 1.2f;
 
-    private bool _isCombatActive;
-    private float _combatReleaseTimer;
+    private MusicState _targetState;
+    private MusicState _releaseState;
+    private float _releaseTimer;
     private Coroutine _fadeCoroutine;
+
+    private enum MusicState
+    {
+        Default = 0,
+        Boss = 1
+    }
 
     private void Awake()
     {
-        ValidateSource(_explorationSource, nameof(_explorationSource));
-        ValidateSource(_combatSource, nameof(_combatSource));
-        ValidateNonNegative(_explorationTargetVolume, nameof(_explorationTargetVolume));
-        ValidateNonNegative(_combatTargetVolume, nameof(_combatTargetVolume));
+        ValidateSource(_defaultSource, nameof(_defaultSource));
+        ValidateSource(_bossSource, nameof(_bossSource));
+        ValidateNonNegative(_defaultTargetVolume, nameof(_defaultTargetVolume));
+        ValidateNonNegative(_bossTargetVolume, nameof(_bossTargetVolume));
         ValidateNonNegative(_fadeSpeed, nameof(_fadeSpeed));
-        ValidateNonNegative(_combatReleaseDelay, nameof(_combatReleaseDelay));
+        ValidateNonNegative(_bossReleaseDelay, nameof(_bossReleaseDelay));
 
-        SetupSource(_explorationSource);
-        SetupSource(_combatSource);
+        SetupSource(_defaultSource);
+        SetupSource(_bossSource);
     }
 
     private void OnEnable()
     {
         RoomCombatLock.StateChanged += OnRoomCombatLockStateChanged;
-        RefreshCombatState();
+        RefreshMusicState();
     }
 
     private void OnDisable()
     {
         RoomCombatLock.StateChanged -= OnRoomCombatLockStateChanged;
-        _isCombatActive = false;
-        _combatReleaseTimer = 0f;
+        _targetState = MusicState.Default;
+        _releaseState = MusicState.Default;
+        _releaseTimer = 0f;
         StopFadeRoutine();
-        StopSource(_explorationSource);
-        StopSource(_combatSource);
+        StopSource(_defaultSource);
+        StopSource(_bossSource);
     }
 
-    private void OnRoomCombatLockStateChanged()
+    private void RefreshMusicState()
     {
-        RefreshCombatState();
-    }
+        MusicState targetState = GetTargetState();
 
-    private void RefreshCombatState()
-    {
-        bool hasActiveCombat = HasActiveCombat();
-
-        if (hasActiveCombat)
+        if (targetState == _targetState)
         {
-            _isCombatActive = true;
-            _combatReleaseTimer = 0f;
             EnsureFadeRoutine();
 
             return;
         }
 
-        if (_isCombatActive)
+        if (targetState == MusicState.Default && _targetState != MusicState.Default)
         {
-            _isCombatActive = false;
-            _combatReleaseTimer = _combatReleaseDelay;
-            EnsureFadeRoutine();
-
-            return;
+            _releaseState = _targetState;
+            _releaseTimer = _bossReleaseDelay;
+        }
+        else
+        {
+            _releaseState = MusicState.Default;
+            _releaseTimer = 0f;
         }
 
+        _targetState = targetState;
         EnsureFadeRoutine();
     }
 
@@ -84,18 +88,16 @@ public sealed class CombatMusicAudio : MonoBehaviour
 
         while (shouldContinue)
         {
-            if (_isCombatActive == false && _combatReleaseTimer > 0f)
-            {
-                _combatReleaseTimer = Mathf.Max(0f, _combatReleaseTimer - Time.deltaTime);
-            }
+            if (_targetState == MusicState.Default && _releaseTimer > 0f)
+                _releaseTimer = Mathf.Max(0f, _releaseTimer - Time.deltaTime);
 
-            bool shouldPlayCombat = _isCombatActive || _combatReleaseTimer > 0f;
-            float explorationTargetVolume = shouldPlayCombat ? 0f : _explorationTargetVolume;
-            float combatTargetVolume = shouldPlayCombat ? _combatTargetVolume : 0f;
+            MusicState audibleState = GetAudibleState();
+            float defaultTargetVolume = audibleState == MusicState.Default ? _defaultTargetVolume : 0f;
+            float bossTargetVolume = audibleState == MusicState.Boss ? _bossTargetVolume : 0f;
 
-            FadeSource(_explorationSource, explorationTargetVolume);
-            FadeSource(_combatSource, combatTargetVolume);
-            shouldContinue = ShouldContinueFade(explorationTargetVolume, combatTargetVolume);
+            FadeSource(_defaultSource, defaultTargetVolume);
+            FadeSource(_bossSource, bossTargetVolume);
+            shouldContinue = ShouldContinueFade(defaultTargetVolume, bossTargetVolume);
 
             if (shouldContinue)
             {
@@ -106,7 +108,7 @@ public sealed class CombatMusicAudio : MonoBehaviour
         _fadeCoroutine = null;
     }
 
-    private bool HasActiveCombat()
+    private MusicState GetTargetState()
     {
         IReadOnlyList<RoomCombatLock> roomCombatLocks = RoomCombatLock.Instances;
 
@@ -114,13 +116,25 @@ public sealed class CombatMusicAudio : MonoBehaviour
         {
             RoomCombatLock roomCombatLock = roomCombatLocks[i];
 
-            if (roomCombatLock != null && roomCombatLock.IsLocked)
-            {
-                return true;
-            }
+            if (roomCombatLock == null)
+                continue;
+
+            if (roomCombatLock.IsLocked == false)
+                continue;
+
+            if (roomCombatLock.HasAliveBoss)
+                return MusicState.Boss;
         }
 
-        return false;
+        return MusicState.Default;
+    }
+
+    private MusicState GetAudibleState()
+    {
+        if (_targetState == MusicState.Default && _releaseTimer > 0f)
+            return _releaseState;
+
+        return _targetState;
     }
 
     private void ValidateSource(AudioSource source, string fieldName)
@@ -141,9 +155,12 @@ public sealed class CombatMusicAudio : MonoBehaviour
 
     private void SetupSource(AudioSource source)
     {
-        source.playOnAwake = true;
+        source.playOnAwake = false;
         source.loop = true;
         source.volume = 0f;
+
+        if (source.isPlaying)
+            source.Stop();
     }
 
     private void FadeSource(AudioSource source, float targetVolume)
@@ -168,19 +185,19 @@ public sealed class CombatMusicAudio : MonoBehaviour
         }
     }
 
-    private bool ShouldContinueFade(float explorationTargetVolume, float combatTargetVolume)
+    private bool ShouldContinueFade(float defaultTargetVolume, float bossTargetVolume)
     {
-        if (_combatReleaseTimer > 0f)
+        if (_releaseTimer > 0f)
         {
             return true;
         }
 
-        if (Mathf.Abs(_explorationSource.volume - explorationTargetVolume) > MinVolumeDelta)
+        if (Mathf.Abs(_defaultSource.volume - defaultTargetVolume) > MinVolumeDelta)
         {
             return true;
         }
 
-        if (Mathf.Abs(_combatSource.volume - combatTargetVolume) > MinVolumeDelta)
+        if (Mathf.Abs(_bossSource.volume - bossTargetVolume) > MinVolumeDelta)
         {
             return true;
         }
@@ -234,5 +251,10 @@ public sealed class CombatMusicAudio : MonoBehaviour
 
         StopCoroutine(_fadeCoroutine);
         _fadeCoroutine = null;
+    }
+
+    private void OnRoomCombatLockStateChanged()
+    {
+        RefreshMusicState();
     }
 }

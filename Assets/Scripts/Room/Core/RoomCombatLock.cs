@@ -26,6 +26,7 @@ public sealed class RoomCombatLock : MonoBehaviour
 
     public bool IsLocked => _isLocked;
     public bool IsCleared => _isCleared;
+    public bool HasAliveBoss => HasAliveBosses();
     public RoomRuntimeState RoomRuntimeState => _roomRuntimeState;
     public static IReadOnlyList<RoomCombatLock> Instances => s_instances;
     public static event Action StateChanged;
@@ -365,6 +366,22 @@ public sealed class RoomCombatLock : MonoBehaviour
             {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private bool HasAliveBosses()
+    {
+        for (int bossIndex = 0; bossIndex < _bosses.Count; bossIndex++)
+        {
+            BossExcavator boss = _bosses[bossIndex];
+
+            if (boss == null)
+                continue;
+
+            if (boss.IsDead == false)
+                return true;
         }
 
         return false;
