@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
 public sealed class PauseMenuNavigation : MonoBehaviour
 {
     [SerializeField] private List<ButtonMenu> _buttonMenus;
+    [SerializeField] private Button _restartButton;
+
     private readonly List<PauseMenuButtonListener> _buttonListeners = new List<PauseMenuButtonListener>();
 
     private void OnEnable()
@@ -19,6 +22,8 @@ public sealed class PauseMenuNavigation : MonoBehaviour
             _buttonListeners.Add(buttonListener);
             buttonMenu.Button.onClick.AddListener(buttonListener.OnClicked);
         }
+
+        _restartButton.onClick.AddListener(OnRestartClicked);
     }
 
     private void OnDisable()
@@ -32,6 +37,7 @@ public sealed class PauseMenuNavigation : MonoBehaviour
             buttonMenu.Button.onClick.RemoveListener(buttonListener.OnClicked);
         }
 
+        _restartButton.onClick.RemoveListener(OnRestartClicked);
         _buttonListeners.Clear();
     }
 
@@ -77,4 +83,10 @@ public sealed class PauseMenuNavigation : MonoBehaviour
         }
     }
 
+    private void OnRestartClicked()
+    {
+        PauseController.Instance.Resume();
+        DOTween.KillAll(true);
+        SceneLoadingScreen.ReloadCurrentScene();
+    }
 }
