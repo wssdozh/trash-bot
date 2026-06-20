@@ -18,6 +18,9 @@ public sealed class CursorAnimator : MonoBehaviour
     [SerializeField] private float _spriteTransitionDuration = 0.24f;
     [SerializeField] private Color _cursorColor = Color.white;
 
+    [Header("Layering")]
+    [SerializeField] private int _sortingOrder = 1000;
+
     [Header("Click")]
     [SerializeField] private float _clickDownScale = 0.85f;
     [SerializeField] private float _clickDownDuration = 0.05f;
@@ -60,6 +63,7 @@ public sealed class CursorAnimator : MonoBehaviour
     private Sprite _defaultCursorSprite;
     private Sprite _damageableCursorSprite;
     private Sprite _currentCursorSprite;
+    private Canvas _cursorCanvas;
 
     private bool _isHeld;
 
@@ -80,6 +84,7 @@ public sealed class CursorAnimator : MonoBehaviour
             throw new InvalidOperationException(nameof(_cursorImage));
         }
 
+        ConfigureLayering();
         LoadCursorSprites();
         CreateTransitionImage();
         _baseScale = _visualRectTransform.localScale;
@@ -88,6 +93,7 @@ public sealed class CursorAnimator : MonoBehaviour
         _currentCursorSprite = _defaultCursorSprite;
         _cursorImage.sprite = _currentCursorSprite;
         _cursorImage.color = _cursorColor;
+        _cursorImage.raycastTarget = false;
         HideTransitionImage();
     }
 
@@ -331,6 +337,19 @@ public sealed class CursorAnimator : MonoBehaviour
         {
             throw new InvalidOperationException(DamageableCursorResourcePath);
         }
+    }
+
+    private void ConfigureLayering()
+    {
+        _cursorCanvas = _visualRectTransform.GetComponent<Canvas>();
+
+        if (_cursorCanvas == null)
+        {
+            _cursorCanvas = _visualRectTransform.gameObject.AddComponent<Canvas>();
+        }
+
+        _cursorCanvas.overrideSorting = true;
+        _cursorCanvas.sortingOrder = _sortingOrder;
     }
 
     private void CreateTransitionImage()

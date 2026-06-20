@@ -1,5 +1,5 @@
-using UnityEngine;
 using DG.Tweening;
+using UnityEngine;
 
 public class DoorInteractable : Interactable
 {
@@ -9,7 +9,7 @@ public class DoorInteractable : Interactable
     [SerializeField] private float _openDuration = 0.7f;
     [SerializeField] private Ease _openEase = Ease.InOutSine;
 
-    private bool _isOpen = false;
+    private bool _isOpen;
     private Quaternion _closedRotation;
     private Quaternion _openRotationPositive;
     private Quaternion _openRotationNegative;
@@ -20,7 +20,6 @@ public class DoorInteractable : Interactable
         base.Awake();
 
         _doorTransform = _doorTransform == null ? transform : _doorTransform;
-
         _closedRotation = _doorTransform.rotation;
 
         float openAngle = Mathf.Abs(_openAngle);
@@ -32,15 +31,18 @@ public class DoorInteractable : Interactable
     public override string GetPrompt()
     {
         return _isOpen
-            ? "Нажмите [E], чтобы закрыть дверь"
-            : "Нажмите [E], чтобы открыть дверь";
+            ? "закрыть дверь"
+            : "открыть дверь";
     }
 
     public override void Interact(GameObject interactor)
     {
         _isOpen = _isOpen == false;
 
-        _currentTween?.Kill();
+        if (_currentTween != null)
+        {
+            _currentTween.Kill();
+        }
 
         Quaternion targetRotation = _isOpen ? GetOpenRotation(interactor) : _closedRotation;
 

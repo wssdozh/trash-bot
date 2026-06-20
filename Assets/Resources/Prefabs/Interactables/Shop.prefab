@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d2233729ddaac4408fbf4c36bc54c2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ModifierVendingMachine
-  _interactionName: "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043C\u0430\u0433\u0430\u0437\u0438\u043D"
+  _interactionName: "\u043E\u0442\u043A\u0440\u044B\u0442\u044C \u0442\u0435\u0440\u043C\u0438\u043D\u0430\u043B"
   _interactionPoint: {fileID: 3565065067593946173}
   _highlightBase: {fileID: 2105307199381881589}
   _offerPool: {fileID: 11400000, guid: 0250e62a8ff9cb647b9663eb9b1cc312, type: 2}

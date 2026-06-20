@@ -4,6 +4,7 @@ using UnityEngine;
 public class CharacterInteractor : MonoBehaviour
 {
     private const int InteractableBufferSize = 32;
+    private const string InteractActionName = "Interact";
 
     [Header("Зависимости")]
     [SerializeField] private Transform _origin;
@@ -12,26 +13,47 @@ public class CharacterInteractor : MonoBehaviour
     [Header("Настройки")]
     [SerializeField] private float _interactionSphereRadius = 3f;
     [SerializeField] private LayerMask _interactableMask;
+    [SerializeField] private string _promptFormat = "Нажмите [{0}], чтобы {1}";
+
+    private readonly Collider[] _interactableBuffer = new Collider[InteractableBufferSize];
 
     private Interactable _hovered;
-    private readonly Collider[] _interactableBuffer = new Collider[InteractableBufferSize];
+    private PlayerInputActions _promptInputs;
 
     public event Action<Interactable> Interacted;
 
     private void Awake()
     {
         if (_origin == null)
+        {
             _origin = transform;
+        }
+
+        _promptInputs = new PlayerInputActions();
+        PlayerInputBindingOverrideStore.Apply(_promptInputs);
     }
 
-    private bool TryFindInteractable(Collider collider, out Interactable interactable)
+    private void OnEnable()
     {
-        if (collider.TryGetComponent(out interactable))
-            return true;
+        PlayerInputBindingOverrideStore.Changed += OnBindingOverridesChanged;
+    }
 
-        interactable = collider.GetComponentInParent<Interactable>();
+    private void OnDisable()
+    {
+        PlayerInputBindingOverrideStore.Changed -= OnBindingOverridesChanged;
+        ClearHovered();
+    }
 
-        return interactable != null;
+    private void OnDestroy()
+    {
+        if (_promptInputs == null)
+        {
+            return;
+        }
+
+        _promptInputs.Disable();
+        _promptInputs.Dispose();
+        _promptInputs = null;
     }
 
     public void TickHover()
@@ -46,15 +68,18 @@ public class CharacterInteractor : MonoBehaviour
         }
 
         if (_hovered == closest)
+        {
             return;
+        }
 
         if (_hovered != null)
+        {
             _hovered.Highlight(false);
+        }
 
         _hovered = closest;
         _hovered.Highlight(true);
-
-        _texter.Show(_hovered.GetPrompt());
+        ShowHoveredPrompt();
     }
 
     public void TryInteract(GameObject interactorGameObject)
@@ -71,12 +96,28 @@ public class CharacterInteractor : MonoBehaviour
             Interacted.Invoke(_hovered);
         }
 
-        _texter.Show(_hovered.GetPrompt());
+        ShowHoveredPrompt();
+    }
+
+    private bool TryFindInteractable(Collider collider, out Interactable interactable)
+    {
+        if (collider.TryGetComponent(out interactable))
+        {
+            return true;
+        }
+
+        interactable = collider.GetComponentInParent<Interactable>();
+
+        return interactable != null;
     }
 
     private Interactable FindClosestInteractable()
     {
-        int colliderCount = Physics.OverlapSphereNonAlloc(_origin.position, _interactionSphereRadius, _interactableBuffer, _interactableMask);
+        int colliderCount = Physics.OverlapSphereNonAlloc(
+            _origin.position,
+            _interactionSphereRadius,
+            _interactableBuffer,
+            _interactableMask);
 
         Interactable closest = null;
         float minSqrDistance = float.MaxValue;
@@ -86,17 +127,21 @@ public class CharacterInteractor : MonoBehaviour
             Collider collider = _interactableBuffer[i];
 
             if (TryFindInteractable(collider, out Interactable interactable) == false)
+            {
                 continue;
+            }
 
             if (interactable.isActiveAndEnabled == false || interactable.gameObject.activeInHierarchy == false)
+            {
                 continue;
+            }
 
             Vector3 nearestPoint = collider.ClosestPoint(_origin.position);
-            float sqr = (_origin.position - nearestPoint).sqrMagnitude;
+            float sqrDistance = (_origin.position - nearestPoint).sqrMagnitude;
 
-            if (sqr < minSqrDistance)
+            if (sqrDistance < minSqrDistance)
             {
-                minSqrDistance = sqr;
+                minSqrDistance = sqrDistance;
                 closest = interactable;
             }
         }
@@ -113,18 +158,54 @@ public class CharacterInteractor : MonoBehaviour
         }
 
         if (_texter != null)
+        {
             _texter.Hide();
+        }
     }
 
-    private void OnDisable()
+    private void ShowHoveredPrompt()
     {
-        ClearHovered();
+        if (_hovered == null)
+        {
+            return;
+        }
+
+        if (_texter == null)
+        {
+            return;
+        }
+
+        string prompt = _hovered.GetPrompt();
+
+        if (string.IsNullOrWhiteSpace(prompt))
+        {
+            _texter.Hide();
+
+            return;
+        }
+
+        _texter.Show(BuildPrompt(prompt));
+    }
+
+    private string BuildPrompt(string prompt)
+    {
+        string keyLabel = PlayerInputBindingLabel.Get(_promptInputs, InteractActionName, string.Empty);
+
+        return string.Format(_promptFormat, keyLabel, prompt);
+    }
+
+    private void OnBindingOverridesChanged()
+    {
+        PlayerInputBindingOverrideStore.Apply(_promptInputs);
+        ShowHoveredPrompt();
     }
 
     private void OnDrawGizmosSelected()
     {
         if (_origin == null)
+        {
             return;
+        }
 
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(_origin.position, _interactionSphereRadius);

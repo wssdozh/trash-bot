@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using JunkyardBoss;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -18,7 +17,6 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
     private const string DownPartName = "down";
     private const string LeftPartName = "left";
     private const string RightPartName = "right";
-    private const string KeyboardMouseGroupName = "Keyboard&Mouse";
     private const string MoveKeysToken = "{MoveKeys}";
     private const string AttackKeyToken = "{AttackKey}";
     private const string InteractKeyToken = "{InteractKey}";
@@ -42,12 +40,6 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
     private const string BossPhaseOneText = "первая фаза";
     private const string BossPhaseTwoText = "вторая фаза";
     private const string BossPhaseThreeText = "третья фаза";
-    private const string LeftMousePath = "<Mouse>/leftButton";
-    private const string RightMousePath = "<Mouse>/rightButton";
-    private const string MiddleMousePath = "<Mouse>/middleButton";
-    private const string LeftMouseLabel = "\u041b\u041a\u041c";
-    private const string RightMouseLabel = "\u041f\u041a\u041c";
-    private const string MiddleMouseLabel = "\u0421\u041a\u041c";
     private const float MoveSqrThreshold = 0.01f;
 
     private readonly List<ObjectiveStepViewData> _stepViewData = new List<ObjectiveStepViewData>(8);
@@ -557,80 +549,7 @@ public sealed class PlayerObjectiveTracker : MonoBehaviour
 
     private string GetBindingDisplay(string actionName, string bindingPartName)
     {
-        InputAction action = GetAction(actionName);
-        int bindingIndex = GetBindingIndex(action, bindingPartName);
-        string bindingPath = action.bindings[bindingIndex].effectivePath;
-
-        return GetHumanBindingLabel(bindingPath);
-    }
-
-    private InputAction GetAction(string actionName)
-    {
-        InputAction action = _labelInputs.asset.FindAction(actionName, true);
-
-        if (action == null)
-        {
-            throw new InvalidOperationException(actionName);
-        }
-
-        return action;
-    }
-
-    private int GetBindingIndex(InputAction action, string bindingPartName)
-    {
-        for (int i = 0; i < action.bindings.Count; i++)
-        {
-            InputBinding binding = action.bindings[i];
-
-            if (IsTargetBinding(binding, bindingPartName))
-            {
-                return i;
-            }
-        }
-
-        throw new InvalidOperationException(action.name);
-    }
-
-    private bool IsTargetBinding(InputBinding binding, string bindingPartName)
-    {
-        if (string.IsNullOrEmpty(binding.groups))
-        {
-            return false;
-        }
-
-        if (binding.groups.Contains(KeyboardMouseGroupName) == false)
-        {
-            return false;
-        }
-
-        if (string.IsNullOrEmpty(bindingPartName))
-        {
-            return binding.isComposite == false && binding.isPartOfComposite == false;
-        }
-
-        return binding.isPartOfComposite && binding.name == bindingPartName;
-    }
-
-    private string GetHumanBindingLabel(string bindingPath)
-    {
-        if (bindingPath == LeftMousePath)
-        {
-            return LeftMouseLabel;
-        }
-
-        if (bindingPath == RightMousePath)
-        {
-            return RightMouseLabel;
-        }
-
-        if (bindingPath == MiddleMousePath)
-        {
-            return MiddleMouseLabel;
-        }
-
-        return InputControlPath.ToHumanReadableString(
-            bindingPath,
-            InputControlPath.HumanReadableStringOptions.OmitDevice);
+        return PlayerInputBindingLabel.Get(_labelInputs, actionName, bindingPartName);
     }
 
     private void DisposeLabelInputs()
