@@ -33,6 +33,11 @@ MonoBehaviour:
     _spawnHeight: 1.8
     _guaranteed: 0
     _weaponPrefab: {fileID: 1864531296725922894, guid: 63964cb5d2bc33540b1943393b2507b7, type: 3}
+  - _prefab: {fileID: 5771000000000000002, guid: 6e1d43b2102a4e2bba1ee2538f7d5acf, type: 3}
+    _weight: 1
+    _spawnHeight: 1.8
+    _guaranteed: 1
+    _weaponPrefab: {fileID: 0}
   _enemySpawnHeights: []
   _objectSpawnCountRange: {x: 3, y: 10}
   _objectPrefabs:
@@ -40,6 +45,11 @@ MonoBehaviour:
     _weight: 1
     _spawnHeight: 1.75
     _guaranteed: 0
+  _weaponTankPrefabs:
+  - {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
+  - {fileID: 7892580720158080282, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
+  - {fileID: 7892580720158080282, guid: 6f93e87cb1d2480db3e829fd7b989716, type: 3}
+  - {fileID: 7892580720158080282, guid: 2b66865ab6bd42d28938ec7673370ab6, type: 3}
   _nookPrefabs:
   - _prefab: {fileID: 4886392652990026178, guid: 5ea691f870f2399428249cd4b0746cc3, type: 3}
     _weight: 1
@@ -67,8 +77,8 @@ MonoBehaviour:
     _scatterRadiusInCells: 0
   - _prefab: {fileID: 7892580720158080282, guid: 9b4f942ba50aeaf49a6448fb907eefd1, type: 3}
     _weight: 10
-    _guaranteed: 1
-    _countRange: {x: 1, y: 1}
+    _guaranteed: 0
+    _countRange: {x: 0, y: 0}
     _minimumDistanceFromCorridorInCells: 10
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1
@@ -80,7 +90,7 @@ MonoBehaviour:
   - _prefab: {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
     _weight: 32
     _guaranteed: 0
-    _countRange: {x: 1, y: 2}
+    _countRange: {x: 0, y: 0}
     _minimumDistanceFromCorridorInCells: 10
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1

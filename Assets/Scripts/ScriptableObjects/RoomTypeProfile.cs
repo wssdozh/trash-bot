@@ -29,6 +29,7 @@ public sealed class RoomTypeProfile : ScriptableObject
     [Header("Objects")]
     [SerializeField] private Vector2Int _objectSpawnCountRange = new Vector2Int(0, 0);
     [SerializeField] private List<WeightedPrefab> _objectPrefabs = new List<WeightedPrefab>();
+    [SerializeField] private List<GameObject> _weaponTankPrefabs = new List<GameObject>();
 
     [Header("Nooks")]
     [SerializeField] private List<NookPrefabConfig> _nookPrefabs = new List<NookPrefabConfig>();
@@ -47,6 +48,7 @@ public sealed class RoomTypeProfile : ScriptableObject
     public IReadOnlyList<EnemySpawnConfig> EnemyPrefabs => _enemyPrefabs;
     public Vector2Int ObjectSpawnCountRange => _objectSpawnCountRange;
     public IReadOnlyList<WeightedPrefab> ObjectPrefabs => _objectPrefabs;
+    public IReadOnlyList<GameObject> WeaponTankPrefabs => _weaponTankPrefabs;
     public IReadOnlyList<NookPrefabConfig> NookPrefabs => _nookPrefabs;
     public int NookMinimumAreaInCells => _nookMinimumAreaInCells;
 

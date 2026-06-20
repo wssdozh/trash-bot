@@ -9,6 +9,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private const int CombatBaseMax = 7;
     private const int CombatAddMin = 3;
     private const int CombatAddMax = 5;
+    private const int CombatWeaponTankCount = 2;
+    private const int WeaponTankFootprintRadiusInCells = 1;
     private const int GroundPatrolCount = 8;
     private const int GroundPatrolMin = 2;
     private const int GroundPatrolGap = 2;
@@ -48,6 +50,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
     private readonly List<Vector2Int> _groundPatrolCellsBuffer = new List<Vector2Int>();
     private readonly List<Vector3> _groundPatrolPointsBuffer = new List<Vector3>();
     private readonly List<Vector2Int> _resourceCentersBuffer = new List<Vector2Int>();
+    private readonly List<GameObject> _weaponTankPlanBuffer = new List<GameObject>();
     private readonly HashSet<Vector2Int> _enemyCellsBuffer = new HashSet<Vector2Int>();
     private readonly List<EnemySpawnConfig> _spawnedEnemiesBuffer = new List<EnemySpawnConfig>();
     private readonly Queue<Vector2Int> _distanceFillQueue = new Queue<Vector2Int>();
@@ -145,6 +148,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
             distanceFromEntrance,
             maximumEntranceDistance,
             distanceFromCorridor,
+            combatRoomIndex,
             random
         );
 
@@ -1610,18 +1614,26 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int[,] distanceFromEntrance,
         int maximumEntranceDistance,
         int[,] distanceFromCorridor,
+        int combatRoomIndex,
         System.Random random
     )
     {
         List<Vector2Int> resourceCenters = _resourceCentersBuffer;
         resourceCenters.Clear();
+        List<GameObject> weaponTankPlan = _weaponTankPlanBuffer;
+        FillWeaponTankPlan(roomTypeProfile, combatRoomIndex, weaponTankPlan, random);
 
-        if (roomTypeProfile.ObjectPrefabs.Count == 0)
+        if (roomTypeProfile.ObjectPrefabs.Count == 0 && weaponTankPlan.Count == 0)
         {
             return resourceCenters;
         }
 
         int objectSpawnCount = random.Next(roomTypeProfile.ObjectSpawnCountRange.x, roomTypeProfile.ObjectSpawnCountRange.y + 1);
+
+        if (weaponTankPlan.Count > 0)
+        {
+            objectSpawnCount += weaponTankPlan.Count;
+        }
 
         if (objectSpawnCount <= 0)
         {
@@ -1686,6 +1698,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         int basePerCluster = objectSpawnCount / Mathf.Max(1, resourceCenters.Count);
         int remainder = objectSpawnCount - (basePerCluster * Mathf.Max(1, resourceCenters.Count));
+        int weaponTankPlanIndex = 0;
 
         for (int clusterIndex = 0; clusterIndex < resourceCenters.Count; clusterIndex++)
         {
@@ -1705,6 +1718,8 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 distanceFromCorridor,
                 resourceCenters[clusterIndex],
                 clusterSpawnCount,
+                weaponTankPlan,
+                ref weaponTankPlanIndex,
                 random
             );
         }
@@ -1857,12 +1872,16 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int[,] distanceFromCorridor,
         Vector2Int centerCell,
         int spawnCount,
+        List<GameObject> weaponTankPlan,
+        ref int weaponTankPlanIndex,
         System.Random random
     )
     {
         for (int spawnIndex = 0; spawnIndex < spawnCount; spawnIndex++)
         {
             Vector2Int chosenCell;
+            bool isWeaponTankSpawn = HasWeaponTankToSpawn(weaponTankPlan, weaponTankPlanIndex);
+            int footprintRadiusInCells = isWeaponTankSpawn ? WeaponTankFootprintRadiusInCells : 0;
 
             bool found = TryPickResourceCellNearCenter(
                 roomSizeInBlocks,
@@ -1872,13 +1891,19 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 distanceFromCorridor,
                 centerCell,
                 _resourceClusterRadiusInCells,
+                footprintRadiusInCells,
                 out chosenCell,
                 random
             );
 
             if (found == false)
             {
-                found = TryPickAnyResourceCell(roomSizeInBlocks, floorOccupancy, distanceFromCorridor, out chosenCell);
+                found = TryPickAnyResourceCell(
+                    roomSizeInBlocks,
+                    floorOccupancy,
+                    distanceFromCorridor,
+                    footprintRadiusInCells,
+                    out chosenCell);
 
                 if (found == false)
                 {
@@ -1886,11 +1911,147 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
             }
 
-            GameObject prefab = WeightedPrefabPicker.PickPrefab(roomTypeProfile.ObjectPrefabs, random);
+            GameObject prefab = PickResourcePrefab(
+                roomTypeProfile,
+                weaponTankPlan,
+                ref weaponTankPlanIndex,
+                random);
             InstantiateObjectOnCell(prefab, chosenCell);
 
-            floorOccupancy.OccupiedFloorCells.Add(chosenCell);
+            MarkResourceFootprintOccupied(
+                floorOccupancy,
+                chosenCell,
+                footprintRadiusInCells,
+                roomSizeInBlocks);
         }
+    }
+
+    private void FillWeaponTankPlan(RoomTypeProfile roomTypeProfile, int combatRoomIndex, List<GameObject> weaponTankPlan, System.Random random)
+    {
+        weaponTankPlan.Clear();
+
+        IReadOnlyList<GameObject> weaponTankPrefabs = roomTypeProfile.WeaponTankPrefabs;
+
+        if (weaponTankPrefabs.Count == 0)
+        {
+            return;
+        }
+
+        if (roomTypeProfile.RoomType == RoomType.Start)
+        {
+            AddWeaponTankIfValid(weaponTankPlan, weaponTankPrefabs[0]);
+
+            return;
+        }
+
+        if (roomTypeProfile.RoomType != RoomType.Combat)
+        {
+            return;
+        }
+
+        int newWeaponIndex = combatRoomIndex;
+
+        if (newWeaponIndex > 0 && newWeaponIndex < weaponTankPrefabs.Count)
+        {
+            AddWeaponTankIfValid(weaponTankPlan, weaponTankPrefabs[newWeaponIndex]);
+        }
+
+        int repeatMaxIndex = newWeaponIndex - 1;
+
+        if (repeatMaxIndex < 0)
+        {
+            repeatMaxIndex = 0;
+        }
+
+        if (repeatMaxIndex >= weaponTankPrefabs.Count)
+        {
+            repeatMaxIndex = weaponTankPrefabs.Count - 1;
+        }
+
+        while (weaponTankPlan.Count < CombatWeaponTankCount)
+        {
+            GameObject repeatPrefab = PickRepeatWeaponTank(weaponTankPrefabs, repeatMaxIndex, random);
+
+            if (repeatPrefab == null)
+            {
+                return;
+            }
+
+            weaponTankPlan.Add(repeatPrefab);
+        }
+    }
+
+    private void AddWeaponTankIfValid(List<GameObject> weaponTankPlan, GameObject prefab)
+    {
+        if (prefab == null)
+        {
+            return;
+        }
+
+        weaponTankPlan.Add(prefab);
+    }
+
+    private GameObject PickRepeatWeaponTank(IReadOnlyList<GameObject> weaponTankPrefabs, int maxIndex, System.Random random)
+    {
+        if (weaponTankPrefabs.Count == 0)
+        {
+            return null;
+        }
+
+        if (maxIndex < 0)
+        {
+            return null;
+        }
+
+        int attemptCount = maxIndex + 1;
+
+        for (int attemptIndex = 0; attemptIndex < attemptCount; attemptIndex++)
+        {
+            int index = random.Next(0, maxIndex + 1);
+            GameObject prefab = weaponTankPrefabs[index];
+
+            if (prefab != null)
+            {
+                return prefab;
+            }
+        }
+
+        for (int index = 0; index <= maxIndex; index++)
+        {
+            GameObject prefab = weaponTankPrefabs[index];
+
+            if (prefab != null)
+            {
+                return prefab;
+            }
+        }
+
+        return null;
+    }
+
+    private GameObject PickResourcePrefab(
+        RoomTypeProfile roomTypeProfile,
+        List<GameObject> weaponTankPlan,
+        ref int weaponTankPlanIndex,
+        System.Random random)
+    {
+        if (weaponTankPlanIndex < weaponTankPlan.Count)
+        {
+            GameObject prefab = weaponTankPlan[weaponTankPlanIndex];
+            weaponTankPlanIndex += 1;
+
+            if (prefab != null)
+            {
+                return prefab;
+            }
+        }
+
+        return WeightedPrefabPicker.PickPrefab(roomTypeProfile.ObjectPrefabs, random);
+    }
+
+    private bool HasWeaponTankToSpawn(List<GameObject> weaponTankPlan, int weaponTankPlanIndex)
+    {
+        return weaponTankPlanIndex < weaponTankPlan.Count;
     }
 
     private bool TryPickResourceCellNearCenter(
@@ -1901,6 +2062,7 @@ public sealed class RoomContentSpawner : MonoBehaviour
         int[,] distanceFromCorridor,
         Vector2Int centerCell,
         int radiusInCells,
+        int footprintRadiusInCells,
         out Vector2Int chosenCell,
         System.Random random
     )
@@ -1921,6 +2083,15 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 }
 
                 if (floorOccupancy.IsFree(candidateCell) == false)
+                {
+                    continue;
+                }
+
+                if (HasResourceFootprintClearance(
+                    candidateCell,
+                    roomSizeInBlocks,
+                    floorOccupancy,
+                    footprintRadiusInCells) == false)
                 {
                     continue;
                 }
@@ -1956,7 +2127,12 @@ public sealed class RoomContentSpawner : MonoBehaviour
         return hasCandidate;
     }
 
-    private bool TryPickAnyResourceCell(Vector3Int roomSizeInBlocks, RoomFloorOccupancy floorOccupancy, int[,] distanceFromCorridor, out Vector2Int chosenCell)
+    private bool TryPickAnyResourceCell(
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        int[,] distanceFromCorridor,
+        int footprintRadiusInCells,
+        out Vector2Int chosenCell)
     {
         for (int cellX = 1; cellX <= roomSizeInBlocks.x - 2; cellX++)
         {
@@ -1965,6 +2141,15 @@ public sealed class RoomContentSpawner : MonoBehaviour
                 Vector2Int cell = new Vector2Int(cellX, cellZ);
 
                 if (floorOccupancy.IsFree(cell) == false)
+                {
+                    continue;
+                }
+
+                if (HasResourceFootprintClearance(
+                    cell,
+                    roomSizeInBlocks,
+                    floorOccupancy,
+                    footprintRadiusInCells) == false)
                 {
                     continue;
                 }
@@ -1981,6 +2166,55 @@ public sealed class RoomContentSpawner : MonoBehaviour
 
         chosenCell = Vector2Int.zero;
         return false;
+    }
+
+    private bool HasResourceFootprintClearance(
+        Vector2Int centerCell,
+        Vector3Int roomSizeInBlocks,
+        RoomFloorOccupancy floorOccupancy,
+        int footprintRadiusInCells)
+    {
+        for (int offsetX = -footprintRadiusInCells; offsetX <= footprintRadiusInCells; offsetX++)
+        {
+            for (int offsetZ = -footprintRadiusInCells; offsetZ <= footprintRadiusInCells; offsetZ++)
+            {
+                Vector2Int cell = new Vector2Int(centerCell.x + offsetX, centerCell.y + offsetZ);
+
+                if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+                {
+                    return false;
+                }
+
+                if (floorOccupancy.IsFree(cell) == false)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private void MarkResourceFootprintOccupied(
+        RoomFloorOccupancy floorOccupancy,
+        Vector2Int centerCell,
+        int footprintRadiusInCells,
+        Vector3Int roomSizeInBlocks)
+    {
+        for (int offsetX = -footprintRadiusInCells; offsetX <= footprintRadiusInCells; offsetX++)
+        {
+            for (int offsetZ = -footprintRadiusInCells; offsetZ <= footprintRadiusInCells; offsetZ++)
+            {
+                Vector2Int cell = new Vector2Int(centerCell.x + offsetX, centerCell.y + offsetZ);
+
+                if (IsInteriorCell(cell, roomSizeInBlocks) == false)
+                {
+                    continue;
+                }
+
+                floorOccupancy.OccupiedFloorCells.Add(cell);
+            }
+        }
     }
 
     private void BuildGroundPatrol(

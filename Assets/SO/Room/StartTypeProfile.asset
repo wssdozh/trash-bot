@@ -28,11 +28,13 @@ MonoBehaviour:
   - _prefab: {fileID: 9099302578165322558, guid: c263a60feeb848cab3c5010b7fdaf761, type: 3}
     _weight: 1
     _guaranteed: 0
+  _weaponTankPrefabs:
+  - {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
   _nookPrefabs:
   - _prefab: {fileID: 7892580720158080282, guid: addeefd9c1e347a7963d11534bb63206, type: 3}
     _weight: 1
-    _guaranteed: 1
-    _countRange: {x: 1, y: 1}
+    _guaranteed: 0
+    _countRange: {x: 0, y: 0}
     _minimumDistanceFromCorridorInCells: 0
     _wallMarginInCells: 2
     _footprintRadiusInCells: 1
