@@ -61,6 +61,11 @@ public class PlayerInventory : MonoBehaviour
 
     public bool TryUseActiveItem()
     {
+        if (_berryWallet.IsConsumeCoolingDown)
+        {
+            return false;
+        }
+
         if (_berryWallet.TryConsume(_effects))
         {
             return true;

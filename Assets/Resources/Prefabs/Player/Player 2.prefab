@@ -488,6 +488,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BerryWalletView
   _wallet: {fileID: 6083419805603412347}
+  _cooldownSourceImage: {fileID: 910200000000000053}
   _berriesText: {fileID: 910200000000000043}
 --- !u!1 &910200000000000050
 GameObject:
