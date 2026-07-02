@@ -49,33 +49,6 @@ Oreshkes - это небольшой, но плотный roguelike-проект
 - HUD, меню, настройки и визуальные эффекты, собранные под цельный игровой поток.
 - Босс-экскаватор как отдельная кульминация текущего прототипа.
 
-## Release
-
-Актуальные игровые билды лучше выкладывать через [GitHub Releases](https://github.com/wssdozh/oreshkes/releases).
-
-Хороший релиз для проекта выглядит так:
-
-- Tag: `v0.1.0`, `v0.2.0`, `v0.3.0`.
-- Title: `Oreshkes Prototype v0.1.0`.
-- Asset: архив билда, например `Oreshkes_Windows_v0.1.0.zip`.
-- Notes: 3-5 коротких строк о главном в версии, без технической простыни.
-
-Пример структуры release notes:
-
-```md
-## Oreshkes Prototype v0.1.0
-
-Первый публичный билд top-down roguelike-прототипа.
-
-### In This Build
-- Процедурные комнаты и боевые столкновения.
-- Несколько типов оружия и модификаторов.
-- Pickups, магазин, HUD и boss encounter.
-
-### Download
-- Windows: `Oreshkes_Windows_v0.1.0.zip`
-```
-
 ## Tech
 
 - Unity `6000.2.8f1`
