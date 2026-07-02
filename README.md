@@ -77,5 +77,3 @@ Oreshkes - это небольшой, но плотный action-проект с
 
 - Главная ветка: `main`.
 - Актуальная рабочая линия также сохранена в `backup/create-fire-executor-post-lfs-rewritten`.
-- Старый `main` перед выравниванием сохранён в `backup/old-main-before-main-realign`.
-- Подробная заметка по состоянию веток лежит в `Docs/GitHubMaintenance.md`.
