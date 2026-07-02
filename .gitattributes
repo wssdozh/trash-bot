@@ -3,3 +3,4 @@
 Assets/Resources/Audio/Imported/Ambience/RainThunder/RAIN_Rain[[:space:]]at[[:space:]]Night[[:space:]]Slow[[:space:]]Crescendo[[:space:]]Calm[[:space:]]Suburban_BOLT_BackyardRain_UsiPro.wav filter=lfs diff=lfs merge=lfs -text
 Assets/Resources/Audio/Imported/Ambience/UrbanBerlin/AMBUrbn_Berlin[[:space:]]Balcony[[:space:]]Late[[:space:]]Afternoon[[:space:]]Walla[[:space:]]Ambulance[[:space:]]Public[[:space:]]Transport[[:space:]]Church[[:space:]]Bells_BOLT_Berlin[[:space:]]Vignettes_H1[[:space:]]9624.wav filter=lfs diff=lfs merge=lfs -text
 Assets/Resources/Audio/Imported/Enemies/Drone/GeoDrone/DSGNDron_Geofon05_InMotionAudio_GEODRONE.wav filter=lfs diff=lfs merge=lfs -text
+Media/*.mp4 filter=lfs diff=lfs merge=lfs -text
