@@ -31,7 +31,7 @@ https://github.com/wssdozh/oreshkes/assets/.../demo.mp4
 
 | Gameplay | Boss / Progression |
 | --- | --- |
-| ![Gameplay screenshot](Docs/Media/screenshot-gameplay.png) | ![Boss screenshot](Docs/Media/screenshot-boss.png) |
+| ![Gameplay screenshot](Media/screenshot-gameplay.png) | ![Boss screenshot](Media/screenshot-boss.png) |
 -->
 
 ## About
